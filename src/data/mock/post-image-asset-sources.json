@@ -1,0 +1,9 @@
+{
+  "note_ko": "시드·샘플 포스트 이미지는 모두 public/mock/posts 아래 강남·광화문 풀(scripts/scan-post-local-images.mjs 스캔)에서 선택합니다. 서비스 샘플 오버레이에서 이전에 쓰이던 외부(Unsplash) URL은 제거되었습니다.",
+  "hero_covers": "demoPickLocal(visualBucket, hash(postId:title))",
+  "spot_images": "localPair(postId, bucket, salt) → /mock/posts/* 2장",
+  "non_sample_covers": "demoPickLocal(classifyPostVisualBucket(post), hash(postId))",
+  "web_download_pct": 0,
+  "generated_pct": 0,
+  "local_pool_pct": 100
+}

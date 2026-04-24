@@ -1,0 +1,17 @@
+{
+  "mg01": ["/mock/posts/광화문_008.jpg", "/mock/posts/광화문_022.jpg", "/mock/posts/광화문_028.jpg"],
+  "mg02": ["/mock/posts/광화문_003.jpg", "/mock/posts/광화문_012.jpg"],
+  "mg03": ["/mock/posts/강남_001.jpg", "/mock/posts/강남_010.jpg", "/mock/posts/강남_020.jpg"],
+  "mg04": ["/mock/posts/광화문_014.jpg", "/mock/posts/광화문_025.jpg"],
+  "mg05": ["/mock/posts/강남_005.jpg", "/mock/posts/강남_015.jpg", "/mock/posts/강남_025.jpg"],
+  "mg06": ["/mock/posts/광화문_011.jpg", "/mock/posts/광화문_024.jpg"],
+  "mg07": ["/mock/posts/강남_008.jpg", "/mock/posts/강남_018.jpg"],
+  "mg08": ["/mock/posts/광화문_030.jpg", "/mock/posts/광화문_032.jpg", "/mock/posts/광화문_035.jpg"],
+  "mg09": ["/mock/posts/강남_011.jpg", "/mock/posts/강남_022.jpg"],
+  "mg10": ["/mock/posts/광화문_005.jpg", "/mock/posts/광화문_012.jpg", "/mock/posts/광화문_026.jpg"],
+  "mg11": ["/mock/posts/강남_002.jpg", "/mock/posts/강남_014.jpg"],
+  "mg12": ["/mock/posts/광화문_022.jpg", "/mock/posts/광화문_028.jpg", "/mock/posts/광화문_033.jpg"],
+  "mg13": ["/mock/posts/강남_007.jpg", "/mock/posts/강남_016.jpg"],
+  "mg14": ["/mock/posts/광화문_008.jpg", "/mock/posts/광화문_027.jpg", "/mock/posts/광화문_034.jpg"],
+  "mg15": ["/mock/posts/강남_001.jpg", "/mock/posts/강남_010.jpg", "/mock/posts/강남_020.jpg"]
+}
