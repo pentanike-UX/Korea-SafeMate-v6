@@ -17,7 +17,6 @@ type SpotInput = {
 
 type Body = {
   booking_id?: string;
-  order_id?: string;
   title_ko?: string | null;
   title_en?: string | null;
   title_th?: string | null;
@@ -77,9 +76,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const bookingId = sanitizeTxt(body.booking_id) ?? sanitizeTxt(body.order_id);
+  const bookingId = sanitizeTxt(body.booking_id);
   if (!isUuid(bookingId)) {
-    return NextResponse.json({ error: "booking_id (or order_id) must be UUID" }, { status: 400 });
+    return NextResponse.json({ error: "booking_id must be UUID" }, { status: 400 });
   }
 
   const rawSpots = Array.isArray(body.spots) ? body.spots : [];
@@ -103,7 +102,7 @@ export async function POST(req: Request) {
 
   const { data: booking, error: bookingErr } = await sb
     .from("bookings")
-    .select("id, guardian_user_id")
+    .select("id, guardian_user_id, status, revision_count, max_revisions")
     .eq("id", bookingId)
     .maybeSingle();
   if (bookingErr || !booking) {
@@ -111,6 +110,16 @@ export async function POST(req: Request) {
   }
   if (booking.guardian_user_id !== user.id) {
     return NextResponse.json({ error: "Forbidden: this booking is not assigned to current guardian" }, { status: 403 });
+  }
+
+  const bookingStatus = (booking.status as string | null) ?? null;
+  const revisionCount = (booking.revision_count as number | null) ?? 0;
+  const maxRevisions = (booking.max_revisions as number | null) ?? 1;
+  if (maxRevisions < 0 || revisionCount < 0 || revisionCount > maxRevisions) {
+    return NextResponse.json(
+      { error: "Invalid revision policy state", revision_count: revisionCount, max_revisions: maxRevisions },
+      { status: 409 },
+    );
   }
 
   const uniqueSpotIds = [...new Set(rawSpots.map((s) => s.spot_id))];
@@ -207,8 +216,12 @@ export async function POST(req: Request) {
   return NextResponse.json({
     ok: true,
     route_id: routeId,
-    order_id: bookingId,
+    booking_id: bookingId,
     route_spot_count: routeSpots.length,
     booking_status: "delivered",
+    revision_count: revisionCount,
+    max_revisions: maxRevisions,
+    revision_policy_state: revisionCount >= maxRevisions ? "limit_reached" : "open",
+    delivery_mode: bookingStatus === "revision_requested" ? "revision_delivery" : "initial_delivery",
   });
 }

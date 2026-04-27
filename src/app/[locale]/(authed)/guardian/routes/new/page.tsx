@@ -4,7 +4,6 @@ import { getServerSupabaseForUser } from "@/lib/supabase/server-user";
 type Props = {
   searchParams: Promise<{
     booking_id?: string;
-    order_id?: string;
   }>;
 };
 
@@ -35,7 +34,7 @@ export default async function GuardianRouteNewPage({ searchParams }: Props) {
     searchParams,
     sb
       .from("bookings")
-      .select("id, status, tier, requested_start")
+      .select("id, status, tier, requested_start, revision_count, max_revisions")
       .eq("guardian_user_id", user.id)
       .order("updated_at", { ascending: false })
       .limit(30),
@@ -47,15 +46,14 @@ export default async function GuardianRouteNewPage({ searchParams }: Props) {
       .limit(200),
   ]);
 
-  const initialBookingId =
-    typeof sp.booking_id === "string" ? sp.booking_id : typeof sp.order_id === "string" ? sp.order_id : null;
+  const initialBookingId = typeof sp.booking_id === "string" ? sp.booking_id : null;
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold">가디언 루트 전달</h1>
         <p className="text-sm text-muted-foreground">
-          예약(=order_id/booking_id)에 연결된 커스텀 루트를 생성하고 `route_spots`를 순서대로 저장합니다.
+          예약(booking_id)에 연결된 커스텀 루트를 생성하고 `route_spots`를 순서대로 저장합니다.
         </p>
       </div>
 

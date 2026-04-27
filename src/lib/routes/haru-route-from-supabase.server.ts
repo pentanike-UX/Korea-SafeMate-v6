@@ -175,6 +175,7 @@ export function mapRouteRowToHaruRoute(
 
 export type TravelerRouteListItem = {
   id: string;
+  order_id: string | null;
   title_ko: string | null;
   title_en: string | null;
   title_th: string | null;
@@ -183,6 +184,11 @@ export type TravelerRouteListItem = {
   status: string;
   updated_at: string;
   total_duration_min: number | null;
+  booking_status: string | null;
+  delivered_at: string | null;
+  revision_count: number;
+  max_revisions: number;
+  revision_requested_at: string | null;
 };
 
 /** RLS: 커스텀 루트 중 본인 예약(`order_id` = `bookings.id`)에 연결된 행만 반환. */
@@ -191,13 +197,63 @@ export async function listTravelerPurchasedRoutes(
 ): Promise<TravelerRouteListItem[]> {
   const { data, error } = await supabase
     .from("routes")
-    .select("id, title_ko, title_en, title_th, title_vi, cover_image_url, status, updated_at, total_duration_min")
+    .select("id, order_id, title_ko, title_en, title_th, title_vi, cover_image_url, status, updated_at, total_duration_min")
     .eq("route_type", "custom")
     .is("deleted_at", null)
     .order("updated_at", { ascending: false });
 
   if (error || !data) return [];
-  return data as TravelerRouteListItem[];
+  const rows = data as Array<{
+    id: string;
+    order_id: string | null;
+    title_ko: string | null;
+    title_en: string | null;
+    title_th: string | null;
+    title_vi: string | null;
+    cover_image_url: string | null;
+    status: string;
+    updated_at: string;
+    total_duration_min: number | null;
+  }>;
+
+  const bookingIds = [...new Set(rows.map((r) => r.order_id).filter((id): id is string => Boolean(id)))];
+  const bookingMeta = new Map<
+    string,
+    {
+      status: string | null;
+      delivered_at: string | null;
+      revision_count: number;
+      max_revisions: number;
+      revision_requested_at: string | null;
+    }
+  >();
+  if (bookingIds.length > 0) {
+    const { data: bookings } = await supabase
+      .from("bookings")
+      .select("id, status, delivered_at, revision_count, max_revisions, revision_requested_at")
+      .in("id", bookingIds);
+    for (const b of bookings ?? []) {
+      bookingMeta.set(b.id as string, {
+        status: (b.status as string | null) ?? null,
+        delivered_at: (b.delivered_at as string | null) ?? null,
+        revision_count: (b.revision_count as number | null) ?? 0,
+        max_revisions: (b.max_revisions as number | null) ?? 1,
+        revision_requested_at: (b.revision_requested_at as string | null) ?? null,
+      });
+    }
+  }
+
+  return rows.map((r) => {
+    const bm = r.order_id ? bookingMeta.get(r.order_id) : undefined;
+    return {
+      ...r,
+      booking_status: bm?.status ?? null,
+      delivered_at: bm?.delivered_at ?? null,
+      revision_count: bm?.revision_count ?? 0,
+      max_revisions: bm?.max_revisions ?? 1,
+      revision_requested_at: bm?.revision_requested_at ?? null,
+    };
+  });
 }
 
 export type FetchedHaruBundle = {

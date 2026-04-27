@@ -10,6 +10,8 @@ type BookingOption = {
   status: string;
   tier: string | null;
   requested_start: string | null;
+  revision_count: number | null;
+  max_revisions: number | null;
 };
 
 type SpotOption = {
@@ -59,6 +61,10 @@ export function GuardianRouteDeliveryForm({
   const spotById = useMemo(() => new Map(spots.map((s) => [s.id, s])), [spots]);
   const selectedIdSet = useMemo(() => new Set(selected.map((s) => s.spot_id)), [selected]);
   const availableSpots = useMemo(() => spots.filter((s) => !selectedIdSet.has(s.id)), [spots, selectedIdSet]);
+  const activeBooking = useMemo(() => bookings.find((b) => b.id === bookingId) ?? null, [bookings, bookingId]);
+  const activeRevisionCount = activeBooking?.revision_count ?? 0;
+  const activeMaxRevisions = activeBooking?.max_revisions ?? 1;
+  const revisionPolicyBroken = activeRevisionCount < 0 || activeRevisionCount > activeMaxRevisions;
 
   function addSpot(id: string) {
     const spot = spotById.get(id);
@@ -102,6 +108,10 @@ export function GuardianRouteDeliveryForm({
       setError("예약(booking)을 선택해 주세요.");
       return;
     }
+    if (revisionPolicyBroken) {
+      setError("해당 예약의 revision 정책 값이 비정상입니다. 관리자에게 문의해 주세요.");
+      return;
+    }
     if (selected.length === 0) {
       setError("최소 1개 이상의 스팟이 필요합니다.");
       return;
@@ -109,7 +119,7 @@ export function GuardianRouteDeliveryForm({
     setSaving(true);
     try {
       const payload = {
-        order_id: bookingId,
+        booking_id: bookingId,
         title_ko: titleKo,
         title_en: titleEn,
         status,
@@ -161,10 +171,17 @@ export function GuardianRouteDeliveryForm({
         >
           {bookings.map((b) => (
             <option key={b.id} value={b.id}>
-              {b.id.slice(0, 8)}... · {b.status} · {b.tier ?? "tier-unknown"} · {fmtDate(b.requested_start)}
+              {b.id.slice(0, 8)}... · {b.status} · {b.tier ?? "tier-unknown"} · {fmtDate(b.requested_start)} · rev{" "}
+              {b.revision_count ?? 0}/{b.max_revisions ?? 1}
             </option>
           ))}
         </select>
+        {activeBooking ? (
+          <p className="text-xs text-muted-foreground">
+            revision 정책: {activeRevisionCount}/{activeMaxRevisions}
+            {activeBooking.status === "revision_requested" ? " (수정 재전달 모드)" : " (초기 전달 모드)"}
+          </p>
+        ) : null}
       </section>
 
       <section className="space-y-3 rounded-xl border border-border/70 p-4">
@@ -300,7 +317,7 @@ export function GuardianRouteDeliveryForm({
       ) : null}
 
       <div className="flex items-center gap-2">
-        <Button type="button" className="rounded-xl" disabled={saving} onClick={() => void submit()}>
+        <Button type="button" className="rounded-xl" disabled={saving || revisionPolicyBroken} onClick={() => void submit()}>
           {saving ? "저장 중..." : "루트 전달 저장"}
         </Button>
         <Button asChild type="button" variant="outline" className="rounded-xl">

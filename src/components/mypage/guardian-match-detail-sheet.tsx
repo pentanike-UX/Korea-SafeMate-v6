@@ -103,7 +103,7 @@ export function GuardianMatchDetailSheetTrigger({
             {row.status === "requested" ? <GuardianMatchAcceptButton matchId={row.id} onSuccess={() => setOpen(false)} /> : null}
             {row.booking_id ? (
               <Button asChild variant="outline" size="sm" className="h-9 rounded-lg">
-                <Link href={`/guardian/routes/new?order_id=${encodeURIComponent(row.booking_id)}`} onClick={() => setOpen(false)}>
+                <Link href={`/guardian/routes/new?booking_id=${encodeURIComponent(row.booking_id)}`} onClick={() => setOpen(false)}>
                   루트 전달 작성
                 </Link>
               </Button>

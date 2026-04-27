@@ -27,6 +27,16 @@ function pickTitle(
   return (v ?? row.title_en ?? row.title_ko ?? "Route").trim() || "Route";
 }
 
+function formatDateTime(iso: string | null, locale: string): string {
+  if (!iso) return "-";
+  const l = locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : locale === "th" ? "th-TH" : "en-US";
+  try {
+    return new Intl.DateTimeFormat(l, { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+
 export default async function TravelerMyRoutesPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: localeParam } = await params;
   const locale = localeParam || "en";
@@ -70,6 +80,17 @@ export default async function TravelerMyRoutesPage({ params }: { params: Promise
                     <div className="min-w-0">
                       <p className="font-semibold text-foreground">{title}</p>
                       <p className="text-muted-foreground mt-1 text-xs capitalize">{r.status}</p>
+                      <div className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                        <p>
+                          {t("myRoutesDeliveredAtLabel")}: {formatDateTime(r.delivered_at, locale)}
+                        </p>
+                        <p>
+                          {t("myRoutesRevisionLabel", { count: r.revision_count, max: r.max_revisions })} ·{" "}
+                          {r.revision_requested_at
+                            ? t("myRoutesRevisionPending")
+                            : t("myRoutesRevisionReady")}
+                        </p>
+                      </div>
                     </div>
                     <span className="text-primary shrink-0 text-sm font-medium">{t("myRoutesOpen")}</span>
                   </div>
