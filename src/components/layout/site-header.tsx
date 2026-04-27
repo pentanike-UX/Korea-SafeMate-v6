@@ -8,23 +8,21 @@ import { useAuthUser } from "@/hooks/use-auth-user";
 import { useHomeHeaderContrast } from "@/hooks/use-home-header-contrast";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Compass, FileText, Home, Info, Menu, Users } from "lucide-react";
+import { BookOpen, Compass, DollarSign, Home, Info, Menu, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const NAV: { href: string; msgKey: "home" | "explore" | "posts" | "guardians" | "about"; Icon: LucideIcon }[] = [
+const NAV: { href: string; msgKey: "home" | "explore" | "howItWorks" | "pricing" | "forGuardians" | "about"; Icon: LucideIcon }[] = [
   { href: "/", msgKey: "home", Icon: Home },
   { href: "/explore", msgKey: "explore", Icon: Compass },
-  { href: "/posts", msgKey: "posts", Icon: FileText },
-  { href: "/guardians", msgKey: "guardians", Icon: Users },
+  { href: "/how-it-works", msgKey: "howItWorks", Icon: BookOpen },
+  { href: "/pricing", msgKey: "pricing", Icon: DollarSign },
+  { href: "/for-guardians", msgKey: "forGuardians", Icon: Users },
   { href: "/about", msgKey: "about", Icon: Info },
 ];
 
 function isNavActive(href: string, pathname: string) {
   if (href === "/") return pathname === "/" || pathname === "";
-  if (href === "/guardians") return pathname === "/guardians" || pathname.startsWith("/guardians/");
-  if (href === "/explore") return pathname === "/explore" || pathname.startsWith("/explore/");
-  if (href === "/posts") return pathname === "/posts" || pathname.startsWith("/posts/");
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
