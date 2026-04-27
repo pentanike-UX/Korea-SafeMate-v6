@@ -39,12 +39,12 @@ export default function GuardianHubPage() {
         <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-sm)]">
           <CardHeader>
             <FileText className="text-primary size-8" strokeWidth={1.5} aria-hidden />
-            <CardTitle className="text-lg">Posts</CardTitle>
-            <CardDescription>Drafts, publishing, and previews.</CardDescription>
+            <CardTitle className="text-lg">Routes</CardTitle>
+            <CardDescription>커스텀 루트 전달/수정 워크스페이스.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild className="rounded-xl font-semibold">
-              <Link href="/mypage/guardian/posts">Open posts</Link>
+              <Link href="/guardian/routes">Open routes</Link>
             </Button>
           </CardContent>
         </Card>
@@ -52,12 +52,12 @@ export default function GuardianHubPage() {
         <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-sm)]">
           <CardHeader>
             <Shield className="text-primary size-8" strokeWidth={1.5} aria-hidden />
-            <CardTitle className="text-lg">Matches</CardTitle>
-            <CardDescription>Review traveler matches when enabled.</CardDescription>
+            <CardTitle className="text-lg">Orders</CardTitle>
+            <CardDescription>받은 의뢰와 수정 요청 워크스페이스.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild variant="secondary" className="rounded-xl font-semibold">
-              <Link href="/mypage/guardian/matches">Open matches</Link>
+              <Link href="/guardian/orders">Open orders</Link>
             </Button>
           </CardContent>
         </Card>
@@ -65,12 +65,12 @@ export default function GuardianHubPage() {
         <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-sm)]">
           <CardHeader>
             <LayoutDashboard className="text-primary size-8" strokeWidth={1.5} aria-hidden />
-            <CardTitle className="text-lg">Classic dashboard</CardTitle>
-            <CardDescription>Legacy mock overview (preview mode).</CardDescription>
+            <CardTitle className="text-lg">Earnings</CardTitle>
+            <CardDescription>주문 결제/정산 수익 현황.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline" className="rounded-xl">
-              <Link href="/guardian/dashboard">Open dashboard</Link>
+              <Link href="/guardian/earnings">Open earnings</Link>
             </Button>
           </CardContent>
         </Card>
