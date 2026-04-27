@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { AuthPageFrame } from "@/components/auth/auth-page-frame";
-import { LoginCardClient } from "@/components/auth/login-card-client";
-import { MockGuardianQuickLogin } from "@/components/auth/mock-guardian-quick-login";
+import { SignupCardClient } from "@/components/auth/signup-card-client";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
 import { withLocalePath } from "@/lib/auth/route-path";
 import { BRAND } from "@/lib/constants";
@@ -12,16 +11,16 @@ import { getServerSupabaseForUser } from "@/lib/supabase/server-user";
 export async function generateMetadata() {
   const t = await getTranslations("Auth");
   return {
-    title: `${t("login.metaTitle")} | ${BRAND.name}`,
+    title: `${t("signup.metaTitle")} | ${BRAND.name}`,
   };
 }
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ error?: string; next?: string | string[] }>;
+  searchParams: Promise<{ next?: string | string[] }>;
 };
 
-export default async function LoginPage({ params, searchParams }: Props) {
+export default async function SignupPage({ params, searchParams }: Props) {
   const { locale: localeParam } = await params;
   const locale = routing.locales.includes(localeParam as AppLocale) ? (localeParam as AppLocale) : routing.defaultLocale;
   const t = await getTranslations("Auth");
@@ -40,9 +39,8 @@ export default async function LoginPage({ params, searchParams }: Props) {
   }
 
   return (
-    <AuthPageFrame title={t("login.title")} description={t("login.description")}>
-      <LoginCardClient nextPath={safeNext} />
-      <MockGuardianQuickLogin className="mt-6" />
+    <AuthPageFrame title={t("signup.title")} description={t("signup.description")}>
+      <SignupCardClient nextPath={safeNext} />
     </AuthPageFrame>
   );
 }

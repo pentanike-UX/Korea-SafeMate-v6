@@ -829,7 +829,8 @@
     "postFormatRoute": "ルート",
     "postFormatSpot": "スポット",
     "postFormatArticle": "インサイト",
-    "stopsLabel": "{count} スポット"
+    "stopsLabel": "{count} スポット",
+    "viewSampleRoute": "サンプルルートをプレビュー"
   },
   "GuardianRequest": {
     "openCta": "リクエスト",
@@ -1739,5 +1740,84 @@
     "faq_q3": "How long does it take?",
     "faq_a3": "Most routes are ready within 24–72 hours after your request is accepted.",
     "bottom_cta": "Not sure which tier? Start with Standard."
+  },
+  "Auth": {
+    "common": {
+      "divider": "or",
+      "and": "and",
+      "loading": "Loading..."
+    },
+    "error": {
+      "invalidEmail": "Please enter a valid email address.",
+      "rateLimit": "Too many attempts. Please try again shortly.",
+      "network": "Network error. Please check your connection and retry.",
+      "loginFailed": "Login request failed. Please try again.",
+      "signupFailed": "Signup request failed. Please try again.",
+      "emailExists": "This email already exists. Please log in instead."
+    },
+    "login": {
+      "metaTitle": "Log in",
+      "title": "Log in",
+      "description": "Sign in with your email or Google account.",
+      "travelerTab": "Traveler",
+      "guardianTab": "Guardian",
+      "guardianHint": "Guardians use the same login flow. If you are new, apply first and then continue with this login.",
+      "guardianCta": "Apply as Guardian",
+      "emailPlaceholder": "your@email.com",
+      "emailButton": "Continue with email",
+      "otpSent": "Check your inbox. We sent a secure sign-in link.",
+      "signupPrompt": "Don't have an account?",
+      "signupLink": "Sign up"
+    },
+    "signup": {
+      "metaTitle": "Sign up",
+      "title": "Get started",
+      "description": "Create your Traveler account in one step.",
+      "namePlaceholder": "Enter your name",
+      "emailPlaceholder": "your@email.com",
+      "emailButton": "Sign up with email",
+      "termsLabel": "I agree to the",
+      "termsLink": "Terms of Service",
+      "privacyLink": "Privacy Policy",
+      "loginPrompt": "Already have an account?",
+      "loginLink": "Log in",
+      "nameRequired": "Please enter your name.",
+      "termsRequired": "You must agree to the terms before continuing.",
+      "otpSent": "Check your inbox. We sent a confirmation link."
+    },
+    "onboarding": {
+      "metaTitle": "Onboarding",
+      "title": "Let's personalize your trip",
+      "description": "Tell us your language, country, and travel intent.",
+      "stepIndicator": "Step {current} of {total}",
+      "step1Title": "Which language is most comfortable for you?",
+      "lang": {
+        "th": "Thai",
+        "vi": "Vietnamese",
+        "en": "English",
+        "ko": "Korean"
+      },
+      "step2Title": "Where are you visiting from?",
+      "countryPlaceholder": "Select your country",
+      "country": {
+        "TH": "Thailand",
+        "VN": "Vietnam",
+        "ID": "Indonesia",
+        "PH": "Philippines",
+        "MY": "Malaysia",
+        "JP": "Japan",
+        "US": "United States",
+        "KR": "Korea"
+      },
+      "step3Title": "Is this your first trip to Korea?",
+      "firstVisit": "Yes, it's my first time",
+      "returningVisit": "No, I've visited before",
+      "prev": "Previous",
+      "next": "Next",
+      "finish": "Finish",
+      "skip": "Skip for now",
+      "saveFailed": "Could not save onboarding information. Please try again.",
+      "skipFailed": "Could not skip onboarding. Please try again."
+    }
   }
 }

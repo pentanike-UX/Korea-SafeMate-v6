@@ -829,7 +829,8 @@
     "postFormatRoute": "루트",
     "postFormatSpot": "스팟",
     "postFormatArticle": "인사이트",
-    "stopsLabel": "스팟 {count}곳"
+    "stopsLabel": "스팟 {count}곳",
+    "viewSampleRoute": "샘플 루트 미리보기"
   },
   "GuardianRequest": {
     "openCta": "요청하기",
@@ -1739,5 +1740,84 @@
     "faq_q3": "How long does it take?",
     "faq_a3": "Most routes are ready within 24–72 hours after your request is accepted.",
     "bottom_cta": "Not sure which tier? Start with Standard."
+  },
+  "Auth": {
+    "common": {
+      "divider": "또는",
+      "and": "및",
+      "loading": "처리 중..."
+    },
+    "error": {
+      "invalidEmail": "올바른 이메일 형식을 입력해 주세요.",
+      "rateLimit": "요청이 많습니다. 잠시 후 다시 시도해 주세요.",
+      "network": "네트워크 오류가 발생했습니다. 연결 상태를 확인해 주세요.",
+      "loginFailed": "로그인 요청에 실패했습니다. 다시 시도해 주세요.",
+      "signupFailed": "가입 요청에 실패했습니다. 다시 시도해 주세요.",
+      "emailExists": "이미 가입된 이메일입니다. 로그인해 주세요."
+    },
+    "login": {
+      "metaTitle": "로그인",
+      "title": "로그인",
+      "description": "이메일 또는 Google 계정으로 로그인하세요.",
+      "travelerTab": "Traveler",
+      "guardianTab": "Guardian",
+      "guardianHint": "Guardian도 동일한 로그인 경로를 사용합니다. 신규 신청자는 먼저 지원 후 로그인해 주세요.",
+      "guardianCta": "가디언 지원하기",
+      "emailPlaceholder": "your@email.com",
+      "emailButton": "이메일로 로그인",
+      "otpSent": "이메일을 확인해 주세요. 로그인 링크를 보냈습니다.",
+      "signupPrompt": "계정이 없으신가요?",
+      "signupLink": "가입하기"
+    },
+    "signup": {
+      "metaTitle": "가입",
+      "title": "시작하기",
+      "description": "Traveler 계정을 빠르게 생성할 수 있어요.",
+      "namePlaceholder": "이름을 입력해 주세요",
+      "emailPlaceholder": "your@email.com",
+      "emailButton": "이메일로 가입",
+      "termsLabel": "다음에 동의합니다:",
+      "termsLink": "이용약관",
+      "privacyLink": "개인정보 처리방침",
+      "loginPrompt": "이미 계정이 있으신가요?",
+      "loginLink": "로그인",
+      "nameRequired": "이름을 입력해 주세요.",
+      "termsRequired": "계속하려면 약관 동의가 필요합니다.",
+      "otpSent": "이메일을 확인해 주세요. 가입 확인 링크를 보냈습니다."
+    },
+    "onboarding": {
+      "metaTitle": "온보딩",
+      "title": "여행 맞춤 설정",
+      "description": "언어, 국가, 여행 의도를 알려주세요.",
+      "stepIndicator": "{total}단계 중 {current}단계",
+      "step1Title": "어떤 언어가 가장 편하세요?",
+      "lang": {
+        "th": "태국어",
+        "vi": "베트남어",
+        "en": "영어",
+        "ko": "한국어"
+      },
+      "step2Title": "어느 나라에서 오셨나요?",
+      "countryPlaceholder": "국가를 선택해 주세요",
+      "country": {
+        "TH": "태국",
+        "VN": "베트남",
+        "ID": "인도네시아",
+        "PH": "필리핀",
+        "MY": "말레이시아",
+        "JP": "일본",
+        "US": "미국",
+        "KR": "대한민국"
+      },
+      "step3Title": "한국 여행이 처음인가요?",
+      "firstVisit": "네, 처음이에요",
+      "returningVisit": "아니요, 와본 적 있어요",
+      "prev": "이전",
+      "next": "다음",
+      "finish": "완료",
+      "skip": "나중에 설정",
+      "saveFailed": "온보딩 정보를 저장하지 못했습니다. 다시 시도해 주세요.",
+      "skipFailed": "온보딩 건너뛰기에 실패했습니다. 다시 시도해 주세요."
+    }
   }
 }

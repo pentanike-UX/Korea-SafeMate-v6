@@ -8,6 +8,7 @@ import {
   type GuardianProfileStatus,
 } from "@/lib/auth/guardian-profile-status";
 import { isPrivilegedAppRole } from "@/lib/auth/app-role";
+import { safeNextPath } from "@/lib/auth/safe-next-path";
 import { loginPathWithNext, stripLocaleFromPathname, withLocalePath } from "@/lib/auth/route-path";
 import {
   getGuardianSeedRow,
@@ -23,6 +24,7 @@ type AccessCtx = {
   user: { id: string } | null;
   appRole: AppAccountRole | null;
   guardianStatus: GuardianProfileStatus;
+  onboarded: boolean;
 };
 
 function createSupabaseForResponse(request: NextRequest, response: NextResponse) {
@@ -52,20 +54,22 @@ async function loadAccessContext(request: NextRequest, response: NextResponse): 
         user: { id: mockRaw },
         appRole: "guardian",
         guardianStatus: lifecycleToGuardianProfileStatus(row.lifecycle_status),
+        onboarded: true,
       };
     }
   }
 
   const sb = createSupabaseForResponse(request, response);
-  if (!sb) return { user: null, appRole: null, guardianStatus: "none" };
+  if (!sb) return { user: null, appRole: null, guardianStatus: "none", onboarded: false };
 
   const {
     data: { user },
   } = await sb.auth.getUser();
-  if (!user) return { user: null, appRole: null, guardianStatus: "none" };
+  if (!user) return { user: null, appRole: null, guardianStatus: "none", onboarded: false };
 
-  const { data: urow } = await sb.from("users").select("app_role").eq("id", user.id).maybeSingle();
+  const { data: urow } = await sb.from("users").select("app_role, onboarded").eq("id", user.id).maybeSingle();
   const appRole = (urow?.app_role as AppAccountRole | null) ?? null;
+  const onboarded = urow?.onboarded === true;
 
   const { data: gp } = await sb
     .from("guardian_profiles")
@@ -88,7 +92,7 @@ async function loadAccessContext(request: NextRequest, response: NextResponse): 
     }
   }
 
-  return { user, appRole, guardianStatus };
+  return { user, appRole, guardianStatus, onboarded };
 }
 
 function copyCookies(from: NextResponse, to: NextResponse) {
@@ -184,6 +188,26 @@ export default async function proxy(request: NextRequest) {
 
   const intlResponse = intlMiddleware(request);
   const ctx = await loadAccessContext(request, intlResponse);
+  const safeNext = safeNextPath(request.nextUrl.searchParams.get("next"));
+
+  if (pathWo === "/login" || pathWo === "/signup") {
+    if (ctx.user) {
+      return redirectWithSession(request, intlResponse, safeNext ?? withLocalePath(locale, "/explore"));
+    }
+  }
+
+  if (pathWo === "/onboarding") {
+    if (!ctx.user) {
+      return redirectWithSession(
+        request,
+        intlResponse,
+        loginPathWithNext(request.nextUrl.pathname, request.nextUrl.search, locale),
+      );
+    }
+    if (ctx.onboarded) {
+      return redirectWithSession(request, intlResponse, safeNext ?? withLocalePath(locale, "/explore"));
+    }
+  }
 
   if (pathWo.startsWith("/mypage/guardian")) {
     if (!ctx.user) {

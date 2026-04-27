@@ -2,6 +2,7 @@ import { createServerClient, type SetAllCookies } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
+import { syncEmailUserFromSession } from "@/lib/auth/sync-email-user";
 import { syncOAuthUserFromSession } from "@/lib/auth/sync-oauth-user";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 import { resolveOAuthRedirectBase } from "@/lib/site-url";
@@ -54,7 +55,12 @@ export async function GET(request: Request) {
   const { data: userData } = await supabase.auth.getUser();
   const svc = createServiceRoleSupabase();
   if (userData.user && svc) {
-    await syncOAuthUserFromSession(userData.user, svc);
+    const providers = new Set((userData.user.identities ?? []).map((identity) => identity.provider));
+    if (providers.has("google")) {
+      await syncOAuthUserFromSession(userData.user, svc);
+    } else {
+      await syncEmailUserFromSession(userData.user, svc);
+    }
   }
 
   return redirectResponse;

@@ -31,6 +31,7 @@ import { GUARDIAN_TIER_ROLE_BADGE_CLASSNAME, guardianTierBadgeVariant } from "@/
 import type { GuardianTrustBadgeId, LocalizedCopy } from "@/types/guardian-marketing";
 import type { TravelerReview } from "@/types/domain";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, Globe2, MessageCircleHeart, Sparkles, Star, Zap } from "lucide-react";
 
 function marketingLine(locale: string, copy: LocalizedCopy): string {
@@ -346,6 +347,9 @@ export async function GuardianDetailView({
                     <CardContent className="p-4 sm:p-5">
                       <p className="font-semibold">{line(r.title)}</p>
                       <p className="text-muted-foreground mt-2 text-sm">{line(r.blurb)}</p>
+                      <Button asChild size="sm" variant="outline" className="mt-3 rounded-xl">
+                        <Link href="/routes/mock?preview=1">{t("viewSampleRoute")}</Link>
+                      </Button>
                     </CardContent>
                   </Card>
                 </li>
