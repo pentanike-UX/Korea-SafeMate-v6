@@ -112,6 +112,8 @@ function isConsumerAuthedPath(pathWithoutLocale: string) {
   return (
     pathWithoutLocale === "/mypage" ||
     pathWithoutLocale.startsWith("/mypage/") ||
+    pathWithoutLocale === "/routes" ||
+    pathWithoutLocale === "/routes/" ||
     pathWithoutLocale === "/matches" ||
     pathWithoutLocale.startsWith("/matches/")
   );

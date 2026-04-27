@@ -35,6 +35,7 @@ function menuFromPathname(pathname: string, hubMode: "traveler" | "guardian"): A
     return hubMode === "guardian" ? "guardianNavHome" : "navJourneys";
   }
   if (pathname.startsWith("/mypage/journeys")) return "navJourneys";
+  if (pathname === "/mypage/routes" || pathname.startsWith("/mypage/routes/")) return "navMyRoutes";
   if (pathname.startsWith("/mypage/profile")) return "navProfile";
   if (pathname.startsWith("/mypage/points")) return "navPoints";
   if (pathname.startsWith("/mypage/matches")) return "navMatches";

@@ -208,6 +208,7 @@ export async function getMypageHubSnapshot(
     .map((m) => `${m.id}:${m.status}:${m.updated_at}`)
     .join("|")}`;
   travelerNavSignatures.navPoints = `points:recent=${pointsRecentLedgerCount}`;
+  travelerNavSignatures.navMyRoutes = "routes:list";
 
   const travelerBadgeCount = TRAVELER_NAV_BADGE_KEYS.reduce((s, k) => s + travelerNavBadges[k], 0);
 

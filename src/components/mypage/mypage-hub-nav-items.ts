@@ -5,6 +5,7 @@ import {
   FolderOpen,
   HeartHandshake,
   LayoutDashboard,
+  MapPinned,
   PenSquare,
   Settings,
   UserRound,
@@ -12,6 +13,7 @@ import {
 
 export type HubNavLabelKey =
   | "navJourneys"
+  | "navMyRoutes"
   | "navProfile"
   | "navPoints"
   | "navMatches"
@@ -55,9 +57,14 @@ function travelerMatchesMatch(p: string) {
   return p === "/mypage/matches" || p.startsWith("/mypage/matches/");
 }
 
-/** Traveler — 저장·요청·진행 요약(허브) / 프로필 / 포인트 / 매칭 */
+function travelerMyRoutesMatch(p: string) {
+  return p === "/mypage/routes" || p.startsWith("/mypage/routes/");
+}
+
+/** Traveler — 저장·요청·진행 요약(허브) / 내 루트 / 프로필 / 포인트 / 매칭 */
 export const TRAVELER_HUB_NAV: HubNavItem[] = [
   { href: "/mypage", labelKey: "navJourneys", Icon: Compass, match: travelerHubAndJourneysMatch },
+  { href: "/mypage/routes", labelKey: "navMyRoutes", Icon: MapPinned, match: travelerMyRoutesMatch },
   { href: "/mypage/profile", labelKey: "navProfile", Icon: UserRound, match: travelerProfileMatch },
   { href: "/mypage/points", labelKey: "navPoints", Icon: Coins, match: travelerPointsMatch },
   { href: "/mypage/matches", labelKey: "navMatches", Icon: HeartHandshake, match: travelerMatchesMatch },

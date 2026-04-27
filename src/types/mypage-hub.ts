@@ -21,7 +21,7 @@ export type GuardianOpsSnapshot = {
 };
 
 /** LNB 여행자 메뉴 키 — `mypage-hub-nav-items` TRAVELER_HUB_NAV.labelKey 와 동일 */
-export const TRAVELER_NAV_BADGE_KEYS = ["navJourneys", "navProfile", "navPoints", "navMatches"] as const;
+export const TRAVELER_NAV_BADGE_KEYS = ["navJourneys", "navMyRoutes", "navProfile", "navPoints", "navMatches"] as const;
 export type TravelerNavBadgeKey = (typeof TRAVELER_NAV_BADGE_KEYS)[number];
 
 /** 가디언 워크스페이스 LNB — GUARDIAN_WORKSPACE_NAV.labelKey */
