@@ -1097,7 +1097,9 @@
       "all": "All"
     },
     "filterApply": "Apply",
-    "filterClose": "Close"
+    "filterClose": "Close",
+    "ctaRequestCourseBody": "ต้องการเส้นทางหนึ่งวันที่ออกแบบเฉพาะสำหรับคุณหรือไม่?",
+    "ctaRequestBtn": "ขอเส้นทางแบบกำหนดเอง"
   },
   "RoutePosts": {
     "introFallbackNoLead": "Skim the summary and map first, then read each stop in order.",

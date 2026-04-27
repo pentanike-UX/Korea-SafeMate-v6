@@ -1096,7 +1096,9 @@
       "all": "すべて"
     },
     "filterApply": "適用",
-    "filterClose": "閉じる"
+    "filterClose": "閉じる",
+    "ctaRequestCourseBody": "あなただけのカスタム1日ルートを作成しませんか？",
+    "ctaRequestBtn": "カスタムルートをリクエスト"
   },
   "RoutePosts": {
     "introFallbackNoLead": "まず概要と地図で動線をつかみ、スポットごとの説明に進んでください。",

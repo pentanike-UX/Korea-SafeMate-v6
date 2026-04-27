@@ -1096,7 +1096,9 @@
       "all": "전체"
     },
     "filterApply": "적용",
-    "filterClose": "닫기"
+    "filterClose": "닫기",
+    "ctaRequestCourseBody": "나만을 위한 맞춤 하루 루트를 만들어드릴게요.",
+    "ctaRequestBtn": "맞춤 루트 의뢰하기"
   },
   "RoutePosts": {
     "introFallbackNoLead": "아래 요약과 지도로 동선을 먼저 잡은 뒤, 스팟별 설명으로 이어집니다.",
