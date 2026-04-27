@@ -54,7 +54,11 @@
     "ja": "JA",
     "flagAriaEn": "英語（米国）で表示",
     "flagAriaKo": "韓国語で表示",
-    "flagAriaJa": "日本語で表示"
+    "flagAriaJa": "日本語で表示",
+    "th": "TH",
+    "vi": "VI",
+    "flagAriaTh": "タイ語で表示",
+    "flagAriaVi": "ベトナム語で表示"
   },
   "Footer": {
     "brandKicker": "ソウル · キュレーションされたローカル層",

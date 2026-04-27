@@ -4,26 +4,33 @@ import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-const SWITCH_LOCALES = ["en", "ko", "ja"] as const;
+// v6: en / ko / th / vi (ja 유지 — Foundation 갭 기록)
+const SWITCH_LOCALES = ["en", "ko", "th", "vi", "ja"] as const;
 
 type LocaleCode = (typeof SWITCH_LOCALES)[number];
 
-/** US · 대한민국 · 日本 — regional indicator emoji pairs */
+/** 국기 이모지 — regional indicator emoji pairs */
 const LOCALE_FLAGS: Record<LocaleCode, string> = {
-  en: "\u{1F1FA}\u{1F1F8}",
-  ko: "\u{1F1F0}\u{1F1F7}",
-  ja: "\u{1F1EF}\u{1F1F5}",
+  en: "\u{1F1FA}\u{1F1F8}", // 🇺🇸
+  ko: "\u{1F1F0}\u{1F1F7}", // 🇰🇷
+  th: "\u{1F1F9}\u{1F1ED}", // 🇹🇭
+  vi: "\u{1F1FB}\u{1F1F3}", // 🇻🇳
+  ja: "\u{1F1EF}\u{1F1F5}", // 🇯🇵
 };
 
 const LOCALE_LABELS: Record<LocaleCode, string> = {
   en: "EN",
   ko: "KO",
+  th: "TH",
+  vi: "VI",
   ja: "JA",
 };
 
-const FLAG_ARIA_KEY: Record<LocaleCode, "flagAriaEn" | "flagAriaKo" | "flagAriaJa"> = {
+const FLAG_ARIA_KEY: Record<LocaleCode, "flagAriaEn" | "flagAriaKo" | "flagAriaJa" | "flagAriaTh" | "flagAriaVi"> = {
   en: "flagAriaEn",
   ko: "flagAriaKo",
+  th: "flagAriaTh",
+  vi: "flagAriaVi",
   ja: "flagAriaJa",
 };
 

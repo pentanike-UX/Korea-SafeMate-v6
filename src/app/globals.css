@@ -7,9 +7,38 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans-next), ui-sans-serif, system-ui, sans-serif;
+
+  /* ── v6 KSM Foundation Fonts ── */
+  --font-sans: var(--font-pretendard), 'Pretendard Variable', ui-sans-serif, -apple-system, sans-serif;
+  --font-serif: var(--font-fraunces), 'Instrument Serif', Georgia, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-serif);
+
+  /* ── v6 KSM Surface Tokens ── */
+  --color-bg:           var(--bg);
+  --color-bg-card:      var(--bg-card);
+  --color-bg-sunken:    var(--bg-sunken);
+  --color-bg-dark:      var(--bg-dark);
+  --color-bg-dark-soft: var(--bg-dark-soft);
+
+  /* ── v6 KSM Ink Tokens ── */
+  --color-ink:         var(--ink);
+  --color-ink-muted:   var(--ink-muted);
+  --color-ink-soft:    var(--ink-soft);
+  --color-ink-whisper: var(--ink-whisper);
+
+  /* ── v6 KSM Accent Tokens (terracotta brand) ── */
+  --color-accent-ksm:     var(--accent-ksm);
+  --color-accent-dark:    var(--accent-dark);
+  --color-accent-soft:    var(--accent-soft);
+  --color-accent-whisper: var(--accent-whisper);
+  --color-gold:           var(--gold);
+  --color-ok:             var(--ok);
+
+  /* ── v6 KSM Line Tokens ── */
+  --color-line:         var(--line);
+  --color-line-soft:    var(--line-soft);
+  --color-line-whisper: var(--line-whisper);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -176,6 +205,52 @@
   --page-gutter-x: 1.25rem;
   --section-gap: 1.5rem;
   --stack-relaxed: 1.25rem;
+
+  /* ════════════════════════════════════════════
+     v6 KSM Foundation Design Tokens — 2026-04-27
+     Foundation §4.2 · 기존 v3 토큰 뒤에 추가
+     (기존 v3 토큰과 충돌 시 이 값이 우선)
+     ════════════════════════════════════════════ */
+
+  /* Surface */
+  --bg:             #F5F1EA;
+  --bg-card:        #FAF7F1;
+  --bg-sunken:      #EFEADF;
+  --bg-dark:        #1A2540;
+  --bg-dark-soft:   #2A3552;
+
+  /* Ink */
+  --ink:            #1A2540;
+  --ink-muted:      #5A6378;
+  --ink-soft:       #8B92A5;
+  --ink-whisper:    #B5BAC9;
+
+  /* Accent — KSM brand terracotta (새 컴포넌트는 bg-accent-ksm / text-accent-ksm 사용) */
+  --accent-ksm:     #D85A30;
+  --accent-dark:    #993C1D;
+  --accent-soft:    #F4D9CE;
+  --accent-whisper: #FAECE4;
+
+  /* Semantic extras */
+  --gold:  #B8894A;
+  --ok:    #3B6D11;
+
+  /* Line */
+  --line:         #D9D1C3;
+  --line-soft:    #E8E2D5;
+  --line-whisper: #F0EBE0;
+
+  /* Shadcn 시맨틱 토큰을 v6 Foundation 팔레트로 재매핑 */
+  --background:          var(--bg);
+  --foreground:          var(--ink);
+  --card:                var(--bg-card);
+  --card-foreground:     var(--ink);
+  --muted:               var(--bg-sunken);
+  --muted-foreground:    var(--ink-muted);
+  --border:              var(--line);
+  --input:               var(--line);
+  --primary:             var(--ink);
+  --primary-foreground:  var(--bg);
 }
 
 .dark {

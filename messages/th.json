@@ -57,8 +57,8 @@
     "flagAriaJa": "Show in Japanese",
     "th": "TH",
     "vi": "VI",
-    "flagAriaTh": "Show in Thai",
-    "flagAriaVi": "Show in Vietnamese"
+    "flagAriaTh": "แสดงเป็นภาษาไทย",
+    "flagAriaVi": "Hiển thị bằng tiếng Việt"
   },
   "Footer": {
     "brandKicker": "Seoul · curated local layer",
@@ -87,7 +87,8 @@
   },
   "Brand": {
     "tagline": "When the city you love is on screen, we help you meet it on the ground.",
-    "description": "42 Guardians connects international K-culture fans with verified Seoul guardians—language-fit matching, curated routes, and traveler reviews you can actually use."
+    "description": "42 Guardians connects international K-culture fans with verified Seoul guardians—language-fit matching, curated routes, and traveler reviews you can actually use.",
+    "name": "Korea SafeMate"
   },
   "GuardianTier": {
     "verified_guardian": "Verified Guardian",

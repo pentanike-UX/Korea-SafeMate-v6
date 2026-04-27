@@ -54,7 +54,11 @@
     "ja": "JA",
     "flagAriaEn": "영어(미국)로 표시",
     "flagAriaKo": "한국어로 표시",
-    "flagAriaJa": "일본어로 표시"
+    "flagAriaJa": "일본어로 표시",
+    "th": "TH",
+    "vi": "VI",
+    "flagAriaTh": "태국어로 보기",
+    "flagAriaVi": "베트남어로 보기"
   },
   "Footer": {
     "brandKicker": "서울 · 큐레이션 로컬 레이어",
