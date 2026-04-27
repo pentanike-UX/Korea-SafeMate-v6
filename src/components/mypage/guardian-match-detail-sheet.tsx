@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { GuardianMatchAcceptButton } from "@/components/mypage/match-request-row-actions";
 import type { StoredMatchRequest } from "@/lib/traveler-match-requests";
 import { Badge } from "@/components/ui/badge";
@@ -91,12 +92,23 @@ export function GuardianMatchDetailSheetTrigger({
               <dt className="text-foreground font-medium">{t("matchDetailUpdated")}</dt>
               <dd className="mt-0.5 tabular-nums">{fmt(row.updated_at)}</dd>
             </div>
+            {row.booking_id ? (
+              <div>
+                <dt className="text-foreground font-medium">Booking ID</dt>
+                <dd className="mt-0.5 font-mono text-xs break-all">{row.booking_id}</dd>
+              </div>
+            ) : null}
           </dl>
-          {row.status === "requested" ? (
-            <div className="flex flex-wrap gap-2 border-t border-border/60 pt-4">
-              <GuardianMatchAcceptButton matchId={row.id} onSuccess={() => setOpen(false)} />
-            </div>
-          ) : null}
+          <div className="flex flex-wrap gap-2 border-t border-border/60 pt-4">
+            {row.status === "requested" ? <GuardianMatchAcceptButton matchId={row.id} onSuccess={() => setOpen(false)} /> : null}
+            {row.booking_id ? (
+              <Button asChild variant="outline" size="sm" className="h-9 rounded-lg">
+                <Link href={`/guardian/routes/new?order_id=${encodeURIComponent(row.booking_id)}`} onClick={() => setOpen(false)}>
+                  루트 전달 작성
+                </Link>
+              </Button>
+            ) : null}
+          </div>
         </div>
       </SheetContent>
     </Sheet>
