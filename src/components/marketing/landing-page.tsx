@@ -1,10 +1,6 @@
 /**
  * M01 — Landing (Traveler)
- * v6 KSM 메인 랜딩 페이지
- * Foundation §4.3 · SCREEN_SPECS_3A §M01
- *
- * UX (2026-04): 루트 중심 포지셔닝, 단일 Primary CTA, 섹션별 선택 이유,
- * Lucide 아이콘 통일, 로케일별 단일 언어 카피(next-intl).
+ * 루트 중심 정보 구조 · 중복 최소화 · 로케일별 카피(next-intl).
  */
 "use client";
 
@@ -12,8 +8,8 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
   UserCheck,
-  MessageSquare,
   Map,
+  Footprints,
   CheckCircle2,
   MapPin,
   Coffee,
@@ -23,7 +19,6 @@ import {
   X,
 } from "lucide-react";
 
-/** 예시 루트의 설계자 프로필 — 성수·카페 시드(mg03)와 동선 예시를 맞춤 */
 const ROUTE_SAMPLE_GUARDIAN_ID = "mg03";
 
 type MockSpec = "linh" | "aom" | "minh";
@@ -39,6 +34,8 @@ const MOCK_GUARDIAN_ROWS: {
   { spec: "minh", rating: 4.8, reviews: 31, languages: ["VI", "EN", "KO"] },
 ];
 
+type PricingCompareMark = "o" | "x" | "limited" | "unlimited";
+
 const PRODUCTS = [
   {
     key: "basic",
@@ -46,6 +43,7 @@ const PRODUCTS = [
     descKey: "pricing_product_basic_desc",
     price: "₩29,000",
     featured: false,
+    marks: ["o", "x", "x"] as const satisfies readonly PricingCompareMark[],
   },
   {
     key: "standard",
@@ -53,6 +51,7 @@ const PRODUCTS = [
     descKey: "pricing_product_standard_desc",
     price: "₩59,000",
     featured: true,
+    marks: ["x", "o", "limited"] as const satisfies readonly PricingCompareMark[],
   },
   {
     key: "premium",
@@ -60,19 +59,11 @@ const PRODUCTS = [
     descKey: "pricing_product_premium_desc",
     price: "₩119,000",
     featured: false,
+    marks: ["x", "o", "unlimited"] as const satisfies readonly PricingCompareMark[],
   },
 ] as const;
 
-type PricingCompareMark = "o" | "x" | "limited" | "unlimited";
-
-const PRICING_COMPARE_ROWS: {
-  featureKey: "pricing_feature_instant" | "pricing_feature_personalize" | "pricing_feature_consult";
-  marks: [PricingCompareMark, PricingCompareMark, PricingCompareMark];
-}[] = [
-  { featureKey: "pricing_feature_instant", marks: ["o", "x", "x"] },
-  { featureKey: "pricing_feature_personalize", marks: ["x", "o", "o"] },
-  { featureKey: "pricing_feature_consult", marks: ["x", "limited", "unlimited"] },
-];
+const PRICING_FEATURE_KEYS = ["pricing_feature_instant", "pricing_feature_personalize", "pricing_feature_consult"] as const;
 
 function guardianInitials(displayName: string): string {
   const t = displayName.trim();
@@ -86,6 +77,14 @@ function guardianInitials(displayName: string): string {
   return t.slice(0, 2).toUpperCase();
 }
 
+/** 한글 등 단일 문자열 이름: 시각 강조용 2글자 */
+function avatarGlyph(displayName: string): string {
+  const s = displayName.trim();
+  if (!s) return "?";
+  if (/[\u3131-\u318E\uAC00-\uD7A3]/.test(s) && s.length >= 2) return s.slice(-2);
+  return guardianInitials(s);
+}
+
 function RoutePreviewCard() {
   const t = useTranslations("Landing");
   const timeline = [
@@ -94,6 +93,8 @@ function RoutePreviewCard() {
     { Icon: Waves, line: t("route_timeline_3"), time: "12:30" },
   ];
   const tags = ["route_tag_cafe", "route_tag_walk", "route_tag_river", "route_tag_beginner"] as const;
+  const designerName = t("route_designer_display_name");
+  const glyph = avatarGlyph(designerName);
 
   return (
     <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-line bg-bg-card shadow-[var(--shadow-md)]">
@@ -144,13 +145,20 @@ function RoutePreviewCard() {
         ))}
       </div>
 
-      <div className="border-t border-line-whisper px-4 py-2.5">
+      <div className="border-t border-line-whisper px-4 py-3 space-y-3">
         <p className="text-[10px] text-ink-soft">{t("route_movement_summary")}</p>
+
         <Link
           href={`/guardians/${ROUTE_SAMPLE_GUARDIAN_ID}`}
-          className="mt-2 block text-left text-[11px] font-semibold text-ink underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ksm"
+          className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-line-soft bg-bg-sunken p-3 text-left transition-colors hover:bg-bg-card hover:border-line focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ksm"
         >
-          {t("route_guardian_attribution", { name: t("route_designer_name") })}
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-accent-ksm/15 text-sm font-bold text-accent-ksm ring-2 ring-accent-ksm/20">
+            {glyph}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-ink leading-tight">{designerName}</p>
+            <p className="mt-0.5 text-[11px] text-ink-muted leading-snug">{t("route_sample_guardian_tagline")}</p>
+          </div>
         </Link>
       </div>
     </div>
@@ -189,12 +197,14 @@ export function LandingPage() {
   const problemItems = [t("problem_item1"), t("problem_item2"), t("problem_item3")];
 
   const howSteps = [
-    { n: "01", Icon: UserCheck, action: t("how_step1_action"), outcome: t("how_step1_outcome") },
-    { n: "02", Icon: MessageSquare, action: t("how_step2_action"), outcome: t("how_step2_outcome") },
-    { n: "03", Icon: Map, action: t("how_step3_action"), outcome: t("how_step3_outcome") },
+    { n: "01", Icon: Map, action: t("how_step1_action"), outcome: t("how_step1_outcome") },
+    { n: "02", Icon: UserCheck, action: t("how_step2_action"), outcome: t("how_step2_outcome") },
+    { n: "03", Icon: Footprints, action: t("how_step3_action"), outcome: t("how_step3_outcome") },
   ];
 
   const trustLines = [t("trust_line_1"), t("trust_line_2"), t("trust_line_3")];
+
+  const badge = t("hero_badge").trim();
 
   function pricingMarkLabel(mark: PricingCompareMark): string {
     switch (mark) {
@@ -226,10 +236,12 @@ export function LandingPage() {
 
         <div className="page-container relative z-10 grid grid-cols-1 gap-12 py-20 md:grid-cols-2 md:items-center md:gap-16 md:py-28 lg:py-32">
           <div className="flex flex-col gap-6">
-            <span className="inline-flex w-fit items-center gap-2 rounded-full border border-line bg-bg-card px-3 py-1.5 text-xs font-medium text-ink-muted">
-              <MapPin className="size-3.5 shrink-0 text-accent-ksm" aria-hidden />
-              {t("hero_badge")}
-            </span>
+            {badge.length > 0 ? (
+              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-line bg-bg-card px-3 py-1.5 text-xs font-medium text-ink-muted">
+                <MapPin className="size-3.5 shrink-0 text-accent-ksm" aria-hidden />
+                {badge}
+              </span>
+            ) : null}
 
             <h1 className="font-serif text-4xl font-semibold leading-[1.1] text-ink sm:text-5xl lg:text-6xl">
               {t("hero_headline")}
@@ -261,26 +273,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* 2. TRUST */}
-      <section className="border-y border-line bg-bg-card">
-        <div className="page-container py-8">
-          <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-ink-soft mb-5">
-            {t("trust_title")}
-          </p>
-          <ul className="mx-auto max-w-3xl space-y-3">
-            {trustLines.map((line) => (
-              <li
-                key={line}
-                className="rounded-[var(--radius-lg)] border border-line-soft bg-bg px-4 py-3 text-sm text-ink-muted leading-relaxed text-center"
-              >
-                {line}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* 3. PROBLEM */}
+      {/* 2. PROBLEM */}
       <section className="page-container py-16 md:py-20">
         <div className="mx-auto max-w-2xl">
           <h2 className="font-serif text-2xl font-semibold text-ink sm:text-3xl mb-8">{t("problem_title")}</h2>
@@ -306,7 +299,37 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* 4. HOW */}
+      {/* 3. ROUTE SAMPLE */}
+      <section className="page-container py-16 md:py-20">
+        <div className="mx-auto max-w-lg">
+          <h2 className="font-serif text-3xl font-semibold text-ink sm:text-4xl text-center mb-8">{t("route_section_title")}</h2>
+          <RoutePreviewCard />
+          <div className="mt-8 rounded-[var(--radius-lg)] border border-line-soft bg-bg-sunken px-4 py-4 text-center">
+            <p className="text-sm font-semibold text-ink leading-relaxed">{t("route_bridge_line2")}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. SOCIAL PROOF */}
+      <section className="border-y border-line bg-bg-card">
+        <div className="page-container py-8">
+          <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-ink-soft mb-5">
+            {t("trust_title")}
+          </p>
+          <ul className="mx-auto max-w-3xl space-y-3">
+            {trustLines.map((line) => (
+              <li
+                key={line}
+                className="rounded-[var(--radius-lg)] border border-line-soft bg-bg px-4 py-3 text-sm text-ink-muted leading-relaxed text-center"
+              >
+                {line}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* 5. HOW */}
       <section className="bg-bg-sunken py-16 md:py-20">
         <div className="page-container">
           <div className="mx-auto max-w-2xl text-center mb-10">
@@ -342,41 +365,19 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* 5. ROUTE SAMPLE + GUARDIAN 브릿지 */}
-      <section className="page-container py-16 md:py-20">
-        <div className="mx-auto max-w-lg">
-          <h2 className="font-serif text-3xl font-semibold text-ink sm:text-4xl text-center mb-8">{t("route_section_title")}</h2>
-          <RoutePreviewCard />
-          <div className="mt-8 space-y-2 rounded-[var(--radius-lg)] border border-line-soft bg-bg-sunken px-4 py-4 text-center">
-            <p className="text-sm text-ink leading-relaxed">{t("route_bridge_line1")}</p>
-            <p className="text-sm font-semibold text-ink">{t("route_bridge_line2")}</p>
-          </div>
-        </div>
-      </section>
-
       {/* 6. GUARDIANS */}
-      <section className="bg-bg-sunken py-16 md:py-20">
+      <section className="py-16 md:py-20">
         <div className="page-container">
-          <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div className="space-y-1">
-              <h2 className="font-serif text-3xl font-semibold text-ink sm:text-4xl">{t("guardians_title")}</h2>
-              <p className="text-sm text-ink-muted max-w-xl">{t("guardians_subtitle")}</p>
-            </div>
-            <Link
-              href="/explore"
-              className="hidden text-sm font-semibold text-accent-ksm hover:text-accent-dark sm:block shrink-0"
-            >
-              {t("guardians_cta")} →
-            </Link>
+          <div className="mb-8 space-y-1">
+            <h2 className="font-serif text-3xl font-semibold text-ink sm:text-4xl">{t("guardians_title")}</h2>
+            <p className="text-sm text-ink-muted max-w-xl">{t("guardians_subtitle")}</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {MOCK_GUARDIAN_ROWS.map((row) => {
               const spec = row.spec;
               const name = t(`landing_mock_${spec}_name`);
-              const origin = t(`landing_mock_${spec}_origin`);
               const pick = t(`landing_mock_${spec}_pick`);
-              const style = t(`landing_mock_${spec}_style`);
               const repRoute = t(`landing_mock_${spec}_rep_route`);
               const tag1 = t(`landing_mock_${spec}_tag1`);
               const tag2 = t(`landing_mock_${spec}_tag2`);
@@ -385,60 +386,53 @@ export function LandingPage() {
               return (
                 <div
                   key={spec}
-                  className="flex flex-col gap-4 rounded-[var(--radius-xl)] border border-line bg-bg-card p-5 hover:shadow-[var(--shadow-sm)] transition-shadow"
+                  className="flex flex-col gap-5 rounded-[var(--radius-xl)] border border-line bg-bg-card p-6 hover:shadow-[var(--shadow-sm)] transition-shadow"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-bg-sunken text-xs font-bold text-ink">
+                  <div className="flex gap-4">
+                    <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-bg-sunken text-base font-bold text-ink">
                       {initials}
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-ink text-sm leading-tight">{name}</p>
-                      <p className="text-[11px] text-ink-muted">{origin}</p>
-                    </div>
-                    <div className="ml-auto text-right">
-                      <p className="text-sm font-bold text-ink">{row.rating}★</p>
-                      <p className="text-[10px] text-ink-soft">{t("guardian_reviews_label", { count: row.reviews })}</p>
-                    </div>
-                  </div>
-
-                  <p className="text-xs font-semibold text-accent-ksm leading-snug">{pick}</p>
-
-                  <p className="text-xs text-ink-muted italic leading-relaxed border-l-2 border-accent-ksm/40 pl-2.5">
-                    {style}
-                  </p>
-
-                  <div>
-                    <p className="text-[10px] font-semibold text-ink-soft uppercase tracking-wide mb-1.5">
-                      {t("guardian_specialty_label")}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {[tag1, tag2].map((s) => (
-                        <span
-                          key={s}
-                          className="rounded-full bg-bg-sunken px-2.5 py-0.5 text-[10px] font-semibold text-ink-muted"
-                        >
-                          {s}
-                        </span>
-                      ))}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-base font-bold text-ink leading-tight">{name}</h3>
+                        <div className="text-right shrink-0">
+                          <p className="text-lg font-bold tabular-nums text-ink">{row.rating}★</p>
+                          <p className="text-[11px] text-ink-muted">{t("guardian_reviews_label", { count: row.reviews })}</p>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-sm font-semibold text-accent-ksm leading-snug">{pick}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between border-t border-line-whisper pt-3">
+                  <div className="border-t border-line-whisper pt-4 space-y-3 text-[11px]">
                     <div>
-                      <p className="text-[10px] font-semibold text-ink-soft uppercase tracking-wide">
-                        {t("guardian_route_label")}
-                      </p>
-                      <p className="text-xs font-semibold text-ink">{repRoute}</p>
+                      <p className="font-semibold uppercase tracking-wide text-ink-soft mb-1.5">{t("guardian_specialty_label")}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[tag1, tag2].map((s) => (
+                          <span
+                            key={s}
+                            className="rounded-full bg-bg-sunken px-2.5 py-0.5 font-medium text-ink-muted"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex gap-1">
-                      {row.languages.map((l) => (
-                        <span
-                          key={l}
-                          className="rounded bg-bg-sunken px-1.5 py-0.5 text-[9px] font-bold text-ink-muted"
-                        >
-                          {l}
-                        </span>
-                      ))}
+                    <div className="flex flex-wrap items-end justify-between gap-2">
+                      <div>
+                        <p className="font-semibold uppercase tracking-wide text-ink-soft mb-0.5">{t("guardian_route_label")}</p>
+                        <p className="text-sm font-semibold text-ink">{repRoute}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-1 justify-end">
+                        {row.languages.map((l) => (
+                          <span
+                            key={l}
+                            className="rounded bg-bg-sunken px-1.5 py-0.5 text-[9px] font-bold text-ink-muted"
+                          >
+                            {l}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -446,8 +440,8 @@ export function LandingPage() {
             })}
           </div>
 
-          <div className="mt-6 text-center sm:hidden">
-            <Link href="/explore" className="text-sm font-semibold text-accent-ksm">
+          <div className="mt-8 flex justify-center">
+            <Link href="/explore" className="text-sm font-semibold text-accent-ksm hover:text-accent-dark">
               {t("guardians_cta")} →
             </Link>
           </div>
@@ -455,56 +449,21 @@ export function LandingPage() {
       </section>
 
       {/* 7. PRICING */}
-      <section className="py-16 md:py-20">
+      <section className="bg-bg-sunken py-16 md:py-20">
         <div className="page-container">
-          <div className="mx-auto max-w-2xl text-center mb-8">
+          <div className="mx-auto max-w-2xl text-center mb-10">
             <h2 className="font-serif text-3xl font-semibold text-ink sm:text-4xl">{t("pricing_title")}</h2>
             <p className="mt-2 text-sm text-ink-muted">{t("pricing_lead")}</p>
           </div>
 
-          <div className="overflow-x-auto rounded-[var(--radius-xl)] border border-line mb-8 max-w-4xl mx-auto">
-            <table className="w-full min-w-[520px] border-collapse text-sm">
-              <thead>
-                <tr className="border-b border-line bg-bg-sunken">
-                  <th scope="col" className="px-4 py-3 text-left font-semibold text-ink">
-                    {t("pricing_compare_feature_col")}
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-center font-semibold text-ink">
-                    {t("pricing_col_purchase")}
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-center font-semibold text-ink">
-                    {t("pricing_col_custom")}
-                  </th>
-                  <th scope="col" className="px-3 py-3 text-center font-semibold text-ink">
-                    {t("pricing_col_premium")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {PRICING_COMPARE_ROWS.map((row) => (
-                  <tr key={row.featureKey} className="border-b border-line-whisper last:border-0">
-                    <th scope="row" className="px-4 py-3 text-left font-medium text-ink-muted">
-                      {t(row.featureKey)}
-                    </th>
-                    {row.marks.map((mark, i) => (
-                      <td key={i} className="px-3 py-3 text-center tabular-nums text-ink">
-                        {pricingMarkLabel(mark)}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 max-w-3xl mx-auto">
             {PRODUCTS.map((product) => (
               <div
                 key={product.key}
                 className={[
-                  "relative flex flex-col gap-3 rounded-[var(--radius-xl)] p-6 border transition-shadow",
+                  "relative flex flex-col gap-4 rounded-[var(--radius-xl)] p-6 border transition-shadow",
                   product.featured
-                    ? "bg-bg-dark border-bg-dark text-bg shadow-[var(--shadow-md)]"
+                    ? "bg-bg-dark border-bg-dark text-bg shadow-[var(--shadow-md)] ring-2 ring-accent-ksm/35"
                     : "bg-bg-card border-line",
                 ].join(" ")}
               >
@@ -527,11 +486,25 @@ export function LandingPage() {
                   {product.price}
                 </p>
 
-                <p
-                  className={`text-sm leading-relaxed ${product.featured ? "text-bg/70" : "text-ink-muted"}`}
-                >
+                <p className={`text-sm leading-relaxed ${product.featured ? "text-bg/70" : "text-ink-muted"}`}>
                   {t(product.descKey)}
                 </p>
+
+                <ul
+                  className={`mt-1 space-y-2 border-t pt-4 text-xs ${product.featured ? "border-white/15" : "border-line-whisper"}`}
+                >
+                  {product.marks.map((mark, i) => (
+                    <li
+                      key={PRICING_FEATURE_KEYS[i]}
+                      className={`flex justify-between gap-3 ${product.featured ? "text-bg/75" : "text-ink-muted"}`}
+                    >
+                      <span>{t(PRICING_FEATURE_KEYS[i])}</span>
+                      <span className={`shrink-0 font-semibold tabular-nums ${product.featured ? "text-bg" : "text-ink"}`}>
+                        {pricingMarkLabel(mark)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>

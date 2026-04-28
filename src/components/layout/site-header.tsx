@@ -12,12 +12,12 @@ import { BookOpen, Compass, DollarSign, Home, Info, Menu, Users } from "lucide-r
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const NAV: { href: string; msgKey: "home" | "explore" | "howItWorks" | "pricing" | "forGuardians" | "about"; Icon: LucideIcon }[] = [
+const NAV: { href: string; msgKey: "home" | "explore" | "howItWorks" | "pricing" | "guardians" | "about"; Icon: LucideIcon }[] = [
   { href: "/", msgKey: "home", Icon: Home },
   { href: "/explore", msgKey: "explore", Icon: Compass },
   { href: "/how-it-works", msgKey: "howItWorks", Icon: BookOpen },
   { href: "/pricing", msgKey: "pricing", Icon: DollarSign },
-  { href: "/for-guardians", msgKey: "forGuardians", Icon: Users },
+  { href: "/guardians", msgKey: "guardians", Icon: Users },
   { href: "/about", msgKey: "about", Icon: Info },
 ];
 

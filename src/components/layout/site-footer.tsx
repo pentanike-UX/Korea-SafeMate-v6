@@ -9,15 +9,15 @@ export async function SiteFooter() {
   const tFooter = await getTranslations("Footer");
   const tBrand = await getTranslations("Brand");
   const tNav = await getTranslations("Nav");
-  const tHeader = await getTranslations("Header");
 
   type AppHref = ComponentProps<typeof Link>["href"];
+  /** 헤더와 동일한 1차 정보 구조 + 지원·약관 */
   const sitemap: { href: AppHref; label: string }[] = [
+    { href: "/", label: tNav("home") },
     { href: "/explore", label: tNav("explore") },
-    { href: "/posts", label: tNav("posts") },
+    { href: "/how-it-works", label: tNav("howItWorks") },
+    { href: "/pricing", label: tNav("pricing") },
     { href: "/guardians", label: tNav("guardians") },
-    // Option A (default): hide /mypage until login UX is ready.
-    // Option B (future): add a simple "준비 중" /mypage page and restore this link.
     { href: "/about", label: tNav("about") },
     { href: "/guardians/apply", label: tFooter("apply") },
     { href: "/about#terms" as AppHref, label: tFooter("termsLink") },

@@ -1703,6 +1703,8 @@
     "route_timeline_3": "Rest at Hangang Park",
     "route_guardian_attribution": "This route was designed by {name}",
     "route_designer_name": "Seoyun",
+    "route_designer_display_name": "Seoyun",
+    "route_sample_guardian_tagline": "Seongsu café routes · balanced pacing",
     "route_bridge_line1": "This sample route was designed by Seoyun.",
     "route_bridge_line2": "You can choose a Guardian like this yourself.",
     "route_tag_cafe": "Café",
