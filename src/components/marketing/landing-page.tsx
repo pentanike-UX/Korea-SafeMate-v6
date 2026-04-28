@@ -85,6 +85,13 @@ function avatarGlyph(displayName: string): string {
   return guardianInitials(s);
 }
 
+const ROUTE_TAG_STYLE: Record<"route_tag_cafe" | "route_tag_walk" | "route_tag_river" | "route_tag_beginner", string> = {
+  route_tag_cafe: "tag-route-cafe",
+  route_tag_walk: "tag-route-walk",
+  route_tag_river: "tag-route-river",
+  route_tag_beginner: "tag-route-beginner",
+};
+
 function RoutePreviewCard() {
   const t = useTranslations("Landing");
   const timeline = [
@@ -97,10 +104,10 @@ function RoutePreviewCard() {
   const glyph = avatarGlyph(designerName);
 
   return (
-    <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-line bg-bg-card shadow-[var(--shadow-md)]">
+    <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-line bg-bg-card shadow-[var(--shadow-card)]">
       <div className="flex flex-col gap-1 border-b border-line-whisper px-4 py-3">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-serif text-base font-semibold text-ink leading-tight">{t("route_card_title")}</h3>
+          <h3 className="typo-h3 font-sans text-ink">{t("route_card_title")}</h3>
           <span className="shrink-0 text-[11px] font-semibold tabular-nums text-ink-muted">{t("route_card_meta")}</span>
         </div>
         <p className="text-xs font-medium text-accent-ksm leading-snug">{t("route_card_diff")}</p>
@@ -109,10 +116,7 @@ function RoutePreviewCard() {
       <div className="space-y-2 px-4 pt-3 pb-2">
         <div className="flex flex-wrap gap-1.5">
           {tags.map((key) => (
-            <span
-              key={key}
-              className="rounded-full bg-accent-ksm/10 px-2.5 py-0.5 text-[10px] font-semibold text-accent-ksm"
-            >
+            <span key={key} className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${ROUTE_TAG_STYLE[key]}`}>
               {t(key)}
             </span>
           ))}
@@ -168,22 +172,22 @@ function RoutePreviewCard() {
 function HeroVisual() {
   const t = useTranslations("Landing");
   const items = [
-    { Icon: Coffee, label: t("route_tag_cafe") },
-    { Icon: Trees, label: t("route_tag_walk") },
-    { Icon: Waves, label: t("route_tag_river") },
+    { Icon: Coffee, label: t("route_tag_cafe"), circle: "bg-[var(--accent-mint)]/85 text-[var(--gray-900)]" },
+    { Icon: Trees, label: t("route_tag_walk"), circle: "bg-[var(--accent-sky)] text-white" },
+    { Icon: Waves, label: t("route_tag_river"), circle: "bg-[var(--primary-green-400)] text-[var(--gray-900)]" },
   ];
   return (
     <div
       aria-hidden
-      className="rounded-[var(--radius-xl)] border border-line bg-bg-card p-6 shadow-[var(--shadow-sm)]"
+      className="rounded-[var(--radius-xl)] border border-[var(--gray-200)] bg-bg-card p-6 shadow-[var(--shadow-card)]"
     >
       <div className="grid grid-cols-3 gap-3">
-        {items.map(({ Icon, label }) => (
+        {items.map(({ Icon, label, circle }) => (
           <div key={label} className="flex flex-col items-center gap-2 text-center">
-            <div className="flex size-11 items-center justify-center rounded-full bg-accent-ksm/10 text-accent-ksm">
+            <div className={`flex size-11 items-center justify-center rounded-full ${circle}`}>
               <Icon className="size-5" strokeWidth={1.75} />
             </div>
-            <span className="text-[10px] font-semibold text-ink-muted leading-tight">{label}</span>
+            <span className="typo-caption font-semibold">{label}</span>
           </div>
         ))}
       </div>
@@ -224,41 +228,30 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-bg">
       {/* 1. HERO */}
-      <section className="relative overflow-hidden bg-bg">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-40"
-          style={{
-            backgroundImage:
-              "radial-gradient(ellipse 80% 60% at 90% 10%, color-mix(in srgb, var(--accent-ksm) 12%, transparent), transparent 55%), radial-gradient(ellipse 60% 50% at 10% 90%, color-mix(in srgb, var(--gold) 10%, transparent), transparent 50%)",
-          }}
-        />
-
+      <section className="relative overflow-hidden bg-landing-hero">
         <div className="page-container relative z-10 grid grid-cols-1 gap-12 py-20 md:grid-cols-2 md:items-center md:gap-16 md:py-28 lg:py-32">
           <div className="flex flex-col gap-6">
             {badge.length > 0 ? (
-              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-line bg-bg-card px-3 py-1.5 text-xs font-medium text-ink-muted">
+              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--gray-200)] bg-bg-card px-3 py-1.5 text-xs font-medium text-[var(--gray-600)] shadow-[var(--shadow-card)]">
                 <MapPin className="size-3.5 shrink-0 text-accent-ksm" aria-hidden />
                 {badge}
               </span>
             ) : null}
 
-            <h1 className="font-serif text-4xl font-semibold leading-[1.1] text-ink sm:text-5xl lg:text-6xl">
-              {t("hero_headline")}
-            </h1>
+            <h1 className="typo-h1 font-sans text-ink">{t("hero_headline")}</h1>
 
-            <p className="text-lg text-ink-muted leading-relaxed max-w-md">{t("hero_subline")}</p>
+            <p className="typo-body-lg max-w-md text-[var(--gray-700)]">{t("hero_subline")}</p>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href="/explore"
-                className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-sm)] transition-all hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-card)] transition-all hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98]"
               >
                 {t("hero_cta_primary")}
               </Link>
               <Link
                 href="/how-it-works"
-                className="text-sm font-medium text-ink-muted underline underline-offset-4 hover:text-ink transition-colors"
+                className="text-sm font-medium text-[var(--gray-700)] underline underline-offset-4 decoration-[var(--gray-400)] hover:text-[var(--gray-900)]"
               >
                 {t("hero_cta_secondary")}
               </Link>
@@ -276,7 +269,7 @@ export function LandingPage() {
       {/* 2. PROBLEM */}
       <section className="page-container py-16 md:py-20">
         <div className="mx-auto max-w-2xl">
-          <h2 className="font-serif text-2xl font-semibold text-ink sm:text-3xl mb-8">{t("problem_title")}</h2>
+          <h2 className="typo-h2 font-sans text-ink mb-8">{t("problem_title")}</h2>
 
           <ul className="space-y-3 mb-8">
             {problemItems.map((item, i) => (
@@ -302,7 +295,7 @@ export function LandingPage() {
       {/* 3. ROUTE SAMPLE */}
       <section className="page-container py-16 md:py-20">
         <div className="mx-auto max-w-lg">
-          <h2 className="font-serif text-3xl font-semibold text-ink sm:text-4xl text-center mb-8">{t("route_section_title")}</h2>
+          <h2 className="typo-h2 font-sans text-center mb-8 text-ink">{t("route_section_title")}</h2>
           <RoutePreviewCard />
           <div className="mt-8 rounded-[var(--radius-lg)] border border-line-soft bg-bg-sunken px-4 py-4 text-center">
             <p className="text-sm font-semibold text-ink leading-relaxed">{t("route_bridge_line2")}</p>
@@ -333,7 +326,7 @@ export function LandingPage() {
       <section className="bg-bg-sunken py-16 md:py-20">
         <div className="page-container">
           <div className="mx-auto max-w-2xl text-center mb-10">
-            <h2 className="font-serif text-3xl font-semibold text-ink sm:text-4xl">{t("how_title")}</h2>
+            <h2 className="typo-h2 font-sans text-ink">{t("how_title")}</h2>
           </div>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
@@ -343,12 +336,12 @@ export function LandingPage() {
                 className="flex flex-col gap-3 rounded-[var(--radius-xl)] border border-line bg-bg-card p-6"
               >
                 <div className="flex items-center gap-3">
-                  <span className="font-serif text-4xl font-bold text-line">{step.n}</span>
+                  <span className="font-sans text-4xl font-bold text-[var(--gray-300)]">{step.n}</span>
                   <div className="flex size-9 items-center justify-center rounded-full bg-accent-ksm/10 text-accent-ksm">
                     <step.Icon className="size-5" strokeWidth={1.75} />
                   </div>
                 </div>
-                <h3 className="font-serif text-lg font-semibold text-ink">{step.action}</h3>
+                <h3 className="typo-h3 font-sans text-ink">{step.action}</h3>
                 <p className="text-sm font-medium text-accent-ksm leading-relaxed">{step.outcome}</p>
               </div>
             ))}
@@ -369,7 +362,7 @@ export function LandingPage() {
       <section className="py-16 md:py-20">
         <div className="page-container">
           <div className="mb-8 space-y-1">
-            <h2 className="font-serif text-3xl font-semibold text-ink sm:text-4xl">{t("guardians_title")}</h2>
+            <h2 className="typo-h2 font-sans text-ink">{t("guardians_title")}</h2>
             <p className="text-sm text-ink-muted max-w-xl">{t("guardians_subtitle")}</p>
           </div>
 
@@ -452,7 +445,7 @@ export function LandingPage() {
       <section className="bg-bg-sunken py-16 md:py-20">
         <div className="page-container">
           <div className="mx-auto max-w-2xl text-center mb-10">
-            <h2 className="font-serif text-3xl font-semibold text-ink sm:text-4xl">{t("pricing_title")}</h2>
+            <h2 className="typo-h2 font-sans text-ink">{t("pricing_title")}</h2>
             <p className="mt-2 text-sm text-ink-muted">{t("pricing_lead")}</p>
           </div>
 
@@ -482,7 +475,7 @@ export function LandingPage() {
                   {t(product.nameKey)}
                 </p>
 
-                <p className={`font-serif text-3xl font-bold ${product.featured ? "text-bg" : "text-ink"}`}>
+                <p className={`font-sans text-3xl font-bold ${product.featured ? "text-bg" : "text-ink"}`}>
                   {product.price}
                 </p>
 
@@ -523,7 +516,7 @@ export function LandingPage() {
       {/* 8. FINAL CTA */}
       <section className="bg-bg-dark">
         <div className="page-container py-16 md:py-20 text-center flex flex-col gap-5 items-center">
-          <h2 className="font-serif text-3xl font-semibold text-bg sm:text-4xl max-w-lg leading-tight">
+          <h2 className="typo-h2 font-sans max-w-lg text-bg">
             {t("final_cta_traveler")}
           </h2>
           <Link

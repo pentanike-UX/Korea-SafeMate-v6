@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono, Fraunces } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
@@ -14,15 +14,6 @@ const fontPretendard = localFont({
   variable: "--font-pretendard",
   weight: "100 900",
   display: "swap",
-});
-
-/** Fraunces — v6 editorial serif (headings, hero copy) */
-const fontSerif = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-  axes: ["opsz", "SOFT", "WONK"],
-  display: "swap",
-  preload: true,
 });
 
 /** Plus Jakarta Sans — kept as fallback for existing v3 components */
@@ -54,7 +45,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${fontPretendard.variable} ${fontSerif.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased transition-[background-color,color] duration-300 ease-out`}
+      className={`${fontPretendard.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased transition-[background-color,color] duration-300 ease-out`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
