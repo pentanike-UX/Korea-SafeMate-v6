@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 const NAV: { href: string; msgKey: "home" | "explore" | "howItWorks" | "pricing" | "guardians" | "about"; Icon: LucideIcon }[] = [
   { href: "/", msgKey: "home", Icon: Home },
-  { href: "/explore", msgKey: "explore", Icon: Compass },
+  { href: "/explore/routes", msgKey: "explore", Icon: Compass },
   { href: "/how-it-works", msgKey: "howItWorks", Icon: BookOpen },
   { href: "/pricing", msgKey: "pricing", Icon: DollarSign },
   { href: "/guardians", msgKey: "guardians", Icon: Users },

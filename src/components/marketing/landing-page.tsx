@@ -21,7 +21,7 @@ import {
   X,
 } from "lucide-react";
 
-const ROUTE_SAMPLE_GUARDIAN_ID = "mg03";
+const ROUTES_LIST_HREF = "/explore/routes";
 
 type PricingCompareMark = "o" | "x" | "limited" | "unlimited";
 
@@ -66,13 +66,6 @@ function guardianInitials(displayName: string): string {
   return t.slice(0, 2).toUpperCase();
 }
 
-/** 한글 등 단일 문자열 이름: 시각 강조용 2글자 */
-function avatarGlyph(displayName: string): string {
-  const s = displayName.trim();
-  if (!s) return "?";
-  if (/[\u3131-\u318E\uAC00-\uD7A3]/.test(s) && s.length >= 2) return s.slice(-2);
-  return guardianInitials(s);
-}
 
 const ROUTE_TAG_STYLE: Record<"route_tag_cafe" | "route_tag_walk" | "route_tag_river" | "route_tag_beginner", string> = {
   route_tag_cafe: "tag-route-cafe",
@@ -104,7 +97,6 @@ function RoutePreviewCard() {
   ];
   const tags = ["route_tag_cafe", "route_tag_walk", "route_tag_river", "route_tag_beginner"] as const;
   const designerName = t("route_designer_display_name");
-  const glyph = avatarGlyph(designerName);
 
   return (
     <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-line bg-bg-card shadow-[var(--shadow-card)]">
@@ -154,19 +146,9 @@ function RoutePreviewCard() {
 
       <div className="border-t border-line-whisper px-4 py-3 space-y-3">
         <p className="text-[10px] text-ink-soft">{t("route_movement_summary")}</p>
-
-        <Link
-          href={`/guardians/${ROUTE_SAMPLE_GUARDIAN_ID}`}
-          className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-line-soft bg-bg-sunken p-3 text-left transition-colors hover:bg-bg-card hover:border-line focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-ksm"
-        >
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-accent-ksm/15 text-sm font-bold text-accent-ksm ring-2 ring-accent-ksm/20">
-            {glyph}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-ink leading-tight">{designerName}</p>
-            <p className="mt-0.5 text-[11px] text-ink-muted leading-snug">{t("route_sample_guardian_tagline")}</p>
-          </div>
-        </Link>
+        <p className="text-[10px] text-ink-muted">
+          {t("route_guardian_attribution", { name: designerName })}
+        </p>
       </div>
     </div>
   );
@@ -184,7 +166,6 @@ export function LandingPage() {
     { n: "03", Icon: Footprints, action: t("how_step3_action"), outcome: t("how_step3_outcome") },
   ];
 
-  const trustLines = [t("trust_line_1"), t("trust_line_2"), t("trust_line_3")];
   const landingGuardians = useMemo(() => {
     const all = listPublicGuardians();
     const registered = all.filter((g) => g.approval_status === "approved" && g.matching_enabled);
@@ -243,7 +224,7 @@ export function LandingPage() {
 
             <div className="hero-cta-row hero-cta-inline flex max-w-[min(320px,calc(100vw-48px))] flex-col gap-3 md:max-w-none md:flex-row md:items-center">
               <Link
-                href="/explore"
+                href="/explore/routes"
                 className="hero-cta-primary inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-card)] transition-all hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98] md:w-auto"
               >
                 {t("hero_cta_primary")}
@@ -259,7 +240,7 @@ export function LandingPage() {
         </div>
         <div className="hero-cta-mobile">
           <Link
-            href="/explore"
+            href="/explore/routes"
             className="hero-cta-primary hero-cta-mobile-primary inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-card)] transition-all hover:bg-accent-dark active:scale-[0.98]"
           >
             {t("hero_cta_primary")}
@@ -283,61 +264,44 @@ export function LandingPage() {
         />
       </section>
 
-      {/* 2. PROBLEM */}
-      <section className="page-container py-16 md:py-20">
-        <div className="mx-auto max-w-2xl">
-          <h2 className="typo-h2 font-sans text-ink mb-8">{t("problem_title")}</h2>
+      {/* 2+3. PROBLEM + ROUTE PREVIEW — 좌우 그루핑 */}
+      <section className="page-container py-16 md:py-24">
+        <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-2 md:gap-16 lg:gap-20">
+          {/* 왼쪽: Problem */}
+          <div className="flex flex-col gap-7">
+            <h2 className="typo-h2 font-sans text-ink">{t("problem_title")}</h2>
+            <ul className="space-y-3">
+              {problemItems.map((item, i) => (
+                <li
+                  key={i}
+                  className="flex items-start gap-3 rounded-[var(--radius-lg)] border border-line-soft bg-bg-card px-4 py-3.5"
+                >
+                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                    <X className="size-3" strokeWidth={2.5} aria-hidden />
+                  </span>
+                  <p className="text-sm text-ink-muted">{item}</p>
+                </li>
+              ))}
+            </ul>
+            <div className="flex items-start gap-3 rounded-[var(--radius-xl)] border border-accent-ksm/30 bg-accent-ksm/5 px-5 py-4">
+              <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-accent-ksm" strokeWidth={2} />
+              <p className="text-sm font-semibold text-ink">{t("problem_bridge")}</p>
+            </div>
+          </div>
 
-          <ul className="space-y-3 mb-8">
-            {problemItems.map((item, i) => (
-              <li
-                key={i}
-                className="flex items-start gap-3 rounded-[var(--radius-lg)] border border-line-soft bg-bg-card px-4 py-3.5"
-              >
-                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
-                  <X className="size-3" strokeWidth={2.5} aria-hidden />
-                </span>
-                <p className="text-sm text-ink-muted">{item}</p>
-              </li>
-            ))}
-          </ul>
-
-          <div className="flex items-start gap-3 rounded-[var(--radius-xl)] border border-accent-ksm/30 bg-accent-ksm/5 px-5 py-4">
-            <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-accent-ksm" strokeWidth={2} />
-            <p className="text-sm font-semibold text-ink">{t("problem_bridge")}</p>
+          {/* 오른쪽: Route Preview */}
+          <div className="flex flex-col gap-4">
+            <RoutePreviewCard />
+            <Link
+              href={ROUTES_LIST_HREF}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-line bg-bg-card px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-bg-sunken hover:border-ink/20"
+            >
+              {t("routes_cta_more")} →
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* 3. ROUTE SAMPLE */}
-      <section className="page-container py-16 md:py-20">
-        <div className="mx-auto max-w-lg">
-          <h2 className="typo-h2 font-sans text-center mb-8 text-ink">{t("route_section_title")}</h2>
-          <RoutePreviewCard />
-          <div className="mt-8 rounded-[var(--radius-lg)] border border-line-soft bg-bg-sunken px-4 py-4 text-center">
-            <p className="text-sm font-semibold text-ink leading-relaxed">{t("route_bridge_line2")}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. SOCIAL PROOF */}
-      <section className="border-y border-line bg-bg-card">
-        <div className="page-container py-8">
-          <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-ink-soft mb-5">
-            {t("trust_title")}
-          </p>
-          <ul className="mx-auto max-w-3xl space-y-3">
-            {trustLines.map((line) => (
-              <li
-                key={line}
-                className="rounded-[var(--radius-lg)] border border-line-soft bg-bg px-4 py-3 text-sm text-ink-muted leading-relaxed text-center"
-              >
-                {line}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
 
       {/* 5. HOW */}
       <section className="bg-bg-sunken py-16 md:py-20">
@@ -452,7 +416,7 @@ export function LandingPage() {
           </div>
 
           <div className="mt-8 flex justify-center">
-            <Link href="/explore" className="text-sm font-semibold text-accent-ksm hover:text-accent-dark">
+            <Link href="/explore/routes" className="text-sm font-semibold text-accent-ksm hover:text-accent-dark">
               {t("guardians_cta")} →
             </Link>
           </div>
@@ -538,7 +502,7 @@ export function LandingPage() {
             {t("final_cta_traveler")}
           </h2>
           <Link
-            href="/explore"
+            href="/explore/routes"
             className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-8 py-3.5 text-sm font-semibold text-white shadow-[var(--shadow-md)] hover:bg-accent-dark transition-colors"
           >
             {t("hero_cta_primary")}

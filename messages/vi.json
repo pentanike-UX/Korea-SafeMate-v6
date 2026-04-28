@@ -1,7 +1,7 @@
 {
   "Nav": {
     "home": "Home",
-    "explore": "Recommend",
+    "explore": "Routes",
     "posts": "Posts",
     "guardians": "Guardians",
     "about": "About",
@@ -1740,7 +1740,8 @@
     "pricing_product_standard_name": "Custom Request",
     "pricing_product_standard_desc": "Hand your day to a Guardian — they design it for you.",
     "pricing_product_premium_name": "Premium Request",
-    "pricing_product_premium_desc": "Full-service day — custom route + unlimited Guardian chat."
+    "pricing_product_premium_desc": "Full-service day — custom route + unlimited Guardian chat.",
+    "routes_cta_more": "Browse more routes"
   },
   "GuardianLanding": {
     "hero_headline": "You are Seoul Tribe.",

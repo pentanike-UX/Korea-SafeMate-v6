@@ -1739,7 +1739,8 @@
     "pricing_product_standard_desc": "하루 맡기기. 날짜와 분위기에 맞게 가디언이 직접 설계합니다.",
     "pricing_product_premium_name": "프리미엄 의뢰",
     "pricing_product_premium_desc": "하루 풀서비스. 맞춤 설계 + 가디언과 무제한 채팅.",
-    "route_bridge_line1": "이 하루를 만든 가디언입니다."
+    "route_bridge_line1": "이 하루를 만든 가디언입니다.",
+    "routes_cta_more": "더 많은 루트 보기"
   },
   "GuardianLanding": {
     "hero_headline": "You are Seoul Tribe.",
