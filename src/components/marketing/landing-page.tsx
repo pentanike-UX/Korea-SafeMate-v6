@@ -169,32 +169,6 @@ function RoutePreviewCard() {
   );
 }
 
-function HeroVisual() {
-  const t = useTranslations("Landing");
-  const items = [
-    { Icon: Coffee, label: t("route_tag_cafe"), circle: "bg-[var(--accent-mint)]/85 text-[var(--gray-900)]" },
-    { Icon: Trees, label: t("route_tag_walk"), circle: "bg-[var(--accent-sky)] text-white" },
-    { Icon: Waves, label: t("route_tag_river"), circle: "bg-[var(--primary-green-400)] text-[var(--gray-900)]" },
-  ];
-  return (
-    <div
-      aria-hidden
-      className="rounded-[var(--radius-xl)] border border-[var(--gray-200)] bg-bg-card p-6 shadow-[var(--shadow-card)]"
-    >
-      <div className="grid grid-cols-3 gap-3">
-        {items.map(({ Icon, label, circle }) => (
-          <div key={label} className="flex flex-col items-center gap-2 text-center">
-            <div className={`flex size-11 items-center justify-center rounded-full ${circle}`}>
-              <Icon className="size-5" strokeWidth={1.75} />
-            </div>
-            <span className="typo-caption font-semibold">{label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function LandingPage() {
   const t = useTranslations("Landing");
 
@@ -227,20 +201,22 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      {/* 1. HERO */}
-      <section className="relative overflow-hidden bg-landing-hero">
-        <div className="page-container relative z-10 grid grid-cols-1 gap-12 py-20 md:grid-cols-2 md:items-center md:gap-16 md:py-28 lg:py-32">
-          <div className="flex flex-col gap-6">
+      {/* 1. HERO — 배경(bg) + 오버레이 + 콘텐츠 + 전경 인물(people), 우측 기준 absolute */}
+      <section className="hero">
+        <div className="hero-bg" aria-hidden />
+        <div className="hero-overlay" aria-hidden />
+        <div className="page-container">
+          <div className="hero-content flex flex-col gap-6">
             {badge.length > 0 ? (
-              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--gray-200)] bg-bg-card px-3 py-1.5 text-xs font-medium text-[var(--gray-600)] shadow-[var(--shadow-card)]">
+              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--gray-200)] bg-white/90 px-3 py-1.5 text-xs font-medium text-[var(--gray-600)] shadow-[var(--shadow-card)] backdrop-blur-sm dark:border-[var(--gray-700)] dark:bg-[var(--gray-800)]/90 dark:text-[var(--gray-300)]">
                 <MapPin className="size-3.5 shrink-0 text-accent-ksm" aria-hidden />
                 {badge}
               </span>
             ) : null}
 
-            <h1 className="typo-h1 font-sans text-ink">{t("hero_headline")}</h1>
+            <h1 className="typo-h1 font-sans">{t("hero_headline")}</h1>
 
-            <p className="typo-body-lg max-w-md text-[var(--gray-700)]">{t("hero_subline")}</p>
+            <p className="hero-lead typo-body-lg max-w-md">{t("hero_subline")}</p>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
@@ -251,18 +227,22 @@ export function LandingPage() {
               </Link>
               <Link
                 href="/how-it-works"
-                className="text-sm font-medium text-[var(--gray-700)] underline underline-offset-4 decoration-[var(--gray-400)] hover:text-[var(--gray-900)]"
+                className="hero-cta-secondary text-sm font-medium underline underline-offset-4 decoration-[var(--gray-400)] hover:decoration-[var(--gray-500)] dark:decoration-[var(--gray-600)] dark:hover:decoration-[var(--gray-500)]"
               >
                 {t("hero_cta_secondary")}
               </Link>
             </div>
           </div>
-
-          <div className="flex items-center justify-center md:justify-end">
-            <div className="w-full max-w-xs">
-              <HeroVisual />
-            </div>
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element -- 투명 PNG, 레이아웃 제어용 전경 오브젝트 */}
+          <img
+            className="hero-person"
+            src="/images/hero/people.png"
+            alt=""
+            width={960}
+            height={1080}
+            decoding="async"
+            fetchPriority="high"
+          />
         </div>
       </section>
 
