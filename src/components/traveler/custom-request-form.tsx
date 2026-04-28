@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,16 +10,27 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 const TIERS = [
-  { id: "basic", name: "Basic", price: 29000, desc: "1일 루트 추천" },
-  { id: "standard", name: "Standard", price: 59000, desc: "3일 루트 설계" },
-  { id: "premium", name: "Premium", price: 119000, desc: "최대 7일 맞춤 플랜" },
+  { id: "basic",    nameKey: "Basic",    price: 29000,  descKey: "1일 루트" },
+  { id: "standard", nameKey: "Standard", price: 59000,  descKey: "3일 루트" },
+  { id: "premium",  nameKey: "Premium",  price: 119000, descKey: "최대 7일 루트" },
 ] as const;
 
 function formatKrw(value: number) {
   return new Intl.NumberFormat("ko-KR").format(value);
 }
 
-export function CustomRequestForm() {
+/** 오늘 날짜 (YYYY-MM-DD) — 과거 날짜 선택 방지 */
+function todayIso() {
+  return new Date().toISOString().split("T")[0]!;
+}
+
+type Props = {
+  /** Guardian 프로필에서 "요청하기" 클릭 시 전달되는 UUID */
+  guardianId?: string;
+};
+
+export function CustomRequestForm({ guardianId }: Props) {
+  const t = useTranslations("TravelerRequest");
   const router = useRouter();
   const [date, setDate] = useState("");
   const [budget, setBudget] = useState("");
@@ -31,11 +43,11 @@ export function CustomRequestForm() {
   function submit() {
     setError(null);
     if (!date) {
-      setError("여행 날짜를 선택해 주세요.");
+      setError(t("errorDate"));
       return;
     }
     if (!budget || Number(budget) <= 0) {
-      setError("예산을 입력해 주세요.");
+      setError(t("errorBudget"));
       return;
     }
 
@@ -44,24 +56,44 @@ export function CustomRequestForm() {
       budget,
       tier,
       note: note.trim(),
+      ...(guardianId ? { guardianId } : {}),
     });
     router.push(`/checkout?${params.toString()}`);
   }
 
   return (
-    <section className="space-y-6 rounded-2xl border border-border/60 bg-card p-6 shadow-[var(--shadow-sm)] sm:p-8">
+    <section className="space-y-6 rounded-[var(--radius-xl)] border border-line bg-bg-card p-6 shadow-[var(--shadow-sm)] sm:p-8">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">맞춤 루트 요청</h1>
-        <p className="text-sm text-muted-foreground">날짜·예산·티어를 입력하면 결제 단계로 이동합니다.</p>
+        <h1 className="font-serif text-2xl font-semibold text-ink">{t("formTitle")}</h1>
+        <p className="text-sm text-ink-muted">{t("formLead")}</p>
       </header>
+
+      {/* 가디언 선택 표시 */}
+      {guardianId && (
+        <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-accent-soft bg-accent-soft/30 px-4 py-2.5">
+          <span className="text-xs font-semibold text-accent-dark">{t("guardianLabel")}:</span>
+          <span className="font-mono text-xs text-ink-muted">{guardianId.slice(0, 8)}…</span>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="request-date">여행 날짜</Label>
-          <Input id="request-date" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+          <Label htmlFor="request-date" className="text-sm font-medium text-ink">
+            {t("labelDate")}
+          </Label>
+          <Input
+            id="request-date"
+            type="date"
+            min={todayIso()}
+            value={date}
+            onChange={(event) => setDate(event.target.value)}
+            className="border-line bg-bg text-ink"
+          />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="request-budget">예산 (KRW)</Label>
+          <Label htmlFor="request-budget" className="text-sm font-medium text-ink">
+            {t("labelBudget")}
+          </Label>
           <Input
             id="request-budget"
             type="number"
@@ -69,13 +101,14 @@ export function CustomRequestForm() {
             step={1000}
             value={budget}
             onChange={(event) => setBudget(event.target.value)}
-            placeholder="예: 120000"
+            placeholder={t("budgetPlaceholder")}
+            className="border-line bg-bg text-ink"
           />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label>요청 티어</Label>
+        <Label className="text-sm font-medium text-ink">{t("labelTier")}</Label>
         <div className="grid gap-2 sm:grid-cols-3">
           {TIERS.map((item) => (
             <button
@@ -83,38 +116,52 @@ export function CustomRequestForm() {
               type="button"
               onClick={() => setTier(item.id)}
               className={cn(
-                "rounded-xl border px-4 py-3 text-left transition-colors",
-                tier === item.id ? "border-primary bg-primary/10 text-primary" : "border-border hover:bg-muted/60",
+                "rounded-[var(--radius-lg)] border px-4 py-3 text-left transition-colors",
+                tier === item.id
+                  ? "border-accent-ksm bg-accent-soft/40 text-ink"
+                  : "border-line bg-bg hover:bg-bg-sunken",
               )}
             >
-              <p className="text-sm font-semibold">{item.name}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{item.desc}</p>
-              <p className="mt-2 text-xs font-medium">₩{formatKrw(item.price)}</p>
+              <p className="text-sm font-semibold text-ink">{item.nameKey}</p>
+              <p className="mt-0.5 text-xs text-ink-muted">{item.descKey}</p>
+              <p className="mt-2 text-xs font-semibold text-accent-ksm">₩{formatKrw(item.price)}</p>
             </button>
           ))}
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="request-note">요청 메모</Label>
+        <Label htmlFor="request-note" className="text-sm font-medium text-ink">
+          {t("labelNote")}
+        </Label>
         <Textarea
           id="request-note"
           rows={4}
           value={note}
           onChange={(event) => setNote(event.target.value)}
-          placeholder="원하는 분위기, 이동 제약, 선호 장소 등을 적어 주세요."
+          placeholder={t("notePlaceholder")}
+          className="border-line bg-bg text-ink placeholder:text-ink-whisper"
         />
       </div>
 
-      <div className="rounded-xl border border-border/50 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
-        선택 티어: <span className="font-semibold text-foreground">{selectedTier.name}</span> · 예상 기본가{" "}
-        <span className="font-semibold text-foreground">₩{formatKrw(selectedTier.price)}</span>
+      {/* 선택 요약 */}
+      <div className="rounded-[var(--radius-md)] border border-line-soft bg-bg-sunken px-4 py-3 text-sm text-ink-muted">
+        {t("tierSummary", {
+          tier: selectedTier.nameKey,
+          price: formatKrw(selectedTier.price),
+        })}
       </div>
 
-      {error ? <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p> : null}
+      {error && (
+        <p className="rounded-[var(--radius-md)] bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
+      )}
 
-      <Button type="button" className="w-full rounded-xl font-semibold" onClick={submit}>
-        체크아웃으로 이동
+      <Button
+        type="button"
+        className="w-full rounded-[var(--radius-md)] bg-accent-ksm font-semibold text-white hover:bg-accent-dark"
+        onClick={submit}
+      >
+        {t("proceedBtn")}
       </Button>
     </section>
   );
