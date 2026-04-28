@@ -4,9 +4,10 @@
  */
 "use client";
 
-import { Fragment } from "react";
-import { useTranslations } from "next-intl";
+import { Fragment, useMemo } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { listPublicGuardians, type PublicGuardian } from "@/lib/guardian-public";
 import {
   UserCheck,
   Map,
@@ -21,19 +22,6 @@ import {
 } from "lucide-react";
 
 const ROUTE_SAMPLE_GUARDIAN_ID = "mg03";
-
-type MockSpec = "linh" | "aom" | "minh";
-
-const MOCK_GUARDIAN_ROWS: {
-  spec: MockSpec;
-  rating: number;
-  reviews: number;
-  languages: string[];
-}[] = [
-  { spec: "linh", rating: 4.9, reviews: 23, languages: ["VI", "KO", "EN"] },
-  { spec: "aom", rating: 5.0, reviews: 17, languages: ["TH", "EN", "KO"] },
-  { spec: "minh", rating: 4.8, reviews: 31, languages: ["VI", "EN", "KO"] },
-];
 
 type PricingCompareMark = "o" | "x" | "limited" | "unlimited";
 
@@ -186,6 +174,7 @@ function RoutePreviewCard() {
 
 export function LandingPage() {
   const t = useTranslations("Landing");
+  const locale = useLocale();
 
   const problemItems = [t("problem_item1"), t("problem_item2"), t("problem_item3")];
 
@@ -196,8 +185,25 @@ export function LandingPage() {
   ];
 
   const trustLines = [t("trust_line_1"), t("trust_line_2"), t("trust_line_3")];
+  const landingGuardians = useMemo(() => {
+    const all = listPublicGuardians();
+    const registered = all.filter((g) => g.approval_status === "approved" && g.matching_enabled);
+    const source = registered.length > 0 ? registered : all;
+    return [...source]
+      .sort((a, b) => {
+        if (a.featured !== b.featured) return a.featured ? -1 : 1;
+        return (b.avg_traveler_rating ?? 0) - (a.avg_traveler_rating ?? 0);
+      })
+      .slice(0, 3);
+  }, []);
 
   const badge = t("hero_badge").trim();
+
+  function representativeRouteTitle(guardian: PublicGuardian): string {
+    const firstRoute = guardian.recommended_routes?.[0];
+    if (!firstRoute) return guardian.headline;
+    return locale === "ko" ? firstRoute.title.ko : firstRoute.title.en;
+  }
 
   function pricingMarkLabel(mark: PricingCompareMark): string {
     switch (mark) {
@@ -378,18 +384,19 @@ export function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {MOCK_GUARDIAN_ROWS.map((row) => {
-              const spec = row.spec;
-              const name = t(`landing_mock_${spec}_name`);
-              const pick = t(`landing_mock_${spec}_pick`);
-              const repRoute = t(`landing_mock_${spec}_rep_route`);
-              const tag1 = t(`landing_mock_${spec}_tag1`);
-              const tag2 = t(`landing_mock_${spec}_tag2`);
+            {landingGuardians.map((guardian) => {
+              const name = guardian.display_name;
+              const pick = guardian.headline;
+              const repRoute = representativeRouteTitle(guardian);
+              const tags = guardian.expertise_tags.slice(0, 2);
               const initials = guardianInitials(name);
+              const rating = guardian.avg_traveler_rating ?? 4.7;
+              const reviewCount = guardian.review_count_display ?? 0;
+              const languages = guardian.languages.map((l) => l.language_code.toUpperCase());
 
               return (
                 <div
-                  key={spec}
+                  key={guardian.user_id}
                   className="flex flex-col gap-5 rounded-[var(--radius-xl)] border border-line bg-bg-card p-6 hover:shadow-[var(--shadow-sm)] transition-shadow"
                 >
                   <div className="flex gap-4">
@@ -400,8 +407,8 @@ export function LandingPage() {
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="text-base font-bold text-ink leading-tight">{name}</h3>
                         <div className="text-right shrink-0">
-                          <p className="text-lg font-bold tabular-nums text-ink">{row.rating}★</p>
-                          <p className="text-[11px] text-ink-muted">{t("guardian_reviews_label", { count: row.reviews })}</p>
+                          <p className="text-lg font-bold tabular-nums text-ink">{rating}★</p>
+                          <p className="text-[11px] text-ink-muted">{t("guardian_reviews_label", { count: reviewCount })}</p>
                         </div>
                       </div>
                       <p className="mt-2 text-sm font-semibold text-accent-ksm leading-snug">{pick}</p>
@@ -412,7 +419,7 @@ export function LandingPage() {
                     <div>
                       <p className="font-semibold uppercase tracking-wide text-ink-soft mb-1.5">{t("guardian_specialty_label")}</p>
                       <div className="flex flex-wrap gap-1.5">
-                        {[tag1, tag2].map((s) => (
+                        {tags.map((s) => (
                           <span
                             key={s}
                             className="rounded-full bg-bg-sunken px-2.5 py-0.5 font-medium text-ink-muted"
@@ -428,7 +435,7 @@ export function LandingPage() {
                         <p className="text-sm font-semibold text-ink">{repRoute}</p>
                       </div>
                       <div className="flex flex-wrap gap-1 justify-end">
-                        {row.languages.map((l) => (
+                        {languages.map((l) => (
                           <span
                             key={l}
                             className="rounded bg-bg-sunken px-1.5 py-0.5 text-[9px] font-bold text-ink-muted"
