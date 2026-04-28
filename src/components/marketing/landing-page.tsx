@@ -217,7 +217,7 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-bg">
       {/* 1. HERO — 배경(bg) + 오버레이 + 콘텐츠 + 전경 인물 */}
-      <section id="home-hero-root" data-header-contrast="light" className="hero">
+      <section id="home-hero-root" data-header-contrast="light" className="hero hero-section">
         <div className="hero-bg" aria-hidden />
         <div className="hero-overlay" aria-hidden />
         <div className="page-container hero-main">

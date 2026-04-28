@@ -635,14 +635,22 @@
   .hero {
     min-height: 720px;
   }
+  .hero-section {
+    position: relative;
+    overflow: hidden;
+  }
   @media (max-width: 1023px) {
     .hero {
       min-height: 680px;
     }
   }
-  @media (max-width: 767px) {
+  @media (max-width: 640px) {
     .hero {
       min-height: max(720px, 100svh);
+    }
+    .hero-section {
+      min-height: 720px;
+      padding-bottom: 120px;
     }
   }
   .hero .page-container.hero-main {
@@ -678,13 +686,13 @@
   .hero-content {
     position: relative;
     z-index: 4;
-    max-width: 520px;
+    max-width: 70%;
     flex-shrink: 0;
   }
-  @media (max-width: 767px) {
+  @media (max-width: 640px) {
     .hero-content {
       width: 100%;
-      max-width: min(65vw, 22rem);
+      max-width: 85%;
     }
   }
   .hero-headline {
@@ -727,31 +735,34 @@
   }
   .hero-people {
     position: absolute;
-    right: clamp(-40px, 4vw, 80px);
+    right: -8%;
     bottom: 0;
     z-index: 2;
-    width: min(42vw, 520px);
     height: auto;
-    max-height: 88%;
     object-fit: contain;
     object-position: right bottom;
     pointer-events: none;
     user-select: none;
     transition: transform 0.6s ease;
   }
-  @media (max-width: 1023px) {
-    .hero-people {
-      width: min(54vw, 460px);
-      right: -24px;
-      max-height: 92%;
-    }
-  }
   @media (max-width: 640px) {
     .hero-people {
-      width: min(78vw, 360px);
-      right: -56px;
+      width: 140vw;
+      max-width: none;
+      right: -30%;
       bottom: 0;
-      max-height: 105%;
+    }
+  }
+  @media (min-width: 641px) and (max-width: 1023px) {
+    .hero-people {
+      width: 90vw;
+      right: -15%;
+    }
+  }
+  @media (min-width: 1024px) {
+    .hero-people {
+      width: min(42vw, 520px);
+      right: 4%;
     }
   }
   @media (prefers-reduced-motion: reduce) {
