@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { BRAND } from "@/lib/constants";
@@ -26,6 +27,54 @@ function isNavActive(href: string, pathname: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+type NavMsgKey = (typeof NAV)[number]["msgKey"];
+
+function HeaderNavLinks({
+  mobile,
+  pathname,
+  onDarkSurface,
+  tNav,
+}: {
+  mobile?: boolean;
+  pathname: string;
+  onDarkSurface: boolean;
+  tNav: (key: NavMsgKey) => string;
+}) {
+  const glassHeaderNav = onDarkSurface && !mobile;
+  return (
+    <nav className={cn("flex gap-1", mobile ? "flex-col gap-1.5" : "items-center")}>
+      {NAV.map((item) => {
+        const active = isNavActive(item.href, pathname);
+        const Icon = item.Icon;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "inline-flex items-center gap-2.5 rounded-[var(--radius-md)] font-medium transition-colors duration-200",
+              mobile ? "min-h-12 px-3 py-3 text-base" : "px-3 py-2.5 text-sm",
+              glassHeaderNav
+                ? active
+                  ? "bg-white/18 text-white ring-1 ring-white/30"
+                  : "text-white/88 hover:bg-white/12 hover:text-white active:scale-[0.98]"
+                : active
+                  ? "bg-[var(--brand-trust-blue-soft)] text-[var(--brand-trust-blue)] ring-1 ring-[color-mix(in_srgb,var(--brand-trust-blue)_28%,transparent)]"
+                  : "text-[var(--text-strong)]/85 hover:bg-muted hover:text-[var(--text-strong)] active:scale-[0.98]",
+            )}
+          >
+            <Icon
+              className={cn("size-[1.125rem] shrink-0 opacity-90", mobile ? "size-5" : "")}
+              strokeWidth={1.75}
+              aria-hidden
+            />
+            {tNav(item.msgKey)}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
 export function SiteHeader() {
   const pathname = usePathname();
   const user = useAuthUser();
@@ -35,42 +84,17 @@ export function SiteHeader() {
   const isHome = pathname === "/";
   const heroContrast = useHomeHeaderContrast();
   const onDarkSurface = isHome && heroContrast === "dark";
+  const [homeHeaderScrolled, setHomeHeaderScrolled] = useState(false);
 
-  const NavLinks = ({ mobile = false }: { mobile?: boolean }) => {
-    const glassHeaderNav = onDarkSurface && !mobile;
-    return (
-      <nav className={cn("flex gap-1", mobile ? "flex-col gap-1.5" : "items-center")}>
-        {NAV.map((item) => {
-          const active = isNavActive(item.href, pathname);
-          const Icon = item.Icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "inline-flex items-center gap-2.5 rounded-[var(--radius-md)] font-medium transition-colors duration-200",
-                mobile ? "min-h-12 px-3 py-3 text-base" : "px-3 py-2.5 text-sm",
-                glassHeaderNav
-                  ? active
-                    ? "bg-white/18 text-white ring-1 ring-white/30"
-                    : "text-white/88 hover:bg-white/12 hover:text-white active:scale-[0.98]"
-                  : active
-                    ? "bg-[var(--brand-trust-blue-soft)] text-[var(--brand-trust-blue)] ring-1 ring-[color-mix(in_srgb,var(--brand-trust-blue)_28%,transparent)]"
-                    : "text-[var(--text-strong)]/85 hover:bg-muted hover:text-[var(--text-strong)] active:scale-[0.98]",
-              )}
-            >
-              <Icon
-                className={cn("size-[1.125rem] shrink-0 opacity-90", mobile ? "size-5" : "")}
-                strokeWidth={1.75}
-                aria-hidden
-              />
-              {tNav(item.msgKey)}
-            </Link>
-          );
-        })}
-      </nav>
-    );
-  };
+  useEffect(() => {
+    if (!isHome || onDarkSurface) return;
+    const update = () => setHomeHeaderScrolled(window.scrollY > 20);
+    requestAnimationFrame(update);
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, [isHome, onDarkSurface]);
+
+  const homeLightGlass = isHome && !onDarkSurface && !homeHeaderScrolled;
 
   return (
     <header
@@ -78,7 +102,9 @@ export function SiteHeader() {
         "sticky top-0 z-50 border-b backdrop-blur-xl transition-[background-color,border-color,box-shadow] duration-300 ease-out",
         onDarkSurface
           ? "border-white/10 bg-black/24 shadow-none supports-[backdrop-filter]:bg-black/18"
-          : "border-border/70 bg-background/93 shadow-[var(--shadow-sm)] supports-[backdrop-filter]:bg-background/86",
+          : homeLightGlass
+            ? "border-border/25 bg-transparent shadow-none backdrop-blur-md supports-[backdrop-filter]:bg-background/18 max-md:supports-[backdrop-filter]:bg-background/12"
+            : "border-border/70 bg-background/93 shadow-[var(--shadow-sm)] supports-[backdrop-filter]:bg-background/86",
       )}
     >
       <div className="flex min-h-14 h-14 w-full min-w-0 items-center gap-2 px-3 sm:h-16 sm:min-h-16 sm:gap-4 sm:px-6 md:px-8 xl:px-10">
@@ -117,7 +143,7 @@ export function SiteHeader() {
         </Link>
 
         <div className="hidden min-w-0 md:flex md:flex-1 md:justify-center">
-          <NavLinks />
+          <HeaderNavLinks pathname={pathname} onDarkSurface={onDarkSurface} tNav={tNav} />
         </div>
 
         <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
@@ -164,7 +190,7 @@ export function SiteHeader() {
                 <SheetTitle>{tHeader("menu")}</SheetTitle>
               </SheetHeader>
               <div className="flex flex-1 flex-col gap-5 pb-2">
-                <NavLinks mobile />
+                <HeaderNavLinks mobile pathname={pathname} onDarkSurface={onDarkSurface} tNav={tNav} />
                 <div className="border-border/60 flex flex-col gap-2.5 border-t pt-4">
                   {!user ? (
                     <Button asChild variant="default" className="w-full justify-center rounded-[var(--radius-md)] font-semibold">

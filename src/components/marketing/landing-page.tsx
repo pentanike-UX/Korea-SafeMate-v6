@@ -4,6 +4,7 @@
  */
 "use client";
 
+import { Fragment } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
@@ -91,6 +92,42 @@ const ROUTE_TAG_STYLE: Record<"route_tag_cafe" | "route_tag_walk" | "route_tag_r
   route_tag_river: "tag-route-river",
   route_tag_beginner: "tag-route-beginner",
 };
+
+/** Hero 하단 겹침 카드 — 카페 / 도보 / 한강 (모바일 기준 플로팅) */
+function HeroCategoryCards() {
+  const t = useTranslations("Landing");
+  const items = [
+    { Icon: Coffee, labelKey: "route_tag_cafe" as const, circle: "tag-route-cafe" },
+    { Icon: Trees, labelKey: "route_tag_walk" as const, circle: "tag-route-walk" },
+    { Icon: Waves, labelKey: "route_tag_river" as const, circle: "tag-route-river" },
+  ];
+  return (
+    <div className="hero-category-cards" role="list">
+      {items.map(({ Icon, labelKey, circle }) => (
+        <div key={labelKey} role="listitem" className="hero-category-cards__cell">
+          <div className={`flex size-11 items-center justify-center rounded-full ${circle}`}>
+            <Icon className="size-5" strokeWidth={1.75} aria-hidden />
+          </div>
+          <span className="typo-caption font-semibold text-ink">{t(labelKey)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function HeroHeadline({ text }: { text: string }) {
+  const lines = text.split("\n");
+  return (
+    <>
+      {lines.map((line, i) => (
+        <Fragment key={i}>
+          {i > 0 ? <br /> : null}
+          {line}
+        </Fragment>
+      ))}
+    </>
+  );
+}
 
 function RoutePreviewCard() {
   const t = useTranslations("Landing");
@@ -201,48 +238,55 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      {/* 1. HERO — 배경(bg) + 오버레이 + 콘텐츠 + 전경 인물(people), 우측 기준 absolute */}
-      <section className="hero">
+      {/* 1. HERO — 배경(bg) + 오버레이 + 콘텐츠 + 전경 인물 + 하단 카테고리 카드 겹침 */}
+      <section id="home-hero-root" data-header-contrast="light" className="hero">
         <div className="hero-bg" aria-hidden />
         <div className="hero-overlay" aria-hidden />
-        <div className="page-container">
-          <div className="hero-content flex flex-col gap-6">
-            {badge.length > 0 ? (
-              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--gray-200)] bg-white/90 px-3 py-1.5 text-xs font-medium text-[var(--gray-600)] shadow-[var(--shadow-card)] backdrop-blur-sm dark:border-[var(--gray-700)] dark:bg-[var(--gray-800)]/90 dark:text-[var(--gray-300)]">
-                <MapPin className="size-3.5 shrink-0 text-accent-ksm" aria-hidden />
-                {badge}
-              </span>
-            ) : null}
+        <div className="hero-stack">
+          <div className="page-container hero-main">
+            <div className="hero-content flex flex-col gap-5 text-left md:gap-6">
+              {badge.length > 0 ? (
+                <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--gray-200)] bg-white/90 px-3 py-1.5 text-xs font-medium text-[var(--gray-600)] shadow-[var(--shadow-card)] backdrop-blur-sm dark:border-[var(--gray-700)] dark:bg-[var(--gray-800)]/90 dark:text-[var(--gray-300)]">
+                  <MapPin className="size-3.5 shrink-0 text-accent-ksm" aria-hidden />
+                  {badge}
+                </span>
+              ) : null}
 
-            <h1 className="typo-h1 font-sans">{t("hero_headline")}</h1>
+              <h1 className="hero-headline typo-h1 font-sans">
+                <HeroHeadline text={t("hero_headline")} />
+              </h1>
 
-            <p className="hero-lead typo-body-lg max-w-md">{t("hero_subline")}</p>
+              <p className="hero-lead typo-body-lg hero-subline-max">{t("hero_subline")}</p>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link
-                href="/explore"
-                className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-card)] transition-all hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98]"
-              >
-                {t("hero_cta_primary")}
-              </Link>
-              <Link
-                href="/how-it-works"
-                className="hero-cta-secondary text-sm font-medium underline underline-offset-4 decoration-[var(--gray-400)] hover:decoration-[var(--gray-500)] dark:decoration-[var(--gray-600)] dark:hover:decoration-[var(--gray-500)]"
-              >
-                {t("hero_cta_secondary")}
-              </Link>
+              <div className="hero-cta-row flex max-w-[min(320px,calc(100vw-48px))] flex-col gap-3 md:max-w-none md:flex-row md:items-center">
+                <Link
+                  href="/explore"
+                  className="hero-cta-primary inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-card)] transition-all hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98] md:w-auto"
+                >
+                  {t("hero_cta_primary")}
+                </Link>
+                <Link
+                  href="/how-it-works"
+                  className="hero-cta-secondary text-left text-sm font-medium underline underline-offset-4 decoration-[var(--gray-400)] hover:decoration-[var(--gray-500)] md:text-center dark:decoration-[var(--gray-600)] dark:hover:decoration-[var(--gray-500)]"
+                >
+                  {t("hero_cta_secondary")}
+                </Link>
+              </div>
             </div>
+            {/* eslint-disable-next-line @next/next/no-img-element -- 투명 PNG, 레이아웃 제어용 전경 오브젝트 */}
+            <img
+              className="hero-person"
+              src="/images/hero/people.png"
+              alt=""
+              width={960}
+              height={1080}
+              decoding="async"
+              fetchPriority="high"
+            />
           </div>
-          {/* eslint-disable-next-line @next/next/no-img-element -- 투명 PNG, 레이아웃 제어용 전경 오브젝트 */}
-          <img
-            className="hero-person"
-            src="/images/hero/people.png"
-            alt=""
-            width={960}
-            height={1080}
-            decoding="async"
-            fetchPriority="high"
-          />
+          <div className="hero-category-wrap">
+            <HeroCategoryCards />
+          </div>
         </div>
       </section>
 

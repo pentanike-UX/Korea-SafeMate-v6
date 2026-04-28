@@ -10,17 +10,20 @@ import { usePathname } from "@/i18n/navigation";
 export function useHomeHeaderContrast(): "dark" | "light" {
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const [mode, setMode] = useState<"dark" | "light">(() => (isHome ? "dark" : "light"));
+  /** Landing 등 밝은 Hero: 헤더는 항상 라이트(어두운 글자). 다크 풀블리드 캐러셀만 dark. */
+  const [mode, setMode] = useState<"dark" | "light">(() => (isHome ? "light" : "light"));
 
   useEffect(() => {
-    if (!isHome) {
-      setMode("light");
-      return;
-    }
+    if (!isHome) return;
 
     const el = document.getElementById("home-hero-root");
     if (!el) {
-      setMode("dark");
+      queueMicrotask(() => setMode("dark"));
+      return;
+    }
+
+    if (el.dataset.headerContrast === "light") {
+      queueMicrotask(() => setMode("light"));
       return;
     }
 
