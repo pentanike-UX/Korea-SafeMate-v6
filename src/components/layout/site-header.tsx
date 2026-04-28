@@ -146,7 +146,7 @@ export function SiteHeader() {
           <HeaderNavLinks pathname={pathname} onDarkSurface={onDarkSurface} tNav={tNav} />
         </div>
 
-        <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
+        <div className="ml-auto flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
           {user === undefined ? (
             <div
               className={cn(

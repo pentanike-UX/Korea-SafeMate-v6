@@ -235,7 +235,7 @@ export function LandingPage() {
 
             <p className="hero-lead typo-body-lg hero-subline-max">{t("hero_subline")}</p>
 
-            <div className="hero-cta-row flex max-w-[min(320px,calc(100vw-48px))] flex-col gap-3 md:max-w-none md:flex-row md:items-center">
+            <div className="hero-cta-row hero-cta-inline flex max-w-[min(320px,calc(100vw-48px))] flex-col gap-3 md:max-w-none md:flex-row md:items-center">
               <Link
                 href="/explore"
                 className="hero-cta-primary inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-card)] transition-all hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98] md:w-auto"
@@ -250,6 +250,20 @@ export function LandingPage() {
               </Link>
             </div>
           </div>
+        </div>
+        <div className="hero-cta-mobile">
+          <Link
+            href="/explore"
+            className="hero-cta-primary hero-cta-mobile-primary inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-card)] transition-all hover:bg-accent-dark active:scale-[0.98]"
+          >
+            {t("hero_cta_primary")}
+          </Link>
+          <Link
+            href="/how-it-works"
+            className="hero-cta-secondary hero-cta-mobile-secondary text-sm font-medium underline underline-offset-4 decoration-[var(--gray-400)] hover:decoration-[var(--gray-500)] dark:decoration-[var(--gray-600)] dark:hover:decoration-[var(--gray-500)]"
+          >
+            {t("hero_cta_secondary")}
+          </Link>
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element -- 투명 PNG, 레이아웃 제어용 전경 오브젝트 */}
         <img

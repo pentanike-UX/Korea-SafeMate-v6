@@ -646,10 +646,10 @@
   }
   @media (max-width: 640px) {
     .hero {
-      min-height: max(720px, 100svh);
+      min-height: max(760px, 100svh);
     }
     .hero-section {
-      min-height: 720px;
+      min-height: 760px;
       padding-bottom: 120px;
     }
   }
@@ -732,6 +732,35 @@
   }
   .dark .hero .hero-cta-secondary:hover {
     color: #f9fafb;
+  }
+  .hero-cta-mobile {
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .hero-cta-inline {
+      display: none;
+    }
+    .hero-cta-mobile {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 24px;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .hero-cta-mobile-primary {
+      width: 100%;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-cta-mobile-secondary {
+      width: 100%;
+      text-align: center;
+    }
   }
   .hero-people {
     position: absolute;
