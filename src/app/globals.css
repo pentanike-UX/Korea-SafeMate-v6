@@ -646,10 +646,12 @@
   }
   @media (max-width: 640px) {
     .hero {
-      min-height: max(760px, 100svh);
+      min-height: 90svh;
+      max-height: 90svh;
     }
     .hero-section {
-      min-height: 760px;
+      min-height: 90svh;
+      max-height: 90svh;
       padding-bottom: 120px;
     }
   }
