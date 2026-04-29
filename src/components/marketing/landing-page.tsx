@@ -403,18 +403,34 @@ export function LandingPage() {
               const rating = guardian.avg_traveler_rating ?? 4.7;
               const reviewCount = guardian.review_count_display ?? 0;
               const languages = guardian.languages.map((l) => l.language_code.toUpperCase());
+              // avatar: prefer dedicated avatar crop, fall back to full photo, then initials
+              const avatarSrc = guardian.photo_url
+                ? guardian.photo_url.replace(/\.jpg$/, "_avatar.jpg")
+                : null;
 
               return (
                 <div
                   key={guardian.user_id}
-                  className="flex flex-col gap-5 rounded-[var(--radius-xl)] border border-line bg-bg-card p-6 transition-all duration-200 hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5"
+                  className="group flex flex-col gap-5 rounded-[var(--radius-xl)] border border-line bg-bg-card p-6 transition-all duration-200 hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5"
                 >
                   {/* 상단: 아바타 + 이름 + 평점 + 한 줄 설명 */}
                   <div className="flex gap-4">
-                    <div
-                      className={`flex size-14 shrink-0 items-center justify-center rounded-full text-base font-bold ${palette}`}
-                    >
-                      {initials}
+                    {/* Profile photo — group-hover:scale-[1.04] for subtle lift */}
+                    <div className="shrink-0">
+                      {avatarSrc ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={avatarSrc}
+                          alt={name}
+                          className="size-[72px] rounded-full object-cover ring-2 ring-line transition-transform duration-200 group-hover:scale-[1.04]"
+                        />
+                      ) : (
+                        <div
+                          className={`flex size-[72px] items-center justify-center rounded-full text-lg font-bold transition-transform duration-200 group-hover:scale-[1.04] ${palette}`}
+                        >
+                          {initials}
+                        </div>
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">

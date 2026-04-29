@@ -59,8 +59,8 @@ export async function SiteFooter() {
         </div>
 
         <div className="pt-5 sm:pt-6">
-          {/* 카피라이트 — 항상 세로 스택, 설정 패널처럼 보이지 않도록 */}
-          <div className="flex flex-col items-start gap-3 text-[11px] leading-relaxed text-white/38 sm:text-xs">
+          {/* 카피라이트 행: 좌측 텍스트 / 우측 언어+테마 컨트롤 */}
+          <div className="flex flex-col gap-3 text-[11px] text-white/38 sm:flex-row sm:items-center sm:justify-between sm:text-xs">
             <p>
               {tFooter("copyright", { year: new Date().getFullYear() })} · Seoul
               {process.env.NODE_ENV === "development" ? (
@@ -72,7 +72,7 @@ export async function SiteFooter() {
                 </>
               ) : null}
             </p>
-            <FooterCompactControls className="opacity-80" />
+            <FooterCompactControls />
           </div>
         </div>
       </div>
