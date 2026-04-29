@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import type { ContentPost } from "@/types/domain";
 import { PostSampleBadge } from "@/components/posts/post-sample-badge";
 import { SaveTravelerPostButton } from "@/components/posts/save-traveler-post-button";
@@ -9,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { postHeroCoverClass } from "@/lib/post-image-crop";
 import { cn } from "@/lib/utils";
 import type { PostTypeLabelKey } from "@/lib/post-detail-type-label";
-import { Calendar, Heart, MapPin } from "lucide-react";
+import { ArrowRight, Calendar, Heart, MapPin } from "lucide-react";
 
 function heroGradient(post: Pick<ContentPost, "title" | "kind">) {
   const hue = post.title.length * 17 + post.kind.length * 40;
@@ -27,6 +28,7 @@ type HeroPost = Pick<
   | "region_slug"
   | "helpful_rating"
   | "created_at"
+  | "author_user_id"
 >;
 
 export function PostDetailHero({
@@ -35,6 +37,7 @@ export function PostDetailHero({
   coverAlt,
   typeLabelKey,
   postId,
+  isRoute,
 }: {
   post: HeroPost;
   coverUrl: string;
@@ -42,6 +45,8 @@ export function PostDetailHero({
   typeLabelKey: PostTypeLabelKey;
   /** 있으면 메타 줄 오른쪽에 저장 액션 */
   postId?: string;
+  /** 루트 포스트 여부 — 요청 CTA 표시 */
+  isRoute?: boolean;
 }) {
   const t = useTranslations("Posts");
   const date = new Date(post.created_at).toLocaleDateString(undefined, {
@@ -101,8 +106,17 @@ export function PostDetailHero({
                 ) : null}
               </div>
               {postId ? (
-                <div className="shrink-0 sm:ml-auto">
-                  <SaveTravelerPostButton postId={postId} showListLink={false} className="w-full sm:w-auto sm:min-w-[9rem]" />
+                <div className="flex shrink-0 flex-wrap items-center gap-2 sm:ml-auto">
+                  <SaveTravelerPostButton postId={postId} showListLink={false} />
+                  {isRoute ? (
+                    <Link
+                      href={`/guardians/${post.author_user_id}#request`}
+                      className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:opacity-90 active:scale-[0.98]"
+                    >
+                      이 하루로 요청하기
+                      <ArrowRight className="size-3.5" aria-hidden />
+                    </Link>
+                  ) : null}
                 </div>
               ) : null}
             </div>

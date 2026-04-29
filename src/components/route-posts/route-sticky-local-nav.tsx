@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import type { RouteSpot } from "@/types/domain";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp, Map } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 function spotShortName(spot: RouteSpot, maxLen: number) {
   const raw = spot.title?.trim() || spot.place_name?.trim() || "—";
@@ -16,12 +16,10 @@ type Props = {
   spots: RouteSpot[];
   activeSpotId: string | null;
   onSpotNavigate: (id: string) => void;
-  /** Scroll to the main route map card (hero map section). */
-  onScrollToMainMap: () => void;
   isMobile: boolean;
 };
 
-export function RouteStickyLocalNav({ spots, activeSpotId, onSpotNavigate, onScrollToMainMap, isMobile }: Props) {
+export function RouteStickyLocalNav({ spots, activeSpotId, onSpotNavigate, isMobile }: Props) {
   const t = useTranslations("RoutePosts");
   const [expanded, setExpanded] = useState(true);
   const chipScrollDesktopRef = useRef<HTMLDivElement>(null);
@@ -103,17 +101,6 @@ export function RouteStickyLocalNav({ spots, activeSpotId, onSpotNavigate, onScr
       aria-label={t("stickyNavAria")}
     >
       <div className="mx-auto flex max-w-6xl items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          className="size-9 shrink-0 rounded-xl border-border/70 bg-card/90 shadow-sm backdrop-blur-sm"
-          onClick={onScrollToMainMap}
-          aria-label={t("stickyNavMapButtonAria")}
-        >
-          <Map className="size-4" aria-hidden />
-        </Button>
-
         {isMobile ? renderChips(true) : renderChips(false)}
 
         {!isMobile ? (

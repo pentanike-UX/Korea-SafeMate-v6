@@ -1028,7 +1028,7 @@
     "all": "All",
     "empty": "No posts match these filters.",
     "featured": "Featured",
-    "backToList": "All posts",
+    "backToList": "Danh sách 하루way",
     "savePost": "Save",
     "savePostSaved": "Saved",
     "savePostViewList": "Saved posts",
@@ -1051,7 +1051,7 @@
       "kContent": "K-content",
       "article": "Article"
     },
-    "authorCardEyebrow": "Written by",
+    "authorCardEyebrow": "하루이 tạo ra 하루way này",
     "viewGuardian": "View guardian",
     "authorFallback": "Community contributor — profile linking coming soon.",
     "authorTaglinePlaceholder": "A short intro is coming soon.",
@@ -1060,10 +1060,10 @@
     "sampleBadge": "Sample",
     "sampleBadgeAria": "Example post for onboarding — not live user content",
     "sampleAuthorNote": "Sample post for browsing — not live user content.",
-    "relatedTitle": "Read next",
+    "relatedTitle": "하루way tương tự",
     "relatedBrowseTrigger": "Browse related posts",
     "relatedBrowseSheetTitle": "Related posts",
-    "relatedCardRead": "Read post",
+    "relatedCardRead": "Xem 하루way",
     "relatedReasonSameGuardian": "Same guardian",
     "relatedReasonSameRegion": "Same area",
     "relatedReasonSameCategory": "Similar topic",
@@ -1103,7 +1103,7 @@
     "filterApply": "Apply",
     "filterClose": "Close",
     "ctaRequestCourseBody": "Muốn có lộ trình một ngày được thiết kế riêng cho bạn?",
-    "ctaRequestBtn": "Yêu cầu lộ trình tùy chỉnh"
+    "ctaRequestBtn": "Yêu cầu Haru này"
   },
   "RoutePosts": {
     "introFallbackNoLead": "Skim the summary and map first, then read each stop in order.",
@@ -1129,7 +1129,7 @@
     "routeEyebrow": "Curated route",
     "mapTitle": "This guardian’s recommended route",
     "insightTitle": "What makes this route work",
-    "spotsTitle": "Stops along the way",
+    "spotsTitle": "Chi tiết điểm đến",
     "stops": "stops",
     "chipDistance": "{km} km",
     "chipDuration": "{minutes} min",
@@ -1155,7 +1155,7 @@
     "ctaNextSpot": "Next stop",
     "ctaViewSpot": "View this stop",
     "nextCue": "Next on the route",
-    "bottomCtaTitle": "Want this vibe on your trip?",
+    "bottomCtaTitle": "Yêu cầu Haru này",
     "bottomCtaLead": "Request this guardian and share timing — we’ll help with scope and handoff.",
     "ctaRequestGuardian": "Request this guardian",
     "ctaRequestCourseBody": "Request this course from {name}",
@@ -1174,7 +1174,9 @@
     "stickyNavMapButtonAria": "Go to route map at top",
     "stickyNavExpand": "Expand stop list",
     "stickyNavCollapse": "Collapse stop list",
-    "stickyNavCollapsedHint": "Use the map button for the full route map; use chips to jump between stops."
+    "stickyNavCollapsedHint": "Use the map button for the full route map; use chips to jump between stops.",
+    "flowTitle": "Luồng Haru",
+    "flowSubtitle": "Đi theo thứ tự — đây là lộ trình hôm nay."
   },
   "TravelerHub": {
     "metaTitle": "My journey",

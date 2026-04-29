@@ -50,8 +50,8 @@ export async function PostAuthorAside({ post }: { post: ContentPost }) {
           {guardian && imgs ? (
             <Image src={imgs.landscape} alt="" fill className={GUARDIAN_PROFILE_HERO_COVER_CLASS} sizes="400px" />
           ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-[var(--brand-primary-soft)] to-[var(--brand-trust-blue-soft)] text-2xl font-bold text-primary/40">
-              42
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-[var(--brand-primary-soft)] to-[var(--accent-soft)] text-2xl font-bold text-primary/40">
+              하루
             </div>
           )}
         </div>

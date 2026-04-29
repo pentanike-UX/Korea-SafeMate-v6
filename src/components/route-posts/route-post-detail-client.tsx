@@ -4,11 +4,9 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { ContentPost, RouteSpot } from "@/types/domain";
-import { RouteMapPreview } from "@/components/maps/route-map-preview";
 import { RouteStickyLocalNav } from "@/components/route-posts/route-sticky-local-nav";
 import { RouteSummaryCard } from "@/components/route-posts/route-summary-card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PostDetailIntroPanel } from "@/components/posts/post-detail-intro-panel";
@@ -19,7 +17,7 @@ import { getSpotDisplayImageAlt, getSpotDisplayImageUrl } from "@/lib/content-po
 import { buildLocalPostVisualPlan, type LocalPostVisualPlan } from "@/lib/post-local-images";
 import { routeSpotImageCoverClass } from "@/lib/post-image-crop";
 import { cn } from "@/lib/utils";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronRight } from "lucide-react";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
   POST_DETAIL_PARAGRAPH_STACK_COMPACT,
@@ -39,6 +37,92 @@ import {
   RouteSpotReasonBlock,
   RouteSpotWarningNote,
 } from "@/components/posts/post-info-blocks";
+
+/** 하루 흐름 — 지도 대신 세로 타임라인으로 동선 순서 표시 */
+function HaruFlowTimeline({
+  spots,
+  activeSpotId,
+  onSpotClick,
+}: {
+  spots: RouteSpot[];
+  activeSpotId: string | null;
+  onSpotClick: (id: string) => void;
+}) {
+  const t = useTranslations("RoutePosts");
+  return (
+    <section className="overflow-hidden rounded-2xl border border-border/60 bg-card/95 shadow-[var(--shadow-sm)]">
+      <div className="border-b border-border/60 bg-white/90 px-5 pt-4 pb-3.5 sm:px-6 dark:bg-card/80">
+        <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">{t("routeEyebrow")}</p>
+        <h2 className="mt-0.5 text-lg font-semibold text-[var(--text-strong)]">{t("flowTitle")}</h2>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("flowSubtitle")}</p>
+      </div>
+      <div className="px-4 py-3 sm:px-5 sm:py-4">
+        {spots.map((spot, index) => {
+          const isActive = activeSpotId === spot.id;
+          const isLast = index === spots.length - 1;
+          return (
+            <div key={spot.id} className="flex gap-3">
+              {/* Spine */}
+              <div className="flex shrink-0 flex-col items-center">
+                <button
+                  type="button"
+                  onClick={() => onSpotClick(spot.id)}
+                  className={cn(
+                    "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all duration-200",
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/25 ring-offset-1"
+                      : "bg-primary/10 text-primary hover:bg-primary/20",
+                  )}
+                  aria-label={`스팟 ${index + 1}: ${spot.title ?? spot.place_name}`}
+                >
+                  {index + 1}
+                </button>
+                {!isLast && <div className="my-1 min-h-6 w-px flex-1 bg-border/50" />}
+              </div>
+              {/* Content row */}
+              <button
+                type="button"
+                onClick={() => onSpotClick(spot.id)}
+                className={cn(
+                  "group mb-3 flex-1 rounded-xl border px-3 py-2.5 text-left transition-all duration-200",
+                  isActive
+                    ? "border-primary/20 bg-primary/8"
+                    : "border-transparent hover:border-border/50 hover:bg-muted/40",
+                )}
+              >
+                <div className="flex min-w-0 items-center gap-2">
+                  <p className={cn(
+                    "min-w-0 flex-1 truncate text-sm font-semibold leading-snug",
+                    isActive ? "text-[var(--text-strong)]" : "text-[var(--text-strong)]",
+                  )}>
+                    {spot.title ?? spot.place_name}
+                  </p>
+                  <ChevronRight
+                    className={cn(
+                      "size-3.5 shrink-0 text-muted-foreground/40 transition-transform group-hover:translate-x-0.5",
+                      isActive && "text-primary/60",
+                    )}
+                    aria-hidden
+                  />
+                </div>
+                {(spot.short_description ?? (spot.place_name && spot.title)) ? (
+                  <p className="mt-0.5 line-clamp-1 text-xs leading-relaxed text-muted-foreground">
+                    {spot.short_description ?? spot.place_name}
+                  </p>
+                ) : null}
+                {spot.stay_duration_minutes ? (
+                  <span className="mt-1.5 inline-flex items-center rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    약 {spot.stay_duration_minutes}분
+                  </span>
+                ) : null}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
 
 function SpotDetailBody({
   spot,
@@ -162,7 +246,7 @@ export function RoutePostDetailClient({
   const meta = journey.metadata;
   const spots = useMemo(() => [...journey.spots].sort((a, b) => a.order - b.order), [journey.spots]);
 
-  const mapCardRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
   const spotsEndRef = useRef<HTMLDivElement>(null);
 
   const [activeSpotId, setActiveSpotId] = useState<string | null>(spots[0]?.id ?? null);
@@ -186,20 +270,6 @@ export function RoutePostDetailClient({
     window.setTimeout(() => setFlashId(null), 2200);
   }, []);
 
-  const scrollToMainMap = useCallback(() => {
-    mapCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
-
-  /** Main hero map: mobile opens sheet; desktop scrolls to section. */
-  function onMainMapSpotSelect(id: string) {
-    setActiveSpotId(id);
-    if (isMobile) {
-      setSheetOpen(true);
-    } else {
-      navigateToSpotSection(id);
-    }
-  }
-
   function goNextFrom(id: string) {
     const idx = spots.findIndex((s) => s.id === id);
     const next = spots[idx + 1];
@@ -211,7 +281,7 @@ export function RoutePostDetailClient({
   useEffect(() => {
     let raf = 0;
     const tick = () => {
-      const mapEl = mapCardRef.current;
+      const mapEl = triggerRef.current;
       const endEl = spotsEndRef.current;
       if (!mapEl || !endEl) return;
 
@@ -249,6 +319,8 @@ export function RoutePostDetailClient({
     };
   }, [spots, isMobile]);
 
+  // triggerRef → mapCardRef alias (scroll trigger for sticky nav)
+
   const selectedSpot = spots.find((s) => s.id === activeSpotId) ?? null;
 
   const visualPlan = useMemo(() => buildLocalPostVisualPlan(post), [post]);
@@ -272,7 +344,6 @@ export function RoutePostDetailClient({
           spots={spots}
           activeSpotId={activeSpotId}
           onSpotNavigate={(id) => navigateToSpotSection(id)}
-          onScrollToMainMap={scrollToMainMap}
           isMobile={isMobile}
         />
       ) : null}
@@ -295,29 +366,16 @@ export function RoutePostDetailClient({
 
         <RouteSummaryCard meta={meta} spotCount={spots.length} goodForLine={goodForLine} />
 
-        <Card
-          ref={mapCardRef}
-          className="gap-0 overflow-hidden rounded-2xl border-border/60 py-0 shadow-[var(--shadow-md)]"
-        >
-          <div className="border-border/60 flex items-center justify-between border-b bg-white/95 px-5 pt-4 pb-3 sm:px-6 sm:pt-4 sm:pb-3.5">
-            <div className="min-w-0 pr-2">
-              <p className="text-primary text-[10px] font-bold tracking-widest uppercase">{t("routeEyebrow")}</p>
-              <h2 className="text-text-strong mt-0.5 text-lg font-semibold leading-snug">{t("mapTitle")}</h2>
-            </div>
-            <Badge variant="outline" className="shrink-0 rounded-full text-[10px] font-semibold tabular-nums">
-              {spots.length} {t("stops")}
-            </Badge>
-          </div>
-          <div className="relative aspect-[16/9] w-full bg-muted lg:aspect-[21/9]">
-            <RouteMapPreview
-              spots={journey.spots}
-              path={journey.path}
-              selectedSpotId={activeSpotId}
-              onSpotSelect={onMainMapSpotSelect}
-              className="h-full"
-            />
-          </div>
-        </Card>
+        <div ref={triggerRef}>
+          <HaruFlowTimeline
+            spots={spots}
+            activeSpotId={activeSpotId}
+            onSpotClick={(id) => {
+              navigateToSpotSection(id);
+              if (isMobile) setSheetOpen(true);
+            }}
+          />
+        </div>
 
         {post.route_highlights && post.route_highlights.length > 0 ? (
           <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-[var(--shadow-sm)]">

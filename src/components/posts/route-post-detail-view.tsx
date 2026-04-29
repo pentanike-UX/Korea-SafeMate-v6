@@ -55,7 +55,7 @@ export async function RoutePostDetailView({ post }: { post: ContentPost }) {
         </Link>
       </div>
 
-      <PostDetailHero post={post} coverUrl={heroCover} coverAlt={heroAlt} typeLabelKey={typeLabelKey} postId={post.id} />
+      <PostDetailHero post={post} coverUrl={heroCover} coverAlt={heroAlt} typeLabelKey={typeLabelKey} postId={post.id} isRoute />
 
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-12 lg:gap-12">
         <div className="lg:col-span-8">
@@ -84,13 +84,13 @@ export async function RoutePostDetailView({ post }: { post: ContentPost }) {
               <div className="border-border/60 relative size-8 shrink-0 overflow-hidden rounded-full border bg-muted">
                 <Image src={sheetAvatar} alt="" fill sizes="32px" className="object-cover" />
               </div>
-              <p className="text-sm font-semibold">{sheetName}에게 이 코스로 요청하기</p>
+              <p className="text-sm font-semibold">{sheetName} 하루이에게 요청하기</p>
             </div>
             <Link
               href={`/guardians/${post.author_user_id}#request`}
               className="bg-primary text-primary-foreground inline-flex h-10 min-h-10 items-center justify-center rounded-xl px-4 text-sm font-semibold shadow-[var(--shadow-brand)]"
             >
-              요청하기
+              이 하루로 요청하기
             </Link>
           </CardContent>
         </Card>

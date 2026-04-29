@@ -1027,7 +1027,7 @@
     "all": "すべて",
     "empty": "該当する投稿がありません。",
     "featured": "Featured",
-    "backToList": "一覧へ",
+    "backToList": "하루way一覧",
     "savePost": "保存",
     "savePostSaved": "保存済み",
     "savePostViewList": "保存した投稿",
@@ -1050,7 +1050,7 @@
       "kContent": "K-コンテンツ",
       "article": "記事"
     },
-    "authorCardEyebrow": "投稿者",
+    "authorCardEyebrow": "この하루wayを作った하루이",
     "viewGuardian": "プロフィール",
     "authorFallback": "コミュニティ寄稿 — プロフィール連携予定。",
     "authorTaglinePlaceholder": "ひとこと紹介は準備中です。",
@@ -1059,10 +1059,10 @@
     "sampleBadge": "サンプル",
     "sampleBadgeAria": "サービス紹介用の例示投稿（実際のユーザー投稿ではありません）",
     "sampleAuthorNote": "探索用のサンプル投稿です。",
-    "relatedTitle": "あわせて読む",
+    "relatedTitle": "似た하루way",
     "relatedBrowseTrigger": "関連投稿を見る",
     "relatedBrowseSheetTitle": "関連投稿",
-    "relatedCardRead": "投稿を読む",
+    "relatedCardRead": "하루way보기",
     "relatedReasonSameGuardian": "同じガーディアン",
     "relatedReasonSameRegion": "同じエリア",
     "relatedReasonSameCategory": "近いテーマ",
@@ -1102,7 +1102,7 @@
     "filterApply": "適用",
     "filterClose": "閉じる",
     "ctaRequestCourseBody": "あなただけのカスタム1日ルートを作成しませんか？",
-    "ctaRequestBtn": "カスタムルートをリクエスト"
+    "ctaRequestBtn": "このHaruでリクエスト"
   },
   "RoutePosts": {
     "introFallbackNoLead": "まず概要と地図で動線をつかみ、スポットごとの説明に進んでください。",
@@ -1128,7 +1128,7 @@
     "routeEyebrow": "キュレーションルート",
     "mapTitle": "このGuardianおすすめルート",
     "insightTitle": "このルートのポイント",
-    "spotsTitle": "スポットガイド",
+    "spotsTitle": "スポット詳細",
     "stops": "スポット",
     "chipDistance": "{km} km",
     "chipDuration": "約{minutes}分",
@@ -1154,7 +1154,7 @@
     "ctaNextSpot": "次のスポットへ",
     "ctaViewSpot": "このスポットを見る",
     "nextCue": "次の区間へ",
-    "bottomCtaTitle": "この雰囲気で旅したい方へ",
+    "bottomCtaTitle": "このHaruでリクエスト",
     "bottomCtaLead": "日程や好みを送ってください。範囲を確認しGuardianにつなぎます。",
     "ctaRequestGuardian": "このGuardianにリクエスト",
     "ctaRequestCourseBody": "{name}にこのコースをリクエスト",
@@ -1173,7 +1173,9 @@
     "stickyNavMapButtonAria": "上部のルートマップへ移動",
     "stickyNavExpand": "スポット一覧を広げる",
     "stickyNavCollapse": "スポット一覧を閉じる",
-    "stickyNavCollapsedHint": "地図ボタンで全体ルート、チップでスポットへ移動できます。"
+    "stickyNavCollapsedHint": "地図ボタンで全体ルート、チップでスポットへ移動できます。",
+    "flowTitle": "Haruの流れ",
+    "flowSubtitle": "順番通りに進んでください。"
   },
   "TravelerHub": {
     "metaTitle": "マイジャーニー",
