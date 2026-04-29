@@ -509,6 +509,38 @@
     border-radius: 0.75rem;
   }
 
+  /* Landing — fade-up entrance animation */
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fade-up {
+    animation: fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .animate-fade-up-delay-1 {
+    animation: fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+  }
+  .animate-fade-up-delay-2 {
+    animation: fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.22s both;
+  }
+  .animate-fade-up-delay-3 {
+    animation: fade-up 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.34s both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up,
+    .animate-fade-up-delay-1,
+    .animate-fade-up-delay-2,
+    .animate-fade-up-delay-3 {
+      animation: none;
+    }
+  }
+
   /* Startup landing — light hero (gradient + white) */
   .bg-landing-hero {
     background-color: #ffffff;

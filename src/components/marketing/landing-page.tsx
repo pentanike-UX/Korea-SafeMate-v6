@@ -1,6 +1,12 @@
 /**
  * M01 — Landing (Traveler)
  * 루트 중심 정보 구조 · 중복 최소화 · 로케일별 카피(next-intl).
+ *
+ * UX 원칙 (PRODUCT_SPEC §Landing):
+ * - 5초 안에 "현지인이 만든 서울 하루 루트를 따라가는 서비스" 이해
+ * - "하루" / "루트" / "그대로 따라간다" 3개가 UX 중심
+ * - Guardian은 플랫폼이 아닌 루트 제작자로 포지셔닝
+ * - Motion: 조용하고 고급스럽게 (scale ≤1.02, fade-up entrance)
  */
 "use client";
 
@@ -66,7 +72,6 @@ function guardianInitials(displayName: string): string {
   return t.slice(0, 2).toUpperCase();
 }
 
-
 const ROUTE_TAG_STYLE: Record<"route_tag_cafe" | "route_tag_walk" | "route_tag_river" | "route_tag_beginner", string> = {
   route_tag_cafe: "tag-route-cafe",
   route_tag_walk: "tag-route-walk",
@@ -96,18 +101,22 @@ function RoutePreviewCard() {
     { Icon: Waves, line: t("route_timeline_3"), time: "12:30" },
   ];
   const tags = ["route_tag_cafe", "route_tag_walk", "route_tag_river", "route_tag_beginner"] as const;
+  const audienceTags = [t("route_audience_1"), t("route_audience_2"), t("route_audience_3")];
   const designerName = t("route_designer_display_name");
 
   return (
-    <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-line bg-bg-card shadow-[var(--shadow-card)]">
+    <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-line bg-bg-card shadow-[var(--shadow-card)] transition-shadow duration-200 hover:shadow-[var(--shadow-md)]">
+      {/* 카드 헤더 */}
       <div className="flex flex-col gap-1 border-b border-line-whisper px-4 py-3">
         <div className="flex items-start justify-between gap-2">
           <h3 className="typo-h3 font-sans text-ink">{t("route_card_title")}</h3>
           <span className="shrink-0 text-[11px] font-semibold tabular-nums text-ink-muted">{t("route_card_meta")}</span>
         </div>
+        {/* 루트 가치 설명 — "왜 이 루트인가" */}
         <p className="text-xs font-medium text-accent-ksm leading-snug">{t("route_card_diff")}</p>
       </div>
 
+      {/* 분류 태그 */}
       <div className="space-y-2 px-4 pt-3 pb-2">
         <div className="flex flex-wrap gap-1.5">
           {tags.map((key) => (
@@ -116,8 +125,22 @@ function RoutePreviewCard() {
             </span>
           ))}
         </div>
+
+        {/* 추천 대상 — secondary audience tags */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] font-medium text-ink-soft mr-0.5">{t("route_audience_label")}:</span>
+          {audienceTags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full border border-line-soft bg-bg-sunken px-2 py-0.5 text-[10px] font-medium text-ink-muted"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
       </div>
 
+      {/* 타임라인 */}
       <div className="space-y-0 px-4 pb-3">
         {timeline.map((row, i) => (
           <div key={row.line} className="flex gap-3">
@@ -144,7 +167,8 @@ function RoutePreviewCard() {
         ))}
       </div>
 
-      <div className="border-t border-line-whisper px-4 py-3 space-y-3">
+      {/* 카드 푸터 */}
+      <div className="border-t border-line-whisper px-4 py-3 space-y-1.5">
         <p className="text-[10px] text-ink-soft">{t("route_movement_summary")}</p>
         <p className="text-[10px] text-ink-muted">
           {t("route_guardian_attribution", { name: designerName })}
@@ -188,50 +212,48 @@ export function LandingPage() {
 
   function pricingMarkLabel(mark: PricingCompareMark): string {
     switch (mark) {
-      case "o":
-        return t("pricing_mark_o");
-      case "x":
-        return t("pricing_mark_x");
-      case "limited":
-        return t("pricing_mark_limited");
-      case "unlimited":
-        return t("pricing_mark_unlimited");
-      default:
-        return "";
+      case "o":       return t("pricing_mark_o");
+      case "x":       return t("pricing_mark_x");
+      case "limited": return t("pricing_mark_limited");
+      case "unlimited": return t("pricing_mark_unlimited");
+      default:        return "";
     }
   }
 
   return (
     <div className="min-h-screen bg-bg">
-      {/* 1. HERO — 배경(bg) + 오버레이 + 콘텐츠 + 전경 인물 */}
+
+      {/* ─────────────────────────────────────────────────────────────
+          1. HERO
+          ───────────────────────────────────────────────────────────── */}
       <section id="home-hero-root" data-header-contrast="light" className="hero hero-section">
         <div className="hero-bg" aria-hidden />
         <div className="hero-overlay" aria-hidden />
         <div className="page-container hero-main">
           <div className="hero-content flex flex-col gap-5 text-left md:gap-6">
             {badge.length > 0 ? (
-              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--gray-200)] bg-white/90 px-3 py-1.5 text-xs font-medium text-[var(--gray-600)] shadow-[var(--shadow-card)] backdrop-blur-sm dark:border-[var(--gray-700)] dark:bg-[var(--gray-800)]/90 dark:text-[var(--gray-300)]">
+              <span className="animate-fade-up inline-flex w-fit items-center gap-2 rounded-full border border-[var(--gray-200)] bg-white/90 px-3 py-1.5 text-xs font-medium text-[var(--gray-600)] shadow-[var(--shadow-card)] backdrop-blur-sm dark:border-[var(--gray-700)] dark:bg-[var(--gray-800)]/90 dark:text-[var(--gray-300)]">
                 <MapPin className="size-3.5 shrink-0 text-accent-ksm" aria-hidden />
                 {badge}
               </span>
             ) : null}
 
-            <h1 className="hero-headline typo-h1 font-sans">
+            <h1 className="animate-fade-up-delay-1 hero-headline typo-h1 font-sans">
               <HeroHeadline text={t("hero_headline")} />
             </h1>
 
-            <p className="hero-lead typo-body-lg hero-subline-max">{t("hero_subline")}</p>
+            <p className="animate-fade-up-delay-2 hero-lead typo-body-lg hero-subline-max">{t("hero_subline")}</p>
 
-            <div className="hero-cta-row hero-cta-inline flex max-w-[min(320px,calc(100vw-48px))] flex-col gap-3 md:max-w-none md:flex-row md:items-center">
+            <div className="animate-fade-up-delay-3 hero-cta-row hero-cta-inline flex max-w-[min(320px,calc(100vw-48px))] flex-col gap-3 md:max-w-none md:flex-row md:items-center">
               <Link
                 href="/explore/routes"
-                className="hero-cta-primary inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-card)] transition-all hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98] md:w-auto"
+                className="hero-cta-primary inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98] md:w-auto"
               >
                 {t("hero_cta_primary")}
               </Link>
               <Link
                 href="/how-it-works"
-                className="hero-cta-secondary text-left text-sm font-medium underline underline-offset-4 decoration-[var(--gray-400)] hover:decoration-[var(--gray-500)] md:text-center dark:decoration-[var(--gray-600)] dark:hover:decoration-[var(--gray-500)]"
+                className="hero-cta-secondary text-left text-sm font-medium underline underline-offset-4 decoration-[var(--gray-400)] transition-colors hover:decoration-[var(--gray-500)] md:text-center dark:decoration-[var(--gray-600)] dark:hover:decoration-[var(--gray-500)]"
               >
                 {t("hero_cta_secondary")}
               </Link>
@@ -241,13 +263,13 @@ export function LandingPage() {
         <div className="hero-cta-mobile">
           <Link
             href="/explore/routes"
-            className="hero-cta-primary hero-cta-mobile-primary inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-card)] transition-all hover:bg-accent-dark active:scale-[0.98]"
+            className="hero-cta-primary hero-cta-mobile-primary inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-accent-dark active:scale-[0.98]"
           >
             {t("hero_cta_primary")}
           </Link>
           <Link
             href="/how-it-works"
-            className="hero-cta-secondary hero-cta-mobile-secondary text-sm font-medium underline underline-offset-4 decoration-[var(--gray-400)] hover:decoration-[var(--gray-500)] dark:decoration-[var(--gray-600)] dark:hover:decoration-[var(--gray-500)]"
+            className="hero-cta-secondary hero-cta-mobile-secondary text-sm font-medium underline underline-offset-4 decoration-[var(--gray-400)] transition-colors hover:decoration-[var(--gray-500)] dark:decoration-[var(--gray-600)] dark:hover:decoration-[var(--gray-500)]"
           >
             {t("hero_cta_secondary")}
           </Link>
@@ -264,22 +286,26 @@ export function LandingPage() {
         />
       </section>
 
-      {/* 2+3. PROBLEM + ROUTE PREVIEW — 좌우 그루핑 */}
-      <section className="page-container py-16 md:py-24">
-        <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-2 md:gap-16 lg:gap-20">
+      {/* ─────────────────────────────────────────────────────────────
+          2+3. PROBLEM + ROUTE PREVIEW — 좌우 2컬럼 그루핑
+               Hero 아래 여백 강화: py-20 md:py-28
+          ───────────────────────────────────────────────────────────── */}
+      <section className="page-container py-20 md:py-28">
+        <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-2 md:gap-16 lg:gap-24">
+
           {/* 왼쪽: Problem */}
           <div className="flex flex-col gap-7">
             <h2 className="typo-h2 font-sans text-ink">{t("problem_title")}</h2>
-            <ul className="space-y-3">
+            <ul className="space-y-2.5">
               {problemItems.map((item, i) => (
                 <li
                   key={i}
-                  className="flex items-start gap-3 rounded-[var(--radius-lg)] border border-line-soft bg-bg-card px-4 py-3.5"
+                  className="flex items-start gap-3 rounded-[var(--radius-lg)] border border-line-soft bg-bg-card px-4 py-3.5 transition-shadow hover:shadow-[var(--shadow-sm)]"
                 >
                   <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
                     <X className="size-3" strokeWidth={2.5} aria-hidden />
                   </span>
-                  <p className="text-sm text-ink-muted">{item}</p>
+                  <p className="text-sm font-medium text-ink-muted">{item}</p>
                 </li>
               ))}
             </ul>
@@ -294,7 +320,7 @@ export function LandingPage() {
             <RoutePreviewCard />
             <Link
               href={ROUTES_LIST_HREF}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-line bg-bg-card px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-bg-sunken hover:border-ink/20"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-line bg-bg-card px-5 py-2.5 text-sm font-semibold text-ink transition-all duration-200 hover:bg-bg-sunken hover:border-ink/20 hover:scale-[1.01]"
             >
               {t("routes_cta_more")} →
             </Link>
@@ -302,19 +328,21 @@ export function LandingPage() {
         </div>
       </section>
 
-
-      {/* 5. HOW */}
-      <section className="bg-bg-sunken py-16 md:py-20">
+      {/* ─────────────────────────────────────────────────────────────
+          4. HOW IT WORKS
+             Problem↔How 사이 여백: bg-bg-sunken 자체가 구분자 역할
+          ───────────────────────────────────────────────────────────── */}
+      <section className="bg-bg-sunken py-20 md:py-24">
         <div className="page-container">
-          <div className="mx-auto max-w-2xl text-center mb-10">
+          <div className="mx-auto max-w-2xl text-center mb-12">
             <h2 className="typo-h2 font-sans text-ink">{t("how_title")}</h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {howSteps.map((step) => (
               <div
                 key={step.n}
-                className="flex flex-col gap-3 rounded-[var(--radius-xl)] border border-line bg-bg-card p-6"
+                className="flex flex-col gap-3 rounded-[var(--radius-xl)] border border-line bg-bg-card p-6 transition-all duration-200 hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5"
               >
                 <div className="flex items-center gap-3">
                   <span className="font-sans text-4xl font-bold text-[var(--gray-300)]">{step.n}</span>
@@ -328,10 +356,10 @@ export function LandingPage() {
             ))}
           </div>
 
-          <div className="mt-8 text-center">
+          <div className="mt-10 text-center">
             <Link
               href="/how-it-works"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent-ksm hover:text-accent-dark transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent-ksm transition-colors hover:text-accent-dark"
             >
               {t("how_cta")} →
             </Link>
@@ -339,10 +367,12 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* 6. GUARDIANS */}
-      <section className="py-16 md:py-20">
+      {/* ─────────────────────────────────────────────────────────────
+          5. GUARDIANS — 루트 제작자로 포지셔닝
+          ───────────────────────────────────────────────────────────── */}
+      <section className="py-20 md:py-24">
         <div className="page-container">
-          <div className="mb-8 space-y-1">
+          <div className="mb-10 space-y-1.5">
             <h2 className="typo-h2 font-sans text-ink">{t("guardians_title")}</h2>
             <p className="text-sm text-ink-muted max-w-xl">{t("guardians_subtitle")}</p>
           </div>
@@ -361,7 +391,7 @@ export function LandingPage() {
               return (
                 <div
                   key={guardian.user_id}
-                  className="flex flex-col gap-5 rounded-[var(--radius-xl)] border border-line bg-bg-card p-6 hover:shadow-[var(--shadow-sm)] transition-shadow"
+                  className="flex flex-col gap-5 rounded-[var(--radius-xl)] border border-line bg-bg-card p-6 transition-all duration-200 hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5"
                 >
                   <div className="flex gap-4">
                     <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-bg-sunken text-base font-bold text-ink">
@@ -375,6 +405,7 @@ export function LandingPage() {
                           <p className="text-[11px] text-ink-muted">{t("guardian_reviews_label", { count: reviewCount })}</p>
                         </div>
                       </div>
+                      {/* headline: 가디언의 스타일/관점이 보이게 */}
                       <p className="mt-2 text-sm font-semibold text-accent-ksm leading-snug">{pick}</p>
                     </div>
                   </div>
@@ -384,10 +415,7 @@ export function LandingPage() {
                       <p className="font-semibold uppercase tracking-wide text-ink-soft mb-1.5">{t("guardian_specialty_label")}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {tags.map((s) => (
-                          <span
-                            key={s}
-                            className="rounded-full bg-bg-sunken px-2.5 py-0.5 font-medium text-ink-muted"
-                          >
+                          <span key={s} className="rounded-full bg-bg-sunken px-2.5 py-0.5 font-medium text-ink-muted">
                             {s}
                           </span>
                         ))}
@@ -400,10 +428,7 @@ export function LandingPage() {
                       </div>
                       <div className="flex flex-wrap gap-1 justify-end">
                         {languages.map((l) => (
-                          <span
-                            key={l}
-                            className="rounded bg-bg-sunken px-1.5 py-0.5 text-[9px] font-bold text-ink-muted"
-                          >
+                          <span key={l} className="rounded bg-bg-sunken px-1.5 py-0.5 text-[9px] font-bold text-ink-muted">
                             {l}
                           </span>
                         ))}
@@ -415,31 +440,34 @@ export function LandingPage() {
             })}
           </div>
 
-          <div className="mt-8 flex justify-center">
-            <Link href="/explore/routes" className="text-sm font-semibold text-accent-ksm hover:text-accent-dark">
+          <div className="mt-10 flex justify-center">
+            <Link href="/explore/routes" className="text-sm font-semibold text-accent-ksm transition-colors hover:text-accent-dark">
               {t("guardians_cta")} →
             </Link>
           </div>
         </div>
       </section>
 
-      {/* 7. PRICING */}
-      <section className="bg-bg-sunken py-16 md:py-20">
+      {/* ─────────────────────────────────────────────────────────────
+          6. PRICING — 장벽 감소 강조, 상단 padding 증가
+          ───────────────────────────────────────────────────────────── */}
+      <section className="bg-bg-sunken py-20 md:py-28">
         <div className="page-container">
-          <div className="mx-auto max-w-2xl text-center mb-10">
+          <div className="mx-auto max-w-xl text-center mb-4">
             <h2 className="typo-h2 font-sans text-ink">{t("pricing_title")}</h2>
-            <p className="mt-2 text-sm text-ink-muted">{t("pricing_lead")}</p>
           </div>
+          {/* 장벽 감소 메시지 — 가격보다 먼저 */}
+          <p className="mx-auto mb-10 max-w-sm text-center text-sm text-ink-muted">{t("pricing_value_lead")}</p>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 max-w-3xl mx-auto">
             {PRODUCTS.map((product) => (
               <div
                 key={product.key}
                 className={[
-                  "relative flex flex-col gap-4 rounded-[var(--radius-xl)] p-6 border transition-shadow",
+                  "relative flex flex-col gap-4 rounded-[var(--radius-xl)] p-6 border transition-all duration-200",
                   product.featured
-                    ? "bg-bg-dark border-bg-dark text-bg shadow-[var(--shadow-md)] ring-2 ring-accent-ksm/35"
-                    : "bg-bg-card border-line",
+                    ? "bg-bg-dark border-bg-dark text-bg shadow-[var(--shadow-md)] ring-2 ring-accent-ksm/35 hover:ring-accent-ksm/50 hover:shadow-[var(--shadow-lg,var(--shadow-md))]"
+                    : "bg-bg-card border-line hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5",
                 ].join(" ")}
               >
                 {product.featured && (
@@ -449,11 +477,7 @@ export function LandingPage() {
                   </span>
                 )}
 
-                <p
-                  className={`text-xs font-semibold uppercase tracking-wider ${
-                    product.featured ? "text-bg/60" : "text-ink-muted"
-                  }`}
-                >
+                <p className={`text-xs font-semibold uppercase tracking-wider ${product.featured ? "text-bg/60" : "text-ink-muted"}`}>
                   {t(product.nameKey)}
                 </p>
 
@@ -465,9 +489,7 @@ export function LandingPage() {
                   {t(product.descKey)}
                 </p>
 
-                <ul
-                  className={`mt-1 space-y-2 border-t pt-4 text-xs ${product.featured ? "border-white/15" : "border-line-whisper"}`}
-                >
+                <ul className={`mt-1 space-y-2 border-t pt-4 text-xs ${product.featured ? "border-white/15" : "border-line-whisper"}`}>
                   {product.marks.map((mark, i) => (
                     <li
                       key={PRICING_FEATURE_KEYS[i]}
@@ -484,10 +506,10 @@ export function LandingPage() {
             ))}
           </div>
 
-          <div className="mt-8 text-center">
+          <div className="mt-10 text-center">
             <Link
               href="/pricing"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent-ksm hover:text-accent-dark transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent-ksm transition-colors hover:text-accent-dark"
             >
               {t("pricing_cta")} →
             </Link>
@@ -495,7 +517,9 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* 8. FINAL CTA */}
+      {/* ─────────────────────────────────────────────────────────────
+          7. FINAL CTA
+          ───────────────────────────────────────────────────────────── */}
       <section className="bg-bg-dark">
         <div className="page-container py-16 md:py-20 text-center flex flex-col gap-5 items-center">
           <h2 className="typo-h2 font-sans max-w-lg text-bg">
@@ -503,7 +527,7 @@ export function LandingPage() {
           </h2>
           <Link
             href="/explore/routes"
-            className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-8 py-3.5 text-sm font-semibold text-white shadow-[var(--shadow-md)] hover:bg-accent-dark transition-colors"
+            className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-8 py-3.5 text-sm font-semibold text-white shadow-[var(--shadow-md)] transition-all duration-200 hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98]"
           >
             {t("hero_cta_primary")}
           </Link>
@@ -511,7 +535,7 @@ export function LandingPage() {
             {t("final_cta_guardian")}{" "}
             <Link
               href="/for-guardians"
-              className="text-bg/80 underline underline-offset-2 hover:text-bg transition-colors"
+              className="text-bg/80 underline underline-offset-2 transition-colors hover:text-bg"
             >
               {t("final_cta_guardian_link")}
             </Link>

@@ -59,19 +59,20 @@ export async function SiteFooter() {
         </div>
 
         <div className="pt-5 sm:pt-6">
-          <div className="flex flex-col gap-2 text-[11px] leading-relaxed text-white/42 sm:flex-row sm:items-center sm:justify-between sm:text-xs">
+          {/* 카피라이트 — 항상 세로 스택, 설정 패널처럼 보이지 않도록 */}
+          <div className="flex flex-col items-start gap-2 text-[11px] leading-relaxed text-white/38 sm:text-xs">
             <p>
-              {tFooter("copyright", { year: new Date().getFullYear() })}
+              {tFooter("copyright", { year: new Date().getFullYear() })} · Seoul
               {process.env.NODE_ENV === "development" ? (
                 <>
                   {" · "}
-                  <NextLink href="/admin/dashboard" className="hover:text-white/65 transition-colors">
+                  <NextLink href="/admin/dashboard" className="hover:text-white/60 transition-colors">
                     Admin
                   </NextLink>
                 </>
               ) : null}
             </p>
-            <FooterCompactControls />
+            <FooterCompactControls className="opacity-80" />
           </div>
         </div>
       </div>
