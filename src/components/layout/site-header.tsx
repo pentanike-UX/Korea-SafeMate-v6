@@ -115,7 +115,7 @@ export function SiteHeader() {
               "flex size-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-[var(--brand-primary)] text-sm font-bold text-[var(--text-on-brand)] shadow-sm ring-2 transition-[box-shadow] duration-300",
               onDarkSurface
                 ? "ring-white/20"
-                : "ring-[color-mix(in_srgb,var(--brand-trust-blue)_35%,transparent)] shadow-[0_1px_0_rgba(0,0,0,0.05)]",
+                : "ring-[color-mix(in_srgb,var(--accent-ksm)_35%,transparent)] shadow-[0_1px_0_rgba(0,0,0,0.05)]",
             )}
           >
             하루

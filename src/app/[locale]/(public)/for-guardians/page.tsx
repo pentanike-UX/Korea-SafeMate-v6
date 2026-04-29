@@ -1,8 +1,6 @@
 /**
  * 하루이 모집 랜딩 — /for-guardians
  */
-import { getTranslations } from "next-intl/server";
-import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { BRAND } from "@/lib/constants";
 import { ArrowRight, Calendar, MapPin, TrendingUp } from "lucide-react";
@@ -25,8 +23,6 @@ const ROUTE_PRICE = 59000;
 const PAYOUT_RATE = 0.8;
 
 function ForGuardiansContent() {
-  const t = useTranslations("GuardianLanding");
-
   return (
     <div className="min-h-screen bg-[var(--bg-page)]">
 

@@ -24,7 +24,7 @@ function fmtDate(iso: string | null, locale: string): string {
 
 const STATUS_STYLES: Record<string, string> = {
   requested:  "bg-gold/15 text-gold border-gold/30",
-  reviewing:  "bg-blue-500/10 text-blue-700 border-blue-300/40",
+  reviewing:  "bg-muted/60 text-muted-foreground border-border/60",
   matched:    "bg-ok/15 text-ok border-ok/30",
   delivering: "bg-accent-soft text-accent-dark border-accent-ksm/30",
   completed:  "bg-bg-sunken text-ink-muted border-line",

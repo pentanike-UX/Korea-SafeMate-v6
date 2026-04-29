@@ -26,7 +26,7 @@ function formatKrw(krw: number): string {
 
 const PAYOUT_STYLES: Record<string, string> = {
   pending:    "bg-gold/15 text-gold border-gold/30",
-  processing: "bg-blue-500/10 text-blue-700 border-blue-300/40",
+  processing: "bg-muted/60 text-muted-foreground border-border/60",
   paid:       "bg-ok/15 text-ok border-ok/30",
   failed:     "bg-destructive/10 text-destructive border-destructive/30",
 };

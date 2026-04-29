@@ -1,5 +1,5 @@
 /** localStorage key for explicit light/dark choice. Absent = follow system. */
-export const THEME_STORAGE_KEY = "42-guardians-color-mode";
+export const THEME_STORAGE_KEY = "haru-color-mode";
 
 export type ThemePreference = "light" | "dark";
 

@@ -87,17 +87,17 @@
 }
 
 :root {
-  /* Brand — v3: neutral base, blue accents only */
-  --brand-primary: #18181b;
-  --brand-primary-hover: #27272a;
-  --brand-primary-pressed: #09090b;
-  --brand-primary-soft: #f4f4f5;
-  --brand-primary-soft-2: #e4e4e7;
+  /* Brand — 하루: green primary */
+  --brand-primary: #22C55E;
+  --brand-primary-hover: #16A34A;
+  --brand-primary-pressed: #15803D;
+  --brand-primary-soft: #F0FDF4;
+  --brand-primary-soft-2: #DCFCE7;
 
-  /* Support / trust (point color) */
-  --brand-trust-blue: #2563eb;
-  --brand-trust-blue-hover: #1d4ed8;
-  --brand-trust-blue-soft: #eff6ff;
+  /* Support / trust → 하루 green (renamed from blue; kept for backward compat) */
+  --brand-trust-blue: #22C55E;
+  --brand-trust-blue-hover: #16A34A;
+  --brand-trust-blue-soft: #F0FDF4;
 
   /* Accent (sparingly) */
   --accent-pink: #e11d48;
@@ -108,7 +108,7 @@
   --text-primary: #18181b;
   --text-secondary: #52525b;
   --text-muted: #71717a;
-  --text-on-brand: #fafafa;
+  --text-on-brand: #ffffff;
 
   /* Surface */
   --bg-page: #f4f4f5;
@@ -119,7 +119,7 @@
   /* Border */
   --border-default: #e4e4e7;
   --border-strong: #d4d4d8;
-  --border-focus: #2563eb;
+  --border-focus: #4ADE80;
 
   /* Status */
   --success: #22c55e;
@@ -132,8 +132,8 @@
   --info-soft: #e0f2fe;
 
   /* Gradient */
-  --gradient-brand: linear-gradient(135deg, #18181b 0%, #3b82f6 100%);
-  --gradient-brand-soft: linear-gradient(180deg, #fafafa 0%, #f4f4f5 100%);
+  --gradient-brand: linear-gradient(135deg, #22C55E 0%, #86EFAC 100%);
+  --gradient-brand-soft: linear-gradient(180deg, #F0FDF4 0%, #FFFFFF 100%);
 
   /* Shadow */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.04);
@@ -290,37 +290,37 @@
 }
 
 .dark {
-  --brand-primary: #fafafa;
-  --brand-primary-hover: #e4e4e7;
-  --brand-primary-pressed: #d4d4d8;
-  --brand-primary-soft: #27272a;
-  --brand-primary-soft-2: #3f3f46;
+  --brand-primary: #22C55E;
+  --brand-primary-hover: #16A34A;
+  --brand-primary-pressed: #15803D;
+  --brand-primary-soft: rgba(34, 197, 94, 0.12);
+  --brand-primary-soft-2: rgba(34, 197, 94, 0.18);
 
-  --brand-trust-blue: #60a5fa;
-  --brand-trust-blue-hover: #93c5fd;
-  --brand-trust-blue-soft: #172554;
+  --brand-trust-blue: #4ADE80;
+  --brand-trust-blue-hover: #86EFAC;
+  --brand-trust-blue-soft: rgba(34, 197, 94, 0.12);
 
   --text-strong: #fafafa;
   --text-primary: #e4e4e7;
   --text-secondary: #a1a1aa;
   --text-muted: #71717a;
 
-  --bg-page: #09090b;
+  --bg-page: #0B1110;
   --bg-surface: #18181b;
   --bg-surface-subtle: #27272a;
   --bg-elevated: #27272a;
 
   --border-default: #3f3f46;
   --border-strong: #52525b;
-  --border-focus: #60a5fa;
+  --border-focus: #4ADE80;
 
   --success-soft: #0f2a22;
   --warning-soft: #2a2410;
   --error-soft: #2a1518;
   --info-soft: #172554;
 
-  --gradient-brand: linear-gradient(135deg, #fafafa 0%, #3b82f6 100%);
-  --gradient-brand-soft: linear-gradient(180deg, #18181b 0%, #27272a 100%);
+  --gradient-brand: linear-gradient(135deg, rgba(34, 197, 94, 0.24) 0%, rgba(11, 17, 16, 0) 100%);
+  --gradient-brand-soft: linear-gradient(180deg, #0B1110 0%, #111827 100%);
 
   --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 14px 36px rgba(0, 0, 0, 0.45);
@@ -334,7 +334,7 @@
   --popover: var(--bg-elevated);
   --popover-foreground: var(--text-primary);
   --primary: var(--brand-primary);
-  --primary-foreground: #18181b;
+  --primary-foreground: #0B1110;
   --secondary: var(--brand-primary-soft);
   --secondary-foreground: var(--text-strong);
   --muted: var(--bg-surface-subtle);
@@ -363,6 +363,8 @@
 
   --badge-featured-bg: var(--brand-trust-blue-soft);
   --badge-featured-text: var(--brand-trust-blue);
+  --badge-trust-bg: var(--brand-trust-blue-soft);
+  --badge-trust-text: var(--brand-trust-blue);
   --button-secondary-text: var(--text-strong);
 
   /* Quick Start / offset rings */
@@ -460,11 +462,11 @@
       linear-gradient(180deg, #18181b 0%, #27272a 42%, #18181b 100%);
   }
   .bg-cta-brand {
-    background: linear-gradient(155deg, #18181b 0%, #27272a 48%, #1e3a5f 100%);
+    background: linear-gradient(155deg, #0B1110 0%, #111827 48%, #14532D 100%);
     box-shadow: var(--shadow-md);
   }
   .dark .bg-cta-brand {
-    background: linear-gradient(155deg, #27272a 0%, #3f3f46 52%, #1e3a8a 100%);
+    background: linear-gradient(155deg, #0B1110 0%, #111827 52%, #166534 100%);
   }
   .bg-booking-progress-fill {
     background: linear-gradient(90deg, var(--brand-primary), var(--brand-trust-blue));

@@ -6,7 +6,7 @@ import "./globals.css";
 import { BRAND } from "@/lib/constants";
 import { ThemeProvider } from "@/components/theme/theme-provider";
 
-const themeInitScript = `(function(){try{var k='42-guardians-color-mode';var s=localStorage.getItem(k);var d=s==='dark'||(s!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`;
+const themeInitScript = `(function(){try{var k='haru-color-mode';var s=localStorage.getItem(k);var d=s==='dark'||(s!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`;
 
 /** Pretendard Variable — v6 primary sans-serif (Korean + Latin) */
 const fontPretendard = localFont({

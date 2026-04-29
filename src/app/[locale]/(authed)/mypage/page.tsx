@@ -192,7 +192,7 @@ export default async function TravelerOverviewPage() {
         </ul>
       </section>
 
-      <Card className="border-[var(--brand-trust-blue)]/25 from-[var(--brand-trust-blue-soft)]/40 rounded-2xl border-2 border-dashed bg-gradient-to-br to-card py-0 shadow-none">
+      <Card className="border-[var(--accent-ksm)]/25 from-[var(--accent-whisper)]/60 rounded-2xl border-2 border-dashed bg-gradient-to-br to-card py-0 shadow-none">
         <CardContent className="space-y-4 p-6 sm:p-8">
           <div>
             <h2 className="text-text-strong text-lg font-semibold">{t("travelerEnticeTitle")}</h2>
