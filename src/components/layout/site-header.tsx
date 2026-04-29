@@ -120,12 +120,12 @@ export function SiteHeader() {
                 : "ring-[color-mix(in_srgb,var(--brand-trust-blue)_35%,transparent)] shadow-[0_1px_0_rgba(0,0,0,0.05)]",
             )}
           >
-            42
+            하루
           </span>
           <div className="min-w-0 leading-tight">
             <span
               className={cn(
-                "block truncate text-sm font-semibold tracking-tight transition-colors duration-300",
+                "block truncate text-base font-bold tracking-tight transition-colors duration-300",
                 onDarkSurface ? "text-white" : "text-[var(--text-strong)]",
               )}
             >

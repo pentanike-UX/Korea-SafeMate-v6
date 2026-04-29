@@ -12,7 +12,7 @@ import { BRAND } from "@/lib/constants";
 export async function generateMetadata() {
   const t = await getTranslations("GuardianLanding");
   return {
-    title: `Become a Guardian — ${BRAND.name}`,
+    title: `Become a 하루이 — ${BRAND.name}`,
     description: t("hero_subline"),
   };
 }
@@ -64,7 +64,7 @@ function GuardianLandingContent() {
           <div className="max-w-2xl">
             {/* 뱃지 */}
             <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-bg/80">
-              🇰🇷 Seoul Tribe · Founding Members Open
+              🇰🇷 하루이 · Founding Members Open
             </span>
 
             <h1 className="mb-4 font-serif text-4xl font-semibold leading-[1.1] text-bg sm:text-5xl lg:text-6xl">

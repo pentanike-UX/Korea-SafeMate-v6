@@ -281,7 +281,7 @@ export function PostsListClient({
         eyebrow={
           <p className="text-[var(--brand-trust-blue)] inline-flex items-center gap-2 text-[11px] font-semibold tracking-[0.18em] uppercase">
             <Sparkles className="size-3.5" aria-hidden />
-            42 Guardians
+            하루
           </p>
         }
       />

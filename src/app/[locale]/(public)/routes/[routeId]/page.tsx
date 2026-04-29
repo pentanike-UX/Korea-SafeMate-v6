@@ -138,19 +138,19 @@ export async function generateMetadata({ params }: Props) {
 
   if (isMockRouteId(routeId)) {
     const title = mockHaruRoute.title[locale] ?? mockHaruRoute.title.en ?? "Route";
-    return { title, description: `${title} — Korea SafeMate` };
+    return { title, description: `${title} — 하루` };
   }
 
   if (!isUuidRouteId(routeId)) {
-    return { title: "Route", description: "Korea SafeMate" };
+    return { title: "Route", description: "하루" };
   }
 
   const sb = await getServerSupabaseForUser();
-  if (!sb) return { title: "Route", description: "Korea SafeMate" };
+  if (!sb) return { title: "Route", description: "하루" };
   const bundle = await fetchHaruRouteFromSupabase(sb, routeId);
   const title = bundle?.haru.title[locale] ?? bundle?.haru.title.en ?? "Route";
   return {
     title,
-    description: `${title} — Korea SafeMate`,
+    description: `${title} — 하루`,
   };
 }

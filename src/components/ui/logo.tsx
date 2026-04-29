@@ -26,7 +26,7 @@ export function Logo({ variant = "full", theme = "default", className, size = 32
   return (
     <span
       className={cn("inline-flex items-center gap-2 select-none", className)}
-      aria-label="Korea SafeMate"
+      aria-label="하루"
     >
       {/* Mark — 임시 SVG 마크 (실제 로고 에셋 교체 전) */}
       {variant !== "word" && (

@@ -276,7 +276,7 @@ export function ExploreJourneyClient() {
           <div className="mx-auto max-w-3xl px-4 py-8 text-center sm:px-6 sm:py-12">
             <p className="text-primary inline-flex items-center justify-center gap-1.5 text-[11px] font-semibold tracking-[0.2em] uppercase">
               <Sparkles className="size-3.5" aria-hidden />
-              42 Guardians
+              하루
             </p>
             <h1 className="text-text-strong mt-4 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{t("heroTitle")}</h1>
             <p className="text-muted-foreground mx-auto mt-4 max-w-xl text-sm leading-relaxed sm:text-[15px]">{t("heroBody")}</p>

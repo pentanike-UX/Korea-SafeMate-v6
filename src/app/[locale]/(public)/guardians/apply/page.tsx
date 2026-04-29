@@ -3,9 +3,9 @@ import { TrustBoundaryCard } from "@/components/trust/trust-boundary-card";
 import { ArrowRight } from "lucide-react";
 
 export const metadata = {
-  title: "가디언으로 활동하기 | 42 Guardians",
+  title: "하루이로 활동하기 | 하루",
   description:
-    "가디언은 정해진 범위 내에서 실무 동행 지원을 제공합니다. 매칭/티어는 별도 기준으로 운영됩니다.",
+    "하루이는 정해진 범위 내에서 실무 동행 지원을 제공합니다. 매칭/티어는 별도 기준으로 운영됩니다.",
 };
 
 export default function GuardianApplyPage() {
@@ -13,7 +13,7 @@ export default function GuardianApplyPage() {
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
       {/* Hero */}
       <div className="max-w-2xl">
-        <h1 className="text-3xl font-semibold tracking-tight">가디언으로 활동하기</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">하루이로 활동하기</h1>
         <p className="text-muted-foreground mt-3 text-sm leading-relaxed sm:text-base">
           서울을 직접 걷는 로컬의 시선으로, 여행자의 하루를 더 선명하게 만들어 주세요.
         </p>
@@ -31,9 +31,9 @@ export default function GuardianApplyPage() {
             <TrustBoundaryCard />
           </section>
 
-          {/* ② 가디언 등급 흐름 — 범위 이해 후 성장 경로 */}
-          <section aria-label="가디언 등급 흐름" className="border-border/60 bg-card/60 rounded-2xl border p-5 shadow-[var(--shadow-sm)]">
-            <p className="text-text-strong text-sm font-semibold">가디언 등급 흐름</p>
+          {/* ② 하루이 등급 흐름 — 범위 이해 후 성장 경로 */}
+          <section aria-label="하루이 등급 흐름" className="border-border/60 bg-card/60 rounded-2xl border p-5 shadow-[var(--shadow-sm)]">
+            <p className="text-text-strong text-sm font-semibold">하루이 등급 흐름</p>
             <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
               지원 승인 후 기여 활동에 따라 단계적으로 인정됩니다.
             </p>
@@ -51,9 +51,9 @@ export default function GuardianApplyPage() {
               </div>
 
               <div className="border-border/60 bg-card/40 flex-1 rounded-xl border p-4">
-                <p className="text-text-strong text-sm font-semibold">활동 가디언 (Active Guardian)</p>
+                <p className="text-text-strong text-sm font-semibold">활동 하루이 (Active 하루이)</p>
                 <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-                  승인된 포스트가 꾸준히 쌓이면 활동 가디언으로 인정됩니다.
+                  승인된 포스트가 꾸준히 쌓이면 활동 하루이로 인정됩니다.
                 </p>
               </div>
 
@@ -62,7 +62,7 @@ export default function GuardianApplyPage() {
               </div>
 
               <div className="border-border/60 bg-card/40 flex-1 rounded-xl border p-4">
-                <p className="text-text-strong text-sm font-semibold">검증 가디언 (Verified Guardian)</p>
+                <p className="text-text-strong text-sm font-semibold">검증 하루이 (Verified 하루이)</p>
                 <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
                   운영팀 별도 검토 후 부여. 게시물 수만으로는 자동 부여되지 않아요.
                 </p>

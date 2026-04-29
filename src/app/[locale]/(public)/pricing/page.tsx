@@ -179,7 +179,7 @@ function PricingContent() {
           href="/explore"
           className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-8 py-3.5 text-sm font-semibold text-white shadow-[var(--shadow-sm)] transition-all hover:bg-accent-dark hover:scale-[1.02]"
         >
-          Browse Guardians →
+          Browse 하루이 →
         </Link>
       </section>
     </div>

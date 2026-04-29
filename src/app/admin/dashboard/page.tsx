@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata = {
-  title: "Dashboard | Admin · Korea SafeMate",
+  title: "Dashboard | Admin · 하루",
 };
 
 export default function AdminOverviewPage() {

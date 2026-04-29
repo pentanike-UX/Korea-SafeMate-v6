@@ -1,14 +1,14 @@
 {
   "Nav": {
     "home": "ホーム",
-    "explore": "Routes",
+    "explore": "하루way",
     "posts": "投稿",
-    "guardians": "Guardian",
+    "guardians": "하루이",
     "about": "概要",
     "services": "サービス",
     "book": "予約",
     "contribute": "参加する",
-    "howItWorks": "ご利用方法",
+    "howItWorks": "はじめる",
     "pricing": "料金",
     "forGuardians": "ガーディアン"
   },
@@ -85,12 +85,12 @@
     "adminConsoleLink": "管理画面",
     "guardianLogin": "Guardianログイン",
     "copyright": "© {year} pentanike",
-    "disclaimer": "同伴・実務サポートに限定され、医療・法律・緊急対応ではありません。24時間の保護や安全の保証は行いません。42 Guardiansの利用により、これらの限界に同意したものとみなされます。",
+    "disclaimer": "同伴・実務サポートに限定され、医療・法律・緊急対応ではありません。24時間の保護や安全の保証は行いません。하루の利用により、これらの限界に同意したものとみなされます。",
     "disclaimerShort": "同伴・実務サポートのみ — 医療・法律・緊急対応ではありません。24時間保証なし。"
   },
   "Brand": {
-    "tagline": "画面で恋したソウルを、歩いて恋してもいいように。",
-    "description": "42 GuardiansはKカルチャーファンと認証済みソウルGuardianをつなぎます。言語の適合、歩けるルート、旅行者レビューで信頼を積みます。"
+    "tagline": "ソウルのルートをローカルが作る。",
+    "description": "하루は韓国コンテンツファンと認証済みソウルの하루이をつなぎます。"
   },
   "GuardianTier": {
     "verified_guardian": "認証済みGuardian",
@@ -100,7 +100,7 @@
   "Home": {
     "metaTitle": "ホーム",
     "metaDescription": "想像したソウルを現地で—認証Guardian、ムード優先のマッチ、実体験レビューでつながる動線。",
-    "eyebrow": "42 Guardians",
+    "eyebrow": "하루",
     "heroTitle": "配信で会ったソウル、今日は足で測るソウル",
     "heroLead": "言語とムードが合う認証Guardianに出会い、パンフではなく実ルートとレビューで一日の芯を作りましょう。",
     "credibilityTitle": "旅行者が先に確かめる理由",
@@ -153,7 +153,7 @@
     "postsSectionTitle": "Guardianが実際に歩くルート",
     "postsSectionLead": "ソウルで通じる数本の動線—つながる前に記事と要約で感触を掴めます。",
     "postsCta": "すべての投稿",
-    "trust42Title": "なぜ42 Guardiansか",
+    "trust42Title": "なぜ하루か",
     "trust42Lead": "認証、言語、レビュー、返信の目安まで、一覧で比べやすくまとめています。",
     "trust42CardVerified": "認証Guardian",
     "trust42CardVerifiedDesc": "審査を通過した方のみマッチ候補に。",
@@ -163,7 +163,7 @@
     "trust42CardReviewsDesc": "実体験が評価になります。",
     "trust42CardFast": "迅速な返信",
     "trust42CardFastDesc": "忙しい旅程に合わせた返信目安。",
-    "aboutSectionTitle": "About 42 Guardians",
+    "aboutSectionTitle": "About 하루",
     "aboutSectionLead": "画面越しに韓国を好きになった方のためのプラットフォーム。",
     "aboutSectionBody": "ソウルのムードをキュレーションし、言語とスタイルでGuardianを選べます。ローンチは光化門・カンナムのみ。",
     "comingSectionBadge": "準備中",
@@ -183,7 +183,7 @@
     "featuredIntelTitle": "おすすめ情報",
     "featuredIntelCta": "Exploreを開く",
     "pickBadge": "エディターズピック",
-    "featuredGuardiansSectionTitle": "あなたの旅に合う42 Guardians",
+    "featuredGuardiansSectionTitle": "あなたの旅に合う하루",
     "featuredGuardiansSectionLead": "選んだエリアと旅のムードに合わせ、今いちばん合いそうなローカルGuardianをおすすめします。",
     "featuredGuardiansCta": "すべてのGuardian",
     "recommendedGuardiansViewAll": "すべて見る",
@@ -380,7 +380,7 @@
   },
   "TrustScope": {
     "title": "サービス範囲と限界",
-    "lead": "42 Guardiansは現地サポートと実用情報に集中します。ガイド付きツアー、医療・法律対応、緊急対応の代わりにはなりません。範囲をはっきりさせることで、より安心して使えるようにしています。",
+    "lead": "하루は現地サポートと実用情報に集中します。ガイド付きツアー、医療・法律対応、緊急対応の代わりにはなりません。範囲をはっきりさせることで、より安心して使えるようにしています。",
     "includedLabel": "一般的に含まれるもの",
     "excludedLabel": "含まれないもの",
     "included": [
@@ -534,7 +534,7 @@
     "stepTheme": "どんなムード？",
     "stepTrip": "旅の基本情報",
     "stepTaste": "好みを少しだけ",
-    "stepResults": "あなたの旅に合う42 Guardians",
+    "stepResults": "あなたの旅に合う하루",
     "btnStart": "おすすめを始める",
     "btnGuardiansFirst": "まずGuardianを見る",
     "next": "次へ",
@@ -728,7 +728,7 @@
   "GuardiansDiscover": {
     "metaTitle": "Guardian",
     "metaDescription": "エリア・言語・テーマで比較。",
-    "heroTitle": "旅に合う42 Guardiansを選ぶ",
+    "heroTitle": "旅に合う하루を選ぶ",
     "heroBody": "エリア、言語、スタイル、専門テーマでローカルGuardianを比較できます。",
     "filterTitle": "フィルター",
     "listResultsCount": "{count}人のガーディアン",
@@ -759,7 +759,7 @@
     "clear": "クリア",
     "empty": "条件に合うGuardianが見つかりませんでした",
     "emptyBody": "フィルターを緩めるか、エリアやテーマを変えてみてください。",
-    "footerCtaTitle": "42 Guardiansとして活動する",
+    "footerCtaTitle": "하루として活動する",
     "footerCtaBody": "あなたの言語と感性、ソウルへの理解が誰かの旅を特別にします。",
     "footerCtaButton": "Guardianに応募",
     "cardSave": "保存",
@@ -889,7 +889,7 @@
   },
   "AboutPage": {
     "metaTitle": "概要",
-    "metaDescription": "42 Guardiansの理由—ムード優先マッチ、認証ローカル、旅行者レビュー、はっきりしたサービス範囲。",
+    "metaDescription": "하루の理由—ムード優先マッチ、認証ローカル、旅行者レビュー、はっきりしたサービス範囲。",
     "legalTermsTitle": "利用規約",
     "legalTermsBody": "正式な利用規約は公開前に掲載します。それまでは「紹介」ページの運営方針をご参照ください。",
     "legalPrivacyTitle": "プライバシーポリシー",
@@ -908,7 +908,7 @@
       "bridgeOne": {
         "kicker": "クリップと歩道のあいだ",
         "title": "足りないのはTipsではなく、一本の動線",
-        "lead": "42 Guardiansは言語・ムード・根拠が一列に並ぶ層です。読めるプロフィール、歩ける投稿、最初に示す境界線。"
+        "lead": "하루は言語・ムード・根拠が一列に並ぶ層です。読めるプロフィール、歩ける投稿、最初に示す境界線。"
       },
       "bridgeTwo": {
         "kicker": "こうして届く",
@@ -1686,7 +1686,7 @@
     "final_cta_traveler": "Start your Seoul day today",
     "final_cta_guardian": "Want to become a Guardian?",
     "final_cta_guardian_link": "Apply now →",
-    "hero_badge": "Seoul · Korea SafeMate",
+    "hero_badge": "Seoul · 하루",
     "problem_title": "Sound familiar?",
     "problem_item1": "何をすべきか検索し続けて、1日が終わったこと",
     "problem_item2": "結局みんなと同じ観光地を回っただけだった",
@@ -1775,7 +1775,7 @@
     "cta_review_time": "Average review time: 3–5 business days"
   },
   "HowItWorks": {
-    "hero_title": "How Korea SafeMate works",
+    "hero_title": "How 하루 works",
     "traveler_title": "For Travelers",
     "step1_title": "Browse freely",
     "step1_desc": "Explore Guardian profiles and sample routes — no login needed.",

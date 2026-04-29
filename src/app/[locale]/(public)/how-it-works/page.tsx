@@ -12,7 +12,7 @@ export async function generateMetadata() {
   const t = await getTranslations("HowItWorks");
   return {
     title: `${t("hero_title")} — ${BRAND.name}`,
-    description: "Step-by-step guide for travelers and Seoul Tribe Guardians.",
+    description: "Step-by-step guide for travelers and 하루이.",
   };
 }
 
@@ -47,7 +47,7 @@ function HowItWorksContent() {
       <section className="border-b border-line bg-bg-card">
         <div className="page-container py-16 md:py-20">
           <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-soft">
-            Korea SafeMate
+            하루
           </p>
           <h1 className="font-serif text-4xl font-semibold text-ink sm:text-5xl">
             {t("hero_title")}
@@ -110,7 +110,7 @@ function HowItWorksContent() {
       <section className="page-container py-16 md:py-20">
         <div className="mb-10">
           <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-bg-card px-3 py-1 text-xs font-semibold text-ink-muted">
-            🇰🇷 For Seoul Tribe Guardians
+            🇰🇷 For 하루이
           </span>
           <h2 className="font-serif text-3xl font-semibold text-ink sm:text-4xl">
             {t("guardian_title")}

@@ -1,10 +1,10 @@
 import type { ServiceTypeCode } from "@/types/domain";
 
 export const BRAND = {
-  name: "42 Guardians",
-  tagline: "Local companions for K-culture journeys",
+  name: "하루",
+  tagline: "Seoul routes, built by locals",
   description:
-    "42 Guardians connects international travelers with curated local guardians for K-drama, K-pop, and film-inspired Seoul experiences — trust through verification, languages, and traveler reviews.",
+    "하루 connects international travelers with verified Seoul 하루이 for K-drama, K-pop, and film-inspired experiences — curated 하루웨이, language-fit matching, and real traveler reviews.",
 } as const;
 
 export const PRODUCT_LAYERS = [

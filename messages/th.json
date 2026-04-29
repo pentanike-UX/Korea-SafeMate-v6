@@ -1,14 +1,14 @@
 {
   "Nav": {
     "home": "Home",
-    "explore": "Routes",
+    "explore": "하루way",
     "posts": "Posts",
-    "guardians": "Guardians",
+    "guardians": "하루이",
     "about": "About",
     "services": "Services",
     "book": "Book",
     "contribute": "Join",
-    "howItWorks": "วิธีใช้งาน",
+    "howItWorks": "เริ่มต้น",
     "pricing": "ราคา",
     "forGuardians": "สำหรับ Guardian"
   },
@@ -85,13 +85,13 @@
     "adminConsoleLink": "Admin console",
     "guardianLogin": "Guardian login",
     "copyright": "© {year} pentanike",
-    "disclaimer": "Companion support only. Not medical, legal, or emergency services. No claim of 24/7 protection or guaranteed safety. By using 42 Guardians you acknowledge these limits.",
+    "disclaimer": "Companion support only. Not medical, legal, or emergency services. No claim of 24/7 protection or guaranteed safety. By using 하루 you acknowledge these limits.",
     "disclaimerShort": "This service is designed for practical local support and useful information. It does not replace medical, legal, or emergency services, and does not guarantee 24/7 protection."
   },
   "Brand": {
-    "tagline": "When the city you love is on screen, we help you meet it on the ground.",
-    "description": "42 Guardians connects international K-culture fans with verified Seoul guardians—language-fit matching, curated routes, and traveler reviews you can actually use.",
-    "name": "Korea SafeMate"
+    "tagline": "เส้นทางโซลสร้างโดยคนท้องถิ่น",
+    "description": "하루 connects international K-culture fans with verified Seoul guardians—language-fit matching, curated routes, and traveler reviews you can actually use.",
+    "name": "하루"
   },
   "GuardianTier": {
     "verified_guardian": "Verified Guardian",
@@ -101,7 +101,7 @@
   "Home": {
     "metaTitle": "Home",
     "metaDescription": "Meet Seoul the way you imagined it—verified local guardians, mood-first matching, and routes written for real days.",
-    "eyebrow": "42 Guardians",
+    "eyebrow": "하루",
     "heroTitle": "The Seoul you streamed. The streets you’ll walk.",
     "heroLead": "Match with verified local guardians who speak your language and your vibe—then plan from real routes and reviews, not brochure noise.",
     "credibilityTitle": "Why travelers take the leap with us",
@@ -143,7 +143,7 @@
     "entryLogin": "Log in",
     "regionsSectionEyebrow": "Launch areas",
     "regionsSectionTitle": "First — where do you want to start?",
-    "regionsSectionLead": "42 Guardians launches in Gwanghwamun and Gangnam first. Sharper experiences in verified launch areas.",
+    "regionsSectionLead": "하루 launches in Gwanghwamun and Gangnam first. Sharper experiences in verified launch areas.",
     "regionsSectionCta": "Build a route with Recommendations",
     "launchBadgeLive": "OPEN",
     "launchBadgeSoon": "Coming soon",
@@ -164,7 +164,7 @@
     "trust42CardReviewsDesc": "Real sessions and inquiries build reputation over time.",
     "trust42CardFast": "Fast response",
     "trust42CardFastDesc": "Guardians aim for reply windows that fit busy trips.",
-    "aboutSectionTitle": "Who is 42 Guardians?",
+    "aboutSectionTitle": "Who is 하루?",
     "aboutSectionLead": "Built for international fans who fell in love with Korea through screens first.",
     "aboutSectionBody": "We curate real Seoul moods and help you choose a local guardian by language and travel style. Launch is Gwanghwamun and Gangnam only — not nationwide.",
     "comingSectionBadge": "Opening later",
@@ -184,7 +184,7 @@
     "featuredIntelTitle": "Featured insights",
     "featuredIntelCta": "Open Explore",
     "pickBadge": "Editor’s pick",
-    "featuredGuardiansSectionTitle": "42 Guardians that fit your journey",
+    "featuredGuardiansSectionTitle": "하루 that fit your journey",
     "featuredGuardiansSectionLead": "Based on your area and travel mood, we surface local guardians who match right now.",
     "featuredGuardiansCta": "Browse all guardians",
     "recommendedGuardiansViewAll": "View all",
@@ -381,7 +381,7 @@
   },
   "TrustScope": {
     "title": "Service scope and limits",
-    "lead": "42 Guardians focuses on practical local support and useful information. It is not a guided tour, medical or legal assistance, or an emergency-response service. By being clear about scope, we make the experience easier to trust.",
+    "lead": "하루 focuses on practical local support and useful information. It is not a guided tour, medical or legal assistance, or an emergency-response service. By being clear about scope, we make the experience easier to trust.",
     "includedLabel": "Typically included",
     "excludedLabel": "Not included",
     "included": [
@@ -535,7 +535,7 @@
     "stepTheme": "What mood of trip do you want?",
     "stepTrip": "Tell us your trip basics",
     "stepTaste": "We’ll fine-tune to your taste",
-    "stepResults": "42 Guardians that fit your journey",
+    "stepResults": "하루 that fit your journey",
     "btnStart": "Start recommendations",
     "btnGuardiansFirst": "Browse guardians first",
     "next": "Next",
@@ -729,7 +729,7 @@
   "GuardiansDiscover": {
     "metaTitle": "Guardians",
     "metaDescription": "Compare trusted local guardians by area, language, and theme.",
-    "heroTitle": "Choose your 42 Guardians",
+    "heroTitle": "Choose your 하루",
     "heroBody": "Filter by area, language, travel style, and specialty — browse like a marketplace, decide with trust signals.",
     "filterTitle": "Find guardians that fit",
     "listResultsCount": "{count} guardians",
@@ -890,7 +890,7 @@
   },
   "AboutPage": {
     "metaTitle": "About",
-    "metaDescription": "Why 42 Guardians exists: mood-first Seoul matching, verified locals, traveler reviews—and boundaries we say out loud.",
+    "metaDescription": "Why 하루 exists: mood-first Seoul matching, verified locals, traveler reviews—and boundaries we say out loud.",
     "legalTermsTitle": "Terms of service",
     "legalTermsBody": "Full terms will be published before public launch. Until then, see the About page for how we operate.",
     "legalPrivacyTitle": "Privacy policy",
@@ -909,7 +909,7 @@
       "bridgeOne": {
         "kicker": "Between clips and curbs",
         "title": "The gap isn’t lack of tips—it’s lack of a thread",
-        "lead": "42 Guardians is the layer where language, mood, and proof line up: profiles you can read, posts you can walk, and boundaries we state upfront."
+        "lead": "하루 is the layer where language, mood, and proof line up: profiles you can read, posts you can walk, and boundaries we state upfront."
       },
       "bridgeTwo": {
         "kicker": "How it lands",
@@ -1687,7 +1687,7 @@
     "final_cta_traveler": "Start your Seoul day today",
     "final_cta_guardian": "Want to become a Guardian?",
     "final_cta_guardian_link": "Apply now →",
-    "hero_badge": "Seoul · Korea SafeMate",
+    "hero_badge": "Seoul · 하루",
     "problem_title": "Sound familiar?",
     "problem_item1": "ค้นหาทั้งวันว่าจะทำอะไร แต่ก็ยังไม่ได้ไปไหน",
     "problem_item2": "สุดท้ายก็ไปแค่ที่ท่องเที่ยวเดิมๆ เหมือนทุกคน",
@@ -1776,7 +1776,7 @@
     "cta_review_time": "Average review time: 3–5 business days"
   },
   "HowItWorks": {
-    "hero_title": "How Korea SafeMate works",
+    "hero_title": "How 하루 works",
     "traveler_title": "For Travelers",
     "step1_title": "Browse freely",
     "step1_desc": "Explore Guardian profiles and sample routes — no login needed.",
