@@ -4,7 +4,7 @@
     "explore": "하루way",
     "posts": "Posts",
     "guardians": "하루이",
-    "about": "About",
+    "about": "하루란?",
     "services": "Services",
     "book": "Book",
     "contribute": "Join",
@@ -888,8 +888,8 @@
     "flexible": "Flexible"
   },
   "AboutPage": {
-    "metaTitle": "About",
-    "metaDescription": "Why 하루 exists: mood-first Seoul matching, verified locals, traveler reviews—and boundaries we say out loud.",
+    "metaTitle": "하루란?",
+    "metaDescription": "What is 하루? — Discover 하루웨이, 하루이, how to start, and pricing in one place.",
     "legalTermsTitle": "Terms of service",
     "legalTermsBody": "Full terms will be published before public launch. Until then, see the About page for how we operate.",
     "legalPrivacyTitle": "Privacy policy",

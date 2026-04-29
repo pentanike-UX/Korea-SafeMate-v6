@@ -15,8 +15,6 @@ export async function SiteFooter() {
   const sitemap: { href: AppHref; label: string }[] = [
     { href: "/", label: tNav("home") },
     { href: "/explore/routes", label: tNav("explore") },
-    { href: "/how-it-works", label: tNav("howItWorks") },
-    { href: "/pricing", label: tNav("pricing") },
     { href: "/guardians", label: tNav("guardians") },
     { href: "/about", label: tNav("about") },
     { href: "/guardians/apply", label: tFooter("apply") },

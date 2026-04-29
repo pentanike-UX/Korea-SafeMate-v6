@@ -4,7 +4,7 @@
     "explore": "하루웨이",
     "posts": "포스트",
     "guardians": "하루이",
-    "about": "소개",
+    "about": "하루란?",
     "services": "서비스",
     "book": "예약",
     "contribute": "참여하기",
@@ -888,8 +888,8 @@
     "flexible": "유연한"
   },
   "AboutPage": {
-    "metaTitle": "소개",
-    "metaDescription": "하루가 존재하는 이유—무드 우선 매칭, 검증 로컬, 여행자 후기, 그리고 솔직한 서비스 범위.",
+    "metaTitle": "하루란?",
+    "metaDescription": "하루가 어떤 서비스인지 — 하루웨이, 하루이, 시작 방법, 요금을 한 페이지에서 확인하세요.",
     "legalTermsTitle": "이용약관",
     "legalTermsBody": "약관 전문은 정식 오픈 전에 게시됩니다. 그 전까지는 서비스 소개와 운영 원칙(소개 페이지)을 참고해 주세요.",
     "legalPrivacyTitle": "개인정보처리방침",

@@ -7,6 +7,10 @@ export async function generateMetadata() {
   return {
     title: `${t("metaTitle")} | ${BRAND.name}`,
     description: t("metaDescription"),
+    openGraph: {
+      title: `하루란? | ${BRAND.name}`,
+      description: t("metaDescription"),
+    },
   };
 }
 

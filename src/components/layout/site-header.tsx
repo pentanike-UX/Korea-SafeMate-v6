@@ -9,15 +9,13 @@ import { useAuthUser } from "@/hooks/use-auth-user";
 import { useHomeHeaderContrast } from "@/hooks/use-home-header-contrast";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { BookOpen, Compass, DollarSign, Home, Info, Menu, Users } from "lucide-react";
+import { Compass, Home, Info, Menu, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const NAV: { href: string; msgKey: "home" | "explore" | "howItWorks" | "pricing" | "guardians" | "about"; Icon: LucideIcon }[] = [
+const NAV: { href: string; msgKey: "home" | "explore" | "guardians" | "about"; Icon: LucideIcon }[] = [
   { href: "/", msgKey: "home", Icon: Home },
   { href: "/explore/routes", msgKey: "explore", Icon: Compass },
-  { href: "/how-it-works", msgKey: "howItWorks", Icon: BookOpen },
-  { href: "/pricing", msgKey: "pricing", Icon: DollarSign },
   { href: "/guardians", msgKey: "guardians", Icon: Users },
   { href: "/about", msgKey: "about", Icon: Info },
 ];
@@ -27,7 +25,7 @@ function isNavActive(href: string, pathname: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-type NavMsgKey = (typeof NAV)[number]["msgKey"];
+type NavMsgKey = "home" | "explore" | "guardians" | "about";
 
 function HeaderNavLinks({
   mobile,
