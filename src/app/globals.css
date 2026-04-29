@@ -684,7 +684,7 @@
     .hero-section {
       min-height: 90svh;
       max-height: 90svh;
-      padding-bottom: 120px;
+      /* padding-bottom removed: CTA is now in normal flow, no fixed overlay needed */
     }
   }
   .hero .page-container.hero-main {
@@ -767,31 +767,26 @@
   .dark .hero .hero-cta-secondary:hover {
     color: #f9fafb;
   }
-  .hero-cta-mobile {
-    display: none;
+  /* Single hero CTA block — responsive layout, no DOM duplication */
+  .hero-cta-block {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
   }
   @media (max-width: 640px) {
-    .hero-cta-inline {
-      display: none;
-    }
-    .hero-cta-mobile {
-      position: absolute;
-      left: 16px;
-      right: 16px;
-      bottom: 24px;
-      z-index: 4;
-      display: flex;
+    .hero-cta-block {
       flex-direction: column;
       gap: 10px;
+      width: 100%;
     }
-    .hero-cta-mobile-primary {
+    .hero-cta-block .cta-primary {
       width: 100%;
       height: 48px;
-      display: flex;
-      align-items: center;
       justify-content: center;
     }
-    .hero-cta-mobile-secondary {
+    .hero-cta-block .cta-secondary {
       width: 100%;
       text-align: center;
     }

@@ -1648,8 +1648,8 @@
     "error": "저장에 실패했습니다. 잠시 후 다시 시도해 주세요."
   },
   "Landing": {
-    "hero_headline": "서울 하루,\n그대로 따라가면 됩니다",
-    "hero_subline": "현지인이 만든 서울 하루 루트를\n그대로 따라가는 서비스입니다",
+    "hero_headline": "서울에서의 하루,\n내게 맞는 루트로.",
+    "hero_subline": "현지인이 만든 루트를 그냥 따라가세요.\n내게 맞는 하루가 이미 준비되어 있습니다.",
     "hero_cta_primary": "루트 보기",
     "hero_cta_secondary": "어떻게 쓰는지 보기",
     "trust_title": "가디언이 직접 만든 루트입니다",
@@ -1689,7 +1689,7 @@
     "hero_badge": "서울 · Korea SafeMate",
     "problem_title": "이런 적 있으신가요?",
     "problem_item1": "검색만 하다가 하루가 끝난 적",
-    "problem_item2": "다 똑같은 관광지만 돌고 나온 적",
+    "problem_item2": "결국 다들 가는 곳만 돌고 나온 적",
     "problem_item3": "언어 때문에 그냥 돌아섰던 적",
     "problem_bridge": "검색 대신, 바로 움직이면 됩니다",
     "route_section_title": "가디언이 만든 하루는 이렇게 생겼어요",
@@ -1745,7 +1745,7 @@
     "route_audience_1": "서울 처음 오는 분",
     "route_audience_2": "혼자 여행하는 분",
     "route_audience_3": "사진 좋아하는 분",
-    "pricing_value_lead": "혼자 찾는 것보다 훨씬 빠르게 시작할 수 있습니다"
+    "pricing_value_lead": "검색하고 헤매는 시간 없이\n바로 하루를 시작할 수 있습니다"
   },
   "GuardianLanding": {
     "hero_headline": "You are Seoul Tribe.",

@@ -1648,8 +1648,8 @@
     "error": "Could not save. Please try again."
   },
   "Landing": {
-    "hero_headline": "Your Seoul day is already planned.\nJust follow it.",
-    "hero_subline": "A local-built Seoul day route — just follow it.\nNo planning. No searching. Just show up.",
+    "hero_headline": "Your day in Seoul,\nyour kind of route.",
+    "hero_subline": "Just follow a route a local made.\nYour day is already planned.",
     "hero_cta_primary": "Browse routes",
     "hero_cta_secondary": "How it works",
     "trust_title": "Guardian-built routes — verified by real travelers",
@@ -1745,7 +1745,7 @@
     "route_audience_1": "First time in Seoul",
     "route_audience_2": "Traveling solo",
     "route_audience_3": "Into photography",
-    "pricing_value_lead": "Start faster than planning it yourself"
+    "pricing_value_lead": "Start your day without hours of searching."
   },
   "GuardianLanding": {
     "hero_headline": "You are Seoul Tribe.",

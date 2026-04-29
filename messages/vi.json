@@ -1649,8 +1649,8 @@
     "error": "Could not save. Please try again."
   },
   "Landing": {
-    "hero_headline": "Your Seoul day is already planned.\nJust follow it.",
-    "hero_subline": "Lộ trình một ngày ở Seoul do người bản địa thiết kế\nChỉ cần làm theo là đủ",
+    "hero_headline": "Một ngày ở Seoul,\nđúng lộ trình cho bạn.",
+    "hero_subline": "Chỉ cần làm theo lộ trình người bản địa đã tạo.\nNgày của bạn đã được sắp xếp sẵn.",
     "hero_cta_primary": "Browse routes",
     "hero_cta_secondary": "How it works",
     "trust_title": "Guardian-built routes — verified by real travelers",
@@ -1690,7 +1690,7 @@
     "hero_badge": "Seoul · Korea SafeMate",
     "problem_title": "Sound familiar?",
     "problem_item1": "Mất cả ngày tìm kiếm nhưng không đi được đâu",
-    "problem_item2": "Chỉ ghé những điểm du lịch giống mọi người",
+    "problem_item2": "Cuối cùng chỉ ghé những điểm giống mọi người",
     "problem_item3": "Language barriers made it easier to just give up",
     "problem_bridge": "Thôi tìm kiếm — hãy di chuyển ngay",
     "route_section_title": "What a Guardian-built route looks like",
@@ -1746,7 +1746,7 @@
     "route_audience_1": "Lần đầu đến Seoul",
     "route_audience_2": "Du lịch một mình",
     "route_audience_3": "Yêu thích chụp ảnh",
-    "pricing_value_lead": "Bắt đầu nhanh hơn tự lên kế hoạch"
+    "pricing_value_lead": "Bắt đầu ngày mới ngay mà không cần tốn giờ tìm kiếm."
   },
   "GuardianLanding": {
     "hero_headline": "You are Seoul Tribe.",
