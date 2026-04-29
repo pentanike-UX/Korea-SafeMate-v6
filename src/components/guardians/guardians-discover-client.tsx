@@ -383,7 +383,15 @@ export function GuardiansDiscoverClient({
 
   return (
     <div className="bg-[var(--bg-page)]">
-      <SubpageHero title={t("heroTitle")} description={t("heroBody")} />
+      <SubpageHero
+        title={t("heroTitle")}
+        description={t("heroBody")}
+        eyebrow={
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.2em] uppercase text-[var(--brand-trust-blue)]">
+            하루를 여는 이들
+          </p>
+        }
+      />
 
       <StickyListingFiltersBar innerClassName="py-2 sm:py-2.5">
         <ExplorationFilterSummaryBar
@@ -532,7 +540,7 @@ export function GuardiansDiscoverClient({
                               variant="outline"
                               className={cn(listCardActionButtonClass, "w-full rounded-[var(--radius-md)]")}
                             >
-                              <Link href={`/guardians/${g.user_id}#guardian-posts`}>포스트 보기</Link>
+                              <Link href={`/guardians/${g.user_id}#guardian-posts`}>하루웨이 보기</Link>
                             </Button>
                           ) : (
                             <GuardianRequestOpenTrigger

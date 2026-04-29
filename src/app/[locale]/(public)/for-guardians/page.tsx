@@ -1,201 +1,222 @@
 /**
- * M02 — Guardian Landing
- * IA §4.3 M02 · 릴리즈 [M][P]
- * Seoul Tribe 가디언 지원 랜딩 페이지
- * SCREEN_SPECS_3A §M02
+ * 하루이 모집 랜딩 — /for-guardians
  */
 import { getTranslations } from "next-intl/server";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { BRAND } from "@/lib/constants";
+import { ArrowRight, Calendar, MapPin, TrendingUp } from "lucide-react";
 
 export async function generateMetadata() {
-  const t = await getTranslations("GuardianLanding");
   return {
-    title: `Become a 하루이 — ${BRAND.name}`,
-    description: t("hero_subline"),
+    title: `초기 하루이 모집 중 | ${BRAND.name}`,
+    description: "당신이 아는 서울이 누군가의 하루가 됩니다. 하루이로 활동해보세요.",
   };
 }
 
-// ── 수익 계산 (정적 tier 테이블) ──────────────────────────────────────────────
+// ── 예상 수익 시나리오 ──────────────────────────────────────────────────────────
+const SCENARIOS = [
+  { label: "월 3건", routes: 3 },
+  { label: "월 5건", routes: 5 },
+  { label: "월 10건", routes: 10 },
+] as const;
 
-const TIER_PRICES = {
-  basic: 29000,
-  standard: 59000,
-  premium: 119000,
-};
+const ROUTE_PRICE = 59000;
+const PAYOUT_RATE = 0.8;
 
-const EARNINGS_SCENARIOS = [
-  { routes: 3,  tier: "standard" as const, label: "3 routes/mo"  },
-  { routes: 5,  tier: "standard" as const, label: "5 routes/mo"  },
-  { routes: 10, tier: "standard" as const, label: "10 routes/mo" },
-];
-
-function GuardianLandingContent() {
+function ForGuardiansContent() {
   const t = useTranslations("GuardianLanding");
 
-  const benefits = [
-    { icon: "🗓️", titleKey: "b1_title" as const, descKey: "b1_desc" as const },
-    { icon: "💰", titleKey: "b2_title" as const, descKey: "b2_desc" as const },
-    { icon: "📍", titleKey: "b3_title" as const, descKey: "b3_desc" as const },
-  ];
-
-  const foundingPerks = [
-    "founding_f1" as const,
-    "founding_f2" as const,
-    "founding_f3" as const,
-    "founding_f4" as const,
-  ];
-
   return (
-    <div className="min-h-screen bg-bg">
-      {/* ── HERO ── */}
-      <section className="relative overflow-hidden bg-bg-dark">
+    <div className="min-h-screen bg-[var(--bg-page)]">
+
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          HERO
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="relative overflow-hidden bg-[var(--text-strong)]">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-30"
+          className="pointer-events-none absolute inset-0 opacity-25"
           style={{
             backgroundImage:
-              "radial-gradient(ellipse 70% 60% at 15% 50%, color-mix(in srgb, var(--accent-ksm) 30%, transparent), transparent 55%)",
+              "radial-gradient(ellipse 70% 60% at 15% 50%, color-mix(in srgb, var(--brand-trust-blue) 50%, transparent), transparent 55%)",
           }}
         />
-
-        <div className="page-container relative z-10 py-24 md:py-32">
+        <div className="page-container relative z-10 py-20 md:py-28">
           <div className="max-w-2xl">
-            {/* 뱃지 */}
-            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-bg/80">
-              🇰🇷 하루이 · Founding Members Open
-            </span>
-
-            <h1 className="mb-4 font-serif text-4xl font-semibold leading-[1.1] text-bg sm:text-5xl lg:text-6xl">
-              {t("hero_headline")}
-            </h1>
-
-            <p className="mb-8 text-lg text-bg/70 leading-relaxed max-w-lg">
-              {t("hero_subline")}
+            <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-white/50">
+              초기 하루이 모집 중
             </p>
-
-            <div className="flex flex-wrap gap-3">
+            <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl">
+              당신이 아는 서울이<br />
+              누군가의 하루가 됩니다.
+            </h1>
+            <p className="mt-5 max-w-lg text-base leading-relaxed text-white/68 sm:text-lg">
+              내가 잘 아는 동네, 카페, 골목, 이동 팁을<br />
+              하루웨이로 만들고 수익으로 연결해보세요.
+            </p>
+            <div className="mt-9 flex flex-wrap gap-3">
               <Link
                 href="/guardians/apply"
-                className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-md)] transition-all hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98]"
+                className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-white px-6 py-3 text-sm font-semibold text-zinc-900 shadow-md transition-all hover:bg-white/95 hover:scale-[1.02] active:scale-[0.98]"
               >
-                {t("cta_button")} →
+                하루이 지원하기
+                <ArrowRight className="size-4" aria-hidden />
               </Link>
               <Link
                 href="/how-it-works"
-                className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-bg/80 transition-colors hover:bg-white/15"
+                className="inline-flex items-center gap-2 rounded-[var(--radius-md)] border border-white/22 bg-white/8 px-6 py-3 text-sm font-semibold text-white/80 transition-all hover:bg-white/14"
               >
-                How it works
+                활동 방식 보기
               </Link>
             </div>
-
-            <p className="mt-4 text-xs text-bg/40">{t("cta_review_time")}</p>
+            <p className="mt-4 text-xs text-white/36">
+              지원 검토는 보통 영업일 기준 3–5일이 걸립니다.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* ── BENEFITS ── */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          섹션 1: 왜 하루이인가요?
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <section className="page-container py-16 md:py-20">
-        <div className="mx-auto max-w-2xl text-center mb-12">
-          <h2 className="font-serif text-3xl font-semibold text-ink sm:text-4xl">
-            {t("benefits_title")}
+        <div className="mx-auto max-w-3xl text-center mb-10">
+          <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-[var(--brand-trust-blue)]">
+            하루이란
+          </p>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text-strong)] sm:text-3xl md:text-4xl">
+            왜 하루이인가요?
           </h2>
         </div>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-          {benefits.map((b) => (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 max-w-3xl mx-auto">
+          {[
+            {
+              icon: Calendar,
+              title: "내 시간에 맞춰 활동",
+              body: "본업이나 일상과 병행할 수 있습니다.",
+            },
+            {
+              icon: MapPin,
+              title: "내가 아는 서울이 상품이 됩니다",
+              body: "자주 걷는 동네와 나만의 기준이 하루웨이가 됩니다.",
+            },
+            {
+              icon: TrendingUp,
+              title: "판매된 만큼 정산",
+              body: "하루웨이 판매와 요청 완료 기준으로 수익을 정산합니다.",
+            },
+          ].map(({ icon: Icon, title, body }) => (
             <div
-              key={b.titleKey}
-              className="flex flex-col gap-4 rounded-[var(--radius-xl)] border border-line-soft bg-bg-card p-6"
+              key={title}
+              className="flex flex-col gap-4 rounded-[var(--radius-xl)] border border-border/60 bg-card/50 p-6 shadow-[var(--shadow-sm)]"
             >
-              <span className="text-4xl">{b.icon}</span>
-              <h3 className="font-serif text-lg font-semibold text-ink">{t(b.titleKey)}</h3>
-              <p className="text-sm text-ink-muted leading-relaxed">{t(b.descKey)}</p>
+              <span className="inline-flex size-11 items-center justify-center rounded-xl bg-[var(--brand-trust-blue-soft)] text-[var(--brand-trust-blue)]">
+                <Icon className="size-5" strokeWidth={1.75} aria-hidden />
+              </span>
+              <h3 className="text-base font-semibold text-[var(--text-strong)]">{title}</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">{body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── EARNINGS SIMULATOR (정적) ── */}
-      <section className="bg-bg-sunken py-16 md:py-20">
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          섹션 2: 예상 수익
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="border-y border-border/50 bg-[color-mix(in_srgb,var(--muted)_40%,var(--bg-page))] py-16 md:py-20">
         <div className="page-container">
           <div className="mx-auto max-w-2xl">
-            <h2 className="mb-2 font-serif text-3xl font-semibold text-ink sm:text-4xl">
-              {t("earnings_title")}
+            <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-[var(--brand-trust-blue)]">
+              수익 구조
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text-strong)] sm:text-3xl md:text-4xl">
+              예상 수익
             </h2>
-            <p className="mb-8 text-sm text-ink-muted">{t("earnings_disclaimer")}</p>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              판매된 하루웨이 수와 정산 기준에 따라 수익이 달라집니다.
+            </p>
 
-            {/* 수익 카드 그리드 */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              {EARNINGS_SCENARIOS.map(({ routes, tier, label }) => {
-                const gross = TIER_PRICES[tier] * routes;
-                const net = Math.round(gross * 0.8);
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {SCENARIOS.map(({ label, routes }) => {
+                const gross = ROUTE_PRICE * routes;
+                const net = Math.round(gross * PAYOUT_RATE);
                 return (
                   <div
                     key={label}
-                    className="flex flex-col gap-3 rounded-[var(--radius-xl)] border border-line bg-bg-card p-5"
+                    className="flex flex-col gap-3 rounded-[var(--radius-xl)] border border-border/60 bg-card p-5 shadow-[var(--shadow-sm)]"
                   >
-                    <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">{label}</p>
-                    <p className="font-serif text-2xl font-bold text-ink">
+                    <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      {label}
+                    </p>
+                    <p className="text-3xl font-bold tabular-nums text-[var(--text-strong)]">
                       ₩{net.toLocaleString()}
                     </p>
-                    <p className="text-[11px] text-ink-soft">
-                      {routes} × ₩{TIER_PRICES[tier].toLocaleString()} × 80%
+                    <p className="text-[11px] text-muted-foreground/80">
+                      {routes} × ₩{ROUTE_PRICE.toLocaleString()} × 80%
                     </p>
                   </div>
                 );
               })}
             </div>
 
-            {/* 하이라이트 */}
-            <div className="mt-6 rounded-[var(--radius-xl)] border border-accent-soft bg-accent-soft/40 px-5 py-4 text-center">
-              <p className="font-semibold text-ink text-sm">{t("earnings_highlight")}</p>
-            </div>
+            <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground/70">
+              세전 금액이며, 실제 정산 금액은 정책과 세금에 따라 달라질 수 있습니다.
+              초기 하루이에게는 수수료 우대 정책이 적용될 수 있습니다.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* ── FOUNDING MEMBER ── */}
+      {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          섹션 3: 초기 하루이 혜택
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <section className="page-container py-16 md:py-20">
         <div className="mx-auto max-w-2xl">
-          <div className="flex items-start gap-4 mb-6">
-            <div>
-              <h2 className="font-serif text-3xl font-semibold text-ink sm:text-4xl mb-2">
-                {t("founding_title")}
-              </h2>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-xs font-semibold text-gold">
-                🏅 {t("founding_remaining")}
-              </span>
-            </div>
-          </div>
-
-          <ul className="flex flex-col gap-3 mb-8">
-            {foundingPerks.map((key) => (
-              <li key={key} className="flex items-start gap-3 rounded-[var(--radius-lg)] border border-line-soft bg-bg-card px-4 py-3.5">
-                <span className="mt-px text-ok text-base leading-none">✓</span>
-                <span className="text-sm text-ink leading-relaxed">{t(key)}</span>
+          <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-[var(--brand-trust-blue)]">
+            초기 혜택
+          </p>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text-strong)] sm:text-3xl md:text-4xl">
+            초기 하루이 혜택
+          </h2>
+          <ul className="mt-8 flex flex-col gap-3">
+            {[
+              "첫 3개월 수수료 우대",
+              "첫 5개 하루웨이 운영팀 리뷰 지원",
+              "초기 하루이 배지 제공",
+              "활동 가이드와 샘플 템플릿 제공",
+            ].map((item) => (
+              <li
+                key={item}
+                className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-border/60 bg-card/50 px-4 py-3.5"
+              >
+                <span className="text-emerald-500 text-base leading-none shrink-0">✓</span>
+                <span className="text-sm text-[var(--text-strong)] leading-relaxed">{item}</span>
               </li>
             ))}
           </ul>
-
-          {/* 뱃지 CTA */}
-          <div className="rounded-[var(--radius-xl)] border border-accent-ksm/30 bg-accent-soft/30 px-6 py-5 text-center">
-            <p className="mb-4 text-sm font-semibold text-ink">{t("founding_badge")}</p>
+          <div className="mt-10 rounded-[var(--radius-xl)] border border-[var(--brand-trust-blue)]/25 bg-[var(--brand-trust-blue-soft)]/60 px-6 py-6 text-center">
+            <p className="text-sm font-semibold text-[var(--text-strong)]">
+              서울의 하루를 열어볼까요?
+            </p>
             <Link
               href="/guardians/apply"
-              className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-7 py-3 text-sm font-semibold text-white shadow-[var(--shadow-sm)] transition-all hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98]"
+              className="mt-4 inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-[var(--brand-trust-blue)] px-7 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
             >
-              {t("cta_button")} →
+              하루이 지원하기
+              <ArrowRight className="size-4" aria-hidden />
             </Link>
-            <p className="mt-3 text-xs text-ink-soft">{t("cta_review_time")}</p>
+            <p className="mt-3 text-xs text-muted-foreground">
+              지원 검토는 보통 영업일 기준 3–5일이 걸립니다.
+            </p>
           </div>
         </div>
       </section>
+
     </div>
   );
 }
 
-export default function GuardianLandingPage() {
-  return <GuardianLandingContent />;
+export default function ForGuardiansPage() {
+  return <ForGuardiansContent />;
 }

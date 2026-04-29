@@ -64,8 +64,8 @@ export function GuardianApplyForm() {
         <label className="text-muted-foreground flex cursor-pointer items-start gap-3 text-sm leading-relaxed">
           <input type="checkbox" required className="border-input text-primary mt-1 size-4 rounded" />
           <span className="whitespace-pre-line">
-            저는 가디언 활동이 의료·법률·긴급 구조를 대체하지 않으며,{"\n"}
-            정해진 범위 내의 실무 동행 지원임을 확인합니다.
+            저는 하루이 활동이 의료·법률·긴급 구조를 대체하지 않으며,{"\n"}
+            정해진 서비스 범위 안에서 여행자의 하루를 돕는 역할임을 확인합니다.
           </span>
         </label>
         <Button type="submit" size="lg" className="w-full rounded-xl">
@@ -83,7 +83,7 @@ export function GuardianApplyForm() {
           </DialogHeader>
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
             <Button asChild className="rounded-xl">
-              <Link href="/guardians">가디언 소개 보기</Link>
+              <Link href="/guardians">하루이 보기</Link>
             </Button>
             <Button variant="outline" onClick={() => setOpen(false)} className="rounded-xl">
               닫기
