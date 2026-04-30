@@ -38,7 +38,7 @@ npm start
 
 ## 환경 변수 (선택)
 
-Supabase·지도·가디언 포스트 API·**네이버 검색(하루웨이 스팟 보강)** 등은 해당 기능을 켤 때만 필요합니다. 이름·용도는 루트 **`env.example`** 을 본다(시크릿은 커밋하지 않음). 네이버 Search API 키는 **서버 전용**(`NAVER_SEARCH_*`); [DATA_MODEL_API.md](./DATA_MODEL_API.md) §5.3·§10, [HARNESS.md](./HARNESS.md) §4.
+Supabase·지도·가디언 포스트 API·**네이버 검색(하루웨이 스팟 보강)**·**Google Places(스팟 place_id 갤러리)** 등은 해당 기능을 켤 때만 필요합니다. 이름·용도는 루트 **`env.example`** 을 본다(시크릿은 커밋하지 않음). 네이버·Google **Places용 키는 서버 전용**(`NAVER_SEARCH_*`, `GOOGLE_MAPS_API_KEY`). 지도 JS용 `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY`는 Places 호출에 사용하지 않는다. [DATA_MODEL_API.md](./DATA_MODEL_API.md) §5.3·§10, [HARNESS.md](./HARNESS.md) §4.
 
 ## 라이선스 / 원본
 

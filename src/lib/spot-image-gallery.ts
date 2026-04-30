@@ -17,7 +17,7 @@ export type SpotGallerySlide = {
   title?: string;
   alt: string;
   caption?: string;
-  source: "naver-image" | "local" | "fallback" | "selected" | "hero";
+  source: "naver-image" | "local" | "fallback" | "selected" | "hero" | "google-places";
   width?: number;
   height?: number;
   score?: number;
@@ -115,36 +115,6 @@ export function buildSpotGallerySlides(
     });
   }
 
-  const clientItems =
-    (opts as SpotImageOpts & { clientNaverItems?: NaverImageCandidate[] | null }).clientNaverItems ??
-    opts.clientNaverCandidates;
-  const merged = mergeSpotNaverCandidates(spot, clientItems);
-  let ranked = usePrimaryPipeline
-    ? scoreAndSortWithPrimaryPlace(merged, spot, opts.primaryPlace ?? null)
-    : scoreAndSortNaverCandidates(merged, spot);
-  ranked = reorderHeritageGalleryHeroFirst(ranked, spot);
-  const roomNaver = MAX_GALLERY - slides.length;
-
-  for (const c of ranked.slice(0, Math.max(0, roomNaver))) {
-    const tryUrls = tryUrlsForNaverItem(c);
-    if (tryUrls.length === 0) continue;
-    const titleClean = stripHtml(c.title);
-    const cap = shortGalleryCaption(c.title);
-    const pw = parseInt(c.sizewidth ?? "", 10);
-    const ph = parseInt(c.sizeheight ?? "", 10);
-    push({
-      tryUrls,
-      thumbnail: c.thumbnail?.trim(),
-      title: c.title,
-      alt: galleryAltForSlide(spot, titleClean),
-      caption: (cap ?? titleClean.slice(0, 80)) || undefined,
-      source: "naver-image",
-      width: c.width ?? (Number.isFinite(pw) ? pw : undefined),
-      height: c.height ?? (Number.isFinite(ph) ? ph : undefined),
-      score: c.score,
-    });
-  }
-
   const jsonGallery = spot.images?.gallery;
   if (Array.isArray(jsonGallery)) {
     for (const g of jsonGallery) {
@@ -163,6 +133,23 @@ export function buildSpotGallerySlides(
         width: g.width,
         height: g.height,
         score: g.score,
+      });
+    }
+  }
+
+  /** Google Places (place_id) — Naver·로컬보다 우선해 무관 이미지 비중 감소 */
+  const googleUrls = opts.clientGooglePhotoUrls;
+  if (googleUrls != null) {
+    const placeLabel = spot.google?.displayName?.trim() || spot.real_place_name?.trim() || spot.spot_name?.trim();
+    for (const raw of googleUrls) {
+      if (slides.length >= MAX_GALLERY) break;
+      const u = raw?.trim();
+      if (!u) continue;
+      push({
+        tryUrls: [u],
+        alt: galleryAltForSlide(spot, placeLabel || "Google Places"),
+        caption: placeLabel,
+        source: "google-places",
       });
     }
   }
@@ -193,6 +180,36 @@ export function buildSpotGallerySlides(
       tryUrls: [planSpot],
       alt: galleryAltForSlide(spot),
       source: "fallback",
+    });
+  }
+
+  const clientItems =
+    (opts as SpotImageOpts & { clientNaverItems?: NaverImageCandidate[] | null }).clientNaverItems ??
+    opts.clientNaverCandidates;
+  const merged = mergeSpotNaverCandidates(spot, clientItems);
+  let ranked = usePrimaryPipeline
+    ? scoreAndSortWithPrimaryPlace(merged, spot, opts.primaryPlace ?? null)
+    : scoreAndSortNaverCandidates(merged, spot);
+  ranked = reorderHeritageGalleryHeroFirst(ranked, spot);
+  const roomNaver = MAX_GALLERY - slides.length;
+
+  for (const c of ranked.slice(0, Math.max(0, roomNaver))) {
+    const tryUrls = tryUrlsForNaverItem(c);
+    if (tryUrls.length === 0) continue;
+    const titleClean = stripHtml(c.title);
+    const cap = shortGalleryCaption(c.title);
+    const pw = parseInt(c.sizewidth ?? "", 10);
+    const ph = parseInt(c.sizeheight ?? "", 10);
+    push({
+      tryUrls,
+      thumbnail: c.thumbnail?.trim(),
+      title: c.title,
+      alt: galleryAltForSlide(spot, titleClean),
+      caption: (cap ?? titleClean.slice(0, 80)) || undefined,
+      source: "naver-image",
+      width: c.width ?? (Number.isFinite(pw) ? pw : undefined),
+      height: c.height ?? (Number.isFinite(ph) ? ph : undefined),
+      score: c.score,
     });
   }
 

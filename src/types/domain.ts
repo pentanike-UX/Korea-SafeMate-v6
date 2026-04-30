@@ -217,6 +217,17 @@ export interface SpotGalleryItem {
   score?: number;
 }
 
+/** Google Places API (New) — place_id 기반 갤러리. 서버에서만 API 키 사용. */
+export interface RouteSpotGoogleBind {
+  /** Google Place 리소스 ID (예: ChIJ… 또는 places/ChIJ…) */
+  placeId?: string;
+  displayName?: string;
+  formattedAddress?: string;
+  location?: { lat: number; lng: number };
+  /** Details 응답 캐시(선택) — `name`은 Photo 리소스 전체 경로 */
+  photos?: { name: string; widthPx?: number; heightPx?: number }[];
+}
+
 /**
  * 스팟 이미지 검색·필터 전략 — 랜드마크/궁궐은 음식·상권 이미지 제외.
  * 미지정 시 클라이언트에서 `resolveSpotImagePlaceType()` 휴리스틱.
@@ -315,6 +326,9 @@ export interface RouteSpot {
   naver_place_id?: string;
   /** 네이버 지도/플레이스 상세 URL */
   naver_link?: string;
+
+  /** Google Places — place_id·주소·사진 메타(고품질 갤러리 우선). */
+  google?: RouteSpotGoogleBind;
 
   /**
    * 역할별 이미지 URL (실제 장소 기반·에디터 지정).

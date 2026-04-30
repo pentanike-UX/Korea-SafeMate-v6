@@ -92,6 +92,11 @@ export type SpotImageOpts = {
   primaryPlace?: NaverPrimaryPlace | null;
   /** 무료 등에서 실제 장소 이미지·로컬 히어로까지 표시하지 않음 */
   suppressVisuals?: boolean;
+  /**
+   * Google Places photoUri(서버 resolve) — `null`이면 섹션 생략, `[]`이면 시도했으나 없음.
+   * 우선순위: selected → images.gallery → **google** → local → Naver.
+   */
+  clientGooglePhotoUrls?: string[] | null;
 };
 
 /**
