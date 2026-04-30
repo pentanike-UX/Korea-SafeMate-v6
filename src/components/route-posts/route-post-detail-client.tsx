@@ -148,58 +148,19 @@ function MoveConnector({ spot }: { spot: RouteSpot }) {
   ].filter(Boolean);
 
   return (
-    <div className="mt-4 flex items-stretch gap-0" role="separator" aria-label="다음 스팟으로 이동">
-      <div className="text-primary/35 flex w-10 shrink-0 flex-col items-center sm:w-12">
-        <div className="min-h-3 w-px flex-1 bg-border/25" />
+    <div className="mt-1.5 flex items-stretch gap-0 sm:mt-2" role="separator" aria-label="다음 스팟으로 이동">
+      <div className="text-primary/40 flex w-9 shrink-0 flex-col items-center sm:w-11">
+        <div className="min-h-2 w-px flex-1 bg-border/40" />
       </div>
-      <div className="min-w-0 flex-1 py-1">
-        <div className="flex items-center gap-2.5">
-          <div className="h-px flex-1 border-t border-dashed border-border/35" />
-          <span className="flex items-center gap-1.5 rounded-full border border-border/30 bg-background px-3 py-1.5 text-[11px] font-medium text-muted-foreground shadow-[var(--shadow-xs)]">
-            <span aria-hidden>{emoji}</span>
-            <span>
-              {mode}
-              {parts.length > 0 ? <> · {parts.join(" ")}</> : null}
-            </span>
-          </span>
-          <div className="h-px flex-1 border-t border-dashed border-border/35" />
-        </div>
+      <div className="text-muted-foreground flex min-w-0 flex-1 items-center py-0.5 pl-0.5 text-[10px] font-medium leading-tight sm:text-[11px]">
+        <span aria-hidden className="mr-1 shrink-0 opacity-80">
+          {emoji}
+        </span>
+        <span className="truncate">
+          {mode}
+          {parts.length > 0 ? <> · {parts.join(" ")}</> : null}
+        </span>
       </div>
-    </div>
-  );
-}
-
-function FreePlaybookImageTeaser({ message }: { message: string }) {
-  return (
-    <div
-      className="relative flex aspect-video w-full items-end justify-center overflow-hidden rounded-lg border border-border/35 bg-gradient-to-b from-muted/45 via-primary/[0.05] to-muted/55 px-3 pb-3 pt-10"
-      aria-hidden
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,transparent_50%,hsl(var(--background)/0.55))]" />
-      <p className="text-muted-foreground relative z-[1] text-center text-[10px] font-medium leading-snug">{message}</p>
-    </div>
-  );
-}
-
-/** 무료 티저 — 실사 이미지는 블러만 공개(실명·주소와 분리) */
-function FreePlaybookBlurredHero({ imageUrl, fallbackMessage }: { imageUrl: string | undefined; fallbackMessage: string }) {
-  if (!imageUrl?.trim()) {
-    return <FreePlaybookImageTeaser message={fallbackMessage} />;
-  }
-  return (
-    <div
-      className="border-border/35 relative aspect-video w-full overflow-hidden rounded-lg border"
-      aria-hidden
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element -- 외부 CDN URL 가변 */}
-      <img
-        src={imageUrl}
-        alt=""
-        className="h-full w-full scale-[1.12] object-cover blur-2xl saturate-[0.85]"
-        loading="lazy"
-        decoding="async"
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/15 via-background/35 to-background/60" />
     </div>
   );
 }
@@ -532,6 +493,8 @@ function EditorialSpotRow({
   const placeTitle = premiumSpotPlaceTitle(spot);
   const addressFallback = premiumSpotAddressLine(spot);
 
+  const expanded = hasPlaybookPremium && expandedSpotId === spot.id;
+
   const {
     slides,
     imageQuery,
@@ -546,14 +509,11 @@ function EditorialSpotRow({
     pipelineDone,
   } = useSpotGallery(spot, post, {
     plan: visualPlan,
-    fetchRemote: hasPlaybookPremium,
+    /** 접힘=텍스트 인덱스만 — 갤러리·Naver 호출은 펼친 뒤에만 */
+    fetchRemote: expanded,
   });
 
-  const heroSlides = slides.length ? slides.slice(0, 1) : slides;
   const gallerySlides = slides;
-  const blurredHeroUrl = heroSlides[0]?.tryUrls?.[0];
-
-  const expanded = hasPlaybookPremium && expandedSpotId === spot.id;
 
   const addressLine =
     primaryPlace?.roadAddress?.trim() ||
@@ -582,16 +542,16 @@ function EditorialSpotRow({
   ) : null;
 
   const spine = (
-    <div className="flex w-10 shrink-0 flex-col items-center sm:w-12">
+    <div className="flex w-8 shrink-0 flex-col items-center sm:w-10">
       <time
-        className="mb-1.5 text-[10px] font-semibold tabular-nums text-muted-foreground"
+        className="text-muted-foreground mb-1 text-[9px] font-semibold tabular-nums sm:text-[10px]"
         aria-label={`${time} 출발`}
       >
         {time}
       </time>
       <div
         className={cn(
-          "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors duration-300",
+          "flex size-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-colors duration-300 sm:size-8 sm:text-xs",
           isFlashing
             ? "bg-primary text-primary-foreground ring-2 ring-primary/25 ring-offset-1"
             : "bg-primary/10 text-primary",
@@ -600,11 +560,11 @@ function EditorialSpotRow({
       >
         {index + 1}
       </div>
-      {!isLast ? <div className="mt-2 w-px flex-1 bg-border/30" aria-hidden /> : null}
+      {!isLast ? <div className="bg-border/35 mt-1.5 w-px flex-1 sm:mt-2" aria-hidden /> : null}
     </div>
   );
 
-  /** 닫힘 공통: 분류형 타이틀 → 안내 한 줄 → 칩 → 머무름 → 이미지만 (이미지 아래 텍스트 없음) */
+  /** 닫힘 공통: 분류형 타이틀 → 안내 → 칩 → 머무름 (이미지 없음) */
   const chipAndStay = (
     <>
       <span
@@ -624,30 +584,27 @@ function EditorialSpotRow({
     </>
   );
 
-  /** 무료 — 항상 닫힘·펼침 불가. 카드 탭 시 업그레이드 시트. 원격 이미지 호출 없음 */
+  /** 무료 — 항상 닫힘·텍스트 인덱스만. 탭 시 업그레이드 시트 */
   if (!hasPlaybookPremium) {
     return (
-      <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4">
+      <div id={`route-spot-${spot.id}`} className="flex gap-2 sm:gap-3">
         {spine}
-        <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-6")}>
+        <div className={cn("min-w-0 flex-1", isLast ? "pb-0.5" : "pb-3")}>
           <button
             type="button"
             onClick={onOpenPayDrawer}
-            className="border-border/40 bg-card/80 focus-visible:ring-ring w-full rounded-lg border px-3 py-2.5 text-left shadow-sm outline-none focus-visible:ring-2 sm:px-3.5 sm:py-3"
+            className="border-border/40 bg-card/80 focus-visible:ring-ring w-full rounded-lg border px-2.5 py-2 text-left shadow-sm outline-none focus-visible:ring-2 sm:px-3 sm:py-2.5"
           >
             <p
               className={cn(
-                "text-[var(--text-strong)] text-[14px] font-semibold leading-snug tracking-tight sm:text-[15px]",
+                "text-[var(--text-strong)] text-[13px] font-semibold leading-snug tracking-tight sm:text-[14px]",
                 isFlashing && "text-primary",
               )}
             >
               {collapsedTitle}
             </p>
-            <p className="text-muted-foreground mt-1 text-[12px] leading-snug">{closedExpandHint}</p>
-            <div className="mt-2 flex flex-col gap-1.5">{chipAndStay}</div>
-            <div className="mt-2.5">
-              <FreePlaybookBlurredHero imageUrl={blurredHeroUrl} fallbackMessage={t("playbookVisualLocked")} />
-            </div>
+            <p className="text-muted-foreground mt-0.5 text-[10px] leading-snug sm:text-[11px]">{closedExpandHint}</p>
+            <div className="mt-1.5 flex flex-col gap-1">{chipAndStay}</div>
           </button>
           {!isLast ? <MoveConnector spot={spot} /> : null}
         </div>
@@ -655,37 +612,34 @@ function EditorialSpotRow({
     );
   }
 
-  /** 유료 — 기본 닫힘, 탭으로 해당 카드만 펼침. 펼침 시에만 실명·주소·노트·풀 갤러리 */
+  /** 유료 — 닫힘=인덱스만 / 펼침=갤러리·플레이북 */
   return (
-    <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4">
+    <div id={`route-spot-${spot.id}`} className="flex gap-2 sm:gap-3">
       {spine}
-      <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-10")}>
-        <div className="border-border/50 overflow-hidden rounded-2xl border bg-card shadow-[var(--shadow-xs)]">
+      <div className={cn("min-w-0 flex-1", isLast ? "pb-0.5" : "pb-4")}>
+        <div className="border-border/50 overflow-hidden rounded-xl border bg-card shadow-[var(--shadow-xs)]">
           {!expanded ? (
             <button
               type="button"
               onClick={() => onExpandedSpotChange(spot.id)}
-              className="hover:bg-muted/35 focus-visible:ring-ring w-full px-4 py-3.5 text-left transition-colors outline-none focus-visible:ring-2 sm:px-5 sm:py-4"
+              className="hover:bg-muted/35 focus-visible:ring-ring w-full px-2.5 py-2 text-left transition-colors outline-none focus-visible:ring-2 sm:px-3 sm:py-2.5"
               aria-expanded={false}
             >
-              <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start justify-between gap-1.5">
                 <div className="min-w-0 flex-1">
                   <p
                     className={cn(
-                      "text-[var(--text-strong)] text-[15px] font-semibold leading-snug tracking-tight",
+                      "text-[var(--text-strong)] text-[13px] font-semibold leading-snug tracking-tight sm:text-[14px]",
                       isFlashing && "text-primary",
                     )}
                   >
                     {collapsedTitle}
                   </p>
-                  <p className="text-muted-foreground mt-1 text-[12px] leading-snug">{closedExpandHint}</p>
+                  <p className="text-muted-foreground mt-0.5 text-[10px] leading-snug sm:text-[11px]">{closedExpandHint}</p>
                 </div>
-                <ChevronDown className="text-muted-foreground mt-0.5 size-5 shrink-0" aria-hidden />
+                <ChevronDown className="text-muted-foreground mt-0.5 size-4 shrink-0 sm:size-5" aria-hidden />
               </div>
-              <div className="mt-2 flex flex-col gap-1.5">{chipAndStay}</div>
-              <div className="mt-2.5">
-                <SpotImageCarousel key={`fold-${carouselKey}`} slides={heroSlides} className="sm:max-w-none" />
-              </div>
+              <div className="mt-1.5 flex flex-col gap-1">{chipAndStay}</div>
             </button>
           ) : (
             <div>

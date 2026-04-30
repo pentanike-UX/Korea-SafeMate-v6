@@ -20,7 +20,8 @@ export function useSpotGallery(
   const pipe = useNaverSpotImages(spot, post, { enabled: fetchRemote });
 
   const slides = useMemo(() => {
-    const { fetchRemote: _ignored, ...rest } = opts ?? {};
+    const rest = opts ? { ...opts } : {};
+    delete (rest as { fetchRemote?: boolean }).fetchRemote;
     return buildSpotGallerySlides(spot, post, {
       ...rest,
       suppressVisuals: !fetchRemote,
