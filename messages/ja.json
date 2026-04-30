@@ -1205,7 +1205,8 @@
     },
     "flowTitle": "Haruの流れ",
     "flowSubtitle": "順番通りに進んでください。",
-    "flowSubtitlePlaybook": "タイムラインに沿って進みます。閉じたカードは流れだけ、開くと現地プレイブックです。",
+    "flowSubtitlePlaybook": "タイムラインに沿って進みます。閉じたカードは動線と雰囲気のみ。解除すると正式名称・写真・メモが表示されます。",
+    "paywallConsolidatedHint": "各スポットの「表示」で詳細を開けます。行程の相談は解除シートからガーディアンに依頼できます。",
     "debugPanelOpen": "デバッグを開く（画像・検収）",
     "debugPanelClose": "デバッグを閉じる",
     "playbookTeaserPlace": "実名・住所",
@@ -1215,8 +1216,18 @@
     "playbookTeaserFooter": "現場プレイブックを見る",
     "playbookLockedRow": "プレミアムで表示",
     "playbookFoldHint": "開くと実名・住所・現場メモ・ギャラリーが表示されます。",
-    "playbookVisualLocked": "現場写真はプレイブックで公開されます",
-    "playbookCtaUnlock": "現場プレイブックを開く"
+    "playbookVisualLocked": "鮮明な画像は解除後に表示されます",
+    "playbookCtaUnlock": "現場プレイブックを開く",
+    "playbookCtaView": "表示",
+    "unlockSheetTitle": "スポット別ガイド",
+    "unlockSheetDescription": "正式名称・住所・現地写真・移動メモを表示。デモ: このタブのセッションのみ解除（再読み込みで再ロック）。",
+    "unlockSheetPayCta": "支払う",
+    "freeArchetypeTeaser": {
+      "prep": "方向・設備・イベントの有無だけここで整理して次へ。",
+      "photo": "角度とタイミングを決めると一日が速く進みます。",
+      "rest": "日陰・水・トイレを一度に確認する区間。",
+      "destination": "入場する場合は館内動線の時間を別途見てください。"
+    }
   },
   "TravelerHub": {
     "metaTitle": "マイジャーニー",

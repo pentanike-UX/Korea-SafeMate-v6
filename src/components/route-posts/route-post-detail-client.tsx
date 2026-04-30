@@ -5,18 +5,19 @@ import { useTranslations } from "next-intl";
 import type { ContentPost, NaverPrimaryPlace, RouteJourneyMetadata, RouteSpot } from "@/types/domain";
 import { RouteDayPreview } from "@/components/route-posts/route-day-preview";
 import { RouteStickyLocalNav } from "@/components/route-posts/route-sticky-local-nav";
-import {
-  GuardianRequestOpenTrigger,
-  type GuardianRequestSheetHostProps,
-} from "@/components/guardians/guardian-request-sheet";
+import { type GuardianRequestSheetHostProps } from "@/components/guardians/guardian-request-sheet";
 import { GuardianSignatureQuote } from "@/components/posts/post-info-blocks";
+import { PlaybookUnlockSheet } from "@/components/route-posts/playbook-unlock-sheet";
 import { useSpotGallery } from "@/hooks/use-spot-gallery";
 import { buildLocalPostVisualPlan, type LocalPostVisualPlan } from "@/lib/post-local-images";
 import { SpotImageCarousel } from "@/components/route-posts/spot-image-carousel";
 import { SpotImageAdminDiagnostics } from "@/components/route-posts/spot-image-admin-diagnostics";
 import { SpotVerificationStrip } from "@/components/route-posts/spot-verification-strip";
 import { cn } from "@/lib/utils";
-import { ChevronDown } from "lucide-react";
+import type { FreeArchetype } from "@/lib/route-free-classification";
+import { inferFreeArchetype } from "@/lib/route-free-classification";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, Lock } from "lucide-react";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
   POST_DETAIL_PROSE_P_MAIN,
@@ -28,7 +29,6 @@ import { RouteArticleStructuredBody } from "@/components/posts/route-article-str
 import {
   atmospherePlaybookTitle,
   collapsedSituationLine,
-  freeTierMoodSubtitle,
   freeTierMoodTitle,
   premiumSpotAddressLine,
   premiumSpotPlaceTitle,
@@ -72,7 +72,7 @@ function fmtDistance(m: number): string {
 
 // ─── Spot role system ─────────────────────────────────────────────────────────
 
-type SpotRole = "photo" | "rest" | "destination";
+type SpotRole = FreeArchetype;
 
 interface RoleConfig {
   emoji: string;
@@ -81,33 +81,34 @@ interface RoleConfig {
 }
 
 const ROLE_CONFIG: Record<SpotRole, RoleConfig> = {
+  prep: {
+    emoji: "🧭",
+    label: "준비형",
+    badgeClass:
+      "bg-sky-50 text-sky-800 border-sky-200/60 dark:bg-sky-950/30 dark:text-sky-200 dark:border-sky-700/30",
+  },
   photo: {
     emoji: "📸",
-    label: "포토스팟",
+    label: "포토형",
     badgeClass:
       "bg-violet-50 text-violet-700 border-violet-200/60 dark:bg-violet-950/30 dark:text-violet-300 dark:border-violet-700/30",
   },
   rest: {
-    emoji: "☕",
-    label: "카페·휴식",
+    emoji: "🌳",
+    label: "휴식형",
     badgeClass:
       "bg-amber-50 text-amber-700 border-amber-200/60 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-700/30",
   },
   destination: {
     emoji: "🏛",
-    label: "명소",
+    label: "목적지형",
     badgeClass:
       "bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-700/30",
   },
 };
 
 function inferSpotRole(spot: RouteSpot): SpotRole {
-  const text = [spot.title, spot.place_name, spot.what_to_do, spot.theme_reason]
-    .filter(Boolean)
-    .join(" ");
-  if (/포토|사진|뷰|전망|촬영|인생샷|갬성|뷰포인트/.test(text)) return "photo";
-  if (/카페|커피|베이커리|디저트|쉬어|앉아|휴식/.test(text)) return "rest";
-  return "destination";
+  return inferFreeArchetype(spot);
 }
 
 // ─── Move connector (field note separator) ────────────────────────────────────
@@ -179,6 +180,29 @@ function FreePlaybookImageTeaser({ message }: { message: string }) {
     >
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,transparent_50%,hsl(var(--background)/0.55))]" />
       <p className="text-muted-foreground relative z-[1] text-center text-[10px] font-medium leading-snug">{message}</p>
+    </div>
+  );
+}
+
+/** 무료 티저 — 실사 이미지는 블러만 공개(실명·주소와 분리) */
+function FreePlaybookBlurredHero({ imageUrl, fallbackMessage }: { imageUrl: string | undefined; fallbackMessage: string }) {
+  if (!imageUrl?.trim()) {
+    return <FreePlaybookImageTeaser message={fallbackMessage} />;
+  }
+  return (
+    <div
+      className="border-border/35 relative aspect-video w-full overflow-hidden rounded-lg border"
+      aria-hidden
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element -- 외부 CDN URL 가변 */}
+      <img
+        src={imageUrl}
+        alt=""
+        className="h-full w-full scale-[1.12] object-cover blur-2xl saturate-[0.85]"
+        loading="lazy"
+        decoding="async"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/15 via-background/35 to-background/60" />
     </div>
   );
 }
@@ -485,7 +509,7 @@ function EditorialSpotRow({
   hasPlaybookPremium,
   showAdminDebug,
   isFlashing,
-  requestHost,
+  onOpenPayDrawer,
 }: {
   spot: RouteSpot;
   index: number;
@@ -497,13 +521,13 @@ function EditorialSpotRow({
   hasPlaybookPremium: boolean;
   showAdminDebug: boolean;
   isFlashing: boolean;
-  requestHost: GuardianRequestSheetHostProps;
+  onOpenPayDrawer: () => void;
 }) {
   const t = useTranslations("RoutePosts");
   const role = inferSpotRole(spot);
   const roleConf = ROLE_CONFIG[role];
   const freeTitle = freeTierMoodTitle(spot);
-  const freeSub = freeTierMoodSubtitle(spot);
+  const arch = inferFreeArchetype(spot);
   const moodEyebrow = spot.display_mood_title?.trim() || atmospherePlaybookTitle(spot);
   const situationPremium = spot.display_mood_subtitle?.trim() || collapsedSituationLine(spot);
   const placeTitle = premiumSpotPlaceTitle(spot);
@@ -523,11 +547,12 @@ function EditorialSpotRow({
     pipelineDone,
   } = useSpotGallery(spot, post, {
     plan: visualPlan,
-    fetchRemote: hasPlaybookPremium,
+    fetchRemote: true,
   });
 
   const heroSlides = slides.length ? slides.slice(0, 1) : slides;
   const gallerySlides = slides;
+  const blurredHeroUrl = heroSlides[0]?.tryUrls?.[0];
 
   const [expanded, setExpanded] = useState(false);
 
@@ -618,38 +643,28 @@ function EditorialSpotRow({
             ) : null}
 
             <div className="mt-2.5">
-              <FreePlaybookImageTeaser message={t("playbookVisualLocked")} />
+              <FreePlaybookBlurredHero imageUrl={blurredHeroUrl} fallbackMessage={t("playbookVisualLocked")} />
             </div>
 
-            {freeSub ? (
-              <p className="text-foreground/85 mt-2.5 text-[13px] leading-snug">&ldquo;{freeSub}&rdquo;</p>
-            ) : null}
+            <p className="text-foreground/85 mt-2.5 text-[13px] leading-snug line-clamp-2">
+              {arch === "prep"
+                ? t("freeArchetypeTeaser.prep")
+                : arch === "photo"
+                  ? t("freeArchetypeTeaser.photo")
+                  : arch === "rest"
+                    ? t("freeArchetypeTeaser.rest")
+                    : t("freeArchetypeTeaser.destination")}
+            </p>
 
-            <ul className="text-muted-foreground mt-2.5 space-y-0.5 text-[10px] leading-relaxed">
-              {teaserLines.map((line) => (
-                <li key={line} className="flex gap-1.5">
-                  <span className="shrink-0 opacity-60">·</span>
-                  <span>{line}</span>
-                </li>
-              ))}
-            </ul>
-
-            <GuardianRequestOpenTrigger
-              size="sm"
+            <Button
+              type="button"
               variant="secondary"
-              className="text-foreground/90 mt-3 h-9 w-full rounded-lg border-border/50 text-[13px] font-semibold shadow-none"
-              openDetail={{
-                guardianUserId: requestHost.guardianUserId,
-                displayName: requestHost.displayName,
-                headline: requestHost.headline,
-                avatarUrl: requestHost.avatarUrl,
-                suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
-                postId: post.id,
-                postTitle: post.title,
-              }}
+              className="text-foreground/90 mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border-border/50 text-[13px] font-semibold shadow-none"
+              onClick={onOpenPayDrawer}
             >
-              {t("playbookCtaUnlock")}
-            </GuardianRequestOpenTrigger>
+              <Lock className="size-3.5 shrink-0 opacity-80" aria-hidden />
+              {t("playbookCtaView")}
+            </Button>
           </div>
           {!isLast ? <MoveConnector spot={spot} /> : null}
         </div>
@@ -824,6 +839,11 @@ export function RoutePostDetailClient({
   const [showStickyNav, setShowStickyNav] = useState(false);
   /** 슈퍼관리자 전용 이미지·검수 디버그 — 기본 숨김 */
   const [adminDebugOpen, setAdminDebugOpen] = useState(false);
+  /** 데모 잠금 해제 — 메모리만(새로고침 시 초기화). TODO: 실제 구독/결제 연동 */
+  const [playbookSessionUnlock, setPlaybookSessionUnlock] = useState(false);
+  const [payDrawerOpen, setPayDrawerOpen] = useState(false);
+
+  const effectivePlaybookPremium = hasPlaybookPremium || playbookSessionUnlock;
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
@@ -906,8 +926,24 @@ export function RoutePostDetailClient({
           activeSpotId={activeSpotId}
           onSpotNavigate={(id) => navigateToSpotSection(id)}
           isMobile={isMobile}
+          venueSafe={!effectivePlaybookPremium}
         />
       ) : null}
+
+      <PlaybookUnlockSheet
+        open={payDrawerOpen}
+        onOpenChange={setPayDrawerOpen}
+        onConfirmDemoUnlock={() => setPlaybookSessionUnlock(true)}
+        guardianOpenDetail={{
+          guardianUserId: requestHost.guardianUserId,
+          displayName: requestHost.displayName,
+          headline: requestHost.headline,
+          avatarUrl: requestHost.avatarUrl,
+          suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
+          postId: post.id,
+          postTitle: post.title,
+        }}
+      />
 
       <div className="space-y-8 sm:space-y-10">
         {/* ① 하루 프리뷰 + 소개·하이라이트 통합 — 스티키 내비 트리거 */}
@@ -916,6 +952,7 @@ export function RoutePostDetailClient({
             post={post}
             introLead={introPrimary.trim() || undefined}
             topHighlights={post.route_highlights && post.route_highlights.length > 0 ? post.route_highlights : undefined}
+            venueSafe={!effectivePlaybookPremium}
           />
         </div>
 
@@ -944,6 +981,9 @@ export function RoutePostDetailClient({
               {t("flowTitle")}
             </h2>
             <p className="text-sm leading-relaxed text-muted-foreground">{t("flowSubtitlePlaybook")}</p>
+            {!isSuperAdmin && !effectivePlaybookPremium ? (
+              <p className="text-muted-foreground mt-2 text-xs leading-relaxed">{t("paywallConsolidatedHint")}</p>
+            ) : null}
           </header>
 
           {isSuperAdmin ? (
@@ -968,89 +1008,14 @@ export function RoutePostDetailClient({
                 time={spotTimes[index] ?? ""}
                 post={post}
                 visualPlan={visualPlan}
-                hasPlaybookPremium={hasPlaybookPremium}
+                hasPlaybookPremium={effectivePlaybookPremium}
                 showAdminDebug={isSuperAdmin && adminDebugOpen}
                 isFlashing={flashId === spot.id}
-                requestHost={requestHost}
+                onOpenPayDrawer={() => setPayDrawerOpen(true)}
               />
             ))}
           </div>
         </section>
-
-        {/* ⑥ 페이월 카드 */}
-        {!isSuperAdmin ? (
-          <div className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-b from-white to-[var(--brand-primary-soft)]/30 shadow-[var(--shadow-md)]">
-            <div className="px-6 pt-6 pb-5">
-              <p className="text-[10px] font-bold tracking-[0.2em] text-primary uppercase">
-                {t("spotsTitle")}
-              </p>
-              <h3 className="mt-1.5 text-lg font-semibold text-[var(--text-strong)]">
-                {t("paywallTitle")}
-              </h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{t("paywallLead")}</p>
-            </div>
-
-            <div className="mx-6 border-t border-border/40 pt-4 pb-2">
-              <p className="mb-2.5 text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
-                {t("paywallIncludesLabel")}
-              </p>
-              <ul className="space-y-2">
-                {([
-                  t("paywallItem1"),
-                  t("paywallItem2"),
-                  t("paywallItem3"),
-                  t("paywallItem4"),
-                  t("paywallItem5"),
-                ] as string[]).map((item) => (
-                  <li key={item} className="flex items-center gap-2.5 text-sm text-foreground/80">
-                    <span className="text-xs font-bold text-primary">✓</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="space-y-3 px-6 pt-4 pb-6">
-              <GuardianRequestOpenTrigger
-                size="lg"
-                className="w-full gap-2 rounded-xl px-5"
-                openDetail={{
-                  guardianUserId: requestHost.guardianUserId,
-                  displayName: requestHost.displayName,
-                  headline: requestHost.headline,
-                  avatarUrl: requestHost.avatarUrl,
-                  suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
-                  postId: post.id,
-                  postTitle: post.title,
-                }}
-              >
-                {t("paywallCtaPrimary")}
-                <span className="text-sm font-normal text-primary-foreground/70">
-                  {t("paywallCtaPrimaryPrice")}
-                </span>
-              </GuardianRequestOpenTrigger>
-              <GuardianRequestOpenTrigger
-                size="default"
-                variant="outline"
-                className="w-full rounded-xl"
-                openDetail={{
-                  guardianUserId: requestHost.guardianUserId,
-                  displayName: requestHost.displayName,
-                  headline: requestHost.headline,
-                  avatarUrl: requestHost.avatarUrl,
-                  suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
-                  postId: post.id,
-                  postTitle: post.title,
-                }}
-              >
-                {t("paywallCtaSecondary")}
-              </GuardianRequestOpenTrigger>
-              <p className="text-center text-xs leading-relaxed text-muted-foreground">
-                {t("paywallNote")}
-              </p>
-            </div>
-          </div>
-        ) : null}
 
         {/* ⑦ 가디언 서명 */}
         {guardianSignature ? (

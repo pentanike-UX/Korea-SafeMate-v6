@@ -3,12 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { RouteSpot } from "@/types/domain";
+import { freeClassificationTitle } from "@/lib/route-free-classification";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-function spotShortName(spot: RouteSpot, maxLen: number) {
-  const raw = spot.title?.trim() || spot.place_name?.trim() || "—";
+function spotShortName(spot: RouteSpot, maxLen: number, venueSafe: boolean) {
+  const raw = venueSafe
+    ? freeClassificationTitle(spot)
+    : spot.title?.trim() || spot.place_name?.trim() || "—";
   return raw.length > maxLen ? `${raw.slice(0, maxLen - 1)}…` : raw;
 }
 
@@ -17,9 +20,11 @@ type Props = {
   activeSpotId: string | null;
   onSpotNavigate: (id: string) => void;
   isMobile: boolean;
+  /** 무료: 칩에 실명 대신 분류형 명칭 */
+  venueSafe?: boolean;
 };
 
-export function RouteStickyLocalNav({ spots, activeSpotId, onSpotNavigate, isMobile }: Props) {
+export function RouteStickyLocalNav({ spots, activeSpotId, onSpotNavigate, isMobile, venueSafe = false }: Props) {
   const t = useTranslations("RoutePosts");
   const [expanded, setExpanded] = useState(true);
   const chipScrollDesktopRef = useRef<HTMLDivElement>(null);
@@ -62,8 +67,10 @@ export function RouteStickyLocalNav({ spots, activeSpotId, onSpotNavigate, isMob
       aria-label={t("stickyNavSpotsAria")}
     >
       {spots.map((spot, index) => {
-        const short = spotShortName(spot, mobile ? 12 : 24);
-        const full = `${index + 1}. ${spot.title?.trim() || spot.place_name || "—"}`;
+        const short = spotShortName(spot, mobile ? 12 : 24, venueSafe);
+        const full = venueSafe
+          ? `${index + 1}. ${freeClassificationTitle(spot)}`
+          : `${index + 1}. ${spot.title?.trim() || spot.place_name || "—"}`;
         const active = spot.id === activeSpotId;
         return (
           <button

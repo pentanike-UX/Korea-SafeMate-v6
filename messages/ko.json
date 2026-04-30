@@ -1205,7 +1205,8 @@
     },
     "flowTitle": "하루 흐름",
     "flowSubtitle": "순서대로 따라가면 되는 오늘의 동선입니다.",
-    "flowSubtitlePlaybook": "시간 순으로만 따라가면 됩니다. 접힌 카드는 동선만, 펼치면 현장 플레이북이 열립니다.",
+    "flowSubtitlePlaybook": "시간 순서대로만 따라가면 됩니다. 접힌 카드는 동선·분위기만 보이고, 잠금을 해제하면 실제 장소명·사진·메모가 열립니다.",
+    "paywallConsolidatedHint": "상세는 각 스팟의 「보기」로 열 수 있어요. 맞춤 일정은 잠금 화면에서 가디언에게 요청하세요.",
     "debugPanelOpen": "디버그 패널 열기 (이미지·검수)",
     "debugPanelClose": "디버그 패널 닫기",
     "playbookTeaserPlace": "실제 스팟 이름·주소",
@@ -1215,8 +1216,18 @@
     "playbookTeaserFooter": "현장 플레이북 보기",
     "playbookLockedRow": "프리미엄에서 상세 열람",
     "playbookFoldHint": "펼치면 실제 장소명·주소·현장 노트·사진 갤러리가 열립니다.",
-    "playbookVisualLocked": "현장 사진·실제 외관은 플레이북에서만 공개됩니다",
-    "playbookCtaUnlock": "현장 플레이북 열기"
+    "playbookVisualLocked": "이미지는 잠금 해제 후 선명하게 보입니다",
+    "playbookCtaUnlock": "현장 플레이북 열기",
+    "playbookCtaView": "보기",
+    "unlockSheetTitle": "스팟 상세 가이드",
+    "unlockSheetDescription": "실제 장소명·주소·현장 사진·이동 메모를 볼 수 있어요. 데모에서는 아래에서 이번 탭 세션만 잠금 해제됩니다(새로고침 시 다시 잠김).",
+    "unlockSheetPayCta": "결제하기",
+    "freeArchetypeTeaser": {
+      "prep": "방향·편의·행사 여부만 정리하고 다음 구간으로 넘어가요.",
+      "photo": "각도와 타이밍만 정하면 전체 일정이 빨라져요.",
+      "rest": "물·그늘·화장실을 한 번에 점검하는 구간이에요.",
+      "destination": "입장이면 내부 동선 시간을 따로 잡으세요."
+    }
   },
   "TravelerHub": {
     "metaTitle": "내 여정",

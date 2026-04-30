@@ -1205,7 +1205,8 @@
     },
     "flowTitle": "Haru Flow",
     "flowSubtitle": "Follow the order — this is your route for the day.",
-    "flowSubtitlePlaybook": "Follow the timeline. Collapsed cards show the rough flow; expand for the full field playbook.",
+    "flowSubtitlePlaybook": "Follow the timeline. Collapsed cards show flow and mood only; unlock to see real names, photos, and field notes.",
+    "paywallConsolidatedHint": "Use “View” on any stop to open the full guide. For a tailored itinerary, request from the unlock sheet.",
     "debugPanelOpen": "Open debug panel (images · QA)",
     "debugPanelClose": "Close debug panel",
     "playbookTeaserPlace": "Real venue name · address",
@@ -1215,8 +1216,18 @@
     "playbookTeaserFooter": "Open field playbook",
     "playbookLockedRow": "Expand with premium",
     "playbookFoldHint": "Expand for real venue name, address, field notes, and photo gallery.",
-    "playbookVisualLocked": "Venue photos unlock with the field playbook",
-    "playbookCtaUnlock": "Open field playbook"
+    "playbookVisualLocked": "Images appear sharp after unlock",
+    "playbookCtaUnlock": "Open field playbook",
+    "playbookCtaView": "View",
+    "unlockSheetTitle": "Stop-by-stop guide",
+    "unlockSheetDescription": "Includes real venue name, address, on-site photos, and move notes. Demo: unlock for this tab session only (resets on refresh).",
+    "unlockSheetPayCta": "Pay",
+    "freeArchetypeTeaser": {
+      "prep": "Sort direction, facilities, and timing here—then move on.",
+      "photo": "Lock angle and timing so the rest of the day stays fast.",
+      "rest": "One pass for shade, water, and restrooms.",
+      "destination": "If you enter, budget extra time for indoor routing."
+    }
   },
   "TravelerHub": {
     "metaTitle": "My journey",

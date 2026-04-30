@@ -1,4 +1,5 @@
 import type { RouteSpot } from "@/types/domain";
+import { freeClassificationTitle } from "@/lib/route-free-classification";
 
 function norm(s: string): string {
   return s.replace(/\s+/g, " ").trim().toLowerCase();
@@ -36,20 +37,18 @@ export function leaksOfficialVenueLabel(raw: string | undefined, spot: RouteSpot
   return false;
 }
 
-/** 무료 티저 — 에디터 `display_mood_title` 우선, 없으면 휴리스틱 */
+/** 무료 접힘 제목 — 분위기형 장소 분류명(실명·상호 없음) */
 export function freeTierMoodTitle(spot: RouteSpot): string {
-  const m = spot.display_mood_title?.trim();
-  if (m) return m.slice(0, 56);
-  return atmospherePlaybookTitle(spot);
+  return freeClassificationTitle(spot);
 }
 
-/** 무료 한 줄 — `display_mood_subtitle` 우선(본문 short_description은 실명 누출 가능성으로 미사용) */
+/**
+ * @deprecated 무료 티저는 UI에서 `inferFreeArchetype` + i18n `freeArchetypeTeaser.*` 사용
+ */
 export function freeTierMoodSubtitle(spot: RouteSpot): string | null {
-  const s = spot.display_mood_subtitle?.trim();
-  if (s) return s.length > 96 ? `${s.slice(0, 93)}…` : s;
   const tr = spot.theme_reason?.split(/[\n]/)[0]?.trim();
-  if (tr && !leaksOfficialVenueLabel(tr, spot)) {
-    return tr.length > 96 ? `${tr.slice(0, 93)}…` : tr;
+  if (tr && !leaksOfficialVenueLabel(tr, spot) && tr.length <= 72) {
+    return tr;
   }
   return null;
 }

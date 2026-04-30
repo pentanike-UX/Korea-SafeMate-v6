@@ -23,6 +23,8 @@ export function RouteDayPreview({
   className,
   introLead,
   topHighlights,
+  /** 무료 구간: 스팟 한 줄에 실명·주소 대신 분류형 명칭만 */
+  venueSafe = false,
 }: {
   post: ContentPost;
   className?: string;
@@ -30,6 +32,7 @@ export function RouteDayPreview({
   introLead?: string | null;
   /** 먼저 알고 가면 좋은 점 — 최대 4줄까지 같은 카드 상단에 표시 */
   topHighlights?: string[];
+  venueSafe?: boolean;
 }) {
   const t = useTranslations("RoutePosts");
   const tPosts = useTranslations("Posts");
@@ -74,7 +77,7 @@ export function RouteDayPreview({
   const moodTags = exposure?.mood_tags?.map((tag) => t(moodTagKey(tag))) ?? [];
 
   const areaLabel = routeCardAreaLabel(post);
-  const spotPreviewLine = routeCardSpotPreviewLine(post, 2);
+  const spotPreviewLine = routeCardSpotPreviewLine(post, 2, { venueSafe });
   const cautionHint = post.route_highlights?.[0]?.trim();
   /** 상단에 하이라이트를 올렸으면 분위기 블록에서 첫 줄 중복 표시 안 함 */
   const moodCautionLine = topHighlights && topHighlights.length > 0 ? null : cautionHint;
