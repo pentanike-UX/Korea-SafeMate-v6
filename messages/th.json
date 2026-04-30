@@ -1205,7 +1205,16 @@
       "local_vibe": "จังหวะท้องถิ่น ใช้งานจริง"
     },
     "flowTitle": "ลำดับ Haru",
-    "flowSubtitle": "เดินตามลำดับ — นี่คือเส้นทางของวันนี้"
+    "flowSubtitle": "เดินตามลำดับ — นี่คือเส้นทางของวันนี้",
+    "flowSubtitlePlaybook": "Follow the timeline. Collapsed cards show the rough flow; expand for the full field playbook.",
+    "debugPanelOpen": "Open debug panel (images · QA)",
+    "debugPanelClose": "Close debug panel",
+    "playbookTeaserPlace": "Real venue name · address",
+    "playbookTeaserGallery": "On-site image gallery (up to 10)",
+    "playbookTeaserMove": "Leg notes · crossing tips",
+    "playbookTeaserSeat": "Wait times · seats · power",
+    "playbookTeaserFooter": "Included with premium",
+    "playbookLockedRow": "Expand with premium"
   },
   "TravelerHub": {
     "metaTitle": "My journey",

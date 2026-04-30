@@ -1205,7 +1205,16 @@
       "local_vibe": "Nhịp local, thực tế"
     },
     "flowTitle": "Luồng Haru",
-    "flowSubtitle": "Đi theo thứ tự — đây là lộ trình hôm nay."
+    "flowSubtitle": "Đi theo thứ tự — đây là lộ trình hôm nay.",
+    "flowSubtitlePlaybook": "Follow the timeline. Collapsed cards show the rough flow; expand for the full field playbook.",
+    "debugPanelOpen": "Open debug panel (images · QA)",
+    "debugPanelClose": "Close debug panel",
+    "playbookTeaserPlace": "Real venue name · address",
+    "playbookTeaserGallery": "On-site image gallery (up to 10)",
+    "playbookTeaserMove": "Leg notes · crossing tips",
+    "playbookTeaserSeat": "Wait times · seats · power",
+    "playbookTeaserFooter": "Included with premium",
+    "playbookLockedRow": "Expand with premium"
   },
   "TravelerHub": {
     "metaTitle": "My journey",

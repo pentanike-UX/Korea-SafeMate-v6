@@ -16,8 +16,21 @@ function moodTagKey(tag: string): `moodTag.${string}` {
 
 /**
  * 홈 `RoutePostCard`와 맞춘 톤의 하루 프리뷰 — Hero 직후 최상단용.
+ * `introLead`·`topHighlights`로 상단 중복 블록(소개·먼저 알면)을 한 카드에 통합.
  */
-export function RouteDayPreview({ post, className }: { post: ContentPost; className?: string }) {
+export function RouteDayPreview({
+  post,
+  className,
+  introLead,
+  topHighlights,
+}: {
+  post: ContentPost;
+  className?: string;
+  /** "이 하루웨이에 대해" 본문 — 짧게 한 블록으로 합침 */
+  introLead?: string | null;
+  /** 먼저 알고 가면 좋은 점 — 최대 4줄까지 같은 카드 상단에 표시 */
+  topHighlights?: string[];
+}) {
   const t = useTranslations("RoutePosts");
   const tPosts = useTranslations("Posts");
   const journey = post.route_journey;
@@ -63,6 +76,8 @@ export function RouteDayPreview({ post, className }: { post: ContentPost; classN
   const areaLabel = routeCardAreaLabel(post);
   const spotPreviewLine = routeCardSpotPreviewLine(post, 2);
   const cautionHint = post.route_highlights?.[0]?.trim();
+  /** 상단에 하이라이트를 올렸으면 분위기 블록에서 첫 줄 중복 표시 안 함 */
+  const moodCautionLine = topHighlights && topHighlights.length > 0 ? null : cautionHint;
 
   return (
     <section
@@ -72,6 +87,40 @@ export function RouteDayPreview({ post, className }: { post: ContentPost; classN
       )}
       aria-label={t("dayPreviewAria")}
     >
+      {(introLead?.trim() || (topHighlights && topHighlights.length > 0)) && (
+        <div className="border-border/60 border-b bg-muted/15 px-4 py-4 sm:px-5">
+          {introLead?.trim() ? (
+            <div className="space-y-1">
+              <p className="text-muted-foreground text-[10px] font-semibold tracking-[0.18em] uppercase">
+                {t("introEyebrow")}
+              </p>
+              <p className="text-foreground text-[15px] leading-relaxed">{introLead.trim()}</p>
+            </div>
+          ) : null}
+          {topHighlights && topHighlights.length > 0 ? (
+            <ul
+              className={cn(
+                "mt-4 space-y-2 text-[14px] leading-snug sm:text-[15px]",
+                introLead?.trim() ? "border-border/40 border-t pt-4" : "",
+              )}
+              aria-label={t("insightTitle")}
+            >
+              {topHighlights.slice(0, 5).map((line) => (
+                <li key={line} className="flex gap-2.5 text-foreground/90">
+                  <span
+                    className="border-primary/35 bg-primary/6 text-primary mt-0.5 flex size-[18px] shrink-0 items-center justify-center rounded border text-[10px] font-bold"
+                    aria-hidden
+                  >
+                    ✓
+                  </span>
+                  <span className="min-w-0">{line}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      )}
+
       <div className="px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-primary text-[10px] font-bold tracking-widest uppercase">{t("dayPreviewEyebrow")}</p>
@@ -124,12 +173,12 @@ export function RouteDayPreview({ post, className }: { post: ContentPost; classN
 
       <div className="border-border/60 bg-muted/20 px-4 py-4 sm:px-5">
         <p className="text-muted-foreground text-[10px] font-semibold tracking-[0.18em] uppercase">{t("dayPreviewMoodLabel")}</p>
-        {cautionHint ? (
+        {moodCautionLine ? (
           <p className="text-foreground mt-2 text-[13px] leading-snug">
             <span className="text-muted-foreground text-[10px] font-semibold uppercase">
               {t("caution")} ·{" "}
             </span>
-            {cautionHint}
+            {moodCautionLine}
           </p>
         ) : null}
         {moodCore ? <p className="text-foreground mt-2 text-[15px] leading-[1.65]">{moodCore}</p> : null}

@@ -27,16 +27,22 @@ function proxyUrl(original: string): string {
   return `/api/image-proxy?url=${encodeURIComponent(original)}`;
 }
 
-/** 단일 Naver 후보에서 표시 URL 후보 배열 (고해상도 link 우선, 썸네일은 마지막) */
+/** 단일 Naver 후보에서 표시 URL 후보 배열 (원본 link → 고해상 url → 프록시 → 썸네일 마지막) */
 export function tryUrlsForNaverItem(c: NaverImageCandidate): string[] {
-  const link = (c.url ?? c.link)?.trim();
+  const rawLink = (c.link ?? "").trim();
+  const rawUrl = (c.url ?? "").trim();
   const thumb = c.thumbnail?.trim();
   const urls: string[] = [];
-  if (link) {
-    urls.push(link);
-    urls.push(proxyUrl(link));
+  const primary = rawLink || rawUrl;
+  if (primary) {
+    urls.push(primary);
+    urls.push(proxyUrl(primary));
   }
-  if (thumb && thumb !== link) urls.push(thumb);
+  if (rawUrl && rawUrl !== primary) {
+    urls.push(rawUrl);
+    urls.push(proxyUrl(rawUrl));
+  }
+  if (thumb && thumb !== primary && thumb !== rawUrl) urls.push(thumb);
   return [...new Set(urls)];
 }
 

@@ -1204,7 +1204,16 @@
       "local_vibe": "ローカル動線・現場感"
     },
     "flowTitle": "Haruの流れ",
-    "flowSubtitle": "順番通りに進んでください。"
+    "flowSubtitle": "順番通りに進んでください。",
+    "flowSubtitlePlaybook": "タイムラインに沿って進みます。閉じたカードは流れだけ、開くと現地プレイブックです。",
+    "debugPanelOpen": "デバッグを開く（画像・検収）",
+    "debugPanelClose": "デバッグを閉じる",
+    "playbookTeaserPlace": "実名・住所",
+    "playbookTeaserGallery": "現地画像（最大10枚）",
+    "playbookTeaserMove": "移動メモ・横断",
+    "playbookTeaserSeat": "待ち・座席・充電",
+    "playbookTeaserFooter": "プレミアムで表示",
+    "playbookLockedRow": "プレミアムで表示"
   },
   "TravelerHub": {
     "metaTitle": "マイジャーニー",

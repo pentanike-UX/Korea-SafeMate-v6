@@ -2,10 +2,9 @@
 
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { ContentPost, RouteJourneyMetadata, RouteSpot } from "@/types/domain";
+import type { ContentPost, NaverPrimaryPlace, RouteJourneyMetadata, RouteSpot } from "@/types/domain";
 import { RouteDayPreview } from "@/components/route-posts/route-day-preview";
 import { RouteStickyLocalNav } from "@/components/route-posts/route-sticky-local-nav";
-import { PostDetailIntroPanel } from "@/components/posts/post-detail-intro-panel";
 import {
   GuardianRequestOpenTrigger,
   type GuardianRequestSheetHostProps,
@@ -17,7 +16,7 @@ import { SpotImageCarousel } from "@/components/route-posts/spot-image-carousel"
 import { SpotImageAdminDiagnostics } from "@/components/route-posts/spot-image-admin-diagnostics";
 import { SpotVerificationStrip } from "@/components/route-posts/spot-verification-strip";
 import { cn } from "@/lib/utils";
-import { Check, Lock } from "lucide-react";
+import { ChevronDown, Lock } from "lucide-react";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
   POST_DETAIL_PROSE_P_MAIN,
@@ -26,6 +25,7 @@ import {
 } from "@/lib/post-detail-body-split";
 import { resolveRouteArticleRender } from "@/lib/post-structured-content";
 import { RouteArticleStructuredBody } from "@/components/posts/route-article-structured-body";
+import { premiumSpotPlaceTitle, roughPlaybookSpotTitle } from "@/lib/route-playbook-labels";
 
 // ─── Time utilities ───────────────────────────────────────────────────────────
 
@@ -143,17 +143,34 @@ function MoveConnector({ spot }: { spot: RouteSpot }) {
   ].filter(Boolean);
 
   return (
-    <div className="mt-6 flex items-center gap-2.5" aria-hidden>
-      <div className="h-px flex-1 border-t border-dashed border-border/30" />
-      <span className="flex items-center gap-1.5 rounded-full border border-border/30 bg-background px-3 py-1 text-[11px] font-medium text-muted-foreground shadow-[var(--shadow-xs)]">
-        <span>{emoji}</span>
-        <span>
-          {mode}
-          {parts.length > 0 ? <> · {parts.join(" ")}</> : null}
-        </span>
-      </span>
-      <div className="h-px flex-1 border-t border-dashed border-border/30" />
+    <div className="mt-4 flex items-stretch gap-0" role="separator" aria-label="다음 스팟으로 이동">
+      <div className="text-primary/35 flex w-10 shrink-0 flex-col items-center sm:w-12">
+        <div className="min-h-3 w-px flex-1 bg-border/25" />
+      </div>
+      <div className="min-w-0 flex-1 py-1">
+        <div className="flex items-center gap-2.5">
+          <div className="h-px flex-1 border-t border-dashed border-border/35" />
+          <span className="flex items-center gap-1.5 rounded-full border border-border/30 bg-background px-3 py-1.5 text-[11px] font-medium text-muted-foreground shadow-[var(--shadow-xs)]">
+            <span aria-hidden>{emoji}</span>
+            <span>
+              {mode}
+              {parts.length > 0 ? <> · {parts.join(" ")}</> : null}
+            </span>
+          </span>
+          <div className="h-px flex-1 border-t border-dashed border-border/35" />
+        </div>
+      </div>
     </div>
+  );
+}
+
+function LegFromPrevious({ text }: { text: string | undefined }) {
+  if (!text?.trim()) return null;
+  return (
+    <p className="text-muted-foreground mb-3 rounded-lg border border-border/30 bg-muted/15 px-3 py-2 text-xs leading-relaxed">
+      <span className="font-medium text-foreground/75">🧭 </span>
+      {text.trim()}
+    </p>
   );
 }
 
@@ -437,18 +454,7 @@ function SpotFieldNotes({ spot }: { spot: RouteSpot }) {
   return <DestinationSpotNotes spot={spot} />;
 }
 
-// ─── Locked hint (free users) ─────────────────────────────────────────────────
-
-function LockedFieldHint() {
-  return (
-    <div className="mt-4 flex items-center gap-2.5 border-t border-dashed border-border/25 pt-3">
-      <Lock className="size-3.5 shrink-0 text-muted-foreground/40" aria-hidden />
-      <p className="text-xs text-muted-foreground/70">실행 가이드 · 포토 팁 · 현장 메모 포함</p>
-    </div>
-  );
-}
-
-// ─── Editorial spot row ───────────────────────────────────────────────────────
+// ─── Editorial spot — 접힘=무료 플로우 / 펼침=유료 플레이북 ────────────────────
 
 function EditorialSpotRow({
   spot,
@@ -457,7 +463,8 @@ function EditorialSpotRow({
   time,
   post,
   visualPlan,
-  isSuperAdmin,
+  hasPlaybookPremium,
+  showAdminDebug,
   isFlashing,
 }: {
   spot: RouteSpot;
@@ -466,12 +473,17 @@ function EditorialSpotRow({
   time: string;
   post: ContentPost;
   visualPlan: LocalPostVisualPlan;
-  isSuperAdmin: boolean;
+  /** 결제·구독 등 오픈 시 true — TODO: 서버에서 실제 구매 여부 연동 */
+  hasPlaybookPremium: boolean;
+  showAdminDebug: boolean;
   isFlashing: boolean;
 }) {
   const t = useTranslations("RoutePosts");
   const role = inferSpotRole(spot);
   const roleConf = ROLE_CONFIG[role];
+  const roughTitle = roughPlaybookSpotTitle(spot);
+  const placeTitle = premiumSpotPlaceTitle(spot);
+
   const {
     slides,
     imageQuery,
@@ -488,9 +500,181 @@ function EditorialSpotRow({
     plan: visualPlan,
   });
 
+  const heroSlides = slides.length ? slides.slice(0, 1) : slides;
+  const gallerySlides = slides;
+
+  const [expanded, setExpanded] = useState(() => hasPlaybookPremium && index === 0);
+
+  const carouselKey = `${spot.id}-${pipelineDone ? "r" : "l"}-${primaryPlace?.title ?? "np"}-${naverFetchedCount}`;
+
+  const teaserLines = [
+    t("playbookTeaserPlace"),
+    t("playbookTeaserGallery"),
+    t("playbookTeaserMove"),
+    t("playbookTeaserSeat"),
+  ];
+
+  /** 무료 · 첫 스팟 — 러프 플로우 카드(항상 노출) */
+  if (!hasPlaybookPremium && index === 0) {
+    return (
+      <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4">
+        <div className="flex w-10 shrink-0 flex-col items-center sm:w-12">
+          <time
+            className="mb-1.5 text-[10px] font-semibold tabular-nums text-muted-foreground"
+            aria-label={`${time} 출발`}
+          >
+            {time}
+          </time>
+          <div
+            className={cn(
+              "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors duration-300",
+              isFlashing
+                ? "bg-primary text-primary-foreground ring-2 ring-primary/25 ring-offset-1"
+                : "bg-primary/10 text-primary",
+            )}
+            aria-label={`스팟 ${index + 1}`}
+          >
+            {index + 1}
+          </div>
+          {!isLast && <div className="mt-2 w-px flex-1 bg-border/25" />}
+        </div>
+
+        <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-8")}>
+          <LegFromPrevious text={spot.leg_from_previous} />
+          <div className="border-border/50 bg-card rounded-2xl border p-4 shadow-[var(--shadow-xs)] sm:p-5">
+            <div className="flex flex-wrap items-start gap-2">
+              <p
+                className={cn(
+                  "text-[var(--text-strong)] min-w-0 flex-1 text-base font-semibold leading-snug",
+                  isFlashing && "text-primary",
+                )}
+              >
+                {roughTitle}
+              </p>
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                  roleConf.badgeClass,
+                )}
+              >
+                <span aria-hidden>{roleConf.emoji}</span>
+                {roleConf.label}
+              </span>
+            </div>
+            {spot.stay_duration_minutes ? (
+              <p className="text-muted-foreground mt-2 text-[11px] font-medium">
+                {t("stayDuration", { minutes: spot.stay_duration_minutes })}
+              </p>
+            ) : null}
+
+            <div className="mt-4">
+              <SpotImageCarousel key={`free-${carouselKey}`} slides={heroSlides} className="sm:max-w-none" />
+            </div>
+
+            {spot.short_description ? (
+              <p className="text-foreground/85 mt-4 text-[15px] leading-relaxed">&ldquo;{spot.short_description}&rdquo;</p>
+            ) : null}
+
+            <ul className="text-muted-foreground/90 mt-4 space-y-1.5 text-xs leading-relaxed">
+              {teaserLines.map((line) => (
+                <li key={line} className="flex gap-2">
+                  <span className="shrink-0">·</span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-muted-foreground mt-3 border-t border-dashed border-border/30 pt-3 text-[11px] font-medium">
+              {t("playbookTeaserFooter")}
+            </p>
+          </div>
+
+          {showAdminDebug ? (
+            <AdminSpotDebug
+              spot={spot}
+              imageQuery={imageQuery}
+              naverFetchedCount={naverFetchedCount}
+              slidesLength={slides.length}
+              usedFallbackOnly={usedFallbackOnly}
+              usedBroadFallback={usedBroadFallback}
+              primaryPlace={primaryPlace}
+              placeSimilarityScore={placeSimilarityScore}
+              searchQueryUsedForResolve={searchQueryUsedForResolve}
+              imageQueriesTried={imageQueriesTried}
+              excludedApprox={excludedApprox}
+              carouselKey={carouselKey}
+            />
+          ) : null}
+
+          {!isLast ? <MoveConnector spot={spot} /> : null}
+        </div>
+      </div>
+    );
+  }
+
+  /** 무료 · 2번째 이후 — 초간단 한 줄(접힘만) */
+  if (!hasPlaybookPremium && index > 0) {
+    const thumb = heroSlides[0]?.tryUrls[0];
+    return (
+      <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4 opacity-95">
+        <div className="flex w-10 shrink-0 flex-col items-center sm:w-12">
+          <time className="mb-1.5 text-[10px] font-semibold tabular-nums text-muted-foreground">{time}</time>
+          <div
+            className={cn(
+              "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+              isFlashing ? "bg-primary text-primary-foreground ring-2 ring-primary/25" : "bg-muted text-muted-foreground",
+            )}
+          >
+            {index + 1}
+          </div>
+          {!isLast && <div className="mt-2 w-px flex-1 bg-border/20" />}
+        </div>
+        <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-8")}>
+          <LegFromPrevious text={spot.leg_from_previous} />
+          <div className="border-border/40 flex items-center gap-3 rounded-xl border bg-muted/10 px-3 py-2.5">
+            {thumb ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={thumb}
+                alt=""
+                className="border-border/40 size-14 shrink-0 rounded-lg border object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <div className="border-border/40 bg-muted/40 size-14 shrink-0 rounded-lg border" />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-[var(--text-strong)] truncate text-sm font-medium">{roughTitle}</p>
+              <p className="text-muted-foreground mt-0.5 flex items-center gap-1 text-[11px]">
+                <Lock className="size-3 shrink-0 opacity-50" aria-hidden />
+                {t("playbookLockedRow")}
+              </p>
+            </div>
+          </div>
+          {showAdminDebug ? (
+            <AdminSpotDebug
+              spot={spot}
+              imageQuery={imageQuery}
+              naverFetchedCount={naverFetchedCount}
+              slidesLength={slides.length}
+              usedFallbackOnly={usedFallbackOnly}
+              usedBroadFallback={usedBroadFallback}
+              primaryPlace={primaryPlace}
+              placeSimilarityScore={placeSimilarityScore}
+              searchQueryUsedForResolve={searchQueryUsedForResolve}
+              imageQueriesTried={imageQueriesTried}
+              excludedApprox={excludedApprox}
+              carouselKey={carouselKey}
+            />
+          ) : null}
+          {!isLast ? <MoveConnector spot={spot} /> : null}
+        </div>
+      </div>
+    );
+  }
+
+  /** 유료 — 아코디언, 펼침 시 실제 장소명·갤러리·필드노트 */
   return (
     <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4">
-      {/* ── Spine ── */}
       <div className="flex w-10 shrink-0 flex-col items-center sm:w-12">
         <time
           className="mb-1.5 text-[10px] font-semibold tabular-nums text-muted-foreground"
@@ -509,78 +693,132 @@ function EditorialSpotRow({
         >
           {index + 1}
         </div>
-        {!isLast && <div className="mt-2 w-px flex-1 bg-border/20" />}
+        {!isLast && <div className="mt-2 w-px flex-1 bg-border/25" />}
       </div>
 
-      {/* ── Content ── */}
       <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-10")}>
-        {/* Header: title + role badge + stay */}
-        <div className="mb-3 flex flex-wrap items-start gap-x-2 gap-y-1">
-          <p
-            className={cn(
-              "w-full text-base font-semibold leading-snug sm:w-auto sm:flex-1",
-              isFlashing ? "text-primary" : "text-[var(--text-strong)]",
-            )}
-          >
-            {spot.title ?? spot.place_name}
-          </p>
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
-              roleConf.badgeClass,
-            )}
-          >
-            <span aria-hidden>{roleConf.emoji}</span>
-            {roleConf.label}
-          </span>
-        </div>
-        {spot.place_name && spot.place_name !== spot.title ? (
-          <p className="mb-2 text-xs text-muted-foreground">{spot.place_name}</p>
-        ) : null}
-        {spot.stay_duration_minutes ? (
-          <span className="mb-3 inline-flex items-center rounded-full bg-muted/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-            {t("stayDuration", { minutes: spot.stay_duration_minutes })}
-          </span>
-        ) : null}
+        <LegFromPrevious text={spot.leg_from_previous} />
 
-        <SpotImageCarousel
-          key={`${spot.id}-${pipelineDone ? "r" : "l"}-${primaryPlace?.title ?? "np"}-${naverFetchedCount}`}
-          slides={slides}
-          className="mb-4 sm:max-w-none"
-        />
-
-        {isSuperAdmin ? (
-          <>
-            <SpotVerificationStrip spot={spot} className="mb-3" />
-            <SpotImageAdminDiagnostics
-              imageQuery={imageQuery}
-              naverCount={naverFetchedCount}
-              slideCount={slides.length}
-              usedFallbackOnly={usedFallbackOnly}
-              usedBroadFallback={usedBroadFallback}
-              spot={spot}
-              primaryPlace={primaryPlace}
-              placeSimilarityScore={placeSimilarityScore}
-              searchQueryUsedForResolve={searchQueryUsedForResolve}
-              imageQueriesTried={imageQueriesTried}
-              excludedApprox={excludedApprox}
+        <div className="border-border/50 overflow-hidden rounded-2xl border bg-card shadow-[var(--shadow-xs)]">
+          <button
+            type="button"
+            onClick={() => setExpanded((e) => !e)}
+            className="hover:bg-muted/30 flex w-full items-start gap-3 px-4 py-4 text-left transition-colors sm:px-5"
+            aria-expanded={expanded}
+          >
+            <div className="min-w-0 flex-1 space-y-2">
+              <p className="text-muted-foreground text-[11px] font-medium leading-tight">{roughTitle}</p>
+              <p className={cn("text-[var(--text-strong)] text-lg font-semibold leading-snug", isFlashing && "text-primary")}>
+                {placeTitle || roughTitle}
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                    roleConf.badgeClass,
+                  )}
+                >
+                  <span aria-hidden>{roleConf.emoji}</span>
+                  {roleConf.label}
+                </span>
+                {spot.stay_duration_minutes ? (
+                  <span className="text-muted-foreground text-[10px] font-medium">
+                    {t("stayDuration", { minutes: spot.stay_duration_minutes })}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+            <ChevronDown
+              className={cn(
+                "text-muted-foreground mt-1 size-5 shrink-0 transition-transform",
+                expanded && "rotate-180",
+              )}
+              aria-hidden
             />
-          </>
+          </button>
+
+          <div className="border-border/40 border-t px-4 pb-4 sm:px-5">
+            {!expanded ? (
+              <SpotImageCarousel key={`fold-${carouselKey}`} slides={heroSlides} className="pt-3 sm:max-w-none" />
+            ) : (
+              <>
+                <SpotImageCarousel key={`full-${carouselKey}`} slides={gallerySlides} className="pt-3 sm:max-w-none" />
+                {spot.short_description ? (
+                  <p className="text-foreground/85 mt-4 text-[15px] leading-relaxed">{spot.short_description}</p>
+                ) : null}
+                <SpotFieldNotes spot={spot} />
+              </>
+            )}
+          </div>
+        </div>
+
+        {showAdminDebug ? (
+          <AdminSpotDebug
+            spot={spot}
+            imageQuery={imageQuery}
+            naverFetchedCount={naverFetchedCount}
+            slidesLength={slides.length}
+            usedFallbackOnly={usedFallbackOnly}
+            usedBroadFallback={usedBroadFallback}
+            primaryPlace={primaryPlace}
+            placeSimilarityScore={placeSimilarityScore}
+            searchQueryUsedForResolve={searchQueryUsedForResolve}
+            imageQueriesTried={imageQueriesTried}
+            excludedApprox={excludedApprox}
+            carouselKey={carouselKey}
+          />
         ) : null}
 
-        {/* Short description — conversational lead */}
-        {spot.short_description ? (
-          <p className="mb-3 text-[15px] leading-relaxed text-foreground/80">
-            {spot.short_description}
-          </p>
-        ) : null}
-
-        {/* Field notes (role-aware) or locked hint */}
-        {isSuperAdmin ? <SpotFieldNotes spot={spot} /> : <LockedFieldHint />}
-
-        {/* Move connector */}
         {!isLast ? <MoveConnector spot={spot} /> : null}
       </div>
+    </div>
+  );
+}
+
+function AdminSpotDebug({
+  spot,
+  imageQuery,
+  naverFetchedCount,
+  slidesLength,
+  usedFallbackOnly,
+  usedBroadFallback,
+  primaryPlace,
+  placeSimilarityScore,
+  searchQueryUsedForResolve,
+  imageQueriesTried,
+  excludedApprox,
+  carouselKey,
+}: {
+  spot: RouteSpot;
+  imageQuery: string;
+  naverFetchedCount: number;
+  slidesLength: number;
+  usedFallbackOnly: boolean;
+  usedBroadFallback: boolean;
+  primaryPlace: NaverPrimaryPlace | null;
+  placeSimilarityScore: number | null;
+  searchQueryUsedForResolve: string;
+  imageQueriesTried: string[];
+  excludedApprox: number;
+  carouselKey: string;
+}) {
+  return (
+    <div className="mt-3 space-y-2 rounded-xl border border-dashed border-emerald-500/25 bg-emerald-50/15 p-3 dark:bg-emerald-950/15">
+      <SpotVerificationStrip spot={spot} />
+      <SpotImageAdminDiagnostics
+        key={carouselKey}
+        imageQuery={imageQuery}
+        naverCount={naverFetchedCount}
+        slideCount={slidesLength}
+        usedFallbackOnly={usedFallbackOnly}
+        usedBroadFallback={usedBroadFallback}
+        spot={spot}
+        primaryPlace={primaryPlace}
+        placeSimilarityScore={placeSimilarityScore}
+        searchQueryUsedForResolve={searchQueryUsedForResolve}
+        imageQueriesTried={imageQueriesTried}
+        excludedApprox={excludedApprox}
+      />
     </div>
   );
 }
@@ -591,11 +829,14 @@ export function RoutePostDetailClient({
   post,
   requestHost,
   isSuperAdmin = false,
+  /** 스팟 펼침·실명·풀 갤러리 — 현재는 서버에서 슈퍼관리자만 true. TODO: 결제 완료 여부 연동 */
+  hasPlaybookPremium = false,
 }: {
   post: ContentPost;
   requestHost: GuardianRequestSheetHostProps;
   /** Dev/demo: 슈퍼관리자 세션이면 true — 페이월을 건너뜁니다. */
   isSuperAdmin?: boolean;
+  hasPlaybookPremium?: boolean;
 }) {
   const t = useTranslations("RoutePosts");
   const journey = post.route_journey!;
@@ -608,6 +849,8 @@ export function RoutePostDetailClient({
   const [flashId, setFlashId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showStickyNav, setShowStickyNav] = useState(false);
+  /** 슈퍼관리자 전용 이미지·검수 디버그 — 기본 숨김 */
+  const [adminDebugOpen, setAdminDebugOpen] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
@@ -694,42 +937,16 @@ export function RoutePostDetailClient({
       ) : null}
 
       <div className="space-y-8 sm:space-y-10">
-        {/* ① 하루 프리뷰 — 스티키 내비 트리거 */}
+        {/* ① 하루 프리뷰 + 소개·하이라이트 통합 — 스티키 내비 트리거 */}
         <div ref={triggerRef}>
-          <RouteDayPreview post={post} />
+          <RouteDayPreview
+            post={post}
+            introLead={introPrimary.trim() || undefined}
+            topHighlights={post.route_highlights && post.route_highlights.length > 0 ? post.route_highlights : undefined}
+          />
         </div>
 
-        {/* ② 이 하루웨이에 대해 */}
-        {introPrimary.trim() ? (
-          <PostDetailIntroPanel variant="route" primary={introPrimary} secondary={null} />
-        ) : null}
-
-        {/* ③ 먼저 알고 가면 좋은 점 */}
-        {post.route_highlights && post.route_highlights.length > 0 ? (
-          <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-8">
-            <h2 className="text-lg font-semibold tracking-tight text-[var(--text-strong)]">
-              {t("insightTitle")}
-            </h2>
-            <ul
-              className="mt-5 max-w-[38rem] space-y-3 text-[15px] leading-snug sm:text-base"
-              aria-label={t("insightTitle")}
-            >
-              {post.route_highlights.map((line) => (
-                <li key={line} className="flex gap-3">
-                  <span
-                    className="border-primary/35 bg-primary/6 text-primary mt-0.5 flex size-[20px] shrink-0 items-center justify-center rounded-md border"
-                    aria-hidden
-                  >
-                    <Check className="size-3 stroke-[2.5]" />
-                  </span>
-                  <span className="min-w-0 text-foreground">{line}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        {/* ④ 본문 아티클 */}
+        {/* ② 본문 아티클 */}
         {routeArticleRender.mode === "blocks" || rest.trim() ? (
           routeArticleRender.mode === "blocks" ? (
             <RouteArticleStructuredBody parsed={routeArticleRender.data} />
@@ -744,7 +961,7 @@ export function RoutePostDetailClient({
           ) : null
         ) : null}
 
-        {/* ⑤ 에디토리얼 타임라인 */}
+        {/* ③ 하루 플레이북 타임라인 */}
         <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-8">
           <header className="mb-7 space-y-1">
             <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
@@ -753,14 +970,18 @@ export function RoutePostDetailClient({
             <h2 className="text-lg font-semibold tracking-tight text-[var(--text-strong)]">
               {t("flowTitle")}
             </h2>
-            <p className="text-sm leading-relaxed text-muted-foreground">{t("flowSubtitle")}</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">{t("flowSubtitlePlaybook")}</p>
           </header>
 
           {isSuperAdmin ? (
-            <div className="mb-5 flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-50/60 px-4 py-2.5 dark:bg-emerald-950/30">
-              <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-                🛡 슈퍼관리자 — 전체 스팟 가이드 열람 중
-              </span>
+            <div className="mb-6">
+              <button
+                type="button"
+                onClick={() => setAdminDebugOpen((v) => !v)}
+                className="text-muted-foreground hover:text-foreground text-xs font-medium underline underline-offset-4"
+              >
+                {adminDebugOpen ? t("debugPanelClose") : t("debugPanelOpen")}
+              </button>
             </div>
           ) : null}
 
@@ -774,7 +995,8 @@ export function RoutePostDetailClient({
                 time={spotTimes[index] ?? ""}
                 post={post}
                 visualPlan={visualPlan}
-                isSuperAdmin={isSuperAdmin}
+                hasPlaybookPremium={hasPlaybookPremium}
+                showAdminDebug={isSuperAdmin && adminDebugOpen}
                 isFlashing={flashId === spot.id}
               />
             ))}

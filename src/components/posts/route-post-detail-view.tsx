@@ -70,9 +70,11 @@ export async function RoutePostDetailView({ post }: { post: ContentPost }) {
 
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-12 lg:gap-12">
         <div className="lg:col-span-8">
+          {/* TODO(purchase): hasPlaybookPremium을 슈퍼관리자가 아닌 실제 구매/구독 완료와 연동 */}
           <RoutePostDetailClient
             post={post}
             isSuperAdmin={isSuperAdmin}
+            hasPlaybookPremium={isSuperAdmin}
             requestHost={{
               guardianUserId: post.author_user_id,
               displayName: sheetName,
