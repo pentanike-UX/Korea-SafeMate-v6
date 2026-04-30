@@ -1,12 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
   POST_DETAIL_PROSE_P_MAIN,
   splitPostBodyParagraphs,
 } from "@/lib/post-detail-body-split";
+import { cn } from "@/lib/utils";
+
 export function PostDetailIntroPanel({
   variant,
   primary,
@@ -25,18 +26,16 @@ export function PostDetailIntroPanel({
     if (!p) return null;
     const paras = splitPostBodyParagraphs(p);
     return (
-      <Card className="border-border/60 rounded-2xl border bg-white/90 shadow-[var(--shadow-sm)]">
-        <CardContent className="space-y-4 p-5 sm:p-6">
-          <p className="text-primary text-[10px] font-bold tracking-[0.2em] uppercase">{t("detailIntroEyebrow")}</p>
-          <div className={POST_DETAIL_PARAGRAPH_STACK}>
-            {paras.map((block, i) => (
-              <p key={i} className={POST_DETAIL_PROSE_P_MAIN}>
-                {block}
-              </p>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <section className="border-border/40 max-w-[42rem] border-t pt-7 sm:pt-8">
+        <p className="text-muted-foreground text-[10px] font-semibold tracking-[0.2em] uppercase">{t("detailIntroEyebrow")}</p>
+        <div className={cn(POST_DETAIL_PARAGRAPH_STACK, "mt-4")}>
+          {paras.map((block, i) => (
+            <p key={i} className={POST_DETAIL_PROSE_P_MAIN}>
+              {block}
+            </p>
+          ))}
+        </div>
+      </section>
     );
   }
 
@@ -46,38 +45,31 @@ export function PostDetailIntroPanel({
   const leadParas = p ? splitPostBodyParagraphs(p) : [];
 
   return (
-    <Card className="border-border/60 rounded-2xl border bg-white/90 shadow-[var(--shadow-sm)]">
-      <CardContent className="space-y-4 p-5 sm:p-6">
-        {/* route는 하루이 귀속 표현 제거 — 하루웨이 자체 소개 아이브로우 사용 */}
-        <p className="text-primary text-[10px] font-bold tracking-[0.2em] uppercase">
-          {tRoute("introEyebrow")}
-        </p>
-        {leadParas.length > 0 ? (
-          <div className={POST_DETAIL_PARAGRAPH_STACK}>
-            {leadParas.map((block, i) => (
-              <p key={i} className={POST_DETAIL_PROSE_P_MAIN}>
+    <section className="border-border/40 max-w-[42rem] border-t pt-7 sm:pt-8">
+      <p className="text-muted-foreground text-[10px] font-semibold tracking-[0.2em] uppercase">{tRoute("introEyebrow")}</p>
+      {leadParas.length > 0 ? (
+        <div className={cn(POST_DETAIL_PARAGRAPH_STACK, "mt-4")}>
+          {leadParas.map((block, i) => (
+            <p key={i} className={cn(POST_DETAIL_PROSE_P_MAIN, "text-[15px] leading-[1.65] sm:text-base sm:leading-relaxed")}>
+              {block}
+            </p>
+          ))}
+        </div>
+      ) : (
+        <p className="text-muted-foreground mt-4 text-[15px] leading-relaxed whitespace-pre-line">{tRoute("introFallbackMinimal")}</p>
+      )}
+      {s ? (
+        <aside className="border-border/50 text-muted-foreground mt-8 border-l-2 pl-4 text-sm leading-relaxed">
+          <p className="text-[10px] font-semibold tracking-wide uppercase">{tRoute("introForWhoLabel")}</p>
+          <div className={`mt-2 ${POST_DETAIL_PARAGRAPH_STACK}`}>
+            {splitPostBodyParagraphs(s).map((block, i) => (
+              <p key={i} className="text-foreground font-medium whitespace-pre-line">
                 {block}
               </p>
             ))}
           </div>
-        ) : (
-          <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">
-            {tRoute("introFallbackMinimal")}
-          </p>
-        )}
-        {s ? (
-          <div className="border-border/50 rounded-xl border bg-muted/20 px-3 py-2.5">
-            <p className="text-muted-foreground text-[10px] font-bold tracking-wide uppercase">{tRoute("introForWhoLabel")}</p>
-            <div className={`mt-2 ${POST_DETAIL_PARAGRAPH_STACK}`}>
-              {splitPostBodyParagraphs(s).map((block, i) => (
-                <p key={i} className="text-foreground text-sm font-medium leading-relaxed whitespace-pre-line">
-                  {block}
-                </p>
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </CardContent>
-    </Card>
+        </aside>
+      ) : null}
+    </section>
   );
 }

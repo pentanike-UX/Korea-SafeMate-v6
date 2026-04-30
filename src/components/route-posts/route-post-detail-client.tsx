@@ -47,13 +47,13 @@ function HaruFlowTimeline({
 }) {
   const t = useTranslations("RoutePosts");
   return (
-    <section className="overflow-hidden rounded-2xl border border-border/60 bg-card/95 shadow-[var(--shadow-sm)]">
-      <div className="border-b border-border/60 bg-white/90 px-5 pt-4 pb-3.5 sm:px-6 dark:bg-card/80">
-        <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">{t("routeEyebrow")}</p>
-        <h2 className="mt-0.5 text-lg font-semibold text-[var(--text-strong)]">{t("flowTitle")}</h2>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("flowSubtitle")}</p>
-      </div>
-      <div className="px-4 py-3 sm:px-5 sm:py-4">
+    <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-8">
+      <header className="mb-6 space-y-1">
+        <p className="text-muted-foreground text-[10px] font-semibold tracking-[0.2em] uppercase">{t("routeEyebrow")}</p>
+        <h2 className="text-text-strong text-lg font-semibold tracking-tight">{t("flowTitle")}</h2>
+        <p className="text-muted-foreground text-sm leading-relaxed">{t("flowSubtitle")}</p>
+      </header>
+      <div className="pb-1">
         {spots.map((spot, index) => {
           const isActive = activeSpotId === spot.id;
           const isLast = index === spots.length - 1;
@@ -95,10 +95,8 @@ function HaruFlowTimeline({
                   type="button"
                   onClick={() => onSpotClick(spot.id)}
                   className={cn(
-                    "group w-full rounded-xl border px-3 py-2.5 text-left transition-all duration-200",
-                    isActive
-                      ? "border-primary/20 bg-primary/8"
-                      : "border-transparent hover:border-border/50 hover:bg-muted/40",
+                    "group w-full rounded-lg px-1 py-2 text-left transition-colors duration-200",
+                    isActive ? "bg-primary/6 ring-border/50 ring-1" : "hover:bg-muted/35",
                   )}
                 >
                   <div className="flex min-w-0 items-center gap-2">
@@ -408,8 +406,8 @@ export function RoutePostDetailClient({
         />
       ) : null}
 
-      <div className="space-y-5 sm:space-y-6">
-        {/* ① 하루 흐름 — Hero 바로 아래 첫 번째 카드 */}
+      <div className="space-y-8 sm:space-y-10">
+        {/* ① 하루 흐름 */}
         <div ref={triggerRef}>
           <HaruFlowTimeline
             spots={spots}
@@ -433,14 +431,15 @@ export function RoutePostDetailClient({
           />
         ) : null}
 
-        {/* ④ 먼저 알고 가면 좋은 점 */}
+        {/* ④ 먼저 알고 가면 좋은 점 — 체크리스트형, 카드 없음 */}
         {post.route_highlights && post.route_highlights.length > 0 ? (
-          <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-[var(--shadow-sm)]">
-            <h2 className="text-text-strong text-lg font-semibold">{t("insightTitle")}</h2>
-            <ul className="text-muted-foreground mt-4 list-inside list-disc space-y-3 text-sm leading-relaxed sm:space-y-3.5">
+          <section className="border-border/40 max-w-[42rem] border-t pt-7 sm:pt-8">
+            <h2 className="text-text-strong text-lg font-semibold tracking-tight">{t("insightTitle")}</h2>
+            <ul className="mt-5 space-y-3 text-[15px] leading-snug sm:text-base" aria-label={t("insightTitle")}>
               {post.route_highlights.map((line) => (
-                <li key={line} className="marker:text-primary">
-                  {line}
+                <li key={line} className="flex gap-3">
+                  <span className="bg-primary/15 text-primary mt-2 size-1.5 shrink-0 rounded-full" aria-hidden />
+                  <span className="text-foreground min-w-0">{line}</span>
                 </li>
               ))}
             </ul>

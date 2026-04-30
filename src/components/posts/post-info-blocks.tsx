@@ -231,6 +231,7 @@ export function PostInfoSummaryPanel({
 }
 
 /** H — guardian voice */
+/** 하루이 한 줄 — 카드 대신 인용·에디토리얼 타이포 */
 export function GuardianSignatureQuote({
   label,
   badge,
@@ -243,25 +244,20 @@ export function GuardianSignatureQuote({
   className?: string;
 }) {
   return (
-    <figure
-      className={cn(
-        "border-primary/20 relative overflow-hidden rounded-2xl border bg-gradient-to-br from-primary/6 to-transparent px-5 py-5 sm:px-7 sm:py-6",
-        className,
-      )}
-    >
-      <Quote className="text-primary/25 pointer-events-none absolute top-3 right-4 size-10 sm:size-12" aria-hidden />
-      <figcaption className="text-primary mb-2 flex flex-wrap items-center gap-2 text-[10px] font-bold tracking-[0.2em] uppercase">
-        {badge ? <span className="bg-primary/15 rounded-full px-2 py-0.5">{badge}</span> : null}
-        {label}
+    <figure className={cn("max-w-[42rem] py-1", className)}>
+      <figcaption className="text-muted-foreground mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold tracking-[0.18em] uppercase">
+        <Quote className="text-primary/50 size-3.5 shrink-0" aria-hidden />
+        {badge ? <span className="text-primary font-medium">{badge}</span> : null}
+        <span>{label}</span>
       </figcaption>
-      <blockquote className="text-text-strong relative text-[15px] leading-relaxed font-medium italic sm:text-base">
+      <blockquote className="text-text-strong border-border/45 border-l-[2px] pl-4 text-[15px] leading-[1.65] italic sm:text-[17px]">
         {children}
       </blockquote>
     </figure>
   );
 }
 
-/** Route: route summary chip row style */
+/** Route: 루트 요약 — 문서형(좌측 악센트, 무카드) */
 export function PostInfoRouteSummaryStrip({
   label,
   children,
@@ -272,13 +268,14 @@ export function PostInfoRouteSummaryStrip({
   className?: string;
 }) {
   return (
-    <div className={cn("border-primary/30 rounded-2xl border bg-primary/5 px-4 py-3 sm:px-5", className)}>
-      <p className="text-primary text-[10px] font-bold tracking-widest uppercase">{label}</p>
-      <p className="text-text-strong mt-1.5 text-sm font-semibold leading-relaxed sm:text-base">{children}</p>
-    </div>
+    <section className={cn("border-border/40 max-w-[42rem] border-l-[3px] border-primary/45 pl-4 sm:pl-5", className)}>
+      <h3 className="text-muted-foreground text-[10px] font-semibold tracking-[0.18em] uppercase">{label}</h3>
+      <p className="text-text-strong mt-2 text-[15px] leading-[1.65] font-medium sm:text-base">{children}</p>
+    </section>
   );
 }
 
+/** Route: 먼저 알면 좋은 점 — 주의/팁 톤, 가벼운 대비만 */
 export function PostInfoRouteBeforeNote({
   label,
   children,
@@ -289,13 +286,14 @@ export function PostInfoRouteBeforeNote({
   className?: string;
 }) {
   return (
-    <div className={cn("border-border/60 rounded-2xl border bg-card/90 px-4 py-4 sm:px-5", className)}>
-      <p className="text-muted-foreground text-[10px] font-bold tracking-wide uppercase">{label}</p>
-      <div className="text-foreground mt-2 text-sm leading-relaxed whitespace-pre-line sm:text-[15px]">{children}</div>
-    </div>
+    <section className={cn("border-border/40 max-w-[42rem] border-l-2 border-amber-500/45 pl-4 sm:pl-5", className)}>
+      <h3 className="text-muted-foreground text-[10px] font-semibold tracking-[0.18em] uppercase">{label}</h3>
+      <div className="text-foreground mt-2.5 text-[15px] leading-[1.65] whitespace-pre-line sm:text-base">{children}</div>
+    </section>
   );
 }
 
+/** Route: 하루 마무리 — 구분선 위주, 카드 없음 */
 export function PostInfoRouteClosingPanel({
   label,
   children,
@@ -306,10 +304,10 @@ export function PostInfoRouteClosingPanel({
   className?: string;
 }) {
   return (
-    <div className={cn("border-border/50 rounded-2xl border border-dashed bg-muted/20 px-4 py-4 sm:px-5", className)}>
-      <p className="text-muted-foreground text-[10px] font-bold tracking-wide uppercase">{label}</p>
-      <div className="text-foreground mt-2 text-[15px] leading-relaxed sm:text-base">{children}</div>
-    </div>
+    <section className={cn("border-border/40 max-w-[42rem] border-t pt-6 sm:pt-7", className)}>
+      <h3 className="text-muted-foreground text-[10px] font-semibold tracking-[0.18em] uppercase">{label}</h3>
+      <div className="text-foreground mt-3 text-[15px] leading-[1.65] sm:text-base">{children}</div>
+    </section>
   );
 }
 
@@ -317,9 +315,9 @@ export function PostInfoNarrativeStack({ text, className }: { text: string; clas
   const paras = splitPostBodyParagraphs(text);
   if (paras.length === 0) return null;
   return (
-    <div className={cn(POST_DETAIL_PARAGRAPH_STACK, className)}>
+    <div className={cn(POST_DETAIL_PARAGRAPH_STACK, "max-w-[42rem] space-y-4 sm:space-y-5", className)}>
       {paras.map((p, i) => (
-        <p key={i} className={POST_DETAIL_PROSE_P_MAIN}>
+        <p key={i} className={cn(POST_DETAIL_PROSE_P_MAIN, "text-[15px] leading-[1.7] sm:text-base")}>
           {p}
         </p>
       ))}

@@ -14,7 +14,7 @@ export function RouteArticleStructuredBody({ parsed }: { parsed: RouteArticlePar
   const t = useTranslations("Posts.routeArticleBlock");
 
   return (
-    <div className="space-y-5 sm:space-y-6">
+    <article className="route-editorial-doc space-y-8 sm:space-y-10">
       {parsed.routeSummary ? (
         <PostInfoRouteSummaryStrip label={t("routeSummary")}>{parsed.routeSummary}</PostInfoRouteSummaryStrip>
       ) : null}
@@ -34,6 +34,6 @@ export function RouteArticleStructuredBody({ parsed }: { parsed: RouteArticlePar
           {parsed.guardianLine}
         </GuardianSignatureQuote>
       ) : null}
-    </div>
+    </article>
   );
 }
