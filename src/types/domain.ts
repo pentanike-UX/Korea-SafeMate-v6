@@ -225,6 +225,18 @@ export interface RouteSpot {
   lat: number;
   lng: number;
   featured?: boolean;
+  /** Minutes to travel to the NEXT spot (omit on last spot). */
+  next_move_minutes?: number;
+  /** Distance to next spot in meters (omit on last spot). */
+  next_move_distance_m?: number;
+  /** Transport mode to next spot. */
+  next_move_mode?: "walk" | "subway" | "bus" | "taxi";
+  /** K-content / theme flavour text shown as thematic context in spot detail. */
+  theme_reason?: string;
+  /** Concise "what to do here" action guide (1–3 sentences). */
+  what_to_do?: string;
+  /** Image alt text for the representative image. */
+  image_alt?: string;
 }
 
 /**

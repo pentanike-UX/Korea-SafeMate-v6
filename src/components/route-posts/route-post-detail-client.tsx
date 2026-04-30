@@ -59,6 +59,19 @@ function HaruFlowTimeline({
         {spots.map((spot, index) => {
           const isActive = activeSpotId === spot.id;
           const isLast = index === spots.length - 1;
+          const hasNextMove = !isLast && (spot.next_move_minutes != null || spot.next_move_distance_m != null);
+          const nextModeLabel =
+            spot.next_move_mode === "subway" ? "지하철" :
+            spot.next_move_mode === "bus" ? "버스" :
+            spot.next_move_mode === "taxi" ? "택시" : "도보";
+          const nextMoveText = [
+            spot.next_move_minutes != null ? `${spot.next_move_minutes}분` : null,
+            spot.next_move_distance_m != null
+              ? spot.next_move_distance_m >= 1000
+                ? `${(spot.next_move_distance_m / 1000).toFixed(1)}km`
+                : `${spot.next_move_distance_m}m`
+              : null,
+          ].filter(Boolean).join(" · ");
           return (
             <div key={spot.id} className="flex gap-3">
               {/* Spine */}
@@ -78,43 +91,59 @@ function HaruFlowTimeline({
                 </button>
                 {!isLast && <div className="my-1 min-h-6 w-px flex-1 bg-border/50" />}
               </div>
-              {/* Content row */}
-              <button
-                type="button"
-                onClick={() => onSpotClick(spot.id)}
-                className={cn(
-                  "group mb-3 flex-1 rounded-xl border px-3 py-2.5 text-left transition-all duration-200",
-                  isActive
-                    ? "border-primary/20 bg-primary/8"
-                    : "border-transparent hover:border-border/50 hover:bg-muted/40",
-                )}
-              >
-                <div className="flex min-w-0 items-center gap-2">
-                  <p className={cn(
-                    "min-w-0 flex-1 truncate text-sm font-semibold leading-snug",
-                    isActive ? "text-[var(--text-strong)]" : "text-[var(--text-strong)]",
-                  )}>
-                    {spot.title ?? spot.place_name}
-                  </p>
-                  <ChevronRight
-                    className={cn(
-                      "size-3.5 shrink-0 text-muted-foreground/40 transition-transform group-hover:translate-x-0.5",
-                      isActive && "text-primary/60",
-                    )}
-                    aria-hidden
-                  />
-                </div>
-                {(spot.short_description ?? (spot.place_name && spot.title)) ? (
-                  <p className="mt-0.5 line-clamp-1 text-xs leading-relaxed text-muted-foreground">
-                    {spot.short_description ?? spot.place_name}
-                  </p>
+              {/* Content + move connector */}
+              <div className="flex-1 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => onSpotClick(spot.id)}
+                  className={cn(
+                    "group w-full rounded-xl border px-3 py-2.5 text-left transition-all duration-200",
+                    isActive
+                      ? "border-primary/20 bg-primary/8"
+                      : "border-transparent hover:border-border/50 hover:bg-muted/40",
+                  )}
+                >
+                  <div className="flex min-w-0 items-center gap-2">
+                    <p className="min-w-0 flex-1 truncate text-sm font-semibold leading-snug text-[var(--text-strong)]">
+                      {spot.title ?? spot.place_name}
+                    </p>
+                    <ChevronRight
+                      className={cn(
+                        "size-3.5 shrink-0 text-muted-foreground/40 transition-transform group-hover:translate-x-0.5",
+                        isActive && "text-primary/60",
+                      )}
+                      aria-hidden
+                    />
+                  </div>
+                  {spot.place_name && spot.place_name !== spot.title ? (
+                    <p className="mt-0.5 line-clamp-1 text-xs leading-relaxed text-muted-foreground">
+                      {spot.place_name}
+                    </p>
+                  ) : spot.short_description ? (
+                    <p className="mt-0.5 line-clamp-1 text-xs leading-relaxed text-muted-foreground">
+                      {spot.short_description}
+                    </p>
+                  ) : null}
+                  {spot.stay_duration_minutes ? (
+                    <span className="mt-1.5 inline-flex items-center rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      약 {spot.stay_duration_minutes}분 체류
+                    </span>
+                  ) : null}
+                </button>
+                {/* Next-move connector pill */}
+                {hasNextMove ? (
+                  <div className="my-1.5 ml-3 flex items-center gap-1.5">
+                    <span className="text-muted-foreground/50 text-[10px]">↓</span>
+                    <span className="rounded-full border border-border/40 bg-muted/30 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      {nextModeLabel} {nextMoveText}
+                    </span>
+                  </div>
+                ) : !isLast ? (
+                  <div className="my-1.5 ml-3">
+                    <span className="text-muted-foreground/30 text-[10px]">↓</span>
+                  </div>
                 ) : null}
-                {spot.stay_duration_minutes ? (
-                  <span className="mt-1.5 inline-flex items-center rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                    약 {spot.stay_duration_minutes}분
-                  </span>
-                ) : null}
-              </button>
+              </div>
             </div>
           );
         })}
@@ -141,8 +170,23 @@ function SpotDetailBody({
 }) {
   const t = useTranslations("RoutePosts");
   const img = getSpotDisplayImageUrl(spot, post, { plan: visualPlan });
-  const imgAlt = getSpotDisplayImageAlt(spot, post, { plan: visualPlan });
-  const { main: bodyMain, nextCue } = splitSpotBodyAndNextCue(spot.body ?? "");
+  const imgAlt = spot.image_alt ?? getSpotDisplayImageAlt(spot, post, { plan: visualPlan });
+  const { main: bodyMain } = splitSpotBodyAndNextCue(spot.body ?? "");
+
+  // Build structured next-move text from fields (preferred) or fall back to none
+  const nextModeLabel =
+    spot.next_move_mode === "subway" ? "지하철" :
+    spot.next_move_mode === "bus" ? "버스" :
+    spot.next_move_mode === "taxi" ? "택시" : "도보";
+  const nextMoveDetail = [
+    spot.next_move_minutes != null ? `약 ${spot.next_move_minutes}분` : null,
+    spot.next_move_distance_m != null
+      ? spot.next_move_distance_m >= 1000
+        ? `${(spot.next_move_distance_m / 1000).toFixed(1)}km`
+        : `${spot.next_move_distance_m}m`
+      : null,
+  ].filter(Boolean).join(" · ");
+  const hasStructuredNextMove = !isLast && (spot.next_move_minutes != null || spot.next_move_distance_m != null);
 
   const photoInner = spot.photo_tip ? (
     <RouteSpotPhotoTipNote label={t("photoTip")}>
@@ -189,7 +233,12 @@ function SpotDetailBody({
               </div>
             </>
           ) : null}
-          {spot.recommend_reason ? (
+          {spot.theme_reason ? (
+            <div className="rounded-xl bg-primary/5 px-3.5 py-3 border border-primary/10">
+              <p className="text-primary text-[10px] font-bold tracking-wide uppercase mb-1.5">{t("themeReasonLabel")}</p>
+              <p className="text-sm leading-relaxed text-foreground/80">{spot.theme_reason}</p>
+            </div>
+          ) : spot.recommend_reason ? (
             <RouteSpotReasonBlock label={t("whyRecommend")}>
               <div className={POST_DETAIL_PARAGRAPH_STACK_COMPACT}>
                 {splitPostBodyParagraphs(spot.recommend_reason).map((block, i) => (
@@ -199,6 +248,12 @@ function SpotDetailBody({
                 ))}
               </div>
             </RouteSpotReasonBlock>
+          ) : null}
+          {spot.what_to_do ? (
+            <div>
+              <p className="text-primary text-[10px] font-bold tracking-wide uppercase mb-1.5">{t("whatToDoLabel")}</p>
+              <p className="text-sm leading-relaxed text-foreground">{spot.what_to_do}</p>
+            </div>
           ) : null}
         </div>
       ) : null}
@@ -218,9 +273,10 @@ function SpotDetailBody({
         {cautionInner}
       </div>
 
-      {nextCue ? (
+      {/* Structured next-move row (preferred over parsed body text) */}
+      {hasStructuredNextMove ? (
         <RouteSpotNextFlowRow
-          text={nextCue.replace(/다음 핀/g, "다음 스팟")}
+          text={`${nextModeLabel} ${nextMoveDetail}`}
           label={t("spotNextFlowEyebrow")}
         />
       ) : null}
