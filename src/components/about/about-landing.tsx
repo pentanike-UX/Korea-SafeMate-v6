@@ -240,38 +240,79 @@ export function AboutLanding() {
       <Section id="pricing" className="page-container max-w-5xl px-4 py-16 sm:px-6 sm:py-20 md:py-24">
         <Kicker>요금</Kicker>
         <h2 className="text-text-strong mt-3 text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl">
-          원하는 방식으로 하루를 시작하세요.
+          탐색은 무료, 실행은 유료
         </h2>
+        <p className="text-muted-foreground mt-4 max-w-2xl text-base leading-relaxed">
+          하루웨이는 먼저 둘러볼 수 있습니다.<br />
+          스팟별 상세 가이드를 열거나, 내 일정에 맞게 하루이에게 요청할 때 결제가 진행됩니다.
+        </p>
+
+        {/* 무료/유료 범위 한눈에 */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div className="border-border/60 rounded-[var(--radius-xl)] border bg-card/50 p-5 shadow-[var(--shadow-sm)]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">무료</p>
+            <ul className="mt-3 space-y-1.5">
+              {["하루웨이 목록 탐색", "하루 흐름 보기", "한눈에 보는 하루 요약", "스팟명 및 순서 확인", "하루이 프로필 보기", "비슷한 하루웨이 보기"].map((item) => (
+                <li key={item} className="flex items-center gap-2 text-sm text-foreground/80">
+                  <span className="text-[var(--brand-trust-blue)] text-xs">✓</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="border-primary/20 rounded-[var(--radius-xl)] border bg-[var(--brand-primary-soft)]/30 p-5 shadow-[var(--shadow-sm)]">
+            <p className="text-primary text-[10px] font-bold uppercase tracking-[0.2em]">유료 전환</p>
+            <ul className="mt-3 space-y-1.5">
+              {["스팟별 상세 실행 가이드", "사진 포인트 · 주의사항", "다음 스팟 이동 세부 정보", "저장 · 오프라인 보기", "내 일정에 맞게 요청", "하루이 상담"].map((item) => (
+                <li key={item} className="flex items-center gap-2 text-sm text-foreground/80">
+                  <span className="text-primary text-xs font-bold">→</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* 요금제 카드 */}
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
           {[
             {
-              tag: "기본",
-              name: "하루 바로 시작",
+              tag: "하루 바로 시작",
               price: "₩29,000",
-              desc: "완성된 하루웨이를 바로 선택합니다.",
+              role: "완성된 하루웨이를 그대로 따라갑니다.",
+              usage: "하루웨이 상세에서 전체 가이드를 열 때",
+              items: ["전체 스팟별 실행 가이드", "사진 팁 · 주의사항", "이동 정보 · 저장 · 오프라인"],
+              cta: "하루 바로 시작",
+              href: "/posts",
               featured: false,
             },
             {
-              tag: "인기",
-              name: "하루 맡기기",
+              tag: "하루 맡기기",
               price: "₩59,000",
-              desc: "날짜와 분위기에 맞게 하루이가 직접 설계합니다.",
+              role: "날짜·취향에 맞게 하루이가 루트를 조정합니다.",
+              usage: "내 일정에 맞게 하루이에게 조정 요청할 때",
+              items: ["여행 날짜 · 시작/종료 위치 반영", "관심사 · 이동 선호 반영", "1회 답변 또는 1회 수정 포함"],
+              cta: "내 일정에 맞게 요청",
+              href: "/posts",
               featured: true,
             },
             {
-              tag: "풀서비스",
-              name: "하루 풀서비스",
+              tag: "하루 풀서비스",
               price: "₩119,000",
-              desc: "맞춤 설계와 하루이 상담을 함께 이용합니다.",
+              role: "하루이와 상담하며 하루를 세밀하게 조율합니다.",
+              usage: "하루이 상담과 맞춤 설계가 필요할 때",
+              items: ["하루이 상담 · 24시간 내 답변", "맞춤 하루 설계 · 복수 후보 제안", "여행 전 최종 확인 포함"],
+              cta: "하루이와 조율하기",
+              href: "/guardians",
               featured: false,
             },
-          ].map(({ tag, name, price, desc, featured }) => (
+          ].map(({ tag, price, role, usage, items, cta, href, featured }) => (
             <div
-              key={name}
+              key={tag}
               className={cn(
                 "relative flex flex-col gap-4 rounded-[var(--radius-xl)] border p-6",
                 featured
-                  ? "border-[var(--brand-trust-blue)]/40 bg-[var(--brand-trust-blue-soft)] shadow-[var(--shadow-md)]"
+                  ? "border-[var(--brand-trust-blue)]/40 bg-[var(--brand-trust-blue-soft)] shadow-[var(--shadow-md)] sm:scale-[1.02]"
                   : "border-border/70 bg-card/50 shadow-[var(--shadow-sm)]",
               )}
             >
@@ -280,31 +321,39 @@ export function AboutLanding() {
                   ✦ 가장 인기
                 </span>
               )}
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{tag}</p>
               <div>
-                <p className="text-text-strong text-lg font-semibold">{name}</p>
-                <p className="text-text-strong mt-1 text-3xl font-bold">{price}</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{tag}</p>
+                <p className="text-text-strong mt-2 text-3xl font-bold">{price}</p>
               </div>
-              <p className="text-muted-foreground text-sm leading-relaxed flex-1">{desc}</p>
+              <p className="text-muted-foreground text-sm leading-relaxed">{role}</p>
+              <ul className="flex-1 space-y-1.5 border-t border-border/50 pt-3">
+                {items.map((item) => (
+                  <li key={item} className="flex items-start gap-2 text-[13px] text-foreground/75">
+                    <span className="mt-0.5 shrink-0 text-[var(--brand-trust-blue)] text-xs">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="text-muted-foreground text-[11px]">사용 지점: {usage}</p>
+              <Link
+                href={href}
+                className={cn(
+                  "mt-auto inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] px-5 py-2.5 text-sm font-semibold transition-all hover:scale-[1.02]",
+                  featured
+                    ? "bg-[var(--brand-trust-blue)] text-white hover:opacity-90"
+                    : "border border-border/80 bg-background text-text-strong hover:bg-muted",
+                )}
+              >
+                {cta}
+                <ArrowRight className="size-3.5 opacity-60" aria-hidden />
+              </Link>
             </div>
           ))}
         </div>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link
-            href="/pricing"
-            className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-border/80 px-6 py-2.5 text-sm font-semibold text-text-strong transition-all hover:bg-muted hover:scale-[1.02]"
-          >
-            요금 자세히 보기
-            <ArrowRight className="size-3.5 opacity-60" aria-hidden />
-          </Link>
-          <Link
-            href="/explore/routes"
-            className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] px-6 py-2.5 text-sm font-semibold text-[var(--brand-trust-blue)] transition-colors hover:opacity-80"
-          >
-            <Compass className="size-4" strokeWidth={1.75} aria-hidden />
-            하루웨이 보기
-          </Link>
-        </div>
+
+        <p className="text-muted-foreground mt-6 text-center text-xs">
+          하루 풀서비스는 긴급 대응, 의료·법률·통역 서비스를 대체하지 않습니다.
+        </p>
       </Section>
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PostDetailIntroPanel } from "@/components/posts/post-detail-intro-panel";
-import { GuardianRequestIntakeBullets } from "@/components/guardians/guardian-request-intake-bullets";
 import { GuardianRequestOpenTrigger, type GuardianRequestSheetHostProps } from "@/components/guardians/guardian-request-sheet";
 import { getSpotDisplayImageAlt, getSpotDisplayImageUrl } from "@/lib/content-post-route";
 import { buildLocalPostVisualPlan, type LocalPostVisualPlan } from "@/lib/post-local-images";
@@ -301,7 +300,6 @@ export function RoutePostDetailClient({
   requestHost: GuardianRequestSheetHostProps;
 }) {
   const t = useTranslations("RoutePosts");
-  const tReq = useTranslations("GuardianRequest");
   const journey = post.route_journey!;
   const meta = journey.metadata;
   const spots = useMemo(() => [...journey.spots].sort((a, b) => a.order - b.order), [journey.spots]);
@@ -462,114 +460,112 @@ export function RoutePostDetailClient({
         ) : null}
       </div>
 
-      <section className="mt-12 space-y-7 sm:space-y-8">
-        <h2 className="text-text-strong text-lg font-semibold">{t("spotsTitle")}</h2>
-        {spots.map((spot, index) => {
-          const isLast = index === spots.length - 1;
-          return (
-            <article
-              key={spot.id}
-              id={`route-spot-${spot.id}`}
-              className={cn(
-                "rounded-2xl border border-border/60 bg-white/95 p-5 shadow-[var(--shadow-sm)] transition-[box-shadow] sm:p-7 sm:pb-8",
-                showStickyNav ? "scroll-mt-36 sm:scroll-mt-40" : "scroll-mt-28",
-                flashId === spot.id ? "ring-primary ring-2 ring-offset-2" : "",
-                activeSpotId === spot.id && showStickyNav ? "border-primary/25" : "",
-              )}
-            >
-              <div className="flex items-start gap-3">
-                <span
-                  className={cn(
-                    "flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-bold",
-                    activeSpotId === spot.id && showStickyNav
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-primary/12 text-primary",
-                  )}
-                >
-                  {index + 1}
-                </span>
-                <div className="min-w-0 flex-1 space-y-3 sm:space-y-4">
-                  <h3 className="text-text-strong text-xl font-semibold">{spot.title}</h3>
-                  <p className="text-muted-foreground text-sm font-medium">{spot.place_name}</p>
-                  {spot.address_line ? (
-                    <p className="text-muted-foreground text-xs leading-relaxed whitespace-pre-line">{spot.address_line}</p>
+      {/* ─── 스팟별 상세 잠금 카드 ────────────────────────────────────── */}
+      <section className="mt-12">
+        <h2 className="text-text-strong mb-5 text-lg font-semibold">{t("spotsTitle")}</h2>
+
+        {/* 스팟 프리뷰 — 번호·이름·장소명만 노출 */}
+        <div className="mb-4 overflow-hidden rounded-2xl border border-border/60 bg-white/90 shadow-[var(--shadow-sm)]">
+          {spots.map((spot, index) => {
+            const isLast = index === spots.length - 1;
+            const hasNextMove = !isLast && spot.next_move_minutes != null;
+            return (
+              <div key={spot.id}>
+                <div className="flex items-center gap-3 px-5 py-4">
+                  <span className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold">
+                    {index + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-text-strong truncate text-sm font-semibold">{spot.title ?? spot.place_name}</p>
+                    {spot.place_name && spot.place_name !== spot.title ? (
+                      <p className="text-muted-foreground mt-0.5 truncate text-xs">{spot.place_name}</p>
+                    ) : null}
+                  </div>
+                  {spot.stay_duration_minutes ? (
+                    <span className="text-muted-foreground shrink-0 text-xs">약 {spot.stay_duration_minutes}분</span>
                   ) : null}
-                  {spot.short_description ? (
-                    <>
-                      <p className="text-primary text-[10px] font-bold tracking-wide uppercase">{t("spotCoreEyebrow")}</p>
-                      <div className={POST_DETAIL_PARAGRAPH_STACK_COMPACT}>
-                        {splitPostBodyParagraphs(spot.short_description).map((block, i) => (
-                          <p key={i} className="text-foreground text-sm leading-relaxed whitespace-pre-line">
-                            {block}
-                          </p>
-                        ))}
-                      </div>
-                    </>
-                  ) : null}
-                  {spot.recommend_reason ? (
-                    <RouteSpotReasonBlock label={t("whyRecommend")}>
-                      <div className={POST_DETAIL_PARAGRAPH_STACK_COMPACT}>
-                        {splitPostBodyParagraphs(spot.recommend_reason).map((block, i) => (
-                          <p key={i} className="text-sm leading-relaxed whitespace-pre-line">
-                            {block}
-                          </p>
-                        ))}
-                      </div>
-                    </RouteSpotReasonBlock>
-                  ) : null}
-                  <Button
-                    type="button"
-                    variant="link"
-                    className="text-primary mt-2 h-auto p-0 text-sm font-semibold lg:hidden"
-                    onClick={() => {
-                      setActiveSpotId(spot.id);
-                      setSheetOpen(true);
-                    }}
-                  >
-                    {t("ctaViewSpot")}
-                  </Button>
                 </div>
+                {hasNextMove ? (
+                  <div className="border-border/40 mx-5 flex items-center gap-2 border-t py-2">
+                    <span className="text-muted-foreground/40 text-[10px]">↓</span>
+                    <span className="text-muted-foreground rounded-full bg-muted/40 px-2 py-0.5 text-[10px]">
+                      {spot.next_move_mode === "subway" ? "지하철" : spot.next_move_mode === "bus" ? "버스" : "도보"}{" "}
+                      {spot.next_move_minutes != null ? `${spot.next_move_minutes}분` : ""}{spot.next_move_distance_m != null ? ` · ${spot.next_move_distance_m >= 1000 ? `${(spot.next_move_distance_m / 1000).toFixed(1)}km` : `${spot.next_move_distance_m}m`}` : ""}
+                    </span>
+                  </div>
+                ) : !isLast ? (
+                  <div className="border-border/40 mx-5 border-t" />
+                ) : null}
               </div>
-              <div className="mt-6">
-                <SpotDetailBody
-                  spot={spot}
-                  post={post}
-                  visualPlan={visualPlan}
-                  isLast={isLast}
-                  layout="embedded"
-                  onNext={isLast ? undefined : () => goNextFrom(spot.id)}
-                />
-              </div>
-              {!isLast ? (
-                <p className="text-primary mt-6 text-center text-xs font-semibold tracking-wide uppercase">{t("nextCue")}</p>
-              ) : null}
-            </article>
-          );
-        })}
+            );
+          })}
+        </div>
+
+        {/* 잠금 카드 */}
+        <div className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-b from-white to-[var(--brand-primary-soft)]/30 shadow-[var(--shadow-md)]">
+          <div className="px-6 pt-6 pb-5">
+            <p className="text-primary text-[10px] font-bold tracking-[0.2em] uppercase">{t("spotsTitle")}</p>
+            <h3 className="text-text-strong mt-1.5 text-lg font-semibold">{t("paywallTitle")}</h3>
+            <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">{t("paywallLead")}</p>
+          </div>
+
+          <div className="border-border/40 mx-6 border-t pt-4 pb-2">
+            <p className="text-muted-foreground mb-2.5 text-[10px] font-bold tracking-wide uppercase">{t("paywallIncludesLabel")}</p>
+            <ul className="space-y-2">
+              {([
+                t("paywallItem1"),
+                t("paywallItem2"),
+                t("paywallItem3"),
+                t("paywallItem4"),
+                t("paywallItem5"),
+              ] as string[]).map((item) => (
+                <li key={item} className="flex items-center gap-2.5 text-sm text-foreground/80">
+                  <span className="text-primary text-xs font-bold">✓</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="px-6 pt-4 pb-6 space-y-3">
+            <GuardianRequestOpenTrigger
+              size="lg"
+              className="w-full rounded-xl px-5 gap-2"
+              openDetail={{
+                guardianUserId: requestHost.guardianUserId,
+                displayName: requestHost.displayName,
+                headline: requestHost.headline,
+                avatarUrl: requestHost.avatarUrl,
+                suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
+                postId: post.id,
+                postTitle: post.title,
+              }}
+            >
+              {t("paywallCtaPrimary")}
+              <span className="text-primary-foreground/70 text-sm font-normal">{t("paywallCtaPrimaryPrice")}</span>
+            </GuardianRequestOpenTrigger>
+            <GuardianRequestOpenTrigger
+              size="default"
+              variant="outline"
+              className="w-full rounded-xl"
+              openDetail={{
+                guardianUserId: requestHost.guardianUserId,
+                displayName: requestHost.displayName,
+                headline: requestHost.headline,
+                avatarUrl: requestHost.avatarUrl,
+                suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
+                postId: post.id,
+                postTitle: post.title,
+              }}
+            >
+              {t("paywallCtaSecondary")}
+            </GuardianRequestOpenTrigger>
+            <p className="text-muted-foreground text-center text-xs leading-relaxed">{t("paywallNote")}</p>
+          </div>
+        </div>
       </section>
 
       <div ref={spotsEndRef} aria-hidden className="h-px w-full" />
-
-      <div className="border-border/50 mt-12 rounded-2xl border bg-gradient-to-br from-[var(--brand-primary-soft)] to-white p-8 text-center shadow-[var(--shadow-sm)]">
-        <p className="text-text-strong text-lg font-semibold">{t("bottomCtaTitle")}</p>
-        <p className="text-muted-foreground mx-auto mt-2 max-w-md text-sm leading-relaxed">{t("bottomCtaLead")}</p>
-        <GuardianRequestIntakeBullets className="mx-auto mt-4 max-w-md text-left" />
-        <GuardianRequestOpenTrigger
-          size="lg"
-          className="mt-6 rounded-2xl px-10"
-          openDetail={{
-            guardianUserId: requestHost.guardianUserId,
-            displayName: requestHost.displayName,
-            headline: requestHost.headline,
-            avatarUrl: requestHost.avatarUrl,
-            suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
-            postId: post.id,
-            postTitle: post.title,
-          }}
-        >
-          {tReq("openCta")}
-        </GuardianRequestOpenTrigger>
-      </div>
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="bottom" className="max-h-[88vh] rounded-t-3xl px-4 pt-2 pb-6" showCloseButton>
