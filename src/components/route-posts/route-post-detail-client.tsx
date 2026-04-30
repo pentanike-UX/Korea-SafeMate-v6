@@ -39,7 +39,7 @@ function startHourFromTimeOfDay(tod: RouteJourneyMetadata["recommended_time_of_d
     case "night":
       return 19;
     default:
-      return 10; // flexible
+      return 10;
   }
 }
 
@@ -62,18 +62,47 @@ function fmtDistance(m: number): string {
   return m >= 1000 ? `${(m / 1000).toFixed(1)}km` : `${m}m`;
 }
 
-function nextModeLabel(mode: RouteSpot["next_move_mode"]): string {
-  switch (mode) {
-    case "subway":
-      return "지하철";
-    case "bus":
-      return "버스";
-    case "taxi":
-      return "택시";
-    default:
-      return "도보";
-  }
+// ─── Spot role system ─────────────────────────────────────────────────────────
+
+type SpotRole = "photo" | "rest" | "destination";
+
+interface RoleConfig {
+  emoji: string;
+  label: string;
+  badgeClass: string;
 }
+
+const ROLE_CONFIG: Record<SpotRole, RoleConfig> = {
+  photo: {
+    emoji: "📸",
+    label: "포토스팟",
+    badgeClass:
+      "bg-violet-50 text-violet-700 border-violet-200/60 dark:bg-violet-950/30 dark:text-violet-300 dark:border-violet-700/30",
+  },
+  rest: {
+    emoji: "☕",
+    label: "카페·휴식",
+    badgeClass:
+      "bg-amber-50 text-amber-700 border-amber-200/60 dark:bg-amber-950/30 dark:text-amber-300 dark:border-amber-700/30",
+  },
+  destination: {
+    emoji: "🏛",
+    label: "명소",
+    badgeClass:
+      "bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/30 dark:text-emerald-300 dark:border-emerald-700/30",
+  },
+};
+
+function inferSpotRole(spot: RouteSpot): SpotRole {
+  const text = [spot.title, spot.place_name, spot.what_to_do, spot.theme_reason]
+    .filter(Boolean)
+    .join(" ");
+  if (/포토|사진|뷰|전망|촬영|인생샷|갬성|뷰포인트/.test(text)) return "photo";
+  if (/카페|커피|베이커리|디저트|쉬어|앉아|휴식/.test(text)) return "rest";
+  return "destination";
+}
+
+// ─── Move connector (field note separator) ────────────────────────────────────
 
 function nextModeEmoji(mode: RouteSpot["next_move_mode"]): string {
   switch (mode) {
@@ -88,7 +117,18 @@ function nextModeEmoji(mode: RouteSpot["next_move_mode"]): string {
   }
 }
 
-// ─── MoveConnector ────────────────────────────────────────────────────────────
+function nextModeLabel(mode: RouteSpot["next_move_mode"]): string {
+  switch (mode) {
+    case "subway":
+      return "지하철";
+    case "bus":
+      return "버스";
+    case "taxi":
+      return "택시";
+    default:
+      return "도보";
+  }
+}
 
 function MoveConnector({ spot }: { spot: RouteSpot }) {
   const hasData = spot.next_move_minutes != null || spot.next_move_distance_m != null;
@@ -96,102 +136,318 @@ function MoveConnector({ spot }: { spot: RouteSpot }) {
 
   const emoji = nextModeEmoji(spot.next_move_mode);
   const mode = nextModeLabel(spot.next_move_mode);
-  const timeText = spot.next_move_minutes != null ? `${spot.next_move_minutes}분` : null;
-  const distText = spot.next_move_distance_m != null ? fmtDistance(spot.next_move_distance_m) : null;
-  const detail = [timeText, distText].filter(Boolean).join(" · ");
+  const parts = [
+    spot.next_move_minutes != null ? `약 ${spot.next_move_minutes}분` : null,
+    spot.next_move_distance_m != null ? fmtDistance(spot.next_move_distance_m) : null,
+  ].filter(Boolean);
 
   return (
-    <div className="mt-5 flex items-center gap-2">
-      <span className="text-base" aria-hidden>
-        {emoji}
+    <div className="mt-6 flex items-center gap-2.5" aria-hidden>
+      <div className="h-px flex-1 border-t border-dashed border-border/30" />
+      <span className="flex items-center gap-1.5 rounded-full border border-border/30 bg-background px-3 py-1 text-[11px] font-medium text-muted-foreground shadow-[var(--shadow-xs)]">
+        <span>{emoji}</span>
+        <span>
+          {mode}
+          {parts.length > 0 ? <> · {parts.join(" ")}</> : null}
+        </span>
       </span>
-      <span className="rounded-full border border-border/40 bg-muted/30 px-3 py-1 text-[11px] font-medium text-muted-foreground">
-        {mode} {detail}
-      </span>
+      <div className="h-px flex-1 border-t border-dashed border-border/30" />
     </div>
   );
 }
 
-// ─── SpotMemoCell ─────────────────────────────────────────────────────────────
+// ─── Field note primitives ────────────────────────────────────────────────────
 
-function SpotMemoCell({
+/** 기본 필드노트 섹션 — 점선 구분선 + 레이블 */
+function FieldSection({
   label,
   children,
   className,
 }: {
-  label: string;
+  label?: string;
   children: ReactNode;
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-xl border border-border/40 bg-muted/20 px-4 py-3", className)}>
-      <p className="mb-1.5 text-[10px] font-bold tracking-[0.15em] text-muted-foreground uppercase">
-        {label}
-      </p>
-      <div className="text-sm leading-relaxed text-foreground/85">{children}</div>
+    <div
+      className={cn(
+        "border-t border-dashed border-border/25 pt-3 first:border-t-0 first:pt-0",
+        className,
+      )}
+    >
+      {label ? (
+        <p className="mb-1.5 text-[10px] font-semibold tracking-[0.16em] text-muted-foreground/70 uppercase">
+          {label}
+        </p>
+      ) : null}
+      {children}
     </div>
   );
 }
 
-// ─── SpotMemoGrid ─────────────────────────────────────────────────────────────
+/** 포토팁·핵심 강조 — 왼쪽 액센트 라인 */
+function FieldHighlight({
+  label,
+  children,
+  className,
+}: {
+  label?: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "border-t border-dashed border-border/25 pt-3 first:border-t-0 first:pt-0",
+        className,
+      )}
+    >
+      <div className="border-l-2 border-primary/40 pl-3">
+        {label ? (
+          <p className="mb-1.5 text-[10px] font-semibold tracking-[0.16em] text-primary/60 uppercase">
+            {label}
+          </p>
+        ) : null}
+        {children}
+      </div>
+    </div>
+  );
+}
 
-function SpotMemoGrid({ spot }: { spot: RouteSpot }) {
-  const t = useTranslations("RoutePosts");
-  const hasBody = !!spot.body?.trim();
-  const hasWhatToDo = !!spot.what_to_do?.trim();
+/** 주의/caution — 앰버 왼쪽 액센트 */
+function FieldCaution({ children }: { children: ReactNode }) {
+  return (
+    <div className="border-t border-dashed border-border/25 pt-3 first:border-t-0 first:pt-0">
+      <div className="rounded-r-lg border-l-2 border-amber-400/50 bg-amber-50/30 pl-3 pr-2 py-1 dark:bg-amber-950/15">
+        <p className="mb-1 text-[10px] font-semibold tracking-[0.16em] text-amber-600/80 uppercase dark:text-amber-400/80">
+          ⚠️ 주의
+        </p>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** 행동 가이드 — → bullet 목록 */
+function ActionList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-1.5">
+      {items.map((item, i) => (
+        <li key={i} className="flex gap-2 text-sm leading-relaxed text-foreground/85">
+          <span className="mt-0.5 shrink-0 text-[10px] font-bold text-primary/60">→</span>
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** 긴 텍스트를 행동 항목으로 파싱 — 명확한 구분자가 있을 때만 적용 */
+function parseActionItems(text: string): string[] | null {
+  const byLine = text
+    .split(/\n+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 3);
+  if (byLine.length >= 2) return byLine;
+
+  const bySentence = text
+    .split(/(?<=[.。])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 5);
+  if (bySentence.length >= 2) return bySentence;
+
+  return null;
+}
+
+// ─── Role-differentiated field notes ─────────────────────────────────────────
+
+function PhotoSpotNotes({ spot }: { spot: RouteSpot }) {
   const hasPhotoTip = !!spot.photo_tip?.trim();
+  const hasWhatToDo = !!spot.what_to_do?.trim();
   const hasCaution = !!spot.caution?.trim();
-  const reasonText = (spot.theme_reason ?? spot.recommend_reason)?.trim();
-  const hasReason = !!reasonText;
+  const hasBody = !!spot.body?.trim();
+  const hasMood = !!(spot.theme_reason ?? spot.recommend_reason)?.trim();
 
-  if (!hasBody && !hasWhatToDo && !hasPhotoTip && !hasCaution && !hasReason) return null;
+  if (!hasPhotoTip && !hasWhatToDo && !hasCaution && !hasBody && !hasMood) return null;
+
+  const angleItems = hasWhatToDo ? parseActionItems(spot.what_to_do ?? "") : null;
 
   return (
-    <div className="mt-4 space-y-2.5">
-      {hasWhatToDo ? (
-        <SpotMemoCell label={t("whatToDoLabel")}>{spot.what_to_do}</SpotMemoCell>
+    <div className="mt-4 space-y-3">
+      {/* 포토 팁 — 포토스팟은 이게 핵심 */}
+      {hasPhotoTip ? (
+        <FieldHighlight label="📸 포토 팁">
+          <p className="text-sm leading-relaxed text-foreground/85">{spot.photo_tip}</p>
+        </FieldHighlight>
       ) : null}
+
+      {/* 각도·구도 가이드 */}
+      {hasWhatToDo ? (
+        <FieldSection label="이 각도로">
+          {angleItems ? (
+            <ActionList items={angleItems} />
+          ) : (
+            <p className="text-sm leading-relaxed text-foreground/85">{spot.what_to_do}</p>
+          )}
+        </FieldSection>
+      ) : null}
+
+      {/* 실패 방지 */}
+      {hasCaution ? (
+        <FieldCaution>
+          <p className="text-sm leading-relaxed text-foreground/85">{spot.caution}</p>
+        </FieldCaution>
+      ) : null}
+
+      {/* 분위기 메모 */}
+      {hasMood ? (
+        <FieldSection>
+          <p className="text-sm italic leading-relaxed text-muted-foreground">
+            {spot.theme_reason ?? spot.recommend_reason}
+          </p>
+        </FieldSection>
+      ) : null}
+
+      {/* 상세 기록 */}
       {hasBody ? (
-        <SpotMemoCell label={t("spotCoreEyebrow")}>
+        <FieldSection>
           {splitPostBodyParagraphs(spot.body).map((p, i) => (
-            <p key={i} className={i > 0 ? "mt-2" : ""}>
+            <p key={i} className={cn("text-sm leading-relaxed text-foreground/70", i > 0 && "mt-2")}>
               {p}
             </p>
           ))}
-        </SpotMemoCell>
-      ) : null}
-      {hasPhotoTip ? (
-        <SpotMemoCell label={`📸 ${t("photoTip")}`}>{spot.photo_tip}</SpotMemoCell>
-      ) : null}
-      {hasCaution ? (
-        <SpotMemoCell
-          label={`⚠️ ${t("caution")}`}
-          className="border-amber-200/50 bg-amber-50/30 dark:border-amber-800/30 dark:bg-amber-950/20"
-        >
-          {spot.caution}
-        </SpotMemoCell>
-      ) : null}
-      {hasReason ? (
-        <SpotMemoCell label={spot.theme_reason ? t("themeReasonLabel") : t("whyRecommend")}>
-          {reasonText}
-        </SpotMemoCell>
+        </FieldSection>
       ) : null}
     </div>
   );
 }
 
-// ─── LockedMemoHint ───────────────────────────────────────────────────────────
+function RestSpotNotes({ spot }: { spot: RouteSpot }) {
+  const hasWhatToDo = !!spot.what_to_do?.trim();
+  const hasBody = !!spot.body?.trim();
+  const hasCaution = !!spot.caution?.trim();
+  const hasMood = !!(spot.theme_reason ?? spot.recommend_reason)?.trim();
 
-function LockedMemoHint() {
+  if (!hasWhatToDo && !hasBody && !hasCaution && !hasMood) return null;
+
   return (
-    <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-border/40 bg-muted/10 px-4 py-3">
-      <Lock className="size-3.5 shrink-0 text-muted-foreground/50" aria-hidden />
-      <p className="text-xs text-muted-foreground">실행 가이드 · 포토 팁 · 주의사항 포함</p>
+    <div className="mt-4 space-y-3">
+      {/* 경험 가이드 */}
+      {hasWhatToDo ? (
+        <FieldHighlight label="이럴 때 좋아요">
+          <p className="text-sm leading-relaxed text-foreground/85">{spot.what_to_do}</p>
+        </FieldHighlight>
+      ) : null}
+
+      {/* 현장 기록 */}
+      {hasBody ? (
+        <FieldSection>
+          {splitPostBodyParagraphs(spot.body).map((p, i) => (
+            <p key={i} className={cn("text-sm leading-relaxed text-foreground/80", i > 0 && "mt-2")}>
+              {p}
+            </p>
+          ))}
+        </FieldSection>
+      ) : null}
+
+      {/* 알아두세요 */}
+      {hasCaution ? (
+        <FieldCaution>
+          <p className="text-sm leading-relaxed text-foreground/85">{spot.caution}</p>
+        </FieldCaution>
+      ) : null}
+
+      {/* 거리 분위기 */}
+      {hasMood ? (
+        <FieldSection>
+          <p className="text-sm italic leading-relaxed text-muted-foreground">
+            {spot.theme_reason ?? spot.recommend_reason}
+          </p>
+        </FieldSection>
+      ) : null}
     </div>
   );
 }
 
-// ─── EditorialSpotRow ─────────────────────────────────────────────────────────
+function DestinationSpotNotes({ spot }: { spot: RouteSpot }) {
+  const hasWhatToDo = !!spot.what_to_do?.trim();
+  const hasPhotoTip = !!spot.photo_tip?.trim();
+  const hasCaution = !!spot.caution?.trim();
+  const hasBody = !!spot.body?.trim();
+  const moodText = (spot.theme_reason ?? spot.recommend_reason)?.trim();
+  const hasMood = !!moodText;
+
+  if (!hasWhatToDo && !hasPhotoTip && !hasCaution && !hasBody && !hasMood) return null;
+
+  const actionItems = hasWhatToDo ? parseActionItems(spot.what_to_do ?? "") : null;
+
+  return (
+    <div className="mt-4 space-y-3">
+      {/* 왜 여기냐면 — 분위기·이유 */}
+      {hasMood ? (
+        <FieldHighlight label="왜 여기냐면">
+          <p className="text-sm leading-relaxed text-foreground/85">{moodText}</p>
+        </FieldHighlight>
+      ) : null}
+
+      {/* 여기서 할 것 */}
+      {hasWhatToDo ? (
+        <FieldSection label="여기서 할 것">
+          {actionItems ? (
+            <ActionList items={actionItems} />
+          ) : (
+            <p className="text-sm leading-relaxed text-foreground/85">{spot.what_to_do}</p>
+          )}
+        </FieldSection>
+      ) : null}
+
+      {/* 현장 기록 */}
+      {hasBody ? (
+        <FieldSection>
+          {splitPostBodyParagraphs(spot.body).map((p, i) => (
+            <p key={i} className={cn("text-sm leading-relaxed text-foreground/80", i > 0 && "mt-2")}>
+              {p}
+            </p>
+          ))}
+        </FieldSection>
+      ) : null}
+
+      {/* 포토 팁 */}
+      {hasPhotoTip ? (
+        <FieldSection label="📸 포토 팁">
+          <p className="text-sm leading-relaxed text-foreground/85">{spot.photo_tip}</p>
+        </FieldSection>
+      ) : null}
+
+      {/* 현장 메모 */}
+      {hasCaution ? (
+        <FieldCaution>
+          <p className="text-sm leading-relaxed text-foreground/85">{spot.caution}</p>
+        </FieldCaution>
+      ) : null}
+    </div>
+  );
+}
+
+function SpotFieldNotes({ spot }: { spot: RouteSpot }) {
+  const role = inferSpotRole(spot);
+  if (role === "photo") return <PhotoSpotNotes spot={spot} />;
+  if (role === "rest") return <RestSpotNotes spot={spot} />;
+  return <DestinationSpotNotes spot={spot} />;
+}
+
+// ─── Locked hint (free users) ─────────────────────────────────────────────────
+
+function LockedFieldHint() {
+  return (
+    <div className="mt-4 flex items-center gap-2.5 border-t border-dashed border-border/25 pt-3">
+      <Lock className="size-3.5 shrink-0 text-muted-foreground/40" aria-hidden />
+      <p className="text-xs text-muted-foreground/70">실행 가이드 · 포토 팁 · 현장 메모 포함</p>
+    </div>
+  );
+}
+
+// ─── Editorial spot row ───────────────────────────────────────────────────────
 
 function EditorialSpotRow({
   spot,
@@ -213,12 +469,14 @@ function EditorialSpotRow({
   isFlashing: boolean;
 }) {
   const t = useTranslations("RoutePosts");
+  const role = inferSpotRole(spot);
+  const roleConf = ROLE_CONFIG[role];
   const img = getSpotDisplayImageUrl(spot, post, { plan: visualPlan });
   const imgAlt = spot.image_alt ?? getSpotDisplayImageAlt(spot, post, { plan: visualPlan });
 
   return (
     <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4">
-      {/* ── Spine column ── */}
+      {/* ── Spine ── */}
       <div className="flex w-10 shrink-0 flex-col items-center sm:w-12">
         <time
           className="mb-1.5 text-[10px] font-semibold tabular-nums text-muted-foreground"
@@ -237,33 +495,42 @@ function EditorialSpotRow({
         >
           {index + 1}
         </div>
-        {!isLast && <div className="mt-2 w-px flex-1 bg-border/25" />}
+        {!isLast && <div className="mt-2 w-px flex-1 bg-border/20" />}
       </div>
 
-      {/* ── Content column ── */}
+      {/* ── Content ── */}
       <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-10")}>
-        {/* Spot title + stay chip */}
-        <div className="mb-3">
+        {/* Header: title + role badge + stay */}
+        <div className="mb-3 flex flex-wrap items-start gap-x-2 gap-y-1">
           <p
             className={cn(
-              "text-base font-semibold leading-snug",
+              "w-full text-base font-semibold leading-snug sm:w-auto sm:flex-1",
               isFlashing ? "text-primary" : "text-[var(--text-strong)]",
             )}
           >
             {spot.title ?? spot.place_name}
           </p>
-          {spot.place_name && spot.place_name !== spot.title ? (
-            <p className="mt-0.5 text-xs text-muted-foreground">{spot.place_name}</p>
-          ) : null}
-          {spot.stay_duration_minutes ? (
-            <span className="mt-1.5 inline-flex items-center rounded-full bg-muted/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-              {t("stayDuration", { minutes: spot.stay_duration_minutes })}
-            </span>
-          ) : null}
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+              roleConf.badgeClass,
+            )}
+          >
+            <span aria-hidden>{roleConf.emoji}</span>
+            {roleConf.label}
+          </span>
         </div>
+        {spot.place_name && spot.place_name !== spot.title ? (
+          <p className="mb-2 text-xs text-muted-foreground">{spot.place_name}</p>
+        ) : null}
+        {spot.stay_duration_minutes ? (
+          <span className="mb-3 inline-flex items-center rounded-full bg-muted/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+            {t("stayDuration", { minutes: spot.stay_duration_minutes })}
+          </span>
+        ) : null}
 
-        {/* Image */}
-        <div className="relative mb-4 aspect-[16/10] overflow-hidden rounded-xl border border-border/60 sm:aspect-[2/1]">
+        {/* Image — 16:9 mobile, 2:1 sm+ */}
+        <div className="relative mb-4 aspect-[16/10] overflow-hidden rounded-xl border border-border/50 sm:aspect-[2/1]">
           <Image
             src={img}
             alt={imgAlt}
@@ -273,13 +540,15 @@ function EditorialSpotRow({
           />
         </div>
 
-        {/* Short description */}
+        {/* Short description — conversational lead */}
         {spot.short_description ? (
-          <p className="mb-3 text-sm leading-relaxed text-foreground/80">{spot.short_description}</p>
+          <p className="mb-3 text-[15px] leading-relaxed text-foreground/80">
+            {spot.short_description}
+          </p>
         ) : null}
 
-        {/* Memo grid (paid) or locked hint */}
-        {isSuperAdmin ? <SpotMemoGrid spot={spot} /> : <LockedMemoHint />}
+        {/* Field notes (role-aware) or locked hint */}
+        {isSuperAdmin ? <SpotFieldNotes spot={spot} /> : <LockedFieldHint />}
 
         {/* Move connector */}
         {!isLast ? <MoveConnector spot={spot} /> : null}
@@ -378,7 +647,6 @@ export function RoutePostDetailClient({
     [post.structured_content, rest],
   );
 
-  // Editorial timeline: compute per-spot time labels
   const spotTimes = useMemo(() => {
     const startHour = startHourFromTimeOfDay(journey.metadata.recommended_time_of_day);
     return computeSpotTimes(spots, startHour);
@@ -415,16 +683,16 @@ export function RoutePostDetailClient({
               {t("insightTitle")}
             </h2>
             <ul
-              className="mt-5 max-w-[38rem] space-y-3.5 text-[15px] leading-snug sm:text-base"
+              className="mt-5 max-w-[38rem] space-y-3 text-[15px] leading-snug sm:text-base"
               aria-label={t("insightTitle")}
             >
               {post.route_highlights.map((line) => (
-                <li key={line} className="flex gap-3.5">
+                <li key={line} className="flex gap-3">
                   <span
-                    className="border-primary/35 bg-primary/6 text-primary mt-0.5 flex size-[22px] shrink-0 items-center justify-center rounded-md border"
+                    className="border-primary/35 bg-primary/6 text-primary mt-0.5 flex size-[20px] shrink-0 items-center justify-center rounded-md border"
                     aria-hidden
                   >
-                    <Check className="size-3.5 stroke-[2.5]" />
+                    <Check className="size-3 stroke-[2.5]" />
                   </span>
                   <span className="min-w-0 text-foreground">{line}</span>
                 </li>
