@@ -154,6 +154,7 @@ export function buildSpotGallerySlides(
     }
   }
 
+  // local fallback (우선순위 3): 스팟 로컬 업로드/정적 히어로/fallback URL
   if (slides.length < MAX_GALLERY && spot.images?.hero?.trim()) {
     const u = spot.images.hero.trim();
     push({
@@ -174,15 +175,16 @@ export function buildSpotGallerySlides(
     });
   }
 
-  const planSpot = plan.spotImages.get(spot.id);
-  if (planSpot && slides.length < MAX_GALLERY) {
+  const fb = spot.images?.fallback?.trim();
+  if (slides.length < MAX_GALLERY && fb) {
     push({
-      tryUrls: [planSpot],
+      tryUrls: [fb],
       alt: galleryAltForSlide(spot),
-      source: "fallback",
+      source: "local",
     });
   }
 
+  // naver fallback (우선순위 4)
   const clientItems =
     (opts as SpotImageOpts & { clientNaverItems?: NaverImageCandidate[] | null }).clientNaverItems ??
     opts.clientNaverCandidates;
@@ -213,19 +215,20 @@ export function buildSpotGallerySlides(
     });
   }
 
-  if (slides.length === 0 && plan.hero) {
+  // placeholder (우선순위 5): 로컬 플랜/히어로
+  const planSpot = plan.spotImages.get(spot.id);
+  if (planSpot && slides.length < MAX_GALLERY) {
     push({
-      tryUrls: [plan.hero],
-      alt: post.title,
+      tryUrls: [planSpot],
+      alt: galleryAltForSlide(spot),
       source: "fallback",
     });
   }
 
-  const fb = spot.images?.fallback?.trim();
-  if (slides.length === 0 && fb) {
+  if (slides.length === 0 && plan.hero) {
     push({
-      tryUrls: [fb],
-      alt: galleryAltForSlide(spot),
+      tryUrls: [plan.hero],
+      alt: post.title,
       source: "fallback",
     });
   }

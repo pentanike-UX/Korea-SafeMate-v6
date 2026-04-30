@@ -21,6 +21,12 @@ export type GoogleTextSearchPlace = {
   displayName: string;
   formattedAddress: string;
   location: { lat: number; lng: number };
+  photos: Array<{
+    name: string;
+    widthPx?: number;
+    heightPx?: number;
+    authorAttributions?: Array<{ displayName?: string; uri?: string; photoUri?: string }>;
+  }>;
 };
 
 export async function googlePlacesSearchText(body: {
@@ -40,7 +46,8 @@ export async function googlePlacesSearchText(body: {
     headers: {
       "Content-Type": "application/json",
       "X-Goog-Api-Key": key,
-      "X-Goog-FieldMask": "places.name,places.displayName,places.formattedAddress,places.location",
+      "X-Goog-FieldMask":
+        "places.name,places.displayName,places.formattedAddress,places.location,places.photos.name,places.photos.widthPx,places.photos.heightPx,places.photos.authorAttributions",
     },
     body: JSON.stringify({
       textQuery: body.textQuery,
@@ -57,6 +64,12 @@ export async function googlePlacesSearchText(body: {
       displayName?: { text?: string };
       formattedAddress?: string;
       location?: { latitude?: number; longitude?: number };
+      photos?: Array<{
+        name?: string;
+        widthPx?: number;
+        heightPx?: number;
+        authorAttributions?: Array<{ displayName?: string; uri?: string; photoUri?: string }>;
+      }>;
     }>;
     error?: { message?: string };
   };
@@ -83,6 +96,14 @@ export async function googlePlacesSearchText(body: {
         lat: typeof lat === "number" ? lat : 0,
         lng: typeof lng === "number" ? lng : 0,
       },
+      photos: (p.photos ?? [])
+        .map((ph) => ({
+          name: ph.name?.trim() ?? "",
+          widthPx: ph.widthPx,
+          heightPx: ph.heightPx,
+          authorAttributions: ph.authorAttributions,
+        }))
+        .filter((ph) => ph.name.length > 0),
     });
   }
 
@@ -94,7 +115,12 @@ export type GooglePlaceDetails = {
   displayName: string;
   formattedAddress: string;
   location: { lat: number; lng: number };
-  photos: Array<{ name: string; widthPx?: number; heightPx?: number }>;
+  photos: Array<{
+    name: string;
+    widthPx?: number;
+    heightPx?: number;
+    authorAttributions?: Array<{ displayName?: string; uri?: string; photoUri?: string }>;
+  }>;
 };
 
 export async function googlePlaceDetails(placeIdRaw: string): Promise<{
@@ -110,7 +136,8 @@ export async function googlePlaceDetails(placeIdRaw: string): Promise<{
   const res = await fetch(url, {
     headers: {
       "X-Goog-Api-Key": key,
-      "X-Goog-FieldMask": "name,displayName,formattedAddress,location,photos",
+      "X-Goog-FieldMask":
+        "name,displayName,formattedAddress,location,photos.name,photos.widthPx,photos.heightPx,photos.authorAttributions",
     },
   });
 
@@ -119,7 +146,12 @@ export async function googlePlaceDetails(placeIdRaw: string): Promise<{
     displayName?: { text?: string };
     formattedAddress?: string;
     location?: { latitude?: number; longitude?: number };
-    photos?: Array<{ name?: string; widthPx?: number; heightPx?: number }>;
+    photos?: Array<{
+      name?: string;
+      widthPx?: number;
+      heightPx?: number;
+      authorAttributions?: Array<{ displayName?: string; uri?: string; photoUri?: string }>;
+    }>;
     error?: { message?: string };
   };
 
@@ -137,6 +169,7 @@ export async function googlePlaceDetails(placeIdRaw: string): Promise<{
       name: ph.name?.trim() ?? "",
       widthPx: ph.widthPx,
       heightPx: ph.heightPx,
+      authorAttributions: ph.authorAttributions,
     }))
     .filter((ph) => ph.name.length > 0);
 
@@ -155,49 +188,86 @@ export async function googlePlaceDetails(placeIdRaw: string): Promise<{
 }
 
 const MAX_PHOTO_PX = 1600;
+const MIN_PHOTO_PX = 160;
+const MAX_PHOTO_PX_HARD = 4800;
+
+export type GooglePlaceResolvedPhoto = {
+  name: string;
+  url: string;
+  width?: number;
+  height?: number;
+  authorAttributions?: Array<{ displayName?: string; uri?: string; photoUri?: string }>;
+};
 
 /**
  * Places Photo media — 리다이렉트 Location 또는 동일 응답 URL.
  * 최종 URL은 보통 API 키 없이 GET 가능한 googleusercontent 호스트.
  * `name`은 API가 준 전체 리소스 경로 (예: `places/ChIJ…/photos/AciIO…`).
  */
-export async function resolveGooglePhotoUri(photoResourceName: string): Promise<string | null> {
+export async function resolveGooglePhotoMedia(
+  photoResourceName: string,
+  opts?: { maxWidthPx?: number; authorAttributions?: Array<{ displayName?: string; uri?: string; photoUri?: string }> },
+): Promise<GooglePlaceResolvedPhoto | null> {
   const key = getGoogleMapsServerApiKey();
   const name = photoResourceName.trim();
   if (!key || !name) return null;
 
-  const mediaUrl = `${PLACES_BASE}/${name}/media?maxWidthPx=${MAX_PHOTO_PX}`;
+  const pxRaw = Number.isFinite(opts?.maxWidthPx) ? (opts?.maxWidthPx as number) : MAX_PHOTO_PX;
+  const maxWidthPx = Math.max(MIN_PHOTO_PX, Math.min(MAX_PHOTO_PX_HARD, Math.round(pxRaw)));
+  const mediaUrl = `${PLACES_BASE}/${name}/media?maxWidthPx=${maxWidthPx}&skipHttpRedirect=true&key=${encodeURIComponent(key)}`;
 
-  const res = await fetch(mediaUrl, {
-    headers: { "X-Goog-Api-Key": key },
-    redirect: "manual",
-  });
+  const res = await fetch(mediaUrl);
+  const json = (await res.json().catch(() => null)) as
+    | {
+        name?: string;
+        photoUri?: string;
+        widthPx?: number;
+        heightPx?: number;
+        error?: { message?: string };
+      }
+    | null;
 
-  if (res.status === 301 || res.status === 302 || res.status === 303 || res.status === 307 || res.status === 308) {
-    const loc = res.headers.get("Location");
-    if (loc?.startsWith("http")) return loc;
-  }
+  if (!res.ok) return null;
+  const url = json?.photoUri?.trim();
+  if (!url?.startsWith("http")) return null;
+  return {
+    name,
+    url,
+    width: json?.widthPx,
+    height: json?.heightPx,
+    authorAttributions: opts?.authorAttributions,
+  };
+}
 
-  if (res.ok && res.headers.get("content-type")?.startsWith("image/")) {
-    return mediaUrl;
-  }
-
-  return null;
+export async function resolveGooglePhotoUri(photoResourceName: string): Promise<string | null> {
+  const resolved = await resolveGooglePhotoMedia(photoResourceName);
+  return resolved?.url ?? null;
 }
 
 /** 최대 `max`장까지 병렬 resolve (과도한 동시성 방지 — 청크). */
 export async function resolveGooglePhotoUris(
-  photos: Array<{ name: string }>,
+  photos: Array<{ name: string; authorAttributions?: Array<{ displayName?: string; uri?: string; photoUri?: string }> }>,
   max: number,
 ): Promise<string[]> {
+  const resolved = await resolveGooglePhotoMediaBatch(photos, max);
+  return resolved.map((p) => p.url);
+}
+
+/** 최대 `max`장까지 병렬 resolve (과도한 동시성 방지 — 청크). */
+export async function resolveGooglePhotoMediaBatch(
+  photos: Array<{ name: string; authorAttributions?: Array<{ displayName?: string; uri?: string; photoUri?: string }> }>,
+  max: number,
+): Promise<GooglePlaceResolvedPhoto[]> {
   const slice = photos.slice(0, max);
-  const out: string[] = [];
+  const out: GooglePlaceResolvedPhoto[] = [];
   const chunk = 3;
   for (let i = 0; i < slice.length; i += chunk) {
     const batch = slice.slice(i, i + chunk);
-    const urls = await Promise.all(batch.map((p) => resolveGooglePhotoUri(p.name)));
-    for (const u of urls) {
-      if (u) out.push(u);
+    const media = await Promise.all(
+      batch.map((p) => resolveGooglePhotoMedia(p.name, { authorAttributions: p.authorAttributions })),
+    );
+    for (const m of media) {
+      if (m) out.push(m);
     }
   }
   return out;

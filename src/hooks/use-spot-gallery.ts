@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import type { ContentPost, RouteSpot } from "@/types/domain";
 import { buildSpotGallerySlides } from "@/lib/spot-image-gallery";
 import type { SpotImageOpts } from "@/lib/content-post-route";
@@ -44,6 +44,23 @@ export function useSpotGallery(
     googlePix.photoUris,
     googlePix.googlePhotosDone,
   ]);
+
+  useEffect(() => {
+    if (!fetchRemote) return;
+    const sourceCount = slides.reduce<Record<string, number>>((acc, s) => {
+      acc[s.source] = (acc[s.source] ?? 0) + 1;
+      return acc;
+    }, {});
+    const sourceOrder = Object.keys(sourceCount).sort();
+    const chosen = slides[0]?.source ?? "none";
+    console.info("[spot-gallery:client] gallery_debug", {
+      spotId: spot.id,
+      spotLabel: spot.real_place_name ?? spot.spot_name ?? spot.title,
+      galleryCount: slides.length,
+      imageSource: chosen,
+      sourceBreakdown: sourceOrder.map((k) => `${k}:${sourceCount[k]}`).join(","),
+    });
+  }, [fetchRemote, slides, spot.id, spot.real_place_name, spot.spot_name, spot.title]);
 
   const imageQueryLabel = useMemo(
     () => primaryImageQueryLabel(spot, pipe.primaryPlace, { regionSlug: post.region_slug, postTitle: post.title }),
