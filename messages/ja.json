@@ -1212,8 +1212,9 @@
     "playbookTeaserGallery": "現地画像（最大10枚）",
     "playbookTeaserMove": "移動メモ・横断",
     "playbookTeaserSeat": "待ち・座席・充電",
-    "playbookTeaserFooter": "プレミアムで表示",
-    "playbookLockedRow": "プレミアムで表示"
+    "playbookTeaserFooter": "現場プレイブックを見る",
+    "playbookLockedRow": "プレミアムで表示",
+    "playbookFoldHint": "開くと実名・住所・現場メモ・ギャラリーが表示されます。"
   },
   "TravelerHub": {
     "metaTitle": "マイジャーニー",

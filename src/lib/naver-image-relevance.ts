@@ -9,6 +9,8 @@ import {
 } from "@/lib/naver-image-quality";
 import { normalizePlaceTitle } from "@/lib/naver-place-similarity";
 
+const NEWS_HOST_LINK = /news\.|yna\.|joins\.|hani\.|chosun\.|donga\.|wikimedia|namu\.wiki|news\.naver\.com/i;
+
 function parseDim(s: string | undefined): number {
   if (!s) return 0;
   const n = parseInt(s, 10);
@@ -16,7 +18,7 @@ function parseDim(s: string | undefined): number {
 }
 
 const IRRELEVANT =
-  /상권|매출|공실|부동산|오피스텔|분양|임대|뉴스|속보|사건|시위|체포|논란|공사|철거|세척|나무위키|위키미디어|위키\b|한경|매일경제|부동산114/i;
+  /상권|매출|공실|부동산|오피스텔|분양|임대|전세|월세|뉴스|속보|기사|경제|사건|시위|체포|논란|공사|철거|세척|오픈|붐빈다|프랜차이즈|나무위키|위키미디어|위키\b|wikimedia|한경|매일경제|부동산114|연합뉴스|특집|칼럼/i;
 
 const POS_SCENE =
   /전경|외관|입구|실내|창가|좌석|정문|보행로|매장|내부|야경|광장|산책로|메뉴/i;
@@ -103,13 +105,16 @@ export function scoreAndSortWithPrimaryPlace(
     const title = stripHtmlTitle(c.title);
     const w = parseDim(c.sizewidth);
     const h = parseDim(c.sizeheight);
-    if (shouldExcludeNaverCandidate(title, c.link ?? "", w, h)) continue;
+    const link = (c.link ?? "").trim();
+    if (shouldExcludeNaverCandidate(title, link, w, h)) continue;
+    if (link && NEWS_HOST_LINK.test(link) && !POS_SCENE.test(title)) continue;
     if (primaryPlace && shouldExcludeLowRelevance(title, primaryPlace, spot)) continue;
 
     const q = getImageQualityScore(c, spot);
     const r = getImageRelevanceScore(c, primaryPlace, spot);
-    const score = primaryPlace ? q * 0.38 + r * 0.62 : q;
-    if (score < 18) continue;
+    const score = primaryPlace ? q * 0.35 + r * 0.65 : q;
+    const minCut = primaryPlace ? 26 : 18;
+    if (score < minCut) continue;
     out.push({ ...c, score });
   }
   out.sort((a, b) => b.score - a.score);

@@ -53,7 +53,17 @@ export function buildRefinedImageQueries(
 
     if (road) qs.push(`${t} ${road}`);
     if (dist) qs.push(`${t} ${dist}`);
-    qs.push(`${t} 외관`, `${t} 입구`, `${t} 실내`, `${t} 창가`, `${t} 좌석`, `${t} 메뉴`);
+    qs.push(
+      `${t} 외관`,
+      `${t} 입구`,
+      `${t} 실내`,
+      `${t} 창가`,
+      `${t} 좌석`,
+      `${t} 거리`,
+      `${t} 보행로`,
+      `${t} 야경`,
+      `${t} 메뉴`,
+    );
 
     const blob = `${spot.real_place_name ?? ""} ${spot.title ?? ""}`;
     if (/광화문광장|세종대왕|이순신|광화문/.test(blob)) {

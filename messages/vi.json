@@ -1213,8 +1213,9 @@
     "playbookTeaserGallery": "On-site image gallery (up to 10)",
     "playbookTeaserMove": "Leg notes · crossing tips",
     "playbookTeaserSeat": "Wait times · seats · power",
-    "playbookTeaserFooter": "Included with premium",
-    "playbookLockedRow": "Expand with premium"
+    "playbookTeaserFooter": "Open field playbook",
+    "playbookLockedRow": "Expand with premium",
+    "playbookFoldHint": "Expand for real venue name, address, field notes, and photo gallery."
   },
   "TravelerHub": {
     "metaTitle": "My journey",

@@ -16,7 +16,7 @@ import { SpotImageCarousel } from "@/components/route-posts/spot-image-carousel"
 import { SpotImageAdminDiagnostics } from "@/components/route-posts/spot-image-admin-diagnostics";
 import { SpotVerificationStrip } from "@/components/route-posts/spot-verification-strip";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Lock } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
   POST_DETAIL_PROSE_P_MAIN,
@@ -25,7 +25,12 @@ import {
 } from "@/lib/post-detail-body-split";
 import { resolveRouteArticleRender } from "@/lib/post-structured-content";
 import { RouteArticleStructuredBody } from "@/components/posts/route-article-structured-body";
-import { premiumSpotPlaceTitle, roughPlaybookSpotTitle } from "@/lib/route-playbook-labels";
+import {
+  atmospherePlaybookTitle,
+  collapsedSituationLine,
+  premiumSpotAddressLine,
+  premiumSpotPlaceTitle,
+} from "@/lib/route-playbook-labels";
 
 // ─── Time utilities ───────────────────────────────────────────────────────────
 
@@ -167,8 +172,8 @@ function MoveConnector({ spot }: { spot: RouteSpot }) {
 function LegFromPrevious({ text }: { text: string | undefined }) {
   if (!text?.trim()) return null;
   return (
-    <p className="text-muted-foreground mb-3 rounded-lg border border-border/30 bg-muted/15 px-3 py-2 text-xs leading-relaxed">
-      <span className="font-medium text-foreground/75">🧭 </span>
+    <p className="text-foreground/90 mb-4 rounded-lg border border-border/35 bg-muted/20 px-3 py-2.5 text-[13px] leading-snug">
+      <span className="text-muted-foreground mr-1 font-semibold">🧭 이동</span>
       {text.trim()}
     </p>
   );
@@ -481,8 +486,10 @@ function EditorialSpotRow({
   const t = useTranslations("RoutePosts");
   const role = inferSpotRole(spot);
   const roleConf = ROLE_CONFIG[role];
-  const roughTitle = roughPlaybookSpotTitle(spot);
+  const atmosphereTitle = atmospherePlaybookTitle(spot);
+  const situationLine = collapsedSituationLine(spot);
   const placeTitle = premiumSpotPlaceTitle(spot);
+  const addressFallback = premiumSpotAddressLine(spot);
 
   const {
     slides,
@@ -503,7 +510,12 @@ function EditorialSpotRow({
   const heroSlides = slides.length ? slides.slice(0, 1) : slides;
   const gallerySlides = slides;
 
-  const [expanded, setExpanded] = useState(() => hasPlaybookPremium && index === 0);
+  const [expanded, setExpanded] = useState(false);
+
+  const addressLine =
+    primaryPlace?.roadAddress?.trim() ||
+    primaryPlace?.address?.trim() ||
+    addressFallback;
 
   const carouselKey = `${spot.id}-${pipelineDone ? "r" : "l"}-${primaryPlace?.title ?? "np"}-${naverFetchedCount}`;
 
@@ -514,46 +526,65 @@ function EditorialSpotRow({
     t("playbookTeaserSeat"),
   ];
 
-  /** 무료 · 첫 스팟 — 러프 플로우 카드(항상 노출) */
-  if (!hasPlaybookPremium && index === 0) {
+  const adminBlock = showAdminDebug ? (
+    <AdminSpotDebug
+      spot={spot}
+      imageQuery={imageQuery}
+      naverFetchedCount={naverFetchedCount}
+      slidesLength={slides.length}
+      usedFallbackOnly={usedFallbackOnly}
+      usedBroadFallback={usedBroadFallback}
+      primaryPlace={primaryPlace}
+      placeSimilarityScore={placeSimilarityScore}
+      searchQueryUsedForResolve={searchQueryUsedForResolve}
+      imageQueriesTried={imageQueriesTried}
+      excludedApprox={excludedApprox}
+      carouselKey={carouselKey}
+    />
+  ) : null;
+
+  const spine = (
+    <div className="flex w-10 shrink-0 flex-col items-center sm:w-12">
+      <time
+        className="mb-1.5 text-[10px] font-semibold tabular-nums text-muted-foreground"
+        aria-label={`${time} 출발`}
+      >
+        {time}
+      </time>
+      <div
+        className={cn(
+          "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors duration-300",
+          isFlashing
+            ? "bg-primary text-primary-foreground ring-2 ring-primary/25 ring-offset-1"
+            : "bg-primary/10 text-primary",
+        )}
+        aria-label={`스팟 ${index + 1}`}
+      >
+        {index + 1}
+      </div>
+      {!isLast ? <div className="mt-2 w-px flex-1 bg-border/30" aria-hidden /> : null}
+    </div>
+  );
+
+  /** 무료 — 분위기 티저만(실명·이동 상세·갤러리 다장 금지), 모든 스팟 동일 밀도 */
+  if (!hasPlaybookPremium) {
     return (
       <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4">
-        <div className="flex w-10 shrink-0 flex-col items-center sm:w-12">
-          <time
-            className="mb-1.5 text-[10px] font-semibold tabular-nums text-muted-foreground"
-            aria-label={`${time} 출발`}
-          >
-            {time}
-          </time>
-          <div
-            className={cn(
-              "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors duration-300",
-              isFlashing
-                ? "bg-primary text-primary-foreground ring-2 ring-primary/25 ring-offset-1"
-                : "bg-primary/10 text-primary",
-            )}
-            aria-label={`스팟 ${index + 1}`}
-          >
-            {index + 1}
-          </div>
-          {!isLast && <div className="mt-2 w-px flex-1 bg-border/25" />}
-        </div>
-
-        <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-8")}>
-          <LegFromPrevious text={spot.leg_from_previous} />
-          <div className="border-border/50 bg-card rounded-2xl border p-4 shadow-[var(--shadow-xs)] sm:p-5">
+        {spine}
+        <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-7")}>
+          <div className="border-border/55 bg-card rounded-xl border p-3 shadow-[var(--shadow-xs)] sm:rounded-2xl sm:p-4">
             <div className="flex flex-wrap items-start gap-2">
               <p
                 className={cn(
-                  "text-[var(--text-strong)] min-w-0 flex-1 text-base font-semibold leading-snug",
+                  "text-[var(--text-strong)] min-w-0 flex-1 text-[15px] font-semibold leading-snug tracking-tight",
                   isFlashing && "text-primary",
                 )}
               >
-                {roughTitle}
+                {atmosphereTitle}
               </p>
               <span
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                  "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
                   roleConf.badgeClass,
                 )}
               >
@@ -562,154 +593,58 @@ function EditorialSpotRow({
               </span>
             </div>
             {spot.stay_duration_minutes ? (
-              <p className="text-muted-foreground mt-2 text-[11px] font-medium">
+              <p className="text-muted-foreground mt-1.5 text-[11px] font-medium">
                 {t("stayDuration", { minutes: spot.stay_duration_minutes })}
               </p>
             ) : null}
 
-            <div className="mt-4">
+            <div className="mt-3">
               <SpotImageCarousel key={`free-${carouselKey}`} slides={heroSlides} className="sm:max-w-none" />
             </div>
 
-            {spot.short_description ? (
-              <p className="text-foreground/85 mt-4 text-[15px] leading-relaxed">&ldquo;{spot.short_description}&rdquo;</p>
+            {situationLine ? (
+              <p className="text-foreground/85 mt-3 text-sm leading-relaxed">&ldquo;{situationLine}&rdquo;</p>
             ) : null}
 
-            <ul className="text-muted-foreground/90 mt-4 space-y-1.5 text-xs leading-relaxed">
+            <ul className="text-muted-foreground mt-3 space-y-1 text-[11px] leading-relaxed">
               {teaserLines.map((line) => (
                 <li key={line} className="flex gap-2">
-                  <span className="shrink-0">·</span>
+                  <span className="shrink-0 opacity-70">·</span>
                   <span>{line}</span>
                 </li>
               ))}
             </ul>
-            <p className="text-muted-foreground mt-3 border-t border-dashed border-border/30 pt-3 text-[11px] font-medium">
+            <p className="text-muted-foreground mt-3 border-t border-dashed border-border/35 pt-2.5 text-[10px] font-semibold tracking-wide uppercase">
               {t("playbookTeaserFooter")}
             </p>
           </div>
-
-          {showAdminDebug ? (
-            <AdminSpotDebug
-              spot={spot}
-              imageQuery={imageQuery}
-              naverFetchedCount={naverFetchedCount}
-              slidesLength={slides.length}
-              usedFallbackOnly={usedFallbackOnly}
-              usedBroadFallback={usedBroadFallback}
-              primaryPlace={primaryPlace}
-              placeSimilarityScore={placeSimilarityScore}
-              searchQueryUsedForResolve={searchQueryUsedForResolve}
-              imageQueriesTried={imageQueriesTried}
-              excludedApprox={excludedApprox}
-              carouselKey={carouselKey}
-            />
-          ) : null}
-
+          {adminBlock}
           {!isLast ? <MoveConnector spot={spot} /> : null}
         </div>
       </div>
     );
   }
 
-  /** 무료 · 2번째 이후 — 초간단 한 줄(접힘만) */
-  if (!hasPlaybookPremium && index > 0) {
-    const thumb = heroSlides[0]?.tryUrls[0];
-    return (
-      <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4 opacity-95">
-        <div className="flex w-10 shrink-0 flex-col items-center sm:w-12">
-          <time className="mb-1.5 text-[10px] font-semibold tabular-nums text-muted-foreground">{time}</time>
-          <div
-            className={cn(
-              "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
-              isFlashing ? "bg-primary text-primary-foreground ring-2 ring-primary/25" : "bg-muted text-muted-foreground",
-            )}
-          >
-            {index + 1}
-          </div>
-          {!isLast && <div className="mt-2 w-px flex-1 bg-border/20" />}
-        </div>
-        <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-8")}>
-          <LegFromPrevious text={spot.leg_from_previous} />
-          <div className="border-border/40 flex items-center gap-3 rounded-xl border bg-muted/10 px-3 py-2.5">
-            {thumb ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={thumb}
-                alt=""
-                className="border-border/40 size-14 shrink-0 rounded-lg border object-cover"
-                loading="lazy"
-              />
-            ) : (
-              <div className="border-border/40 bg-muted/40 size-14 shrink-0 rounded-lg border" />
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="text-[var(--text-strong)] truncate text-sm font-medium">{roughTitle}</p>
-              <p className="text-muted-foreground mt-0.5 flex items-center gap-1 text-[11px]">
-                <Lock className="size-3 shrink-0 opacity-50" aria-hidden />
-                {t("playbookLockedRow")}
-              </p>
-            </div>
-          </div>
-          {showAdminDebug ? (
-            <AdminSpotDebug
-              spot={spot}
-              imageQuery={imageQuery}
-              naverFetchedCount={naverFetchedCount}
-              slidesLength={slides.length}
-              usedFallbackOnly={usedFallbackOnly}
-              usedBroadFallback={usedBroadFallback}
-              primaryPlace={primaryPlace}
-              placeSimilarityScore={placeSimilarityScore}
-              searchQueryUsedForResolve={searchQueryUsedForResolve}
-              imageQueriesTried={imageQueriesTried}
-              excludedApprox={excludedApprox}
-              carouselKey={carouselKey}
-            />
-          ) : null}
-          {!isLast ? <MoveConnector spot={spot} /> : null}
-        </div>
-      </div>
-    );
-  }
-
-  /** 유료 — 아코디언, 펼침 시 실제 장소명·갤러리·필드노트 */
+  /** 유료 — 기본 접힘; 펼침에서만 실명·주소·풀 갤러리·이동 메모·필드노트 */
   return (
     <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4">
-      <div className="flex w-10 shrink-0 flex-col items-center sm:w-12">
-        <time
-          className="mb-1.5 text-[10px] font-semibold tabular-nums text-muted-foreground"
-          aria-label={`${time} 출발`}
-        >
-          {time}
-        </time>
-        <div
-          className={cn(
-            "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors duration-300",
-            isFlashing
-              ? "bg-primary text-primary-foreground ring-2 ring-primary/25 ring-offset-1"
-              : "bg-primary/10 text-primary",
-          )}
-          aria-label={`스팟 ${index + 1}`}
-        >
-          {index + 1}
-        </div>
-        {!isLast && <div className="mt-2 w-px flex-1 bg-border/25" />}
-      </div>
-
+      {spine}
       <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-10")}>
-        <LegFromPrevious text={spot.leg_from_previous} />
-
         <div className="border-border/50 overflow-hidden rounded-2xl border bg-card shadow-[var(--shadow-xs)]">
           <button
             type="button"
             onClick={() => setExpanded((e) => !e)}
-            className="hover:bg-muted/30 flex w-full items-start gap-3 px-4 py-4 text-left transition-colors sm:px-5"
+            className="hover:bg-muted/35 flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors sm:px-5 sm:py-4"
             aria-expanded={expanded}
           >
-            <div className="min-w-0 flex-1 space-y-2">
-              <p className="text-muted-foreground text-[11px] font-medium leading-tight">{roughTitle}</p>
-              <p className={cn("text-[var(--text-strong)] text-lg font-semibold leading-snug", isFlashing && "text-primary")}>
-                {placeTitle || roughTitle}
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <p
+                className={cn(
+                  "text-[var(--text-strong)] text-[15px] font-semibold leading-snug tracking-tight",
+                  isFlashing && "text-primary",
+                )}
+              >
+                {atmosphereTitle}
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 <span
@@ -730,19 +665,41 @@ function EditorialSpotRow({
             </div>
             <ChevronDown
               className={cn(
-                "text-muted-foreground mt-1 size-5 shrink-0 transition-transform",
+                "text-muted-foreground mt-0.5 size-5 shrink-0 transition-transform duration-200",
                 expanded && "rotate-180",
               )}
               aria-hidden
             />
           </button>
 
-          <div className="border-border/40 border-t px-4 pb-4 sm:px-5">
+          <div className="border-border/45 border-t px-4 pb-4 sm:px-5">
             {!expanded ? (
-              <SpotImageCarousel key={`fold-${carouselKey}`} slides={heroSlides} className="pt-3 sm:max-w-none" />
+              <>
+                <SpotImageCarousel key={`fold-${carouselKey}`} slides={heroSlides} className="pt-3 sm:max-w-none" />
+                {situationLine ? (
+                  <p className="text-foreground/80 mt-3 text-sm leading-relaxed">&ldquo;{situationLine}&rdquo;</p>
+                ) : null}
+                <ul className="text-muted-foreground mt-3 space-y-1 text-[11px] leading-relaxed">
+                  {teaserLines.map((line) => (
+                    <li key={line} className="flex gap-2">
+                      <span className="shrink-0 opacity-70">·</span>
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-muted-foreground mt-3 text-[10px] leading-snug">{t("playbookFoldHint")}</p>
+              </>
             ) : (
               <>
-                <SpotImageCarousel key={`full-${carouselKey}`} slides={gallerySlides} className="pt-3 sm:max-w-none" />
+                {spot.leg_from_previous?.trim() ? <LegFromPrevious text={spot.leg_from_previous} /> : null}
+                <p className="text-muted-foreground text-[11px] font-medium">{atmosphereTitle}</p>
+                <h3 className="text-[var(--text-strong)] mt-1 text-xl font-bold tracking-tight">
+                  {placeTitle || atmosphereTitle}
+                </h3>
+                {addressLine ? (
+                  <p className="text-muted-foreground mt-1 text-sm leading-snug">{addressLine}</p>
+                ) : null}
+                <SpotImageCarousel key={`full-${carouselKey}`} slides={gallerySlides} className="mt-4 sm:max-w-none" />
                 {spot.short_description ? (
                   <p className="text-foreground/85 mt-4 text-[15px] leading-relaxed">{spot.short_description}</p>
                 ) : null}
@@ -752,23 +709,7 @@ function EditorialSpotRow({
           </div>
         </div>
 
-        {showAdminDebug ? (
-          <AdminSpotDebug
-            spot={spot}
-            imageQuery={imageQuery}
-            naverFetchedCount={naverFetchedCount}
-            slidesLength={slides.length}
-            usedFallbackOnly={usedFallbackOnly}
-            usedBroadFallback={usedBroadFallback}
-            primaryPlace={primaryPlace}
-            placeSimilarityScore={placeSimilarityScore}
-            searchQueryUsedForResolve={searchQueryUsedForResolve}
-            imageQueriesTried={imageQueriesTried}
-            excludedApprox={excludedApprox}
-            carouselKey={carouselKey}
-          />
-        ) : null}
-
+        {adminBlock}
         {!isLast ? <MoveConnector spot={spot} /> : null}
       </div>
     </div>

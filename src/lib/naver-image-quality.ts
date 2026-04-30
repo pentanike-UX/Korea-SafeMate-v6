@@ -21,12 +21,17 @@ function contextFromSpot(spot: RouteSpot): ImageScoreContext {
 }
 
 const NEGATIVE_TITLE =
-  /사건|사고|시위|체포|논란|이전|철거|세척|공사|뉴스|속보|검찰|경찰|불법|혐의|사망|부상|화재|폭행|살인|성범죄|아이콘|로고|지도\s*캡|캡처|기자|보도|논의|해고|징계/i;
+  /사건|사고|시위|체포|논란|이전|철거|세척|공사|뉴스|속보|검찰|경찰|불법|혐의|사망|부상|화재|폭행|살인|성범죄|아이콘|로고|지도\s*캡|캡처|기자|보도|논의|해고|징계|기사|경제|매출|상권|공실|오픈|붐빈다|프랜차이즈|부동산|나무위키|위키미디어|wikimedia|위키\b|전세|월세|임대|분양/i;
 
 const POSITIVE_TITLE =
   /전경|외관|입구|거리|정문|광장|야경|산책로|실내|창가|좌석|보행로|매장|내부|전망|궁|궁전|랜드마크|광장|광화문|한옥|거리 풍경/i;
 
-const NEWSY = /…|\[|\]\s*|\d{4}\.\d{2}|\bYTN\b|\bKBS\b|\bMBC\b|연합|기사|특파원|보도자료/i;
+const NEWSY =
+  /…|\[|\]\s*|\d{4}\.\d{2}|\bYTN\b|\bKBS\b|\bMBC\b|연합|기사|특파원|보도자료|특집|인터뷰|칼럼/i;
+
+/** 뉴스·위키 호스트 — 장소 사진이 아닐 가능성 높음 */
+const NEWS_WIKI_HOST =
+  /news\.|\.news\.|yna\.co|joins\.com|hani\.co|chosun\.com|donga\.com|mk\.co|wikimedia|namu\.wiki|wikitree|news\.naver\.com|media\.naver\.com/i;
 
 const FACEY = /인물|얼굴|셀카|인스타|모델|화보|가수|배우|시상|팬싸|팬 사인/i;
 
@@ -45,9 +50,10 @@ export function shouldExcludeNaverCandidate(title: string, link: string, width: 
   const t = title.trim();
   if (!t || t.length < 3) return true;
   if (NEGATIVE_TITLE.test(t)) return true;
-  if (NEWSY.test(t) && t.length > 40) return true;
+  if (NEWSY.test(t) && t.length > 28) return true;
   if (FACEY.test(t)) return true;
   if (!link?.trim()) return true;
+  if (NEWS_WIKI_HOST.test(link)) return true;
   // 극소 아이콘 추정
   if (width > 0 && height > 0 && width < 200 && height < 200) return true;
   return false;
@@ -96,7 +102,6 @@ export function getImageQualityScore(
   if (title.length > 80) score -= 12;
   if (title.length > 120) score -= 15;
 
-  const low = title.toLowerCase();
   if (/\.gif(\?|$)/i.test(c.link) && w < 400) score -= 30;
 
   return score;
