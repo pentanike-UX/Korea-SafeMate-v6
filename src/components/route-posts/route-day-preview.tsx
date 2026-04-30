@@ -60,6 +60,13 @@ function extractJudgementQuote(texts: Array<string | null | undefined>): string 
   return lines[0] ?? null;
 }
 
+function fallbackFieldQuote(areaLabel: string, spotLine: string | null): string {
+  const blob = `${areaLabel} ${spotLine ?? ""}`;
+  if (/광화문|경복궁|궁/.test(blob)) return "궁 안 들어가면 다시 나오기 귀찮습니다.";
+  if (/강남|테헤란|역삼/.test(blob)) return "횡단 한 번 밀리면 뒤 일정이 바로 늘어집니다.";
+  return "중앙보다 측면이 덜 막힙니다.";
+}
+
 /** 상단 브리핑 — 긴 article 대신 compact 카드 모음 */
 export function RouteDayPreview({
   post,
@@ -150,11 +157,17 @@ export function RouteDayPreview({
   const moodTailParts = [moodExtra && !textsOverlap(moodExtra, routeClosingRaw ?? "") ? moodExtra : null, moodTags.length ? moodTags.join(" · ") : null].filter(
     Boolean,
   ) as string[];
-  const situationLine = firstCompactLine(recommendedAudience) || firstCompactLine(summaryParas[1]) || firstCompactLine(introLead);
   const tipLine = firstCompactLine(beforeParas.join("\n")) || firstCompactLine(highlightLines[0]);
   const finishLine = firstCompactLine(closingParas.join("\n")) || firstCompactLine(moodTailParts[0]);
   const movementLine = firstCompactLine(spotPreviewLine) || areaLabel;
   const judgementQuote = extractJudgementQuote([beforeYouGoRaw, routeClosingRaw, ...highlightLines]);
+  const fieldQuote = judgementQuote || fallbackFieldQuote(areaLabel, spotPreviewLine);
+  const cultureRef =
+    /광화문|경복궁|도심|종로/.test(`${areaLabel} ${spotPreviewLine ?? ""}`)
+      ? "도깨비·서울의봄 쪽 서울 중심부 공기와 비슷한 결입니다."
+      : /강남|테헤란|역삼|선릉/.test(`${areaLabel} ${spotPreviewLine ?? ""}`)
+        ? "요즘 K-드라마 오피스 신이 깔리는 도심 템포와 비슷합니다."
+        : "서울 중심부에서 리듬 빠른 MV 컷 잡힐 때의 공기랑 비슷합니다.";
 
   return (
     <section className={cn("max-w-[42rem] space-y-3.5", className)} aria-label={t("dayPreviewAria")}>
@@ -180,10 +193,10 @@ export function RouteDayPreview({
       </header>
 
       <div className="grid gap-2.5 sm:grid-cols-2">
-        <section className="rounded-xl border border-border/45 bg-card/80 px-3.5 py-3">
+        <section className="rounded-xl border border-border/45 bg-card/80 px-3 py-2.5">
           <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingSummaryTitle")}</p>
           <p className="text-muted-foreground mt-0.5 text-[11px]">{t("briefingSummarySubtitle")}</p>
-          <ul className="mt-2.5 space-y-1 text-[13px] leading-relaxed text-foreground/90">
+          <ul className="mt-2 space-y-0.5 text-[13px] leading-relaxed text-foreground/90">
             <li>{t("chipDuration", { minutes: meta.estimated_total_duration_minutes })}</li>
             <li>{t("chipDistance", { km: meta.estimated_total_distance_km.toFixed(1) })}</li>
             <li>{t(timeKey)}</li>
@@ -191,47 +204,40 @@ export function RouteDayPreview({
           </ul>
         </section>
 
-        <section className="rounded-xl border border-border/45 bg-muted/35 px-3.5 py-3">
-          <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingSituationTitle")}</p>
-          <p className="mt-2 text-[13px] leading-relaxed text-foreground/90">
-            {situationLine || t("introFallbackMinimal")}
+        <section className="rounded-xl border border-amber-300/45 bg-amber-50/70 px-3 py-2.5 dark:bg-amber-900/10">
+          <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingTipTitle")}</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-foreground/90">
+            {tipLine || "화장실·물은 들어가기 전에 먼저 끝내는 편이 편합니다."}
           </p>
           {recommendedAudience ? (
-            <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">
-              <span className="font-medium text-foreground/85">{t("introForWhoLabel")}</span> {recommendedAudience}
-            </p>
+            <p className="text-muted-foreground mt-1.5 text-[11px] leading-relaxed">{recommendedAudience}</p>
           ) : null}
         </section>
 
-        <section className="rounded-xl border border-amber-300/45 bg-amber-50/70 px-3.5 py-3 dark:bg-amber-900/10">
-          <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingTipTitle")}</p>
-          <p className="mt-2 text-[13px] leading-relaxed text-foreground/90">{tipLine || t("insightTitle")}</p>
-          {highlightLines.length > 0 ? (
-            <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">{highlightLines[0]}</p>
-          ) : null}
-        </section>
-
-        <section className="rounded-xl border border-sky-300/45 bg-sky-50/70 px-3.5 py-3 dark:bg-sky-900/10">
+        <section className="rounded-xl border border-sky-300/45 bg-sky-50/70 px-3 py-2.5 dark:bg-sky-900/10">
           <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingMovementTitle")}</p>
-          <p className="mt-2 text-[13px] leading-relaxed text-foreground/90">{movementLine}</p>
-          <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">{transportLabel}</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-foreground/90">{movementLine}</p>
+          <p className="text-muted-foreground mt-1.5 text-[11px] leading-relaxed">{transportLabel}</p>
         </section>
 
-        <section className="rounded-xl border border-emerald-300/45 bg-emerald-50/70 px-3.5 py-3 dark:bg-emerald-900/10 sm:col-span-2">
+        <section className="rounded-xl border border-emerald-300/45 bg-emerald-50/70 px-3 py-2.5 dark:bg-emerald-900/10 sm:col-span-2">
           <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingFinishTitle")}</p>
-          <p className="mt-2 text-[13px] leading-relaxed text-foreground/90">{finishLine || nightLine}</p>
-          <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">{nightLine}</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-foreground/90">
+            {finishLine || "줄 길어지면 짧은 우회 하나만 챙기고 넘어가도 충분합니다."}
+          </p>
+          <p className="text-muted-foreground mt-1.5 text-[11px] leading-relaxed">{nightLine}</p>
           {moodTailParts.length > 0 ? (
             <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed italic">{moodTailParts.join(" · ")}</p>
           ) : null}
+          <p className="text-foreground/85 mt-1.5 text-[12px] leading-relaxed">{cultureRef}</p>
         </section>
       </div>
 
-      {judgementQuote ? (
-        <blockquote className="rounded-xl border border-border/45 bg-card/60 px-3.5 py-3">
+      {fieldQuote ? (
+        <blockquote className="rounded-xl border border-border/45 bg-card/60 px-3 py-2.5">
           <p className="text-muted-foreground text-[10px] font-semibold tracking-[0.14em] uppercase">{t("briefingQuoteLabel")}</p>
           <p className="text-[var(--text-strong)] mt-1.5 border-l-2 border-primary/45 pl-3 text-[13px] leading-relaxed italic">
-            “{judgementQuote}”
+            “{fieldQuote}”
           </p>
         </blockquote>
       ) : null}
