@@ -1214,7 +1214,9 @@
     "playbookTeaserSeat": "待ち・座席・充電",
     "playbookTeaserFooter": "現場プレイブックを見る",
     "playbookLockedRow": "プレミアムで表示",
-    "playbookFoldHint": "開くと実名・住所・現場メモ・ギャラリーが表示されます。"
+    "playbookFoldHint": "開くと実名・住所・現場メモ・ギャラリーが表示されます。",
+    "playbookVisualLocked": "現場写真はプレイブックで公開されます",
+    "playbookCtaUnlock": "現場プレイブックを開く"
   },
   "TravelerHub": {
     "metaTitle": "マイジャーニー",

@@ -28,6 +28,8 @@ import { RouteArticleStructuredBody } from "@/components/posts/route-article-str
 import {
   atmospherePlaybookTitle,
   collapsedSituationLine,
+  freeTierMoodSubtitle,
+  freeTierMoodTitle,
   premiumSpotAddressLine,
   premiumSpotPlaceTitle,
 } from "@/lib/route-playbook-labels";
@@ -165,6 +167,18 @@ function MoveConnector({ spot }: { spot: RouteSpot }) {
           <div className="h-px flex-1 border-t border-dashed border-border/35" />
         </div>
       </div>
+    </div>
+  );
+}
+
+function FreePlaybookImageTeaser({ message }: { message: string }) {
+  return (
+    <div
+      className="relative flex aspect-video w-full items-end justify-center overflow-hidden rounded-lg border border-border/35 bg-gradient-to-b from-muted/45 via-primary/[0.05] to-muted/55 px-3 pb-3 pt-10"
+      aria-hidden
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,transparent_50%,hsl(var(--background)/0.55))]" />
+      <p className="text-muted-foreground relative z-[1] text-center text-[10px] font-medium leading-snug">{message}</p>
     </div>
   );
 }
@@ -471,6 +485,7 @@ function EditorialSpotRow({
   hasPlaybookPremium,
   showAdminDebug,
   isFlashing,
+  requestHost,
 }: {
   spot: RouteSpot;
   index: number;
@@ -482,12 +497,15 @@ function EditorialSpotRow({
   hasPlaybookPremium: boolean;
   showAdminDebug: boolean;
   isFlashing: boolean;
+  requestHost: GuardianRequestSheetHostProps;
 }) {
   const t = useTranslations("RoutePosts");
   const role = inferSpotRole(spot);
   const roleConf = ROLE_CONFIG[role];
-  const atmosphereTitle = atmospherePlaybookTitle(spot);
-  const situationLine = collapsedSituationLine(spot);
+  const freeTitle = freeTierMoodTitle(spot);
+  const freeSub = freeTierMoodSubtitle(spot);
+  const moodEyebrow = spot.display_mood_title?.trim() || atmospherePlaybookTitle(spot);
+  const situationPremium = spot.display_mood_subtitle?.trim() || collapsedSituationLine(spot);
   const placeTitle = premiumSpotPlaceTitle(spot);
   const addressFallback = premiumSpotAddressLine(spot);
 
@@ -505,6 +523,7 @@ function EditorialSpotRow({
     pipelineDone,
   } = useSpotGallery(spot, post, {
     plan: visualPlan,
+    fetchRemote: hasPlaybookPremium,
   });
 
   const heroSlides = slides.length ? slides.slice(0, 1) : slides;
@@ -526,7 +545,7 @@ function EditorialSpotRow({
     t("playbookTeaserSeat"),
   ];
 
-  const adminBlock = showAdminDebug ? (
+  const adminBlock = showAdminDebug && hasPlaybookPremium ? (
     <AdminSpotDebug
       spot={spot}
       imageQuery={imageQuery}
@@ -566,21 +585,21 @@ function EditorialSpotRow({
     </div>
   );
 
-  /** 무료 — 분위기 티저만(실명·이동 상세·갤러리 다장 금지), 모든 스팟 동일 밀도 */
+  /** 무료 — 완전 티저만: 실사진·실명·주소 미노출, 네이버 호출 없음, 펼침 불가 */
   if (!hasPlaybookPremium) {
     return (
       <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4">
         {spine}
-        <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-7")}>
-          <div className="border-border/55 bg-card rounded-xl border p-3 shadow-[var(--shadow-xs)] sm:rounded-2xl sm:p-4">
+        <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-6")}>
+          <div className="border-border/40 bg-card/80 rounded-lg border px-3 py-2.5 shadow-sm sm:px-3.5 sm:py-3">
             <div className="flex flex-wrap items-start gap-2">
               <p
                 className={cn(
-                  "text-[var(--text-strong)] min-w-0 flex-1 text-[15px] font-semibold leading-snug tracking-tight",
+                  "text-[var(--text-strong)] min-w-0 flex-1 text-[14px] font-semibold leading-snug tracking-tight",
                   isFlashing && "text-primary",
                 )}
               >
-                {atmosphereTitle}
+                {freeTitle}
               </p>
               <span
                 className={cn(
@@ -593,32 +612,45 @@ function EditorialSpotRow({
               </span>
             </div>
             {spot.stay_duration_minutes ? (
-              <p className="text-muted-foreground mt-1.5 text-[11px] font-medium">
+              <p className="text-muted-foreground mt-1 text-[10px] font-medium">
                 {t("stayDuration", { minutes: spot.stay_duration_minutes })}
               </p>
             ) : null}
 
-            <div className="mt-3">
-              <SpotImageCarousel key={`free-${carouselKey}`} slides={heroSlides} className="sm:max-w-none" />
+            <div className="mt-2.5">
+              <FreePlaybookImageTeaser message={t("playbookVisualLocked")} />
             </div>
 
-            {situationLine ? (
-              <p className="text-foreground/85 mt-3 text-sm leading-relaxed">&ldquo;{situationLine}&rdquo;</p>
+            {freeSub ? (
+              <p className="text-foreground/85 mt-2.5 text-[13px] leading-snug">&ldquo;{freeSub}&rdquo;</p>
             ) : null}
 
-            <ul className="text-muted-foreground mt-3 space-y-1 text-[11px] leading-relaxed">
+            <ul className="text-muted-foreground mt-2.5 space-y-0.5 text-[10px] leading-relaxed">
               {teaserLines.map((line) => (
-                <li key={line} className="flex gap-2">
-                  <span className="shrink-0 opacity-70">·</span>
+                <li key={line} className="flex gap-1.5">
+                  <span className="shrink-0 opacity-60">·</span>
                   <span>{line}</span>
                 </li>
               ))}
             </ul>
-            <p className="text-muted-foreground mt-3 border-t border-dashed border-border/35 pt-2.5 text-[10px] font-semibold tracking-wide uppercase">
-              {t("playbookTeaserFooter")}
-            </p>
+
+            <GuardianRequestOpenTrigger
+              size="sm"
+              variant="secondary"
+              className="text-foreground/90 mt-3 h-9 w-full rounded-lg border-border/50 text-[13px] font-semibold shadow-none"
+              openDetail={{
+                guardianUserId: requestHost.guardianUserId,
+                displayName: requestHost.displayName,
+                headline: requestHost.headline,
+                avatarUrl: requestHost.avatarUrl,
+                suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
+                postId: post.id,
+                postTitle: post.title,
+              }}
+            >
+              {t("playbookCtaUnlock")}
+            </GuardianRequestOpenTrigger>
           </div>
-          {adminBlock}
           {!isLast ? <MoveConnector spot={spot} /> : null}
         </div>
       </div>
@@ -644,7 +676,7 @@ function EditorialSpotRow({
                   isFlashing && "text-primary",
                 )}
               >
-                {atmosphereTitle}
+                {moodEyebrow}
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 <span
@@ -676,8 +708,8 @@ function EditorialSpotRow({
             {!expanded ? (
               <>
                 <SpotImageCarousel key={`fold-${carouselKey}`} slides={heroSlides} className="pt-3 sm:max-w-none" />
-                {situationLine ? (
-                  <p className="text-foreground/80 mt-3 text-sm leading-relaxed">&ldquo;{situationLine}&rdquo;</p>
+                {situationPremium ? (
+                  <p className="text-foreground/80 mt-3 text-sm leading-relaxed">&ldquo;{situationPremium}&rdquo;</p>
                 ) : null}
                 <ul className="text-muted-foreground mt-3 space-y-1 text-[11px] leading-relaxed">
                   {teaserLines.map((line) => (
@@ -692,9 +724,9 @@ function EditorialSpotRow({
             ) : (
               <>
                 {spot.leg_from_previous?.trim() ? <LegFromPrevious text={spot.leg_from_previous} /> : null}
-                <p className="text-muted-foreground text-[11px] font-medium">{atmosphereTitle}</p>
+                <p className="text-muted-foreground text-[11px] font-medium">{moodEyebrow}</p>
                 <h3 className="text-[var(--text-strong)] mt-1 text-xl font-bold tracking-tight">
-                  {placeTitle || atmosphereTitle}
+                  {placeTitle || moodEyebrow}
                 </h3>
                 {addressLine ? (
                   <p className="text-muted-foreground mt-1 text-sm leading-snug">{addressLine}</p>
@@ -939,6 +971,7 @@ export function RoutePostDetailClient({
                 hasPlaybookPremium={hasPlaybookPremium}
                 showAdminDebug={isSuperAdmin && adminDebugOpen}
                 isFlashing={flashId === spot.id}
+                requestHost={requestHost}
               />
             ))}
           </div>

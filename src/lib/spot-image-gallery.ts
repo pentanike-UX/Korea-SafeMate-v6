@@ -78,6 +78,7 @@ export function buildSpotGallerySlides(
   post: ContentPost,
   opts: SpotImageOpts & { clientNaverItems?: NaverImageCandidate[] | null },
 ): SpotGallerySlide[] {
+  if (opts.suppressVisuals) return [];
   const usePrimaryPipeline = Object.prototype.hasOwnProperty.call(opts, "primaryPlace");
   const plan = opts.plan ?? buildLocalPostVisualPlan(post);
   const slides: SpotGallerySlide[] = [];

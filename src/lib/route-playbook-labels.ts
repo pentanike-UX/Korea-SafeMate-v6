@@ -36,9 +36,24 @@ export function leaksOfficialVenueLabel(raw: string | undefined, spot: RouteSpot
   return false;
 }
 
-/**
- * 접힘·티저용 — 실제 상호/주소 대신 **현장 감각·상황**만.
- */
+/** 무료 티저 — 에디터 `display_mood_title` 우선, 없으면 휴리스틱 */
+export function freeTierMoodTitle(spot: RouteSpot): string {
+  const m = spot.display_mood_title?.trim();
+  if (m) return m.slice(0, 56);
+  return atmospherePlaybookTitle(spot);
+}
+
+/** 무료 한 줄 — `display_mood_subtitle` 우선(본문 short_description은 실명 누출 가능성으로 미사용) */
+export function freeTierMoodSubtitle(spot: RouteSpot): string | null {
+  const s = spot.display_mood_subtitle?.trim();
+  if (s) return s.length > 96 ? `${s.slice(0, 93)}…` : s;
+  const tr = spot.theme_reason?.split(/[\n]/)[0]?.trim();
+  if (tr && !leaksOfficialVenueLabel(tr, spot)) {
+    return tr.length > 96 ? `${tr.slice(0, 93)}…` : tr;
+  }
+  return null;
+}
+
 export function atmospherePlaybookTitle(spot: RouteSpot): string {
   const tryLines = [
     spot.theme_reason?.split(/[\n。．]/)[0]?.trim(),

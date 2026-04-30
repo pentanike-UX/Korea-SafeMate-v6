@@ -1215,7 +1215,9 @@
     "playbookTeaserSeat": "Wait times · seats · power",
     "playbookTeaserFooter": "Open field playbook",
     "playbookLockedRow": "Expand with premium",
-    "playbookFoldHint": "Expand for real venue name, address, field notes, and photo gallery."
+    "playbookFoldHint": "Expand for real venue name, address, field notes, and photo gallery.",
+    "playbookVisualLocked": "Venue photos unlock with the field playbook",
+    "playbookCtaUnlock": "Open field playbook"
   },
   "TravelerHub": {
     "metaTitle": "My journey",

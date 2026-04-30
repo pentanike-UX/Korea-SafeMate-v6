@@ -90,6 +90,8 @@ export type SpotImageOpts = {
   clientNaverCandidates?: NaverImageCandidate[] | null;
   /** Local Search로 확정한 장소 Entity — 이미지 관련도 점수에 사용(null은 미매칭). */
   primaryPlace?: NaverPrimaryPlace | null;
+  /** 무료 등에서 실제 장소 이미지·로컬 히어로까지 표시하지 않음 */
+  suppressVisuals?: boolean;
 };
 
 /**

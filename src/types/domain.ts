@@ -317,6 +317,14 @@ export interface RouteSpot {
   real_place_name?: string;
 
   /**
+   * 무료 티저용 분위기 제목 — 실제 상호·랜드마크 정확명 금지.
+   * 없으면 클라이언트 휴리스틱(`atmospherePlaybookTitle`)으로 보강.
+   */
+  display_mood_title?: string;
+  /** 무료 티저 한 줄 부연 — 현장 실행 정보 금지. */
+  display_mood_subtitle?: string;
+
+  /**
    * 목업·검수 상태 — 슈퍼관리자 UI에서만 표시 권장.
    * verified: 명칭·좌표·이미지 후보 확인 | needs_review: 플레이스홀더 | mock: 시드만
    */

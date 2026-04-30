@@ -50,8 +50,14 @@ async function fetchImageSearchItems(
 
 /**
  * Local → primaryPlace → 정제된 이미지 검색어들로 후보 병합 (클라이언트).
+ * `enabled: false`면 네이버 호출 없음(무료 티저 등).
  */
-export function useNaverSpotImages(spot: RouteSpot | null, post: ContentPost) {
+export function useNaverSpotImages(
+  spot: RouteSpot | null,
+  post: ContentPost,
+  opts?: { enabled?: boolean },
+) {
+  const enabled = opts?.enabled !== false;
   const [primaryPlace, setPrimaryPlace] = useState<NaverPrimaryPlace | null>(null);
   const [mergedItems, setMergedItems] = useState<NaverImageCandidate[] | null>(null);
   const [apiFailed, setApiFailed] = useState(false);
@@ -83,7 +89,7 @@ export function useNaverSpotImages(spot: RouteSpot | null, post: ContentPost) {
   );
 
   useEffect(() => {
-    if (!spot) return;
+    if (!spot || !enabled) return;
 
     let cancelled = false;
     const ac = new AbortController();
@@ -187,13 +193,13 @@ export function useNaverSpotImages(spot: RouteSpot | null, post: ContentPost) {
       cancelled = true;
       ac.abort();
     };
-  }, [spot, post.title, post.region_slug, resolveInputKey]);
+  }, [spot, enabled, post.title, post.region_slug, resolveInputKey]);
 
   return {
-    primaryPlace: spot ? primaryPlace : null,
-    mergedItems: spot ? mergedItems : null,
-    apiFailed: spot ? apiFailed : false,
-    pipelineDone: !spot || pipelineDone,
-    ...(spot ? meta : emptyMeta),
+    primaryPlace: spot && enabled ? primaryPlace : null,
+    mergedItems: spot && enabled ? mergedItems : null,
+    apiFailed: spot && enabled ? apiFailed : false,
+    pipelineDone: !spot || !enabled || pipelineDone,
+    ...(spot && enabled ? meta : emptyMeta),
   };
 }

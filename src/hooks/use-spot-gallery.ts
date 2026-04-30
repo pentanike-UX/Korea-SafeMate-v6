@@ -9,19 +9,25 @@ import { primaryImageQueryLabel } from "@/lib/spot-image-queries-refined";
 
 /**
  * 스팟 갤러리 — Local Entity 확정 → 정제 이미지 검색어 → 관련도 정렬.
+ * `fetchRemote: false` — 무료 티저 등에서 이미지·네이버 호출 생략.
  */
-export function useSpotGallery(spot: RouteSpot, post: ContentPost, opts?: SpotImageOpts) {
-  const pipe = useNaverSpotImages(spot, post);
+export function useSpotGallery(
+  spot: RouteSpot,
+  post: ContentPost,
+  opts?: SpotImageOpts & { fetchRemote?: boolean },
+) {
+  const fetchRemote = opts?.fetchRemote !== false;
+  const pipe = useNaverSpotImages(spot, post, { enabled: fetchRemote });
 
-  const slides = useMemo(
-    () =>
-      buildSpotGallerySlides(spot, post, {
-        ...opts,
-        clientNaverCandidates: pipe.mergedItems,
-        ...(pipe.pipelineDone ? { primaryPlace: pipe.primaryPlace } : {}),
-      }),
-    [spot, post, opts, pipe.mergedItems, pipe.primaryPlace, pipe.pipelineDone],
-  );
+  const slides = useMemo(() => {
+    const { fetchRemote: _ignored, ...rest } = opts ?? {};
+    return buildSpotGallerySlides(spot, post, {
+      ...rest,
+      suppressVisuals: !fetchRemote,
+      clientNaverCandidates: fetchRemote ? pipe.mergedItems : null,
+      ...(fetchRemote && pipe.pipelineDone ? { primaryPlace: pipe.primaryPlace } : {}),
+    });
+  }, [spot, post, opts, fetchRemote, pipe.mergedItems, pipe.primaryPlace, pipe.pipelineDone]);
 
   const imageQueryLabel = useMemo(
     () => primaryImageQueryLabel(spot, pipe.primaryPlace, { regionSlug: post.region_slug, postTitle: post.title }),
