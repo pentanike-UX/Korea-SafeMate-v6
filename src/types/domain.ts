@@ -237,7 +237,76 @@ export interface RouteSpot {
   what_to_do?: string;
   /** Image alt text for the representative image. */
   image_alt?: string;
+  /**
+   * Links this embedded RouteSpot to a `spot_catalog` row.
+   * When present, image resolution prefers `spot_images` typed catalog images.
+   */
+  spot_catalog_id?: string;
 }
+
+// ─── Spot Catalog ─────────────────────────────────────────────────────────────
+
+/** Image roles in the typed spot image system. */
+export type SpotImageType = "hero" | "practical" | "walking" | "timing" | "night";
+
+/** A typed image attached to a `spot_catalog` entry. */
+export interface SpotImage {
+  id: string;
+  spot_catalog_id: string;
+  url: string;
+  image_type: SpotImageType;
+  is_primary: boolean;
+  sort_order: number;
+  /** Image source — Naver scraped, guardian upload, admin upload, or stock. */
+  source: "naver" | "guardian_upload" | "admin_upload" | "stock";
+  caption_ko?: string | null;
+  caption_en?: string | null;
+  /** True when image is stored in Supabase Storage (false = still an external URL). */
+  is_stored: boolean;
+  created_at: string;
+}
+
+/** Subset of `spot_catalog` used in lists and linked spot resolution. */
+export interface SpotCatalogEntry {
+  id: string;
+  name_ko: string;
+  name_en?: string | null;
+  address_ko?: string | null;
+  district?: string | null;
+  lat: number;
+  lng: number;
+  category: "food" | "cafe" | "attraction" | "shopping" | "nightlife" | "nature" | "activity";
+  subcategory?: string | null;
+  region_tags: string[];
+  naver_place_id?: string | null;
+  kakaomap_id?: string | null;
+  image_strategy: "practical" | "aesthetic" | "mixed";
+  /** Cached hero+is_primary image URL for fast list rendering. */
+  primary_image_url?: string | null;
+  is_verified: boolean;
+  is_active: boolean;
+  source: "manual" | "tour_api" | "naver_api" | "guardian_submitted";
+  created_at: string;
+}
+
+/** Naver Local Search API result item (raw → parsed). */
+export interface NaverPlaceSearchResult {
+  /** HTML-encoded place name from Naver — clean with stripHtmlTags(). */
+  title: string;
+  /** Naver map link — place ID extractable from the URL path. */
+  link: string;
+  /** Slash-separated category (e.g. "음식점>카페>커피전문점"). */
+  category: string;
+  address: string;
+  roadAddress: string;
+  /** Longitude × 10^7 as string. */
+  mapx: string;
+  /** Latitude × 10^7 as string. */
+  mapy: string;
+}
+
+/** Typed catalog image map — keyed by spot_catalog_id, used for server-side pre-fetch. */
+export type CatalogImageMap = Map<string, SpotImage[]>;
 
 /**
  * 카드·탐색 노출용 구조화 메타 — DB 전용 컬럼 추가 전까지 `route_journey` JSON에 함께 저장된다.

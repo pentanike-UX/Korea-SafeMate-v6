@@ -9,6 +9,7 @@ import {
   Coins,
   LayoutDashboard,
   MailPlus,
+  MapPin,
   Newspaper,
   Settings,
   Shield,
@@ -49,7 +50,10 @@ const buildGroups = (showSuper: boolean): NavGroup[] => {
     {
       label: "Content",
       description: "Moderation queue",
-      items: [{ href: "/admin/posts", label: "Posts", icon: Newspaper }],
+      items: [
+        { href: "/admin/posts", label: "Posts", icon: Newspaper },
+        { href: "/admin/spots", label: "Spot Catalog", icon: MapPin },
+      ],
     },
     {
       label: "Economy",
