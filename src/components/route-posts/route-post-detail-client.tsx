@@ -6,7 +6,7 @@ import type { ContentPost, NaverPrimaryPlace, RouteJourneyMetadata, RouteSpot } 
 import { RouteDayPreview } from "@/components/route-posts/route-day-preview";
 import { RouteStickyLocalNav } from "@/components/route-posts/route-sticky-local-nav";
 import { type GuardianRequestSheetHostProps } from "@/components/guardians/guardian-request-sheet";
-import { GuardianSignatureQuote } from "@/components/posts/post-info-blocks";
+import { GuardianSignatureQuote, PostInfoNarrativeStack } from "@/components/posts/post-info-blocks";
 import { PlaybookUnlockSheet } from "@/components/route-posts/playbook-unlock-sheet";
 import { useSpotGallery } from "@/hooks/use-spot-gallery";
 import { buildLocalPostVisualPlan, type LocalPostVisualPlan } from "@/lib/post-local-images";
@@ -24,7 +24,6 @@ import {
   splitPostBodyParagraphs,
 } from "@/lib/post-detail-body-split";
 import { resolveRouteArticleRender } from "@/lib/post-structured-content";
-import { RouteArticleStructuredBody } from "@/components/posts/route-article-structured-body";
 import {
   freeTierMoodTitle,
   premiumSpotAddressLine,
@@ -833,6 +832,7 @@ export function RoutePostDetailClient({
     () => resolveRouteArticleRender(post.structured_content, rest),
     [post.structured_content, rest],
   );
+  const routeArticleBlocks = routeArticleRender.mode === "blocks" ? routeArticleRender.data : null;
 
   const spotTimes = useMemo(() => {
     const startHour = startHourFromTimeOfDay(journey.metadata.recommended_time_of_day);
@@ -876,36 +876,37 @@ export function RoutePostDetailClient({
             introLead={introPrimary.trim() || undefined}
             topHighlights={post.route_highlights && post.route_highlights.length > 0 ? post.route_highlights : undefined}
             venueSafe={!effectivePlaybookPremium}
+            articleParsed={routeArticleBlocks}
           />
         </div>
 
-        {/* ② 본문 아티클 */}
-        {routeArticleRender.mode === "blocks" || rest.trim() ? (
-          routeArticleRender.mode === "blocks" ? (
-            <RouteArticleStructuredBody parsed={routeArticleRender.data} />
-          ) : rest.trim() ? (
-            <div className={POST_DETAIL_PARAGRAPH_STACK}>
-              {splitPostBodyParagraphs(rest).map((para, i) => (
-                <p key={i} className={POST_DETAIL_PROSE_P_MAIN}>
-                  {para}
-                </p>
-              ))}
-            </div>
-          ) : null
+        {/* ② 스토리 본문 — 상단 플레이북 article과 분리(읽는 영역 연속) */}
+        {routeArticleRender.mode === "blocks" && routeArticleRender.data.narrative?.trim() ? (
+          <div className="max-w-[42rem] space-y-5">
+            <PostInfoNarrativeStack text={routeArticleRender.data.narrative} />
+          </div>
+        ) : routeArticleRender.mode === "plain" && rest.trim() ? (
+          <div className={POST_DETAIL_PARAGRAPH_STACK}>
+            {splitPostBodyParagraphs(rest).map((para, i) => (
+              <p key={i} className={POST_DETAIL_PROSE_P_MAIN}>
+                {para}
+              </p>
+            ))}
+          </div>
         ) : null}
 
         {/* ③ 하루 플레이북 타임라인 */}
         <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-8">
-          <header className="mb-7 space-y-1">
+          <header className="mb-7 space-y-2">
             <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
               {t("routeEyebrow")}
             </p>
             <h2 className="text-lg font-semibold tracking-tight text-[var(--text-strong)]">
               {t("flowTitle")}
             </h2>
-            <p className="text-sm leading-relaxed text-muted-foreground">{t("flowSubtitlePlaybook")}</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">{t("flowLeadShort")}</p>
             {!isSuperAdmin && !effectivePlaybookPremium ? (
-              <p className="text-muted-foreground mt-2 text-xs leading-relaxed">{t("paywallConsolidatedHint")}</p>
+              <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{t("paywallConsolidatedHint")}</p>
             ) : null}
           </header>
 
