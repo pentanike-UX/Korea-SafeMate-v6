@@ -2,14 +2,15 @@ import { NextResponse } from "next/server";
 import {
   MOCK_SUPER_ADMIN_COOKIE_NAME,
   MOCK_SUPER_ADMIN_COOKIE_VALUE,
+  isSuperAdminLoginEnabled,
 } from "@/lib/dev/mock-super-admin-auth";
 
 /**
- * Dev/demo 전용 — 슈퍼관리자 쿠키 세션을 생성합니다.
- * production에서는 404를 반환합니다.
+ * 슈퍼관리자 쿠키 세션을 생성합니다.
+ * ENABLE_SUPER_ADMIN_LOGIN=1 환경변수가 없으면 404를 반환합니다.
  */
 export async function POST() {
-  if (process.env.NODE_ENV === "production") {
+  if (!isSuperAdminLoginEnabled()) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 

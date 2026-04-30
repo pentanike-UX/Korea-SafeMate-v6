@@ -4,6 +4,7 @@ import { AuthPageFrame } from "@/components/auth/auth-page-frame";
 import { LoginCardClient } from "@/components/auth/login-card-client";
 import { MockGuardianQuickLogin } from "@/components/auth/mock-guardian-quick-login";
 import { MockSuperAdminLogin } from "@/components/auth/mock-super-admin-login";
+import { isSuperAdminLoginEnabled } from "@/lib/dev/mock-super-admin-auth";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
 import { withLocalePath } from "@/lib/auth/route-path";
 import { BRAND } from "@/lib/constants";
@@ -46,7 +47,7 @@ export default async function LoginPage({ params, searchParams }: Props) {
       <MockGuardianQuickLogin
         className="mt-6"
         topSlot={
-          process.env.NODE_ENV !== "production"
+          isSuperAdminLoginEnabled()
             ? <MockSuperAdminLogin nextPath={safeNext} />
             : null
         }

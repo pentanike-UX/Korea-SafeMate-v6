@@ -18,16 +18,17 @@ import { resolvePostTypeLabelKey } from "@/lib/post-detail-type-label";
 import {
   MOCK_SUPER_ADMIN_COOKIE_NAME,
   isMockSuperAdminCookieValue,
+  isSuperAdminLoginEnabled,
 } from "@/lib/dev/mock-super-admin-auth";
 import { ArrowLeft } from "lucide-react";
 
 export async function RoutePostDetailView({ post }: { post: ContentPost }) {
   const t = await getTranslations("Posts");
 
-  // Dev/demo 전용: 슈퍼관리자 쿠키가 있으면 페이월을 건너뜁니다.
+  // 슈퍼관리자 쿠키가 있으면 페이월을 건너뜁니다 (ENABLE_SUPER_ADMIN_LOGIN=1 필요).
   const cookieStore = await cookies();
   const isSuperAdmin =
-    process.env.NODE_ENV !== "production" &&
+    isSuperAdminLoginEnabled() &&
     isMockSuperAdminCookieValue(cookieStore.get(MOCK_SUPER_ADMIN_COOKIE_NAME)?.value);
 
   const related = await relatedPostsForMerged(post);
