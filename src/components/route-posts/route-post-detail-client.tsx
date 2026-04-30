@@ -1,293 +1,294 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import type { ContentPost, RouteSpot } from "@/types/domain";
+import type { ContentPost, RouteJourneyMetadata, RouteSpot } from "@/types/domain";
 import { RouteDayPreview } from "@/components/route-posts/route-day-preview";
 import { RouteStickyLocalNav } from "@/components/route-posts/route-sticky-local-nav";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PostDetailIntroPanel } from "@/components/posts/post-detail-intro-panel";
-import { GuardianRequestOpenTrigger, type GuardianRequestSheetHostProps } from "@/components/guardians/guardian-request-sheet";
+import {
+  GuardianRequestOpenTrigger,
+  type GuardianRequestSheetHostProps,
+} from "@/components/guardians/guardian-request-sheet";
+import { GuardianSignatureQuote } from "@/components/posts/post-info-blocks";
 import { getSpotDisplayImageAlt, getSpotDisplayImageUrl } from "@/lib/content-post-route";
 import { buildLocalPostVisualPlan, type LocalPostVisualPlan } from "@/lib/post-local-images";
 import { routeSpotImageCoverClass } from "@/lib/post-image-crop";
 import { cn } from "@/lib/utils";
-import { ArrowRight, Check, ChevronRight } from "lucide-react";
+import { Check, Lock } from "lucide-react";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
-  POST_DETAIL_PARAGRAPH_STACK_COMPACT,
-  POST_DETAIL_PROSE_P_COMPACT,
   POST_DETAIL_PROSE_P_MAIN,
-  POST_DETAIL_PROSE_P_SPOT,
   splitPostBodyLeadRest,
   splitPostBodyParagraphs,
 } from "@/lib/post-detail-body-split";
-import { splitSpotBodyAndNextCue } from "@/lib/post-detail-structured-parse";
 import { resolveRouteArticleRender } from "@/lib/post-structured-content";
 import { RouteArticleStructuredBody } from "@/components/posts/route-article-structured-body";
-import {
-  RouteSpotMetaStayRow,
-  RouteSpotNextFlowRow,
-  RouteSpotPhotoTipNote,
-  RouteSpotReasonBlock,
-  RouteSpotWarningNote,
-} from "@/components/posts/post-info-blocks";
 
-/** 하루 흐름 — 지도 대신 세로 타임라인으로 동선 순서 표시 */
-function HaruFlowTimeline({
-  spots,
-  activeSpotId,
-  onSpotClick,
-}: {
-  spots: RouteSpot[];
-  activeSpotId: string | null;
-  onSpotClick: (id: string) => void;
-}) {
-  const t = useTranslations("RoutePosts");
+// ─── Time utilities ───────────────────────────────────────────────────────────
+
+function startHourFromTimeOfDay(tod: RouteJourneyMetadata["recommended_time_of_day"]): number {
+  switch (tod) {
+    case "morning":
+      return 9;
+    case "afternoon":
+      return 13;
+    case "evening":
+      return 17;
+    case "night":
+      return 19;
+    default:
+      return 10; // flexible
+  }
+}
+
+function fmtTime(totalMinutes: number): string {
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return `${h}:${m.toString().padStart(2, "0")}`;
+}
+
+function computeSpotTimes(spots: RouteSpot[], startHour: number): string[] {
+  let cursor = startHour * 60;
+  return spots.map((spot) => {
+    const label = fmtTime(cursor);
+    cursor += (spot.stay_duration_minutes ?? 30) + (spot.next_move_minutes ?? 0);
+    return label;
+  });
+}
+
+function fmtDistance(m: number): string {
+  return m >= 1000 ? `${(m / 1000).toFixed(1)}km` : `${m}m`;
+}
+
+function nextModeLabel(mode: RouteSpot["next_move_mode"]): string {
+  switch (mode) {
+    case "subway":
+      return "지하철";
+    case "bus":
+      return "버스";
+    case "taxi":
+      return "택시";
+    default:
+      return "도보";
+  }
+}
+
+function nextModeEmoji(mode: RouteSpot["next_move_mode"]): string {
+  switch (mode) {
+    case "subway":
+      return "🚇";
+    case "bus":
+      return "🚌";
+    case "taxi":
+      return "🚕";
+    default:
+      return "🚶";
+  }
+}
+
+// ─── MoveConnector ────────────────────────────────────────────────────────────
+
+function MoveConnector({ spot }: { spot: RouteSpot }) {
+  const hasData = spot.next_move_minutes != null || spot.next_move_distance_m != null;
+  if (!hasData) return null;
+
+  const emoji = nextModeEmoji(spot.next_move_mode);
+  const mode = nextModeLabel(spot.next_move_mode);
+  const timeText = spot.next_move_minutes != null ? `${spot.next_move_minutes}분` : null;
+  const distText = spot.next_move_distance_m != null ? fmtDistance(spot.next_move_distance_m) : null;
+  const detail = [timeText, distText].filter(Boolean).join(" · ");
+
   return (
-    <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-8">
-      <header className="mb-6 space-y-1">
-        <p className="text-muted-foreground text-[10px] font-semibold tracking-[0.2em] uppercase">{t("routeEyebrow")}</p>
-        <h2 className="text-text-strong text-lg font-semibold tracking-tight">{t("flowTitle")}</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">{t("flowSubtitle")}</p>
-      </header>
-      <div className="pb-1">
-        {spots.map((spot, index) => {
-          const isActive = activeSpotId === spot.id;
-          const isLast = index === spots.length - 1;
-          const hasNextMove = !isLast && (spot.next_move_minutes != null || spot.next_move_distance_m != null);
-          const nextModeLabel =
-            spot.next_move_mode === "subway" ? "지하철" :
-            spot.next_move_mode === "bus" ? "버스" :
-            spot.next_move_mode === "taxi" ? "택시" : "도보";
-          const nextMoveText = [
-            spot.next_move_minutes != null ? `${spot.next_move_minutes}분` : null,
-            spot.next_move_distance_m != null
-              ? spot.next_move_distance_m >= 1000
-                ? `${(spot.next_move_distance_m / 1000).toFixed(1)}km`
-                : `${spot.next_move_distance_m}m`
-              : null,
-          ].filter(Boolean).join(" · ");
-          return (
-            <div key={spot.id} className="flex gap-3">
-              {/* Spine */}
-              <div className="flex shrink-0 flex-col items-center">
-                <button
-                  type="button"
-                  onClick={() => onSpotClick(spot.id)}
-                  className={cn(
-                    "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all duration-200",
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/25 ring-offset-1"
-                      : "bg-primary/10 text-primary hover:bg-primary/20",
-                  )}
-                  aria-label={`스팟 ${index + 1}: ${spot.title ?? spot.place_name}`}
-                >
-                  {index + 1}
-                </button>
-                {!isLast && <div className="my-1 min-h-6 w-px flex-1 bg-border/50" />}
-              </div>
-              {/* Content + move connector */}
-              <div className="flex-1 min-w-0">
-                <button
-                  type="button"
-                  onClick={() => onSpotClick(spot.id)}
-                  className={cn(
-                    "group w-full rounded-lg px-1 py-2 text-left transition-colors duration-200",
-                    isActive ? "bg-primary/6 ring-border/50 ring-1" : "hover:bg-muted/35",
-                  )}
-                >
-                  <div className="flex min-w-0 items-center gap-2">
-                    <p className="min-w-0 flex-1 truncate text-sm font-semibold leading-snug text-[var(--text-strong)]">
-                      {spot.title ?? spot.place_name}
-                    </p>
-                    <ChevronRight
-                      className={cn(
-                        "size-3.5 shrink-0 text-muted-foreground/40 transition-transform group-hover:translate-x-0.5",
-                        isActive && "text-primary/60",
-                      )}
-                      aria-hidden
-                    />
-                  </div>
-                  {spot.place_name && spot.place_name !== spot.title ? (
-                    <p className="mt-0.5 line-clamp-1 text-xs leading-relaxed text-muted-foreground">
-                      {spot.place_name}
-                    </p>
-                  ) : spot.short_description ? (
-                    <p className="mt-0.5 line-clamp-1 text-xs leading-relaxed text-muted-foreground">
-                      {spot.short_description}
-                    </p>
-                  ) : null}
-                  {spot.stay_duration_minutes ? (
-                    <span className="mt-1.5 inline-flex items-center rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      약 {spot.stay_duration_minutes}분 체류
-                    </span>
-                  ) : null}
-                </button>
-                {/* Next-move connector pill */}
-                {hasNextMove ? (
-                  <div className="my-1.5 ml-3 flex items-center gap-1.5">
-                    <span className="text-muted-foreground/50 text-[10px]">↓</span>
-                    <span className="rounded-full border border-border/40 bg-muted/30 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      {nextModeLabel} {nextMoveText}
-                    </span>
-                  </div>
-                ) : !isLast ? (
-                  <div className="my-1.5 ml-3">
-                    <span className="text-muted-foreground/30 text-[10px]">↓</span>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </section>
+    <div className="mt-5 flex items-center gap-2">
+      <span className="text-base" aria-hidden>
+        {emoji}
+      </span>
+      <span className="rounded-full border border-border/40 bg-muted/30 px-3 py-1 text-[11px] font-medium text-muted-foreground">
+        {mode} {detail}
+      </span>
+    </div>
   );
 }
 
-function SpotDetailBody({
-  spot,
-  post,
-  visualPlan,
-  isLast,
-  onNext,
-  layout,
+// ─── SpotMemoCell ─────────────────────────────────────────────────────────────
+
+function SpotMemoCell({
+  label,
+  children,
+  className,
 }: {
-  spot: RouteSpot;
-  post: ContentPost;
-  visualPlan: LocalPostVisualPlan;
-  isLast: boolean;
-  onNext?: () => void;
-  /** `embedded`: 스팟 카드 헤더 아래 본문만. `sheet`: 바텀시트 전용(제목은 시트 헤더). */
-  layout: "embedded" | "sheet";
+  label: string;
+  children: ReactNode;
+  className?: string;
 }) {
+  return (
+    <div className={cn("rounded-xl border border-border/40 bg-muted/20 px-4 py-3", className)}>
+      <p className="mb-1.5 text-[10px] font-bold tracking-[0.15em] text-muted-foreground uppercase">
+        {label}
+      </p>
+      <div className="text-sm leading-relaxed text-foreground/85">{children}</div>
+    </div>
+  );
+}
+
+// ─── SpotMemoGrid ─────────────────────────────────────────────────────────────
+
+function SpotMemoGrid({ spot }: { spot: RouteSpot }) {
   const t = useTranslations("RoutePosts");
-  const img = getSpotDisplayImageUrl(spot, post, { plan: visualPlan });
-  const imgAlt = spot.image_alt ?? getSpotDisplayImageAlt(spot, post, { plan: visualPlan });
-  const { main: bodyMain } = splitSpotBodyAndNextCue(spot.body ?? "");
+  const hasBody = !!spot.body?.trim();
+  const hasWhatToDo = !!spot.what_to_do?.trim();
+  const hasPhotoTip = !!spot.photo_tip?.trim();
+  const hasCaution = !!spot.caution?.trim();
+  const reasonText = (spot.theme_reason ?? spot.recommend_reason)?.trim();
+  const hasReason = !!reasonText;
 
-  // Build structured next-move text from fields (preferred) or fall back to none
-  const nextModeLabel =
-    spot.next_move_mode === "subway" ? "지하철" :
-    spot.next_move_mode === "bus" ? "버스" :
-    spot.next_move_mode === "taxi" ? "택시" : "도보";
-  const nextMoveDetail = [
-    spot.next_move_minutes != null ? `약 ${spot.next_move_minutes}분` : null,
-    spot.next_move_distance_m != null
-      ? spot.next_move_distance_m >= 1000
-        ? `${(spot.next_move_distance_m / 1000).toFixed(1)}km`
-        : `${spot.next_move_distance_m}m`
-      : null,
-  ].filter(Boolean).join(" · ");
-  const hasStructuredNextMove = !isLast && (spot.next_move_minutes != null || spot.next_move_distance_m != null);
-
-  const photoInner = spot.photo_tip ? (
-    <RouteSpotPhotoTipNote label={t("photoTip")}>
-      <div className={POST_DETAIL_PARAGRAPH_STACK_COMPACT}>
-        {splitPostBodyParagraphs(spot.photo_tip).map((block, i) => (
-          <p key={i} className={POST_DETAIL_PROSE_P_COMPACT}>
-            {block}
-          </p>
-        ))}
-      </div>
-    </RouteSpotPhotoTipNote>
-  ) : null;
-
-  const cautionInner = spot.caution ? (
-    <RouteSpotWarningNote label={t("caution")}>
-      <div className={POST_DETAIL_PARAGRAPH_STACK_COMPACT}>
-        {splitPostBodyParagraphs(spot.caution).map((block, i) => (
-          <p key={i} className={POST_DETAIL_PROSE_P_COMPACT}>
-            {block}
-          </p>
-        ))}
-      </div>
-    </RouteSpotWarningNote>
-  ) : null;
+  if (!hasBody && !hasWhatToDo && !hasPhotoTip && !hasCaution && !hasReason) return null;
 
   return (
-    <div className="space-y-4 sm:space-y-5">
-      <div className="border-border/60 relative aspect-[16/10] overflow-hidden rounded-xl border sm:rounded-2xl">
-        <Image src={img} alt={imgAlt} fill className={routeSpotImageCoverClass(post)} sizes="(max-width:768px) 100vw, 640px" />
-      </div>
-
-      {layout === "sheet" ? (
-        <div className="space-y-4">
-          <p className="text-muted-foreground text-xs font-medium">{spot.place_name}</p>
-          {spot.short_description ? (
-            <>
-              <p className="text-primary text-[10px] font-bold tracking-wide uppercase">{t("spotCoreEyebrow")}</p>
-              <div className={POST_DETAIL_PARAGRAPH_STACK_COMPACT}>
-                {splitPostBodyParagraphs(spot.short_description).map((block, i) => (
-                  <p key={i} className="text-foreground text-sm font-medium leading-relaxed whitespace-pre-line">
-                    {block}
-                  </p>
-                ))}
-              </div>
-            </>
-          ) : null}
-          {spot.theme_reason ? (
-            <div className="rounded-xl bg-primary/5 px-3.5 py-3 border border-primary/10">
-              <p className="text-primary text-[10px] font-bold tracking-wide uppercase mb-1.5">{t("themeReasonLabel")}</p>
-              <p className="text-sm leading-relaxed text-foreground/80">{spot.theme_reason}</p>
-            </div>
-          ) : spot.recommend_reason ? (
-            <RouteSpotReasonBlock label={t("whyRecommend")}>
-              <div className={POST_DETAIL_PARAGRAPH_STACK_COMPACT}>
-                {splitPostBodyParagraphs(spot.recommend_reason).map((block, i) => (
-                  <p key={i} className="text-sm leading-relaxed whitespace-pre-line">
-                    {block}
-                  </p>
-                ))}
-              </div>
-            </RouteSpotReasonBlock>
-          ) : null}
-          {spot.what_to_do ? (
-            <div>
-              <p className="text-primary text-[10px] font-bold tracking-wide uppercase mb-1.5">{t("whatToDoLabel")}</p>
-              <p className="text-sm leading-relaxed text-foreground">{spot.what_to_do}</p>
-            </div>
-          ) : null}
-        </div>
+    <div className="mt-4 space-y-2.5">
+      {hasWhatToDo ? (
+        <SpotMemoCell label={t("whatToDoLabel")}>{spot.what_to_do}</SpotMemoCell>
       ) : null}
-
-      {bodyMain ? (
-        <div className={POST_DETAIL_PARAGRAPH_STACK}>
-          {splitPostBodyParagraphs(bodyMain).map((para, i) => (
-            <p key={i} className={POST_DETAIL_PROSE_P_SPOT}>
-              {para}
+      {hasBody ? (
+        <SpotMemoCell label={t("spotCoreEyebrow")}>
+          {splitPostBodyParagraphs(spot.body).map((p, i) => (
+            <p key={i} className={i > 0 ? "mt-2" : ""}>
+              {p}
             </p>
           ))}
-        </div>
+        </SpotMemoCell>
       ) : null}
-
-      <div className="space-y-3 sm:space-y-4">
-        {photoInner}
-        {cautionInner}
-      </div>
-
-      {/* Structured next-move row (preferred over parsed body text) */}
-      {hasStructuredNextMove ? (
-        <RouteSpotNextFlowRow
-          text={`${nextModeLabel} ${nextMoveDetail}`}
-          label={t("spotNextFlowEyebrow")}
-        />
+      {hasPhotoTip ? (
+        <SpotMemoCell label={`📸 ${t("photoTip")}`}>{spot.photo_tip}</SpotMemoCell>
       ) : null}
-
-      <RouteSpotMetaStayRow>{t("stayDuration", { minutes: spot.stay_duration_minutes })}</RouteSpotMetaStayRow>
-
-      {!isLast && onNext ? (
-        <Button type="button" variant="outline" className="w-full gap-2 rounded-xl" onClick={onNext}>
-          {t("ctaNextSpot")}
-          <ArrowRight className="size-4" aria-hidden />
-        </Button>
+      {hasCaution ? (
+        <SpotMemoCell
+          label={`⚠️ ${t("caution")}`}
+          className="border-amber-200/50 bg-amber-50/30 dark:border-amber-800/30 dark:bg-amber-950/20"
+        >
+          {spot.caution}
+        </SpotMemoCell>
+      ) : null}
+      {hasReason ? (
+        <SpotMemoCell label={spot.theme_reason ? t("themeReasonLabel") : t("whyRecommend")}>
+          {reasonText}
+        </SpotMemoCell>
       ) : null}
     </div>
   );
 }
+
+// ─── LockedMemoHint ───────────────────────────────────────────────────────────
+
+function LockedMemoHint() {
+  return (
+    <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-border/40 bg-muted/10 px-4 py-3">
+      <Lock className="size-3.5 shrink-0 text-muted-foreground/50" aria-hidden />
+      <p className="text-xs text-muted-foreground">실행 가이드 · 포토 팁 · 주의사항 포함</p>
+    </div>
+  );
+}
+
+// ─── EditorialSpotRow ─────────────────────────────────────────────────────────
+
+function EditorialSpotRow({
+  spot,
+  index,
+  isLast,
+  time,
+  post,
+  visualPlan,
+  isSuperAdmin,
+  isFlashing,
+}: {
+  spot: RouteSpot;
+  index: number;
+  isLast: boolean;
+  time: string;
+  post: ContentPost;
+  visualPlan: LocalPostVisualPlan;
+  isSuperAdmin: boolean;
+  isFlashing: boolean;
+}) {
+  const t = useTranslations("RoutePosts");
+  const img = getSpotDisplayImageUrl(spot, post, { plan: visualPlan });
+  const imgAlt = spot.image_alt ?? getSpotDisplayImageAlt(spot, post, { plan: visualPlan });
+
+  return (
+    <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4">
+      {/* ── Spine column ── */}
+      <div className="flex w-10 shrink-0 flex-col items-center sm:w-12">
+        <time
+          className="mb-1.5 text-[10px] font-semibold tabular-nums text-muted-foreground"
+          aria-label={`${time} 출발`}
+        >
+          {time}
+        </time>
+        <div
+          className={cn(
+            "flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors duration-300",
+            isFlashing
+              ? "bg-primary text-primary-foreground ring-2 ring-primary/25 ring-offset-1"
+              : "bg-primary/10 text-primary",
+          )}
+          aria-label={`스팟 ${index + 1}`}
+        >
+          {index + 1}
+        </div>
+        {!isLast && <div className="mt-2 w-px flex-1 bg-border/25" />}
+      </div>
+
+      {/* ── Content column ── */}
+      <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-10")}>
+        {/* Spot title + stay chip */}
+        <div className="mb-3">
+          <p
+            className={cn(
+              "text-base font-semibold leading-snug",
+              isFlashing ? "text-primary" : "text-[var(--text-strong)]",
+            )}
+          >
+            {spot.title ?? spot.place_name}
+          </p>
+          {spot.place_name && spot.place_name !== spot.title ? (
+            <p className="mt-0.5 text-xs text-muted-foreground">{spot.place_name}</p>
+          ) : null}
+          {spot.stay_duration_minutes ? (
+            <span className="mt-1.5 inline-flex items-center rounded-full bg-muted/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              {t("stayDuration", { minutes: spot.stay_duration_minutes })}
+            </span>
+          ) : null}
+        </div>
+
+        {/* Image */}
+        <div className="relative mb-4 aspect-[16/10] overflow-hidden rounded-xl border border-border/60 sm:aspect-[2/1]">
+          <Image
+            src={img}
+            alt={imgAlt}
+            fill
+            className={routeSpotImageCoverClass(post)}
+            sizes="(max-width:768px) 100vw, 640px"
+          />
+        </div>
+
+        {/* Short description */}
+        {spot.short_description ? (
+          <p className="mb-3 text-sm leading-relaxed text-foreground/80">{spot.short_description}</p>
+        ) : null}
+
+        {/* Memo grid (paid) or locked hint */}
+        {isSuperAdmin ? <SpotMemoGrid spot={spot} /> : <LockedMemoHint />}
+
+        {/* Move connector */}
+        {!isLast ? <MoveConnector spot={spot} /> : null}
+      </div>
+    </div>
+  );
+}
+
+// ─── RoutePostDetailClient ────────────────────────────────────────────────────
 
 export function RoutePostDetailClient({
   post,
@@ -309,7 +310,6 @@ export function RoutePostDetailClient({
   const [activeSpotId, setActiveSpotId] = useState<string | null>(spots[0]?.id ?? null);
   const [flashId, setFlashId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
   const [showStickyNav, setShowStickyNav] = useState(false);
 
   useEffect(() => {
@@ -326,14 +326,6 @@ export function RoutePostDetailClient({
     setFlashId(id);
     window.setTimeout(() => setFlashId(null), 2200);
   }, []);
-
-  function goNextFrom(id: string) {
-    const idx = spots.findIndex((s) => s.id === id);
-    const next = spots[idx + 1];
-    if (!next) return;
-    navigateToSpotSection(next.id);
-    if (isMobile) setSheetOpen(true);
-  }
 
   useEffect(() => {
     let raf = 0;
@@ -376,10 +368,6 @@ export function RoutePostDetailClient({
     };
   }, [spots, isMobile]);
 
-  // triggerRef → mapCardRef alias (scroll trigger for sticky nav)
-
-  const selectedSpot = spots.find((s) => s.id === activeSpotId) ?? null;
-
   const visualPlan = useMemo(() => buildLocalPostVisualPlan(post), [post]);
   const { lead, rest } = useMemo(() => splitPostBodyLeadRest(post.body), [post.body]);
   const routeStructured =
@@ -389,6 +377,15 @@ export function RoutePostDetailClient({
     () => resolveRouteArticleRender(post.structured_content, rest),
     [post.structured_content, rest],
   );
+
+  // Editorial timeline: compute per-spot time labels
+  const spotTimes = useMemo(() => {
+    const startHour = startHourFromTimeOfDay(journey.metadata.recommended_time_of_day);
+    return computeSpotTimes(spots, startHour);
+  }, [spots, journey.metadata.recommended_time_of_day]);
+
+  const guardianSignature = routeStructured?.data.guardian_signature?.trim() ?? null;
+
   return (
     <>
       {showStickyNav && spots.length > 0 ? (
@@ -401,33 +398,26 @@ export function RoutePostDetailClient({
       ) : null}
 
       <div className="space-y-8 sm:space-y-10">
-        {/* ① 하루 프리뷰 + 하루 흐름 — 스티키 내비 트리거 */}
-        <div ref={triggerRef} className="space-y-8 sm:space-y-10">
+        {/* ① 하루 프리뷰 — 스티키 내비 트리거 */}
+        <div ref={triggerRef}>
           <RouteDayPreview post={post} />
-          <HaruFlowTimeline
-            spots={spots}
-            activeSpotId={activeSpotId}
-            onSpotClick={(id) => {
-              navigateToSpotSection(id);
-              if (isMobile) setSheetOpen(true);
-            }}
-          />
         </div>
 
-        {/* ② 이 하루웨이에 대해 — 인트로 리드가 있을 때만 표시 */}
+        {/* ② 이 하루웨이에 대해 */}
         {introPrimary.trim() ? (
-          <PostDetailIntroPanel
-            variant="route"
-            primary={introPrimary}
-            secondary={null}
-          />
+          <PostDetailIntroPanel variant="route" primary={introPrimary} secondary={null} />
         ) : null}
 
-        {/* ③ 먼저 알고 가면 좋은 점 — 체크리스트 */}
+        {/* ③ 먼저 알고 가면 좋은 점 */}
         {post.route_highlights && post.route_highlights.length > 0 ? (
-          <section className="border-border/40 max-w-[42rem] border-t pt-7 sm:pt-8">
-            <h2 className="text-text-strong text-lg font-semibold tracking-tight">{t("insightTitle")}</h2>
-            <ul className="mt-5 max-w-[38rem] space-y-3.5 text-[15px] leading-snug sm:text-base" aria-label={t("insightTitle")}>
+          <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-8">
+            <h2 className="text-lg font-semibold tracking-tight text-[var(--text-strong)]">
+              {t("insightTitle")}
+            </h2>
+            <ul
+              className="mt-5 max-w-[38rem] space-y-3.5 text-[15px] leading-snug sm:text-base"
+              aria-label={t("insightTitle")}
+            >
               {post.route_highlights.map((line) => (
                 <li key={line} className="flex gap-3.5">
                   <span
@@ -436,13 +426,14 @@ export function RoutePostDetailClient({
                   >
                     <Check className="size-3.5 stroke-[2.5]" />
                   </span>
-                  <span className="text-foreground min-w-0">{line}</span>
+                  <span className="min-w-0 text-foreground">{line}</span>
                 </li>
               ))}
             </ul>
           </section>
         ) : null}
 
+        {/* ④ 본문 아티클 */}
         {routeArticleRender.mode === "blocks" || rest.trim() ? (
           routeArticleRender.mode === "blocks" ? (
             <RouteArticleStructuredBody parsed={routeArticleRender.data} />
@@ -456,183 +447,132 @@ export function RoutePostDetailClient({
             </div>
           ) : null
         ) : null}
+
+        {/* ⑤ 에디토리얼 타임라인 */}
+        <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-8">
+          <header className="mb-7 space-y-1">
+            <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+              {t("routeEyebrow")}
+            </p>
+            <h2 className="text-lg font-semibold tracking-tight text-[var(--text-strong)]">
+              {t("flowTitle")}
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">{t("flowSubtitle")}</p>
+          </header>
+
+          {isSuperAdmin ? (
+            <div className="mb-5 flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-50/60 px-4 py-2.5 dark:bg-emerald-950/30">
+              <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                🛡 슈퍼관리자 — 전체 스팟 가이드 열람 중
+              </span>
+            </div>
+          ) : null}
+
+          <div>
+            {spots.map((spot, index) => (
+              <EditorialSpotRow
+                key={spot.id}
+                spot={spot}
+                index={index}
+                isLast={index === spots.length - 1}
+                time={spotTimes[index] ?? ""}
+                post={post}
+                visualPlan={visualPlan}
+                isSuperAdmin={isSuperAdmin}
+                isFlashing={flashId === spot.id}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* ⑥ 페이월 카드 */}
+        {!isSuperAdmin ? (
+          <div className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-b from-white to-[var(--brand-primary-soft)]/30 shadow-[var(--shadow-md)]">
+            <div className="px-6 pt-6 pb-5">
+              <p className="text-[10px] font-bold tracking-[0.2em] text-primary uppercase">
+                {t("spotsTitle")}
+              </p>
+              <h3 className="mt-1.5 text-lg font-semibold text-[var(--text-strong)]">
+                {t("paywallTitle")}
+              </h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{t("paywallLead")}</p>
+            </div>
+
+            <div className="mx-6 border-t border-border/40 pt-4 pb-2">
+              <p className="mb-2.5 text-[10px] font-bold tracking-wide text-muted-foreground uppercase">
+                {t("paywallIncludesLabel")}
+              </p>
+              <ul className="space-y-2">
+                {([
+                  t("paywallItem1"),
+                  t("paywallItem2"),
+                  t("paywallItem3"),
+                  t("paywallItem4"),
+                  t("paywallItem5"),
+                ] as string[]).map((item) => (
+                  <li key={item} className="flex items-center gap-2.5 text-sm text-foreground/80">
+                    <span className="text-xs font-bold text-primary">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="space-y-3 px-6 pt-4 pb-6">
+              <GuardianRequestOpenTrigger
+                size="lg"
+                className="w-full gap-2 rounded-xl px-5"
+                openDetail={{
+                  guardianUserId: requestHost.guardianUserId,
+                  displayName: requestHost.displayName,
+                  headline: requestHost.headline,
+                  avatarUrl: requestHost.avatarUrl,
+                  suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
+                  postId: post.id,
+                  postTitle: post.title,
+                }}
+              >
+                {t("paywallCtaPrimary")}
+                <span className="text-sm font-normal text-primary-foreground/70">
+                  {t("paywallCtaPrimaryPrice")}
+                </span>
+              </GuardianRequestOpenTrigger>
+              <GuardianRequestOpenTrigger
+                size="default"
+                variant="outline"
+                className="w-full rounded-xl"
+                openDetail={{
+                  guardianUserId: requestHost.guardianUserId,
+                  displayName: requestHost.displayName,
+                  headline: requestHost.headline,
+                  avatarUrl: requestHost.avatarUrl,
+                  suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
+                  postId: post.id,
+                  postTitle: post.title,
+                }}
+              >
+                {t("paywallCtaSecondary")}
+              </GuardianRequestOpenTrigger>
+              <p className="text-center text-xs leading-relaxed text-muted-foreground">
+                {t("paywallNote")}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        {/* ⑦ 가디언 서명 */}
+        {guardianSignature ? (
+          <GuardianSignatureQuote
+            label={t("routeEyebrow")}
+            badge={requestHost.displayName}
+            className="max-w-[42rem]"
+          >
+            {guardianSignature}
+          </GuardianSignatureQuote>
+        ) : null}
       </div>
 
-      {/* ─── 스팟별 상세 ────────────────────────────────────────────── */}
-      <section className="mt-12">
-        <h2 className="text-text-strong mb-5 text-lg font-semibold">{t("spotsTitle")}</h2>
-
-        {isSuperAdmin ? (
-          /* ── 슈퍼관리자: 페이월 없이 전체 스팟 상세 열람 ── */
-          <>
-            <div className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-50/60 px-4 py-2.5 dark:bg-emerald-950/30">
-              <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">🛡 슈퍼관리자 — 페이월 없이 열람 중</span>
-            </div>
-            <div className="space-y-8">
-              {spots.map((spot, index) => {
-                const isLast = index === spots.length - 1;
-                return (
-                  <div
-                    key={spot.id}
-                    id={`route-spot-${spot.id}`}
-                    className={cn(
-                      "rounded-2xl border bg-white/90 p-5 shadow-[var(--shadow-sm)] sm:p-6",
-                      flashId === spot.id ? "border-primary/40 ring-2 ring-primary/20" : "border-border/60",
-                    )}
-                  >
-                    <div className="mb-4 flex items-center gap-3">
-                      <span className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold">
-                        {index + 1}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-text-strong text-base font-semibold">{spot.title ?? spot.place_name}</p>
-                        {spot.place_name && spot.place_name !== spot.title ? (
-                          <p className="text-muted-foreground mt-0.5 text-xs">{spot.place_name}</p>
-                        ) : null}
-                      </div>
-                    </div>
-                    <SpotDetailBody
-                      spot={spot}
-                      post={post}
-                      visualPlan={visualPlan}
-                      isLast={isLast}
-                      layout="sheet"
-                      onNext={() => goNextFrom(spot.id)}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        ) : (
-          /* ── 일반 사용자: 스팟 프리뷰 + 잠금 카드 ── */
-          <>
-            {/* 스팟 프리뷰 — 번호·이름·장소명만 노출 */}
-            <div className="mb-4 overflow-hidden rounded-2xl border border-border/60 bg-white/90 shadow-[var(--shadow-sm)]">
-              {spots.map((spot, index) => {
-                const isLast = index === spots.length - 1;
-                const hasNextMove = !isLast && spot.next_move_minutes != null;
-                return (
-                  <div key={spot.id}>
-                    <div className="flex items-center gap-3 px-5 py-4">
-                      <span className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold">
-                        {index + 1}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-text-strong truncate text-sm font-semibold">{spot.title ?? spot.place_name}</p>
-                        {spot.place_name && spot.place_name !== spot.title ? (
-                          <p className="text-muted-foreground mt-0.5 truncate text-xs">{spot.place_name}</p>
-                        ) : null}
-                      </div>
-                      {spot.stay_duration_minutes ? (
-                        <span className="text-muted-foreground shrink-0 text-xs">약 {spot.stay_duration_minutes}분</span>
-                      ) : null}
-                    </div>
-                    {hasNextMove ? (
-                      <div className="border-border/40 mx-5 flex items-center gap-2 border-t py-2">
-                        <span className="text-muted-foreground/40 text-[10px]">↓</span>
-                        <span className="text-muted-foreground rounded-full bg-muted/40 px-2 py-0.5 text-[10px]">
-                          {spot.next_move_mode === "subway" ? "지하철" : spot.next_move_mode === "bus" ? "버스" : "도보"}{" "}
-                          {spot.next_move_minutes != null ? `${spot.next_move_minutes}분` : ""}{spot.next_move_distance_m != null ? ` · ${spot.next_move_distance_m >= 1000 ? `${(spot.next_move_distance_m / 1000).toFixed(1)}km` : `${spot.next_move_distance_m}m`}` : ""}
-                        </span>
-                      </div>
-                    ) : !isLast ? (
-                      <div className="border-border/40 mx-5 border-t" />
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* 잠금 카드 */}
-            <div className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-b from-white to-[var(--brand-primary-soft)]/30 shadow-[var(--shadow-md)]">
-              <div className="px-6 pt-6 pb-5">
-                <p className="text-primary text-[10px] font-bold tracking-[0.2em] uppercase">{t("spotsTitle")}</p>
-                <h3 className="text-text-strong mt-1.5 text-lg font-semibold">{t("paywallTitle")}</h3>
-                <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">{t("paywallLead")}</p>
-              </div>
-
-              <div className="border-border/40 mx-6 border-t pt-4 pb-2">
-                <p className="text-muted-foreground mb-2.5 text-[10px] font-bold tracking-wide uppercase">{t("paywallIncludesLabel")}</p>
-                <ul className="space-y-2">
-                  {([
-                    t("paywallItem1"),
-                    t("paywallItem2"),
-                    t("paywallItem3"),
-                    t("paywallItem4"),
-                    t("paywallItem5"),
-                  ] as string[]).map((item) => (
-                    <li key={item} className="flex items-center gap-2.5 text-sm text-foreground/80">
-                      <span className="text-primary text-xs font-bold">✓</span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="px-6 pt-4 pb-6 space-y-3">
-                <GuardianRequestOpenTrigger
-                  size="lg"
-                  className="w-full rounded-xl px-5 gap-2"
-                  openDetail={{
-                    guardianUserId: requestHost.guardianUserId,
-                    displayName: requestHost.displayName,
-                    headline: requestHost.headline,
-                    avatarUrl: requestHost.avatarUrl,
-                    suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
-                    postId: post.id,
-                    postTitle: post.title,
-                  }}
-                >
-                  {t("paywallCtaPrimary")}
-                  <span className="text-primary-foreground/70 text-sm font-normal">{t("paywallCtaPrimaryPrice")}</span>
-                </GuardianRequestOpenTrigger>
-                <GuardianRequestOpenTrigger
-                  size="default"
-                  variant="outline"
-                  className="w-full rounded-xl"
-                  openDetail={{
-                    guardianUserId: requestHost.guardianUserId,
-                    displayName: requestHost.displayName,
-                    headline: requestHost.headline,
-                    avatarUrl: requestHost.avatarUrl,
-                    suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
-                    postId: post.id,
-                    postTitle: post.title,
-                  }}
-                >
-                  {t("paywallCtaSecondary")}
-                </GuardianRequestOpenTrigger>
-                <p className="text-muted-foreground text-center text-xs leading-relaxed">{t("paywallNote")}</p>
-              </div>
-            </div>
-          </>
-        )}
-      </section>
-
       <div ref={spotsEndRef} aria-hidden className="h-px w-full" />
-
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" className="max-h-[88vh] rounded-t-3xl px-4 pt-2 pb-6" showCloseButton>
-          {selectedSpot ? (
-            <>
-              <SheetHeader className="px-0 text-left">
-                <SheetTitle className="text-left text-base">{selectedSpot.title}</SheetTitle>
-              </SheetHeader>
-              <div className="mt-2 max-h-[calc(88vh-5rem)] overflow-y-auto pr-1">
-                <SpotDetailBody
-                  spot={selectedSpot}
-                  post={post}
-                  visualPlan={visualPlan}
-                  isLast={selectedSpot.id === spots[spots.length - 1]?.id}
-                  layout="sheet"
-                  onNext={() => goNextFrom(selectedSpot.id)}
-                />
-              </div>
-            </>
-          ) : null}
-        </SheetContent>
-      </Sheet>
     </>
   );
 }
