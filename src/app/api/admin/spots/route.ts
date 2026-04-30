@@ -5,6 +5,7 @@
 import { NextResponse } from "next/server";
 import { getServerSupabaseForUser } from "@/lib/supabase/server-user";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
+import { isSupabaseTableMissingError } from "@/lib/supabase-table-errors";
 import { createSpotFromNaverSchema } from "@/lib/validation/spot-catalog";
 
 async function assertAdmin(): Promise<boolean> {
@@ -48,6 +49,17 @@ export async function GET(request: Request) {
 
   const { data, count, error } = await q;
   if (error) {
+    if (isSupabaseTableMissingError(error)) {
+      console.warn(
+        "[api/admin/spots] GET: public.spot_catalog 없음 — supabase/migrations 를 원격 DB에 적용하세요.",
+      );
+      return NextResponse.json({
+        spots: [] as unknown[],
+        total: 0,
+        schemaPending: true,
+        hint: "Run `supabase db push` or apply migrations starting with 20260401000008_create_spot_catalog.sql",
+      });
+    }
     console.error("[api/admin/spots] GET error:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -116,6 +128,15 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
+    if (isSupabaseTableMissingError(error)) {
+      return NextResponse.json(
+        {
+          error: "spot_catalog table not found",
+          hint: "Apply Supabase migrations (20260401000008_create_spot_catalog.sql and dependents) to this project.",
+        },
+        { status: 503 },
+      );
+    }
     console.error("[api/admin/spots] POST error:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

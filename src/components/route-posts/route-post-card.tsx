@@ -4,13 +4,18 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { ContentPost } from "@/types/domain";
-import { getContentPostFormat, getPostHeroImageAlt, getPostHeroImageUrl } from "@/lib/content-post-route";
+import {
+  getContentPostFormat,
+  getRouteExploreCardImageAlt,
+  getRouteExploreCardImageUrl,
+} from "@/lib/content-post-route";
 import { PostSampleBadge } from "@/components/posts/post-sample-badge";
 import { GuardianMiniPreviewSheetTrigger } from "@/components/guardians/guardian-mini-preview-sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { listCardActionButtonClass, listCardMetaBlockClass } from "@/components/ui/action-variants";
 import { postListCardCoverClass } from "@/lib/post-image-crop";
+import { routeCardAreaLabel, routeCardSpotPreviewLine } from "@/lib/route-post-card-meta";
 import { cn } from "@/lib/utils";
 import { MapPin } from "lucide-react";
 
@@ -20,8 +25,10 @@ export function RoutePostCard({ post, regionLabel, className }: { post: ContentP
   const journey = post.route_journey!;
   const meta = journey.metadata;
   const format = getContentPostFormat(post);
-  const cover = getPostHeroImageUrl(post);
-  const coverAlt = getPostHeroImageAlt(post);
+  const cover = getRouteExploreCardImageUrl(post);
+  const coverAlt = getRouteExploreCardImageAlt(post);
+  const areaLabel = routeCardAreaLabel(post);
+  const spotPreviewLine = routeCardSpotPreviewLine(post, 2);
 
   const formatLabel =
     format === "hybrid"
@@ -76,7 +83,18 @@ export function RoutePostCard({ post, regionLabel, className }: { post: ContentP
           <h2 className="text-foreground mt-1.5 line-clamp-2 text-[15px] font-semibold leading-snug group-hover:text-primary sm:mt-2 sm:text-base">
             {post.title}
           </h2>
-          <p className="text-muted-foreground mt-1.5 line-clamp-2 text-sm leading-snug sm:mt-2">{post.summary}</p>
+          <p className="text-muted-foreground mt-1.5 line-clamp-1 text-sm leading-snug sm:mt-2">{post.summary}</p>
+          <p className="text-muted-foreground mt-2 text-[11px] leading-snug">
+            <span className="font-medium text-foreground/85">{areaLabel}</span>
+            {spotPreviewLine ? (
+              <>
+                <span aria-hidden className="mx-1 text-border">
+                  ·
+                </span>
+                <span className="line-clamp-2">{spotPreviewLine}</span>
+              </>
+            ) : null}
+          </p>
         </div>
       </Link>
       <div className="flex flex-1 flex-col gap-3 px-4 pb-4 pt-1 sm:px-5 sm:pb-5 sm:pt-2">

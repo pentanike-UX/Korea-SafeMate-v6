@@ -1,10 +1,6 @@
 import type { ContentPost, ContentPostFormat, MapLatLng, RouteJourney, RouteSpot } from "@/types/domain";
-import {
-  buildLocalPostVisualPlan,
-  isExternalPostImageUrl,
-  localHeroAlt,
-  localSpotAlt,
-} from "@/lib/post-local-images";
+import { buildLocalPostVisualPlan, isExternalPostImageUrl, localHeroAlt } from "@/lib/post-local-images";
+import { spotDisplayName } from "@/lib/spot-image-query";
 
 export function getContentPostFormat(post: ContentPost): ContentPostFormat {
   return post.post_format ?? "article";
@@ -82,17 +78,26 @@ export type SpotImageOpts = {
 };
 
 /**
- * 스팟 이미지 해상도 우선순위:
- * 1. 에디터 직접 업로드 (non-external image_urls)
- * 2. spot_catalog 연결된 typed 이미지 (hero primary) — catalogImages 제공 시
- * 3. buildLocalPostVisualPlan 기반 매핑 (지역 풀)
+ * 스팟 이미지 해상도 우선순위 (제품 스펙):
+ *
+ * 1. selected_image
+ * 2. images.hero
+ * 3. image_candidates[0].thumbnail (Naver 검색 캐시)
+ * 4. 에디터 로컬 업로드 (image_urls)
+ * 5. spot_catalog (DB 실장소)
+ * 6. 지역 풀 mock — buildLocalPostVisualPlan
  */
 export function getSpotDisplayImageUrl(spot: RouteSpot, post: ContentPost, opts?: SpotImageOpts): string {
-  // 1. 에디터 직접 업로드
+  if (spot.selected_image?.trim()) return spot.selected_image.trim();
+
+  if (spot.images?.hero?.trim()) return spot.images.hero.trim();
+
+  const cand = spot.image_candidates?.[0]?.thumbnail?.trim();
+  if (cand) return cand;
+
   const own = spot.image_urls.find((u) => u?.trim() && !isExternalPostImageUrl(u));
   if (own) return own.trim();
 
-  // 2. spot_catalog 연결 이미지 (hero primary 우선, 없으면 hero 첫 번째)
   if (spot.spot_catalog_id && opts?.catalogImages) {
     const imgs = opts.catalogImages.get(spot.spot_catalog_id);
     if (imgs && imgs.length > 0) {
@@ -104,16 +109,75 @@ export function getSpotDisplayImageUrl(spot: RouteSpot, post: ContentPost, opts?
     }
   }
 
-  // 3. 지역 풀 기반 매핑
   const plan = opts?.plan ?? buildLocalPostVisualPlan(post);
   return plan.spotImages.get(spot.id) ?? plan.hero;
 }
 
-export function getSpotDisplayImageAlt(spot: RouteSpot, post: ContentPost, opts?: SpotImageOpts): string {
-  const own = spot.image_urls.find((u) => u?.trim() && !isExternalPostImageUrl(u));
-  if (own) return `${spot.title} — ${spot.place_name}`;
+/**
+ * 스팟 이미지 alt — 실제 장소 인지 + 현장 느낌.
+ * 예: "블루보틀 강남점 — 입구 외관 이미지"
+ */
+export function getSpotDisplayImageAlt(spot: RouteSpot, _post: ContentPost, _opts?: SpotImageOpts): string {
+  const label = spotDisplayName(spot);
+  if (spot.image_alt?.trim()) {
+    const a = spot.image_alt.trim();
+    if (/이미지\s*$/.test(a) || a.includes("—") || a.includes("·")) return a;
+    return `${label} — ${a} 이미지`;
+  }
+  const hint = spot.short_description?.trim().slice(0, 36);
+  if (hint) return `${label} — ${hint} 이미지`;
+  return `${label} 외관·현장 이미지`;
+}
+
+/** 탐색 카드·목록용 대표 스팟 (featured 또는 첫 스팟). */
+export function routeRepresentativeSpot(post: ContentPost): RouteSpot | null {
+  const spots = post.route_journey?.spots;
+  if (!spots?.length) return null;
+  const sorted = [...spots].sort((a, b) => a.order - b.order);
+  return sorted.find((s) => s.featured) ?? sorted[0] ?? null;
+}
+
+/**
+ * /explore/routes 등 리스트 카드 — 대표 스팟 기반, 없으면 포스트 히어로.
+ * 순서: 대표 스팟 파이프라인 → cover_image_url → getPostHeroImageUrl 폴백
+ */
+export function getRouteExploreCardImageUrl(post: ContentPost, opts?: SpotImageOpts): string {
+  const rep = routeRepresentativeSpot(post);
+  if (!rep) return getPostHeroImageUrl(post);
+
   const plan = opts?.plan ?? buildLocalPostVisualPlan(post);
-  return localSpotAlt(spot, plan);
+
+  if (rep.selected_image?.trim()) return rep.selected_image.trim();
+  if (rep.images?.hero?.trim()) return rep.images.hero.trim();
+
+  const own = rep.image_urls.find((u) => u?.trim() && !isExternalPostImageUrl(u));
+  if (own) return own.trim();
+
+  if (rep.spot_catalog_id && opts?.catalogImages) {
+    const imgs = opts.catalogImages.get(rep.spot_catalog_id);
+    if (imgs?.length) {
+      const primary = imgs.find((i) => i.image_type === "hero" && i.is_primary);
+      if (primary) return primary.url;
+      const anyHero = imgs.find((i) => i.image_type === "hero");
+      if (anyHero) return anyHero.url;
+      if (imgs[0]) return imgs[0].url;
+    }
+  }
+
+  if (rep.image_candidates?.[0]?.thumbnail?.trim()) return rep.image_candidates[0].thumbnail.trim();
+
+  const cover = post.cover_image_url?.trim();
+  if (cover && !isExternalPostImageUrl(cover)) return cover;
+
+  return plan.spotImages.get(rep.id) ?? plan.hero;
+}
+
+export function getRouteExploreCardImageAlt(post: ContentPost): string {
+  const rep = routeRepresentativeSpot(post);
+  if (rep) {
+    return getSpotDisplayImageAlt(rep, post);
+  }
+  return getPostHeroImageAlt(post);
 }
 
 export function countPostsWithoutOwnMedia(posts: ContentPost[]): number {

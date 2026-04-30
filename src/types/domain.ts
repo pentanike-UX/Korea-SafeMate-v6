@@ -242,6 +242,76 @@ export interface RouteSpot {
    * When present, image resolution prefers `spot_images` typed catalog images.
    */
   spot_catalog_id?: string;
+
+  // ── Naver 이미지 연동 필드 (Phase 2 — 에디터/AI가 채움) ──────────────────────
+  /**
+   * Naver Image Search 쿼리 문자열.
+   * 예: "블루보틀 강남점 외관", "광화문광장 세종대왕상"
+   * 비어있으면 buildSpotImageQuery()가 자동 생성.
+   */
+  image_query?: string;
+
+  /**
+   * Naver Image Search API 결과 캐시 (AI/에디터가 저장).
+   * 실시간 검색 없이 빠르게 후보를 표시하는 용도.
+   */
+  image_candidates?: NaverImageCandidate[];
+
+  /**
+   * 관리자/에디터가 최종 선택한 대표 이미지 URL.
+   * 이미지 해상도 최우선 순위.
+   */
+  selected_image?: string;
+
+  /**
+   * 대표 이미지의 출처.
+   * "naver" | "admin_upload" | "catalog" | "local" | "placeholder"
+   */
+  image_source?: "naver" | "admin_upload" | "catalog" | "local" | "placeholder";
+
+  /** 원본 장소명(검색·Local API 결과와 매칭). 없으면 place_name·title 사용. */
+  spot_name?: string;
+  /** 카드·캡션용 표시명. 없으면 title → place_name 순. */
+  display_name?: string;
+  /** 네이버 로컬 카테고리 경로 일부(예: 음식점>카페). */
+  category?: string;
+  /** 행정구·동 등 짧은 지역 라벨 (쿼리·표시). */
+  district?: string;
+  /** 지번 등 일반 주소 — 없으면 address_line과 동일 취급 가능. */
+  address?: string;
+  /** 도로명주소 */
+  road_address?: string;
+  /** 네이버 플레이스 숫자 ID (링크에서 추출·저장). */
+  naver_place_id?: string;
+  /** 네이버 지도/플레이스 상세 URL */
+  naver_link?: string;
+
+  /**
+   * 역할별 이미지 URL (실제 장소 기반·에디터 지정).
+   * 해상도: selected_image → images.hero → … (see getSpotDisplayImageUrl).
+   */
+  images?: {
+    hero?: string;
+    practical?: string;
+    walking?: string;
+    timing?: string;
+    night?: string;
+  };
+
+  /** 통합 표기용 실존 장소명 (플레이스명·동상 공식 명칭 등). */
+  real_place_name?: string;
+
+  /**
+   * 목업·검수 상태 — 슈퍼관리자 UI에서만 표시 권장.
+   * verified: 명칭·좌표·이미지 후보 확인 | needs_review: 플레이스홀더 | mock: 시드만
+   */
+  source_status?: "mock" | "verified" | "needs_review";
+
+  /** 직전 스팟에서 이 스팟으로 오는 동안의 메모(도보·펜스·횡단 등). 첫 스팟은 보통 비움. */
+  leg_from_previous?: string;
+
+  // Naver Maps 좌표 (spot_catalog 없이 직접 저장할 때)
+  // lat / lng 는 이미 존재 (위 필드)
 }
 
 // ─── Spot Catalog ─────────────────────────────────────────────────────────────
@@ -307,6 +377,22 @@ export interface NaverPlaceSearchResult {
 
 /** Typed catalog image map — keyed by spot_catalog_id, used for server-side pre-fetch. */
 export type CatalogImageMap = Map<string, SpotImage[]>;
+
+/** Naver Image Search API 결과 단건 (클라이언트에 안전하게 전달되는 포맷). */
+export interface NaverImageCandidate {
+  /** HTML 태그 제거된 이미지 설명. */
+  title: string;
+  /** 원본 이미지 링크 (외부 사이트). */
+  link: string;
+  /** 썸네일 URL (Naver CDN). */
+  thumbnail: string;
+  /** 픽셀 너비 (문자열). */
+  sizewidth: string;
+  /** 픽셀 높이 (문자열). */
+  sizeheight: string;
+  /** 원본 링크 호스트 (표시·필터용, 서버에서 파싱). */
+  source_domain?: string;
+}
 
 /**
  * 카드·탐색 노출용 구조화 메타 — DB 전용 컬럼 추가 전까지 `route_journey` JSON에 함께 저장된다.

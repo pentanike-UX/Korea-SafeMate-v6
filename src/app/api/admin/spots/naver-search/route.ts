@@ -5,8 +5,8 @@
  * Naver mapx/mapy (× 10^7 정수) → lat/lng 변환 포함.
  *
  * 환경변수:
- *   NAVER_CLIENT_ID     — Naver Cloud Platform Application Client ID
- *   NAVER_CLIENT_SECRET — Naver Cloud Platform Application Client Secret
+ *   NAVER_SEARCH_CLIENT_ID     — Naver Cloud Platform Application Client ID
+ *   NAVER_SEARCH_CLIENT_SECRET — Naver Cloud Platform Application Client Secret
  */
 import { NextResponse } from "next/server";
 import { getServerSupabaseForUser } from "@/lib/supabase/server-user";
@@ -69,11 +69,11 @@ export async function GET(request: Request) {
     );
   }
 
-  const clientId = process.env.NAVER_CLIENT_ID;
-  const clientSecret = process.env.NAVER_CLIENT_SECRET;
+  const clientId = process.env.NAVER_SEARCH_CLIENT_ID;
+  const clientSecret = process.env.NAVER_SEARCH_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
     return NextResponse.json(
-      { error: "Naver API credentials not configured", hint: "Set NAVER_CLIENT_ID and NAVER_CLIENT_SECRET in Vercel env vars" },
+      { error: "Naver API credentials not configured", hint: "Set NAVER_SEARCH_CLIENT_ID and NAVER_SEARCH_CLIENT_SECRET in Vercel env vars" },
       { status: 503 },
     );
   }

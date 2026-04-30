@@ -12,8 +12,11 @@ import {
   type GuardianRequestSheetHostProps,
 } from "@/components/guardians/guardian-request-sheet";
 import { GuardianSignatureQuote } from "@/components/posts/post-info-blocks";
-import { getSpotDisplayImageAlt, getSpotDisplayImageUrl } from "@/lib/content-post-route";
+import { useSpotDetailImage } from "@/hooks/use-spot-display-image";
 import { buildLocalPostVisualPlan, type LocalPostVisualPlan } from "@/lib/post-local-images";
+import { SpotImageCandidates } from "@/components/route-posts/spot-image-candidates";
+import { SpotVerificationStrip } from "@/components/route-posts/spot-verification-strip";
+import { buildSpotImageQuery } from "@/lib/spot-image-query";
 import { routeSpotImageCoverClass } from "@/lib/post-image-crop";
 import { cn } from "@/lib/utils";
 import { Check, Lock } from "lucide-react";
@@ -471,8 +474,7 @@ function EditorialSpotRow({
   const t = useTranslations("RoutePosts");
   const role = inferSpotRole(spot);
   const roleConf = ROLE_CONFIG[role];
-  const img = getSpotDisplayImageUrl(spot, post, { plan: visualPlan });
-  const imgAlt = spot.image_alt ?? getSpotDisplayImageAlt(spot, post, { plan: visualPlan });
+  const { url: img, alt: imgAlt, onAdminImagePicked } = useSpotDetailImage(spot, post, { plan: visualPlan });
 
   return (
     <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4">
@@ -539,6 +541,18 @@ function EditorialSpotRow({
             sizes="(max-width:768px) 100vw, 640px"
           />
         </div>
+
+        {isSuperAdmin ? (
+          <>
+            <SpotVerificationStrip spot={spot} className="mb-3" />
+            <SpotImageCandidates
+              spotId={spot.id}
+              imageQuery={buildSpotImageQuery(spot, post.region_slug)}
+              serverSelectedImage={spot.selected_image ?? null}
+              onPicked={onAdminImagePicked}
+            />
+          </>
+        ) : null}
 
         {/* Short description — conversational lead */}
         {spot.short_description ? (

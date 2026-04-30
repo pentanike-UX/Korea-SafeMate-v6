@@ -7,6 +7,7 @@ import { getContentPostFormat } from "@/lib/content-post-route";
 import { PostSampleBadge } from "@/components/posts/post-sample-badge";
 import { Badge } from "@/components/ui/badge";
 import { listCardMetaBlockClass } from "@/components/ui/action-variants";
+import { routeCardAreaLabel, routeCardSpotPreviewLine } from "@/lib/route-post-card-meta";
 import { cn } from "@/lib/utils";
 
 function moodTagKey(tag: string): `moodTag.${string}` {
@@ -59,6 +60,10 @@ export function RouteDayPreview({ post, className }: { post: ContentPost; classN
   const moodExtra = exposure?.reason_line?.trim();
   const moodTags = exposure?.mood_tags?.map((tag) => t(moodTagKey(tag))) ?? [];
 
+  const areaLabel = routeCardAreaLabel(post);
+  const spotPreviewLine = routeCardSpotPreviewLine(post, 2);
+  const cautionHint = post.route_highlights?.[0]?.trim();
+
   return (
     <section
       className={cn(
@@ -87,6 +92,17 @@ export function RouteDayPreview({ post, className }: { post: ContentPost; classN
             <span aria-hidden> · </span>
             <span>{transportLabel}</span>
           </p>
+          <p className="text-muted-foreground mt-1.5 text-xs leading-snug">
+            <span className="font-medium text-foreground/90">{areaLabel}</span>
+            {spotPreviewLine ? (
+              <>
+                <span aria-hidden className="mx-1 text-border">
+                  ·
+                </span>
+                <span className="line-clamp-2">{spotPreviewLine}</span>
+              </>
+            ) : null}
+          </p>
           <p className="mt-1 inline-flex flex-wrap items-center gap-1.5">
             <span className="inline-flex items-center gap-1 rounded-full bg-black/45 px-2 py-0.5 text-[11px] font-semibold text-white dark:bg-white/12 dark:text-white">
               <MapPin className="size-3 shrink-0 opacity-95" aria-hidden />
@@ -108,6 +124,14 @@ export function RouteDayPreview({ post, className }: { post: ContentPost; classN
 
       <div className="border-border/60 bg-muted/20 px-4 py-4 sm:px-5">
         <p className="text-muted-foreground text-[10px] font-semibold tracking-[0.18em] uppercase">{t("dayPreviewMoodLabel")}</p>
+        {cautionHint ? (
+          <p className="text-foreground mt-2 text-[13px] leading-snug">
+            <span className="text-muted-foreground text-[10px] font-semibold uppercase">
+              {t("caution")} ·{" "}
+            </span>
+            {cautionHint}
+          </p>
+        ) : null}
         {moodCore ? <p className="text-foreground mt-2 text-[15px] leading-[1.65]">{moodCore}</p> : null}
         {moodTags.length > 0 ? (
           <p className="text-muted-foreground mt-2 text-xs leading-relaxed">{moodTags.join(" · ")}</p>

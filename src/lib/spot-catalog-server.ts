@@ -1,9 +1,24 @@
 /**
  * spot_catalog + spot_images Supabase 서버 쿼리 모음.
  * Server Component / Route Handler 전용 (클라이언트에서 import 금지).
+ *
+ * 원격 DB에 마이그레이션 미적용 시 테이블이 없으면 빈 결과를 반환합니다.
+ * 적용: `supabase db push` 또는 SQL 에디터에서 `supabase/migrations/20260401000008_create_spot_catalog.sql` 부터 순서대로.
  */
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
+import { isSupabaseTableMissingError } from "@/lib/supabase-table-errors";
 import type { CatalogImageMap, SpotCatalogEntry, SpotImage, SpotImageType } from "@/types/domain";
+
+function logSpotCatalogError(context: string, error: { message?: string; code?: string }) {
+  if (isSupabaseTableMissingError(error)) {
+    console.warn(
+      `[spot-catalog] ${context}: DB에 spot_catalog / spot_images 가 없습니다. ` +
+        `로컬 저장소의 supabase/migrations 를 원격 Supabase에 적용하세요. (${error.message})`,
+    );
+    return;
+  }
+  console.error(`[spot-catalog] ${context}:`, error.message);
+}
 
 // ─── 장소 검색 / CRUD ─────────────────────────────────────────────────────────
 
@@ -30,7 +45,7 @@ export async function listSpotCatalog(opts?: {
 
   const { data, error } = await q;
   if (error) {
-    console.error("[spot-catalog] listSpotCatalog error:", error.message);
+    logSpotCatalogError("listSpotCatalog", error);
     return [];
   }
   return (data ?? []) as SpotCatalogEntry[];
@@ -46,7 +61,11 @@ export async function getSpotCatalogById(spotId: string): Promise<SpotCatalogEnt
     .eq("id", spotId)
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (error) {
+    logSpotCatalogError("getSpotCatalogById", error);
+    return null;
+  }
+  if (!data) return null;
   return data as SpotCatalogEntry;
 }
 
@@ -64,7 +83,7 @@ export async function listSpotImages(spotCatalogId: string): Promise<SpotImage[]
     .order("sort_order");
 
   if (error) {
-    console.error("[spot-catalog] listSpotImages error:", error.message);
+    logSpotCatalogError("listSpotImages", error);
     return [];
   }
   return (data ?? []) as SpotImage[];
@@ -110,7 +129,7 @@ export async function buildCatalogImageMap(
     .order("sort_order");
 
   if (error) {
-    console.error("[spot-catalog] buildCatalogImageMap error:", error.message);
+    logSpotCatalogError("buildCatalogImageMap", error);
     return map;
   }
 

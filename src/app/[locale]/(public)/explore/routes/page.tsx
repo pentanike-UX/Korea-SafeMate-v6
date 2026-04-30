@@ -5,7 +5,8 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { listApprovedRoutePostsMerged } from "@/lib/posts-public-merged.server";
-import { postCoverImageUrl } from "@/lib/content-post-route";
+import { getRouteExploreCardImageAlt, getRouteExploreCardImageUrl } from "@/lib/content-post-route";
+import { routeCardAreaLabel, routeCardSpotPreviewLine } from "@/lib/route-post-card-meta";
 import { BRAND } from "@/lib/constants";
 import { MapPin, Clock, ArrowRight } from "lucide-react";
 
@@ -55,11 +56,15 @@ export default async function ExploreRoutesPage() {
         ) : (
           <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {routes.map((post) => {
-              const coverUrl = postCoverImageUrl(post);
+              const coverUrl = getRouteExploreCardImageUrl(post);
+              const coverAlt = getRouteExploreCardImageAlt(post);
               const spots = post.route_journey?.spots ?? [];
               const meta = post.route_journey?.metadata;
               const durationMin = meta?.estimated_total_duration_minutes;
               const allTags = post.tags.slice(0, 3);
+              const areaLabel = routeCardAreaLabel(post);
+              const spotPreview = routeCardSpotPreviewLine(post, 2);
+              const distanceKm = meta?.estimated_total_distance_km;
 
               return (
                 <li key={post.id}>
@@ -73,7 +78,7 @@ export default async function ExploreRoutesPage() {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={coverUrl}
-                          alt={post.title}
+                          alt={coverAlt}
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                         />
                       ) : (
@@ -112,21 +117,35 @@ export default async function ExploreRoutesPage() {
 
                       {/* 요약 */}
                       {post.summary && (
-                        <p className="text-xs text-ink-muted leading-relaxed line-clamp-2">{post.summary}</p>
+                        <p className="text-xs text-ink-muted leading-relaxed line-clamp-1">{post.summary}</p>
                       )}
 
+                      {/* 지역 · 대표 스팟 (한 줄) */}
+                      <p className="text-[10px] leading-snug text-ink-muted line-clamp-2">
+                        <span className="font-semibold text-ink-soft">{areaLabel}</span>
+                        {spotPreview ? (
+                          <>
+                            <span className="mx-1 text-line">·</span>
+                            <span>{spotPreview}</span>
+                          </>
+                        ) : null}
+                      </p>
+
                       {/* 메타 */}
-                      <div className="mt-auto flex items-center justify-between pt-2 border-t border-line-whisper">
-                        <div className="flex items-center gap-3 text-[10px] text-ink-soft">
-                          {durationMin && (
-                            <span className="flex items-center gap-1">
-                              <Clock className="size-3" strokeWidth={1.75} />
-                              약 {Math.round(durationMin / 60)}시간
+                      <div className="mt-auto flex items-center justify-between gap-2 border-t border-line-whisper pt-2">
+                        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-ink-soft">
+                          {typeof distanceKm === "number" ? (
+                            <span className="tabular-nums">약 {distanceKm.toFixed(1)}km</span>
+                          ) : null}
+                          {durationMin != null && durationMin > 0 ? (
+                            <span className="inline-flex items-center gap-1 tabular-nums">
+                              <Clock className="size-3 shrink-0" strokeWidth={1.75} aria-hidden />
+                              {durationMin < 120 ? `약 ${Math.round(durationMin)}분` : `약 ${Math.round(durationMin / 60)}시간`}
                             </span>
-                          )}
-                          <span className="font-medium text-ink-muted">{post.author_display_name}</span>
+                          ) : null}
+                          <span className="min-w-0 truncate font-medium text-ink-muted">{post.author_display_name}</span>
                         </div>
-                        <ArrowRight className="size-4 text-ink-soft transition-transform group-hover:translate-x-0.5 group-hover:text-accent-ksm" strokeWidth={1.75} />
+                        <ArrowRight className="size-4 shrink-0 text-ink-soft transition-transform group-hover:translate-x-0.5 group-hover:text-accent-ksm" strokeWidth={1.75} />
                       </div>
                     </div>
                   </Link>
