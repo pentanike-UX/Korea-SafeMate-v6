@@ -7,7 +7,6 @@ import type { ContentPost, RouteSpot } from "@/types/domain";
 import { RouteStickyLocalNav } from "@/components/route-posts/route-sticky-local-nav";
 import { RouteSummaryCard } from "@/components/route-posts/route-summary-card";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PostDetailIntroPanel } from "@/components/posts/post-detail-intro-panel";
 import { GuardianRequestOpenTrigger, type GuardianRequestSheetHostProps } from "@/components/guardians/guardian-request-sheet";
@@ -295,9 +294,12 @@ function SpotDetailBody({
 export function RoutePostDetailClient({
   post,
   requestHost,
+  isSuperAdmin = false,
 }: {
   post: ContentPost;
   requestHost: GuardianRequestSheetHostProps;
+  /** Dev/demo: 슈퍼관리자 세션이면 true — 페이월을 건너뜁니다. */
+  isSuperAdmin?: boolean;
 }) {
   const t = useTranslations("RoutePosts");
   const journey = post.route_journey!;
@@ -460,109 +462,156 @@ export function RoutePostDetailClient({
         ) : null}
       </div>
 
-      {/* ─── 스팟별 상세 잠금 카드 ────────────────────────────────────── */}
+      {/* ─── 스팟별 상세 ────────────────────────────────────────────── */}
       <section className="mt-12">
         <h2 className="text-text-strong mb-5 text-lg font-semibold">{t("spotsTitle")}</h2>
 
-        {/* 스팟 프리뷰 — 번호·이름·장소명만 노출 */}
-        <div className="mb-4 overflow-hidden rounded-2xl border border-border/60 bg-white/90 shadow-[var(--shadow-sm)]">
-          {spots.map((spot, index) => {
-            const isLast = index === spots.length - 1;
-            const hasNextMove = !isLast && spot.next_move_minutes != null;
-            return (
-              <div key={spot.id}>
-                <div className="flex items-center gap-3 px-5 py-4">
-                  <span className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold">
-                    {index + 1}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-text-strong truncate text-sm font-semibold">{spot.title ?? spot.place_name}</p>
-                    {spot.place_name && spot.place_name !== spot.title ? (
-                      <p className="text-muted-foreground mt-0.5 truncate text-xs">{spot.place_name}</p>
+        {isSuperAdmin ? (
+          /* ── 슈퍼관리자: 페이월 없이 전체 스팟 상세 열람 ── */
+          <>
+            <div className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-50/60 px-4 py-2.5 dark:bg-emerald-950/30">
+              <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">🛡 슈퍼관리자 — 페이월 없이 열람 중</span>
+            </div>
+            <div className="space-y-8">
+              {spots.map((spot, index) => {
+                const isLast = index === spots.length - 1;
+                return (
+                  <div
+                    key={spot.id}
+                    id={`route-spot-${spot.id}`}
+                    className={cn(
+                      "rounded-2xl border bg-white/90 p-5 shadow-[var(--shadow-sm)] sm:p-6",
+                      flashId === spot.id ? "border-primary/40 ring-2 ring-primary/20" : "border-border/60",
+                    )}
+                  >
+                    <div className="mb-4 flex items-center gap-3">
+                      <span className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold">
+                        {index + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-text-strong text-base font-semibold">{spot.title ?? spot.place_name}</p>
+                        {spot.place_name && spot.place_name !== spot.title ? (
+                          <p className="text-muted-foreground mt-0.5 text-xs">{spot.place_name}</p>
+                        ) : null}
+                      </div>
+                    </div>
+                    <SpotDetailBody
+                      spot={spot}
+                      post={post}
+                      visualPlan={visualPlan}
+                      isLast={isLast}
+                      layout="sheet"
+                      onNext={() => goNextFrom(spot.id)}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          /* ── 일반 사용자: 스팟 프리뷰 + 잠금 카드 ── */
+          <>
+            {/* 스팟 프리뷰 — 번호·이름·장소명만 노출 */}
+            <div className="mb-4 overflow-hidden rounded-2xl border border-border/60 bg-white/90 shadow-[var(--shadow-sm)]">
+              {spots.map((spot, index) => {
+                const isLast = index === spots.length - 1;
+                const hasNextMove = !isLast && spot.next_move_minutes != null;
+                return (
+                  <div key={spot.id}>
+                    <div className="flex items-center gap-3 px-5 py-4">
+                      <span className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold">
+                        {index + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-text-strong truncate text-sm font-semibold">{spot.title ?? spot.place_name}</p>
+                        {spot.place_name && spot.place_name !== spot.title ? (
+                          <p className="text-muted-foreground mt-0.5 truncate text-xs">{spot.place_name}</p>
+                        ) : null}
+                      </div>
+                      {spot.stay_duration_minutes ? (
+                        <span className="text-muted-foreground shrink-0 text-xs">약 {spot.stay_duration_minutes}분</span>
+                      ) : null}
+                    </div>
+                    {hasNextMove ? (
+                      <div className="border-border/40 mx-5 flex items-center gap-2 border-t py-2">
+                        <span className="text-muted-foreground/40 text-[10px]">↓</span>
+                        <span className="text-muted-foreground rounded-full bg-muted/40 px-2 py-0.5 text-[10px]">
+                          {spot.next_move_mode === "subway" ? "지하철" : spot.next_move_mode === "bus" ? "버스" : "도보"}{" "}
+                          {spot.next_move_minutes != null ? `${spot.next_move_minutes}분` : ""}{spot.next_move_distance_m != null ? ` · ${spot.next_move_distance_m >= 1000 ? `${(spot.next_move_distance_m / 1000).toFixed(1)}km` : `${spot.next_move_distance_m}m`}` : ""}
+                        </span>
+                      </div>
+                    ) : !isLast ? (
+                      <div className="border-border/40 mx-5 border-t" />
                     ) : null}
                   </div>
-                  {spot.stay_duration_minutes ? (
-                    <span className="text-muted-foreground shrink-0 text-xs">약 {spot.stay_duration_minutes}분</span>
-                  ) : null}
-                </div>
-                {hasNextMove ? (
-                  <div className="border-border/40 mx-5 flex items-center gap-2 border-t py-2">
-                    <span className="text-muted-foreground/40 text-[10px]">↓</span>
-                    <span className="text-muted-foreground rounded-full bg-muted/40 px-2 py-0.5 text-[10px]">
-                      {spot.next_move_mode === "subway" ? "지하철" : spot.next_move_mode === "bus" ? "버스" : "도보"}{" "}
-                      {spot.next_move_minutes != null ? `${spot.next_move_minutes}분` : ""}{spot.next_move_distance_m != null ? ` · ${spot.next_move_distance_m >= 1000 ? `${(spot.next_move_distance_m / 1000).toFixed(1)}km` : `${spot.next_move_distance_m}m`}` : ""}
-                    </span>
-                  </div>
-                ) : !isLast ? (
-                  <div className="border-border/40 mx-5 border-t" />
-                ) : null}
+                );
+              })}
+            </div>
+
+            {/* 잠금 카드 */}
+            <div className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-b from-white to-[var(--brand-primary-soft)]/30 shadow-[var(--shadow-md)]">
+              <div className="px-6 pt-6 pb-5">
+                <p className="text-primary text-[10px] font-bold tracking-[0.2em] uppercase">{t("spotsTitle")}</p>
+                <h3 className="text-text-strong mt-1.5 text-lg font-semibold">{t("paywallTitle")}</h3>
+                <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">{t("paywallLead")}</p>
               </div>
-            );
-          })}
-        </div>
 
-        {/* 잠금 카드 */}
-        <div className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-b from-white to-[var(--brand-primary-soft)]/30 shadow-[var(--shadow-md)]">
-          <div className="px-6 pt-6 pb-5">
-            <p className="text-primary text-[10px] font-bold tracking-[0.2em] uppercase">{t("spotsTitle")}</p>
-            <h3 className="text-text-strong mt-1.5 text-lg font-semibold">{t("paywallTitle")}</h3>
-            <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">{t("paywallLead")}</p>
-          </div>
+              <div className="border-border/40 mx-6 border-t pt-4 pb-2">
+                <p className="text-muted-foreground mb-2.5 text-[10px] font-bold tracking-wide uppercase">{t("paywallIncludesLabel")}</p>
+                <ul className="space-y-2">
+                  {([
+                    t("paywallItem1"),
+                    t("paywallItem2"),
+                    t("paywallItem3"),
+                    t("paywallItem4"),
+                    t("paywallItem5"),
+                  ] as string[]).map((item) => (
+                    <li key={item} className="flex items-center gap-2.5 text-sm text-foreground/80">
+                      <span className="text-primary text-xs font-bold">✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-          <div className="border-border/40 mx-6 border-t pt-4 pb-2">
-            <p className="text-muted-foreground mb-2.5 text-[10px] font-bold tracking-wide uppercase">{t("paywallIncludesLabel")}</p>
-            <ul className="space-y-2">
-              {([
-                t("paywallItem1"),
-                t("paywallItem2"),
-                t("paywallItem3"),
-                t("paywallItem4"),
-                t("paywallItem5"),
-              ] as string[]).map((item) => (
-                <li key={item} className="flex items-center gap-2.5 text-sm text-foreground/80">
-                  <span className="text-primary text-xs font-bold">✓</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="px-6 pt-4 pb-6 space-y-3">
-            <GuardianRequestOpenTrigger
-              size="lg"
-              className="w-full rounded-xl px-5 gap-2"
-              openDetail={{
-                guardianUserId: requestHost.guardianUserId,
-                displayName: requestHost.displayName,
-                headline: requestHost.headline,
-                avatarUrl: requestHost.avatarUrl,
-                suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
-                postId: post.id,
-                postTitle: post.title,
-              }}
-            >
-              {t("paywallCtaPrimary")}
-              <span className="text-primary-foreground/70 text-sm font-normal">{t("paywallCtaPrimaryPrice")}</span>
-            </GuardianRequestOpenTrigger>
-            <GuardianRequestOpenTrigger
-              size="default"
-              variant="outline"
-              className="w-full rounded-xl"
-              openDetail={{
-                guardianUserId: requestHost.guardianUserId,
-                displayName: requestHost.displayName,
-                headline: requestHost.headline,
-                avatarUrl: requestHost.avatarUrl,
-                suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
-                postId: post.id,
-                postTitle: post.title,
-              }}
-            >
-              {t("paywallCtaSecondary")}
-            </GuardianRequestOpenTrigger>
-            <p className="text-muted-foreground text-center text-xs leading-relaxed">{t("paywallNote")}</p>
-          </div>
-        </div>
+              <div className="px-6 pt-4 pb-6 space-y-3">
+                <GuardianRequestOpenTrigger
+                  size="lg"
+                  className="w-full rounded-xl px-5 gap-2"
+                  openDetail={{
+                    guardianUserId: requestHost.guardianUserId,
+                    displayName: requestHost.displayName,
+                    headline: requestHost.headline,
+                    avatarUrl: requestHost.avatarUrl,
+                    suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
+                    postId: post.id,
+                    postTitle: post.title,
+                  }}
+                >
+                  {t("paywallCtaPrimary")}
+                  <span className="text-primary-foreground/70 text-sm font-normal">{t("paywallCtaPrimaryPrice")}</span>
+                </GuardianRequestOpenTrigger>
+                <GuardianRequestOpenTrigger
+                  size="default"
+                  variant="outline"
+                  className="w-full rounded-xl"
+                  openDetail={{
+                    guardianUserId: requestHost.guardianUserId,
+                    displayName: requestHost.displayName,
+                    headline: requestHost.headline,
+                    avatarUrl: requestHost.avatarUrl,
+                    suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
+                    postId: post.id,
+                    postTitle: post.title,
+                  }}
+                >
+                  {t("paywallCtaSecondary")}
+                </GuardianRequestOpenTrigger>
+                <p className="text-muted-foreground text-center text-xs leading-relaxed">{t("paywallNote")}</p>
+              </div>
+            </div>
+          </>
+        )}
       </section>
 
       <div ref={spotsEndRef} aria-hidden className="h-px w-full" />

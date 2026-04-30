@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { resolveGuardianDisplayName } from "@/data/mock/guardian-seed-display-names";
 import { GUARDIAN_SEED_ROWS } from "@/data/mock/guardians-seed";
@@ -18,7 +18,13 @@ const tierBadgeClass: Record<string, string> = {
   Elite: "border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-100",
 };
 
-export function MockGuardianQuickLogin({ className }: { className?: string }) {
+export function MockGuardianQuickLogin({
+  className,
+  topSlot,
+}: {
+  className?: string;
+  topSlot?: React.ReactNode;
+}) {
   const t = useTranslations("Login");
   const locale = useLocale();
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -50,6 +56,7 @@ export function MockGuardianQuickLogin({ className }: { className?: string }) {
       <p className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">{t("devMockGuardianEyebrow")}</p>
       <h2 className="text-muted-foreground mt-1 text-sm font-medium">{t("devMockGuardianTitle")}</h2>
       <p className="text-muted-foreground/90 mt-2 text-xs leading-relaxed">{t("devMockGuardianHint")}</p>
+      {topSlot ? <div className="mt-4">{topSlot}</div> : null}
       <ul className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
         {GUARDIAN_SEED_ROWS.map((row) => {
           const busy = pendingId === row.id;
