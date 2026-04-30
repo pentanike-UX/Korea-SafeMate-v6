@@ -1115,12 +1115,39 @@
     "introEyebrow": "About this haruway",
     "playbookMemoEyebrow": "Local playbook notes",
     "briefingTitle": "Field playbook briefing",
-    "briefingSummaryTitle": "At-a-glance",
+    "fieldMemoCardTitle": "Field memo",
+    "fieldMemoTimeChip": {
+      "morning": "Morning pick",
+      "afternoon": "Afternoon pick",
+      "evening": "Evening pick",
+      "night": "Night-friendly",
+      "flexible": "Flexible timing"
+    },
+    "fieldMemoPace": {
+      "easy": "Easy tempo",
+      "moderate": "Steady tempo",
+      "active": "Fast tempo"
+    },
+    "fieldMemoCulture": {
+      "palace": "Wide avenues, stone walls, pockets of slower air—central Seoul drama energy.",
+      "gangnam": "Glass towers, cafe lighting, commute-hour sidewalks—office-drama tempo stacked together.",
+      "default": "Dense city rhythm—MV-ready cuts more than a quiet stroll."
+    },
+    "fieldMemoQuote": {
+      "palace": "Once you're inside the palace grounds, doubling back is a hassle.",
+      "gangnam": "One slow crossing ripples into the rest of your timeline.",
+      "default": "Sides are usually less crowded than the middle."
+    },
+    "fieldMemoFallbackOrientation": "Pick one main street as an anchor and you rarely lose the plot.",
+    "fieldMemoFallbackPrep": "Handle restrooms and water before you commit to an indoor stop.",
+    "fieldMemoFallbackCrowd": "If lines spike, one short detour is often enough.",
+    "fieldMemoFallbackVibe": "Even one line about how it felt on the ground helps next time.",
     "briefingSummarySubtitle": "Core execution metrics",
     "briefingSituationTitle": "Best fit for this route",
-    "briefingTipTitle": "Helpful before entry",
-    "briefingMovementTitle": "Local movement check",
-    "briefingFinishTitle": "How to wrap up smoothly",
+    "briefingSummaryTitle": "If you're new, anchor here first",
+    "briefingTipTitle": "Sort this first",
+    "briefingMovementTitle": "When it's crowded, move like this",
+    "briefingFinishTitle": "Vibe note",
     "briefingQuoteLabel": "On-site judgement cue",
     "sectionDaySummary": "Your day at a glance",
     "sectionPrep": "Before you head out",

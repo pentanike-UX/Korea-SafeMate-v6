@@ -1116,12 +1116,39 @@
     "introEyebrow": "Về haruway này",
     "playbookMemoEyebrow": "Ghi chú playbook địa phương",
     "briefingTitle": "Tóm tắt playbook tại chỗ",
-    "briefingSummaryTitle": "Nhìn nhanh lộ trình",
+    "fieldMemoCardTitle": "Ghi chú hiện trường",
+    "fieldMemoTimeChip": {
+      "morning": "Ưu tiên sáng",
+      "afternoon": "Ưu tiên chiều",
+      "evening": "Ưu tiên tối",
+      "night": "Đêm ổn",
+      "flexible": "Giờ linh hoạt"
+    },
+    "fieldMemoPace": {
+      "easy": "Nhịp thư thả",
+      "moderate": "Nhịp vừa",
+      "active": "Nhịp nhanh"
+    },
+    "fieldMemoCulture": {
+      "palace": "Không khí trung tâm Seoul như phim—đại lộ rộng, tường đá, chỗ lặng hơn.",
+      "gangnam": "Tháp kính, đèn quán cà phê, vỉa hè giờ tan tầm—chồng lên như phim văn phòng.",
+      "default": "Nhịp đô thị dày—kiểu quay MV hơn là dạo chậm."
+    },
+    "fieldMemoQuote": {
+      "palace": "Vào khu cung điện rồi quay lại mất công hơn bạn nghĩ.",
+      "gangnam": "Một lần sang đường chậm là ảnh hưởng cả lịch.",
+      "default": "Hai bên thường đỡ đông hơn giữa."
+    },
+    "fieldMemoFallbackOrientation": "Chọn một phố lớn làm mốc thì khó lạc.",
+    "fieldMemoFallbackPrep": "WC và nước—xử lý trước khi vào trong sẽ nhàn hơn.",
+    "fieldMemoFallbackCrowd": "Kẹt hàng thì đôi khi chỉ cần đi vòng ngắn.",
+    "fieldMemoFallbackVibe": "Ghi một dòng cảm nhận tại chỗ cũng giúp lần sau.",
     "briefingSummarySubtitle": "Chỉ số thực thi chính",
     "briefingSituationTitle": "Phù hợp với ai",
-    "briefingTipTitle": "Nên chuẩn bị trước khi vào",
-    "briefingMovementTitle": "Kiểm tra nhịp di chuyển local",
-    "briefingFinishTitle": "Kết thúc ngày gọn nhẹ",
+    "briefingSummaryTitle": "Lần đầu thì bám mốc ở đây",
+    "briefingTipTitle": "Dọn trước",
+    "briefingMovementTitle": "Đông thì đi thế này",
+    "briefingFinishTitle": "Ghi chú vibe",
     "briefingQuoteLabel": "Tiêu chí quyết định tại chỗ",
     "sectionDaySummary": "Tóm tắt ngày",
     "sectionPrep": "Nên chuẩn bị trước khi đi",

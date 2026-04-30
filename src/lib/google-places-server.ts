@@ -200,9 +200,10 @@ export type GooglePlaceResolvedPhoto = {
 };
 
 /**
- * Places Photo media — 리다이렉트 Location 또는 동일 응답 URL.
- * 최종 URL은 보통 API 키 없이 GET 가능한 googleusercontent 호스트.
- * `name`은 API가 준 전체 리소스 경로 (예: `places/ChIJ…/photos/AciIO…`).
+ * Place Photo (New) getMedia — `X-Goog-Api-Key`(및 폴백으로 query `key`).
+ * `skipHttpRedirect=true` → JSON { photoUri }. 생략 시 302 + Location(이미지).
+ * `photoUri` 는 단기 URL — `<img>` 또는 `/api/image-proxy` 로 소비.
+ * `name`: `places/.../photos/...` (API가 준 `photos.name` 전체).
  */
 export async function resolveGooglePhotoMedia(
   photoResourceName: string,
@@ -214,29 +215,77 @@ export async function resolveGooglePhotoMedia(
 
   const pxRaw = Number.isFinite(opts?.maxWidthPx) ? (opts?.maxWidthPx as number) : MAX_PHOTO_PX;
   const maxWidthPx = Math.max(MIN_PHOTO_PX, Math.min(MAX_PHOTO_PX_HARD, Math.round(pxRaw)));
-  const mediaUrl = `${PLACES_BASE}/${name}/media?maxWidthPx=${maxWidthPx}&skipHttpRedirect=true&key=${encodeURIComponent(key)}`;
+  const path = name.replace(/^\/+/, "");
+  const base = `${PLACES_BASE}/${path}/media`;
+  const search = new URLSearchParams({
+    maxWidthPx: String(maxWidthPx),
+    skipHttpRedirect: "true",
+  });
 
-  const res = await fetch(mediaUrl);
-  const json = (await res.json().catch(() => null)) as
-    | {
-        name?: string;
-        photoUri?: string;
-        widthPx?: number;
-        heightPx?: number;
-        error?: { message?: string };
-      }
-    | null;
-
-  if (!res.ok) return null;
-  const url = json?.photoUri?.trim();
-  if (!url?.startsWith("http")) return null;
-  return {
-    name,
-    url,
-    width: json?.widthPx,
-    height: json?.heightPx,
-    authorAttributions: opts?.authorAttributions,
+  const commonHeaders: Record<string, string> = {
+    Accept: "application/json",
+    "X-Goog-Api-Key": key,
   };
+
+  async function tryOnce(url: string, headers: Record<string, string>): Promise<GooglePlaceResolvedPhoto | null> {
+    const res = await fetch(url, { headers, redirect: "manual" });
+
+    if (res.status === 301 || res.status === 302 || res.status === 307 || res.status === 308) {
+      const loc = res.headers.get("location")?.trim();
+      if (loc?.startsWith("http")) {
+        return { name, url: loc, authorAttributions: opts?.authorAttributions };
+      }
+    }
+
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => "");
+      console.warn("[google-places] photo_media_http_error", {
+        status: res.status,
+        bodyPreview: errBody.slice(0, 320),
+      });
+      return null;
+    }
+
+    const ct = res.headers.get("content-type") ?? "";
+    if (/json/i.test(ct)) {
+      const json = (await res.json().catch(() => null)) as
+        | {
+            name?: string;
+            photoUri?: string;
+            widthPx?: number;
+            heightPx?: number;
+            error?: { message?: string; status?: string };
+          }
+        | null;
+      const msg = json?.error?.message ?? json?.error?.status;
+      if (msg) {
+        console.warn("[google-places] photo_media_api_error", { message: msg });
+        return null;
+      }
+      const urlOut = json?.photoUri?.trim();
+      if (!urlOut?.startsWith("http")) return null;
+      return {
+        name,
+        url: urlOut,
+        width: json?.widthPx,
+        height: json?.heightPx,
+        authorAttributions: opts?.authorAttributions,
+      };
+    }
+
+    console.warn("[google-places] photo_media_unexpected_type", { contentType: ct });
+    return null;
+  }
+
+  const urlHeaderOnly = `${base}?${search.toString()}`;
+  const resolved = await tryOnce(urlHeaderOnly, commonHeaders);
+  if (resolved) return resolved;
+
+  /** 일부 프로젝트에서 query `key` 가 필요한 경우(헤더와 중복 허용) */
+  const q2 = new URLSearchParams(search);
+  q2.set("key", key);
+  const urlWithQueryKey = `${base}?${q2.toString()}`;
+  return tryOnce(urlWithQueryKey, commonHeaders);
 }
 
 export async function resolveGooglePhotoUri(photoResourceName: string): Promise<string | null> {

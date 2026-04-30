@@ -42,6 +42,13 @@ function proxyUrl(original: string): string {
   return `/api/image-proxy?url=${encodeURIComponent(original)}`;
 }
 
+/** Google Places `photoUri`(단기·referrer 민감) — 원본 실패 시 동일 Origin 프록시 */
+function tryUrlsForGooglePlacePhoto(original: string): string[] {
+  const u = original?.trim();
+  if (!u) return [];
+  return [u, proxyUrl(u)];
+}
+
 /** 단일 Naver 후보에서 표시 URL 후보 배열 (원본 link → 고해상 url → 프록시 → 썸네일 마지막) */
 export function tryUrlsForNaverItem(c: NaverImageCandidate): string[] {
   const rawLink = (c.link ?? "").trim();
@@ -146,7 +153,7 @@ export function buildSpotGallerySlides(
       const u = raw?.trim();
       if (!u) continue;
       push({
-        tryUrls: [u],
+        tryUrls: tryUrlsForGooglePlacePhoto(u),
         alt: galleryAltForSlide(spot, placeLabel || "Google Places"),
         caption: placeLabel,
         source: "google-places",

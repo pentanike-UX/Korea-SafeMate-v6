@@ -1115,12 +1115,39 @@
     "introEyebrow": "이 하루웨이에 대해",
     "playbookMemoEyebrow": "현장 메모",
     "briefingTitle": "로컬이 남긴 현장 메모",
-    "briefingSummaryTitle": "처음이면 여기서 방향 잡는 편",
+    "fieldMemoCardTitle": "현장 메모",
+    "fieldMemoTimeChip": {
+      "morning": "오전 추천",
+      "afternoon": "오후 추천",
+      "evening": "저녁 추천",
+      "night": "밤 추천",
+      "flexible": "시간대 자유"
+    },
+    "fieldMemoPace": {
+      "easy": "여유 템포",
+      "moderate": "보통 템포",
+      "active": "빠른 템포"
+    },
+    "fieldMemoCulture": {
+      "palace": "도깨비·서울의봄 쪽 서울 중심부 공기와 비슷한 결입니다.",
+      "gangnam": "요즘 K-드라마 오피스 신처럼, 유리 빌딩·카페 조명·퇴근길 보행이 겹치는 도심 템포가 있습니다.",
+      "default": "서울 중심부에서 리듬 빠른 MV 컷 잡힐 때의 공기랑 비슷합니다."
+    },
+    "fieldMemoQuote": {
+      "palace": "궁 안 들어가면 다시 나오기 귀찮습니다.",
+      "gangnam": "횡단 한 번 밀리면 뒤 일정이 바로 늘어집니다.",
+      "default": "중앙보다 측면이 덜 막힙니다."
+    },
+    "fieldMemoFallbackOrientation": "큰 길 기준만 잡아도 방향은 크게 안 흔들립니다.",
+    "fieldMemoFallbackPrep": "화장실·물은 들어가기 전에 먼저 끝내는 편이 편합니다.",
+    "fieldMemoFallbackCrowd": "줄이 길어지면 짧은 우회 하나만 챙기고 넘어가도 됩니다.",
+    "fieldMemoFallbackVibe": "현장에서 체감한 무드를 한 줄로만 남겨도 다음 방문 때 도움이 됩니다.",
     "briefingSummarySubtitle": "시간·거리 먼저 보고 시작",
     "briefingSituationTitle": "이런 분께 맞습니다",
-    "briefingTipTitle": "여기서 먼저 끝내는 편",
-    "briefingMovementTitle": "사람 몰리면 이렇게 움직입니다",
-    "briefingFinishTitle": "생각보다 오래 서 있게 되는 구간",
+    "briefingSummaryTitle": "처음이면 여기서 기준 잡기",
+    "briefingTipTitle": "먼저 정리할 것",
+    "briefingMovementTitle": "사람 몰릴 때 움직이는 법",
+    "briefingFinishTitle": "분위기 메모",
     "briefingQuoteLabel": "메모해두면 편한 한 줄",
     "sectionDaySummary": "하루 요약",
     "sectionPrep": "입장 전에 정리해두면 편한 것",

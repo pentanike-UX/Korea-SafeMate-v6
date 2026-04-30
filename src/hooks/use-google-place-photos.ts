@@ -220,7 +220,10 @@ export function useGooglePlacePhotos(spot: RouteSpot | null, post: ContentPost, 
           });
           return;
         }
-        const dJson = (await dRes.json()) as { photoUris?: string[] };
+        const dJson = (await dRes.json()) as {
+          photoUris?: string[];
+          photoFallbackReason?: string | null;
+        };
         const resolvedUris = Array.isArray(dJson.photoUris) ? dJson.photoUris : [];
         if (!cancelled) {
           setPhotoUris(resolvedUris);
@@ -230,6 +233,7 @@ export function useGooglePlacePhotos(spot: RouteSpot | null, post: ContentPost, 
           placeId,
           count: resolvedUris.length,
           firstPhotoUri: resolvedUris[0] ?? null,
+          photoFallbackReason: dJson.photoFallbackReason ?? null,
         });
       } catch {
         if (!cancelled) setPhotoUris([]);

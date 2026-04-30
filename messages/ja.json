@@ -1115,12 +1115,39 @@
     "introEyebrow": "このharu wayについて",
     "playbookMemoEyebrow": "ローカル・プレイブック・メモ",
     "briefingTitle": "現場プレイブック・ブリーフィング",
-    "briefingSummaryTitle": "このルートの要点",
+    "fieldMemoCardTitle": "現場メモ",
+    "fieldMemoTimeChip": {
+      "morning": "午前おすすめ",
+      "afternoon": "午後おすすめ",
+      "evening": "夕方おすすめ",
+      "night": "夜も可",
+      "flexible": "時間は自由"
+    },
+    "fieldMemoPace": {
+      "easy": "ゆったりめのペース",
+      "moderate": "標準ペース",
+      "active": "テンポ速め"
+    },
+    "fieldMemoCulture": {
+      "palace": "ドラマで見るソウル中心部の空気に近い落ち着きがあります。",
+      "gangnam": "ガラスビル・カフェ照明・退勤の歩道が重なるオフィス街のテンポです。",
+      "default": "MVのワンカットみたいにリズムの速い街の空気に近いです。"
+    },
+    "fieldMemoQuote": {
+      "palace": "宮殿エリアに入ると、出戻りが面倒になりがちです。",
+      "gangnam": "横断が一度詰まると、その後の予定に響きます。",
+      "default": "中央より端の方が空いていることが多いです。"
+    },
+    "fieldMemoFallbackOrientation": "大通り一本決めれば方向はブレにくいです。",
+    "fieldMemoFallbackPrep": "トイレと水は入る前に済ませると楽です。",
+    "fieldMemoFallbackCrowd": "行列が伸びたら小さな迂回一つで十分なことが多いです。",
+    "fieldMemoFallbackVibe": "現地の空気感を一言メモしておくと次に役立ちます。",
     "briefingSummarySubtitle": "実行指標",
     "briefingSituationTitle": "このルートが合う人",
-    "briefingTipTitle": "入場前に整えること",
-    "briefingMovementTitle": "ローカル動線チェック",
-    "briefingFinishTitle": "最後のまとめ方",
+    "briefingSummaryTitle": "初めてならまずここで軸を取る",
+    "briefingTipTitle": "先に整理すること",
+    "briefingMovementTitle": "混むときの動き方",
+    "briefingFinishTitle": "空気感メモ",
     "briefingQuoteLabel": "現場判断の基準",
     "sectionDaySummary": "この日の概要",
     "sectionPrep": "出発前に押さえておくと楽なこと",

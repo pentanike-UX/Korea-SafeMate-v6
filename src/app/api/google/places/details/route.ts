@@ -72,5 +72,7 @@ export async function GET(req: Request) {
     photos: details.photos,
     photoUris,
     photoMedia,
+    /** `resolvePhotos=1`일 때만 — 클라이언트 디버그용(이미지 없을 때 원인) */
+    photoFallbackReason: fallbackReason,
   });
 }

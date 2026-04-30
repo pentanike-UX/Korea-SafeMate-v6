@@ -1,19 +1,11 @@
 "use client";
 
-import { MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ContentPost } from "@/types/domain";
 import type { RouteArticleParsed } from "@/lib/post-detail-structured-parse";
-import { getContentPostFormat } from "@/lib/content-post-route";
-import { PostSampleBadge } from "@/components/posts/post-sample-badge";
-import { Badge } from "@/components/ui/badge";
-import { routeCardAreaLabel, routeCardSpotPreviewLine } from "@/lib/route-post-card-meta";
 import { splitPostBodyParagraphs } from "@/lib/post-detail-body-split";
+import { routeCardAreaLabel, routeCardSpotPreviewLine } from "@/lib/route-post-card-meta";
 import { cn } from "@/lib/utils";
-
-function moodTagKey(tag: string): `moodTag.${string}` {
-  return `moodTag.${tag}` as `moodTag.${string}`;
-}
 
 function normCompact(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, " ");
@@ -30,16 +22,59 @@ function textsOverlap(a: string, b: string): boolean {
   return longer.includes(shorter);
 }
 
-function dedupeHighlights(highlights: string[], referenceTexts: string[]): string[] {
-  return highlights.filter((line) => {
-    const t = line.trim();
-    if (t.length < 4) return false;
-    for (const ref of referenceTexts) {
-      if (!ref?.trim()) continue;
-      if (textsOverlap(t, ref)) return false;
-    }
-    return true;
-  });
+function firstSentence(text: string, maxLen: number): string {
+  const t = text.trim();
+  if (!t) return "";
+  const cut = t.split(/(?<=[.!?。])\s+/)[0] ?? t;
+  const one = cut.split(/\n/)[0]?.trim() ?? cut;
+  if (one.length <= maxLen) return one;
+  return `${one.slice(0, maxLen - 1).trim()}…`;
+}
+
+function clampMemoBody(text: string, maxLen: number): string {
+  const t = text.trim().replace(/\s+/g, " ");
+  if (t.length <= maxLen) return t;
+  return `${t.slice(0, maxLen - 1).trim()}…`;
+}
+
+/** 제거·숨김: 샘플·루트 메타, 반복 안내, 운영 디스클레이머 성 문장 */
+const MEMO_NOISE_PATTERNS: RegExp[] = [
+  /아래 카드\s*\d*곳/i,
+  /^sample$/i,
+  /\bRoute\b/i,
+  /루트\s*포함|포함\s*$/i,
+  /^(하이브리드\s*)?루트$/i,
+  /강남역권\s*[·•,]\s*사진 맞춰/i,
+  /날씨\s*[·•]\s*줄\s*변수/i,
+  /당일\s*통제|매표\s*줄|휴무는\s*현장/i,
+  /스팟별로\s*준비/i,
+  /흐름표에서\s*거리/i,
+  /^전체$/i,
+];
+
+function isMemoNoiseLine(raw: string | null | undefined): boolean {
+  const s = raw?.trim();
+  if (!s || s.length < 6) return true;
+  return MEMO_NOISE_PATTERNS.some((re) => re.test(s));
+}
+
+function sanitizeMemoBody(raw: string | null | undefined): string | null {
+  if (!raw?.trim()) return null;
+  if (isMemoNoiseLine(raw)) return null;
+  return clampMemoBody(raw, 200);
+}
+
+function dedupeLines(lines: Array<string | null | undefined>, reference: string[]): string[] {
+  const out: string[] = [];
+  for (const line of lines) {
+    const t = line?.trim();
+    if (!t || t.length < 8) continue;
+    if (isMemoNoiseLine(t)) continue;
+    if (reference.some((ref) => ref && textsOverlap(t, ref))) continue;
+    if (out.some((o) => textsOverlap(t, o))) continue;
+    out.push(t);
+  }
+  return out;
 }
 
 function firstCompactLine(text: string | null | undefined): string | null {
@@ -47,27 +82,32 @@ function firstCompactLine(text: string | null | undefined): string | null {
   const paras = splitPostBodyParagraphs(text);
   const line = paras[0]?.trim();
   if (!line) return null;
-  return line.slice(0, 140);
+  return line.slice(0, 200);
 }
 
 function extractJudgementQuote(texts: Array<string | null | undefined>): string | null {
   const lines = texts
     .flatMap((t) => splitPostBodyParagraphs(t ?? ""))
     .map((x) => x.trim())
-    .filter((x) => x.length >= 12);
+    .filter((x) => x.length >= 12 && !isMemoNoiseLine(x));
   const strong = lines.find((x) => /궁 안|다시 나오기|길 수|대기 줄|변수/.test(x));
-  if (strong) return strong;
+  if (strong && !isMemoNoiseLine(strong)) return strong;
   return lines[0] ?? null;
 }
 
-function fallbackFieldQuote(areaLabel: string, spotLine: string | null): string {
-  const blob = `${areaLabel} ${spotLine ?? ""}`;
-  if (/광화문|경복궁|궁/.test(blob)) return "궁 안 들어가면 다시 나오기 귀찮습니다.";
-  if (/강남|테헤란|역삼/.test(blob)) return "횡단 한 번 밀리면 뒤 일정이 바로 늘어집니다.";
-  return "중앙보다 측면이 덜 막힙니다.";
+function cultureMemoVariantKey(blob: string): "palace" | "gangnam" | "default" {
+  if (/광화문|경복궁|도심|종로/.test(blob)) return "palace";
+  if (/강남|테헤란|역삼|선릉/.test(blob)) return "gangnam";
+  return "default";
 }
 
-/** 상단 브리핑 — 긴 article 대신 compact 카드 모음 */
+function quoteFallbackVariantKey(blob: string): "palace" | "gangnam" | "default" {
+  if (/광화문|경복궁|궁/.test(blob)) return "palace";
+  if (/강남|테헤란|역삼/.test(blob)) return "gangnam";
+  return "default";
+}
+
+/** 상단 — 하나의 현장 메모 카드 */
 export function RouteDayPreview({
   post,
   className,
@@ -84,34 +124,24 @@ export function RouteDayPreview({
   articleParsed?: RouteArticleParsed | null;
 }) {
   const t = useTranslations("RoutePosts");
-  const tPosts = useTranslations("Posts");
   const journey = post.route_journey;
   if (!journey) return null;
 
   const meta = journey.metadata;
   const exposure = journey.structured_exposure_meta;
-  const routeStructured = post.structured_content?.template === "route_post" ? post.structured_content : null;
 
-  const format = getContentPostFormat(post);
-  const formatLabel =
-    format === "hybrid"
-      ? t("formatHybrid")
-      : format === "route"
-        ? t("formatRoute")
-        : format === "spot"
-          ? t("formatSpot")
-          : tPosts("contentArticle");
+  const timeKey = `fieldMemoTimeChip.${meta.recommended_time_of_day}` as
+    | "fieldMemoTimeChip.morning"
+    | "fieldMemoTimeChip.afternoon"
+    | "fieldMemoTimeChip.evening"
+    | "fieldMemoTimeChip.night"
+    | "fieldMemoTimeChip.flexible";
 
-  const showRouteIncludedBadge = format === "hybrid" || format === "route";
-  const transportLabel = t(`transport.${meta.transport_mode}` as "transport.walk");
-  const timeKey = `recommendedTime.${meta.recommended_time_of_day}` as const;
+  const paceKey = `fieldMemoPace.${meta.difficulty}` as "fieldMemoPace.easy" | "fieldMemoPace.moderate" | "fieldMemoPace.active";
 
-  const recommendedAudience =
-    routeStructured?.data.route_best_for?.trim() ||
-    exposure?.best_for_context?.trim() ||
-    (meta.recommended_traveler_types.filter(Boolean).length > 0
-      ? meta.recommended_traveler_types.join(" · ")
-      : null);
+  const areaLabel = routeCardAreaLabel(post);
+  const spotPreviewLine = routeCardSpotPreviewLine(post, 2, { venueSafe });
+  const localeBlob = `${areaLabel} ${spotPreviewLine ?? ""} ${post.title}`;
 
   const moodCore =
     exposure?.summary_card?.trim() ||
@@ -122,12 +152,6 @@ export function RouteDayPreview({
       .slice(0, 280) ||
     "";
 
-  const moodExtra = exposure?.reason_line?.trim();
-  const moodTags = exposure?.mood_tags?.map((tag) => t(moodTagKey(tag))) ?? [];
-
-  const areaLabel = routeCardAreaLabel(post);
-  const spotPreviewLine = routeCardSpotPreviewLine(post, 2, { venueSafe });
-
   const routeSummary = articleParsed?.routeSummary?.trim();
   const beforeYouGoRaw = articleParsed?.beforeYouGo?.trim();
   const routeClosingRaw = articleParsed?.routeClosing?.trim();
@@ -135,112 +159,112 @@ export function RouteDayPreview({
   const summaryPrimary =
     routeSummary || moodCore || introLead?.trim() || post.summary.trim().split(/\n+/)[0]?.trim() || "";
 
-  const summaryParas: string[] = [];
-  if (summaryPrimary) summaryParas.push(summaryPrimary);
-  if (introLead?.trim() && !textsOverlap(introLead, summaryPrimary)) {
-    summaryParas.push(introLead.trim());
-  }
-  if (summaryParas.length === 0) {
-    summaryParas.push(t("introFallbackMinimal"));
-  }
+  const subtitleText =
+    summaryPrimary.length > 0
+      ? firstSentence(summaryPrimary, 220)
+      : firstSentence(t("introFallbackMinimal"), 220);
 
-  const referenceForDedupe = [summaryPrimary, beforeYouGoRaw ?? "", routeClosingRaw ?? "", moodExtra ?? ""].filter(
-    Boolean,
-  );
-
-  const highlightLines = dedupeHighlights(topHighlights ?? [], referenceForDedupe);
-
+  const routeSummaryParas = routeSummary ? splitPostBodyParagraphs(routeSummary) : [];
   const beforeParas = beforeYouGoRaw ? splitPostBodyParagraphs(beforeYouGoRaw) : [];
   const closingParas = routeClosingRaw ? splitPostBodyParagraphs(routeClosingRaw) : [];
 
-  const nightLine = `${meta.night_friendly ? t("nightYes") : t("nightNo")} · ${t("summaryNightHint")}`;
-  const moodTailParts = [moodExtra && !textsOverlap(moodExtra, routeClosingRaw ?? "") ? moodExtra : null, moodTags.length ? moodTags.join(" · ") : null].filter(
-    Boolean,
-  ) as string[];
-  const tipLine = firstCompactLine(beforeParas.join("\n")) || firstCompactLine(highlightLines[0]);
-  const finishLine = firstCompactLine(closingParas.join("\n")) || firstCompactLine(moodTailParts[0]);
-  const movementLine = firstCompactLine(spotPreviewLine) || areaLabel;
+  const referenceForDedupe = [subtitleText, introLead?.trim() ?? ""].filter(Boolean);
+
+  const highlightLines = dedupeLines(topHighlights ?? [], referenceForDedupe);
+
+  const movementSeed = spotPreviewLine?.trim() || null;
+
+  const orientationFromSecondPara =
+    routeSummaryParas.length > 1 ? sanitizeMemoBody(firstCompactLine(routeSummaryParas[1])) : null;
+
+  const orientationFromFirstPara =
+    routeSummaryParas.length > 0
+      ? sanitizeMemoBody(firstCompactLine(routeSummaryParas[0]))
+      : null;
+
+  const orientationBody =
+    orientationFromSecondPara ||
+    (orientationFromFirstPara && !textsOverlap(orientationFromFirstPara, subtitleText)
+      ? orientationFromFirstPara
+      : null) ||
+    sanitizeMemoBody(movementSeed) ||
+    t("fieldMemoFallbackOrientation");
+
+  const prepBody =
+    sanitizeMemoBody(firstCompactLine(beforeParas.join("\n"))) ||
+    sanitizeMemoBody(highlightLines.find((h) => !textsOverlap(h, orientationBody ?? ""))) ||
+    t("fieldMemoFallbackPrep");
+
+  const crowdCandidates = highlightLines.filter(
+    (h) =>
+      !textsOverlap(h, orientationBody ?? "") &&
+      !textsOverlap(h, prepBody ?? "") &&
+      !isMemoNoiseLine(h),
+  );
+  const crowdBody =
+    sanitizeMemoBody(crowdCandidates[0]) ||
+    sanitizeMemoBody(
+      closingParas.length > 1 ? firstCompactLine(closingParas.slice(1).join("\n")) : null,
+    ) ||
+    t("fieldMemoFallbackCrowd");
+
+  const cultureVariant = cultureMemoVariantKey(localeBlob);
+  const vibeBody =
+    sanitizeMemoBody(firstCompactLine(routeClosingRaw)) ||
+    sanitizeMemoBody(t(`fieldMemoCulture.${cultureVariant}`)) ||
+    t("fieldMemoFallbackVibe");
+
   const judgementQuote = extractJudgementQuote([beforeYouGoRaw, routeClosingRaw, ...highlightLines]);
-  const fieldQuote = judgementQuote || fallbackFieldQuote(areaLabel, spotPreviewLine);
-  const cultureRef =
-    /광화문|경복궁|도심|종로/.test(`${areaLabel} ${spotPreviewLine ?? ""}`)
-      ? "도깨비·서울의봄 쪽 서울 중심부 공기와 비슷한 결입니다."
-      : /강남|테헤란|역삼|선릉/.test(`${areaLabel} ${spotPreviewLine ?? ""}`)
-        ? "요즘 K-드라마 오피스 신이 깔리는 도심 템포와 비슷합니다."
-        : "서울 중심부에서 리듬 빠른 MV 컷 잡힐 때의 공기랑 비슷합니다.";
+  const quoteVariant = quoteFallbackVariantKey(localeBlob);
+  const fieldQuote =
+    sanitizeMemoBody(judgementQuote) ||
+    sanitizeMemoBody(t(`fieldMemoQuote.${quoteVariant}`)) ||
+    null;
+
+  const statsLine = [
+    t("chipDuration", { minutes: meta.estimated_total_duration_minutes }),
+    t("chipDistance", { km: meta.estimated_total_distance_km.toFixed(1) }),
+    t(timeKey),
+    t(paceKey),
+  ].join(" · ");
 
   return (
-    <section className={cn("max-w-[42rem] space-y-3.5", className)} aria-label={t("dayPreviewAria")}>
-      <header className="space-y-2">
-        <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase">{t("playbookMemoEyebrow")}</p>
-        <h2 className="text-[var(--text-strong)] text-lg font-semibold tracking-tight">{t("briefingTitle")}</h2>
-        <div className="flex flex-wrap items-center gap-2">
-          {post.is_sample ? <PostSampleBadge /> : null}
-          <Badge className="rounded-full bg-primary/10 text-[10px] font-semibold text-primary">{formatLabel}</Badge>
-          {showRouteIncludedBadge ? (
-            <Badge variant="secondary" className="rounded-full border-0 bg-muted text-[10px] font-semibold">
-              {t("cardBadgeRouteIncluded")}
-            </Badge>
+    <section className={cn("max-w-[42rem]", className)} aria-label={t("dayPreviewAria")}>
+      <div className="rounded-2xl border border-border/60 bg-card px-4 py-4 sm:px-5 sm:py-5">
+        <header className="space-y-2 border-b border-border/40 pb-4">
+          <h2 className="text-[var(--text-strong)] text-base font-semibold tracking-tight sm:text-lg">
+            {t("fieldMemoCardTitle")}
+          </h2>
+          {subtitleText ? (
+            <p className="text-muted-foreground text-[13px] leading-relaxed sm:text-sm">{subtitleText}</p>
           ) : null}
-          <span className="text-muted-foreground inline-flex items-center gap-1 text-[11px] font-medium">
-            <MapPin className="size-3 shrink-0 opacity-80" aria-hidden />
-            {areaLabel}
-          </span>
+          <p className="text-foreground/90 text-[13px] font-medium tabular-nums sm:text-sm">{statsLine}</p>
+        </header>
+
+        <div className="grid grid-cols-1 gap-2.5 pt-4 sm:grid-cols-2 sm:gap-3">
+          <MemoNote title={t("briefingSummaryTitle")} body={orientationBody} />
+          <MemoNote title={t("briefingTipTitle")} body={prepBody} />
+          <MemoNote title={t("briefingMovementTitle")} body={crowdBody} />
+          <MemoNote title={t("briefingFinishTitle")} body={vibeBody} />
         </div>
-        {spotPreviewLine ? (
-          <p className="text-muted-foreground text-[12px] leading-relaxed sm:text-[13px]">{spotPreviewLine}</p>
+
+        {fieldQuote ? (
+          <blockquote className="border-border/50 mt-4 border-t pt-4">
+            <p className="text-[var(--text-strong)] border-l-2 border-primary/35 pl-3 text-[13px] leading-relaxed sm:text-sm">
+              “{fieldQuote}”
+            </p>
+          </blockquote>
         ) : null}
-      </header>
-
-      <div className="grid gap-2.5 sm:grid-cols-2">
-        <section className="rounded-xl border border-border/45 bg-card/80 px-3 py-2.5">
-          <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingSummaryTitle")}</p>
-          <p className="text-muted-foreground mt-0.5 text-[11px]">{t("briefingSummarySubtitle")}</p>
-          <ul className="mt-2 space-y-0.5 text-[13px] leading-relaxed text-foreground/90">
-            <li>{t("chipDuration", { minutes: meta.estimated_total_duration_minutes })}</li>
-            <li>{t("chipDistance", { km: meta.estimated_total_distance_km.toFixed(1) })}</li>
-            <li>{t(timeKey)}</li>
-            <li>{t(`difficulty.${meta.difficulty}` as "difficulty.easy")}</li>
-          </ul>
-        </section>
-
-        <section className="rounded-xl border border-amber-300/45 bg-amber-50/70 px-3 py-2.5 dark:bg-amber-900/10">
-          <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingTipTitle")}</p>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-foreground/90">
-            {tipLine || "화장실·물은 들어가기 전에 먼저 끝내는 편이 편합니다."}
-          </p>
-          {recommendedAudience ? (
-            <p className="text-muted-foreground mt-1.5 text-[11px] leading-relaxed">{recommendedAudience}</p>
-          ) : null}
-        </section>
-
-        <section className="rounded-xl border border-sky-300/45 bg-sky-50/70 px-3 py-2.5 dark:bg-sky-900/10">
-          <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingMovementTitle")}</p>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-foreground/90">{movementLine}</p>
-          <p className="text-muted-foreground mt-1.5 text-[11px] leading-relaxed">{transportLabel}</p>
-        </section>
-
-        <section className="rounded-xl border border-emerald-300/45 bg-emerald-50/70 px-3 py-2.5 dark:bg-emerald-900/10 sm:col-span-2">
-          <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingFinishTitle")}</p>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-foreground/90">
-            {finishLine || "줄 길어지면 짧은 우회 하나만 챙기고 넘어가도 충분합니다."}
-          </p>
-          <p className="text-muted-foreground mt-1.5 text-[11px] leading-relaxed">{nightLine}</p>
-          {moodTailParts.length > 0 ? (
-            <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed italic">{moodTailParts.join(" · ")}</p>
-          ) : null}
-          <p className="text-foreground/85 mt-1.5 text-[12px] leading-relaxed">{cultureRef}</p>
-        </section>
       </div>
-
-      {fieldQuote ? (
-        <blockquote className="rounded-xl border border-border/45 bg-card/60 px-3 py-2.5">
-          <p className="text-muted-foreground text-[10px] font-semibold tracking-[0.14em] uppercase">{t("briefingQuoteLabel")}</p>
-          <p className="text-[var(--text-strong)] mt-1.5 border-l-2 border-primary/45 pl-3 text-[13px] leading-relaxed italic">
-            “{fieldQuote}”
-          </p>
-        </blockquote>
-      ) : null}
     </section>
+  );
+}
+
+function MemoNote({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-xl border border-border/55 bg-background/40 px-3 py-2.5 sm:min-h-[5.5rem]">
+      <p className="text-[var(--text-strong)] text-[12px] font-semibold leading-snug">{title}</p>
+      <p className="text-muted-foreground mt-1.5 text-[12px] leading-relaxed sm:text-[13px]">{body}</p>
+    </div>
   );
 }

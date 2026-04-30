@@ -1116,12 +1116,39 @@
     "introEyebrow": "เกี่ยวกับ haruway นี้",
     "playbookMemoEyebrow": "โน้ตเพลย์บุคท้องถิ่น",
     "briefingTitle": "สรุปเพลย์บุคภาคสนาม",
-    "briefingSummaryTitle": "ภาพรวมเส้นทางนี้",
+    "fieldMemoCardTitle": "บันทึกภาคสนาม",
+    "fieldMemoTimeChip": {
+      "morning": "แนะนำเช้า",
+      "afternoon": "แนะนำบ่าย",
+      "evening": "แนะนำเย็น",
+      "night": "กลางคืนได้",
+      "flexible": "ยืดหยุ่นเรื่องเวลา"
+    },
+    "fieldMemoPace": {
+      "easy": "จังหวะสบาย",
+      "moderate": "จังหวะกลาง",
+      "active": "จังหวะเร็ว"
+    },
+    "fieldMemoCulture": {
+      "palace": "บรรยากาศโซนใจกลางโซลที่คุ้นจากซีรีส์—ถนนกว้าง กำแพงหิน ลมช้าเป็นจุดๆ",
+      "gangnam": "ตึกกระจก แสงคาเฟ่ ทางเท้าช่วงเลิกงาน—ฟีลออฟฟิศซีรีส์ซ้อนกัน",
+      "default": "จังหวะเมืองหนาแน่น—มุม MV มากกว่าเดินเล่นสงบ"
+    },
+    "fieldMemoQuote": {
+      "palace": "เข้าโซนพระราชวังแล้วเดินกลับจะยุ่งยากกว่าที่คิด",
+      "gangnam": "ข้ามถนนช้าครั้งเดียวกระทบทั้งไทม์ไลน์",
+      "default": "ข้างมักไม่แอดเท่ากลาง"
+    },
+    "fieldMemoFallbackOrientation": "ยึดถนนหลักสายเดียวก็มักไม่หลง",
+    "fieldMemoFallbackPrep": "ห้องน้ำกับน้ำ—จัดก่อนเข้าร้านจะสบายกว่า",
+    "fieldMemoFallbackCrowd": "คิวยาวแค่เลี้ยวสั้นๆ ก็พอบ่อยครั้ง",
+    "fieldMemoFallbackVibe": "จดสักบรรทัดว่ารู้สึกยังไงหน้างานก็ช่วยรอบหน้า",
     "briefingSummarySubtitle": "ตัวชี้วัดสำคัญ",
     "briefingSituationTitle": "เหมาะกับใคร",
-    "briefingTipTitle": "สิ่งที่ควรจัดการก่อนเข้า",
-    "briefingMovementTitle": "เช็กการเดินเส้นทางจริง",
-    "briefingFinishTitle": "สรุปท้ายวันให้ลื่น",
+    "briefingSummaryTitle": "มือใหม่เริ่มจับโยนที่นี่",
+    "briefingTipTitle": "จัดให้จบก่อน",
+    "briefingMovementTitle": "ตอนแอด ให้เดินแบบนี้",
+    "briefingFinishTitle": "โน้ตบรรยากาศ",
     "briefingQuoteLabel": "เกณฑ์ตัดสินใจหน้างาน",
     "sectionDaySummary": "สรุปวันนี้",
     "sectionPrep": "เตรียมตัวก่อนออก",
