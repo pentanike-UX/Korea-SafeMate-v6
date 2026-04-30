@@ -4,8 +4,8 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { ContentPost, RouteSpot } from "@/types/domain";
+import { RouteDayPreview } from "@/components/route-posts/route-day-preview";
 import { RouteStickyLocalNav } from "@/components/route-posts/route-sticky-local-nav";
-import { RouteSummaryCard } from "@/components/route-posts/route-summary-card";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PostDetailIntroPanel } from "@/components/posts/post-detail-intro-panel";
@@ -14,7 +14,7 @@ import { getSpotDisplayImageAlt, getSpotDisplayImageUrl } from "@/lib/content-po
 import { buildLocalPostVisualPlan, type LocalPostVisualPlan } from "@/lib/post-local-images";
 import { routeSpotImageCoverClass } from "@/lib/post-image-crop";
 import { cn } from "@/lib/utils";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight, Check, ChevronRight } from "lucide-react";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
   POST_DETAIL_PARAGRAPH_STACK_COMPACT,
@@ -301,7 +301,6 @@ export function RoutePostDetailClient({
 }) {
   const t = useTranslations("RoutePosts");
   const journey = post.route_journey!;
-  const meta = journey.metadata;
   const spots = useMemo(() => [...journey.spots].sort((a, b) => a.order - b.order), [journey.spots]);
 
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -390,11 +389,6 @@ export function RoutePostDetailClient({
     () => resolveRouteArticleRender(post.structured_content, rest),
     [post.structured_content, rest],
   );
-  const goodForLine = useMemo(
-    () => meta.recommended_traveler_types.filter(Boolean).join(" · ") || null,
-    [meta.recommended_traveler_types],
-  );
-
   return (
     <>
       {showStickyNav && spots.length > 0 ? (
@@ -407,8 +401,9 @@ export function RoutePostDetailClient({
       ) : null}
 
       <div className="space-y-8 sm:space-y-10">
-        {/* ① 하루 흐름 */}
-        <div ref={triggerRef}>
+        {/* ① 하루 프리뷰 + 하루 흐름 — 스티키 내비 트리거 */}
+        <div ref={triggerRef} className="space-y-8 sm:space-y-10">
+          <RouteDayPreview post={post} />
           <HaruFlowTimeline
             spots={spots}
             activeSpotId={activeSpotId}
@@ -419,10 +414,7 @@ export function RoutePostDetailClient({
           />
         </div>
 
-        {/* ② 한눈에 보는 하루 */}
-        <RouteSummaryCard meta={meta} spotCount={spots.length} goodForLine={goodForLine} />
-
-        {/* ③ 이 하루웨이에 대해 — 인트로 리드가 있을 때만 표시 */}
+        {/* ② 이 하루웨이에 대해 — 인트로 리드가 있을 때만 표시 */}
         {introPrimary.trim() ? (
           <PostDetailIntroPanel
             variant="route"
@@ -431,14 +423,19 @@ export function RoutePostDetailClient({
           />
         ) : null}
 
-        {/* ④ 먼저 알고 가면 좋은 점 — 체크리스트형, 카드 없음 */}
+        {/* ③ 먼저 알고 가면 좋은 점 — 체크리스트 */}
         {post.route_highlights && post.route_highlights.length > 0 ? (
           <section className="border-border/40 max-w-[42rem] border-t pt-7 sm:pt-8">
             <h2 className="text-text-strong text-lg font-semibold tracking-tight">{t("insightTitle")}</h2>
-            <ul className="mt-5 space-y-3 text-[15px] leading-snug sm:text-base" aria-label={t("insightTitle")}>
+            <ul className="mt-5 max-w-[38rem] space-y-3.5 text-[15px] leading-snug sm:text-base" aria-label={t("insightTitle")}>
               {post.route_highlights.map((line) => (
-                <li key={line} className="flex gap-3">
-                  <span className="bg-primary/15 text-primary mt-2 size-1.5 shrink-0 rounded-full" aria-hidden />
+                <li key={line} className="flex gap-3.5">
+                  <span
+                    className="border-primary/35 bg-primary/6 text-primary mt-0.5 flex size-[22px] shrink-0 items-center justify-center rounded-md border"
+                    aria-hidden
+                  >
+                    <Check className="size-3.5 stroke-[2.5]" />
+                  </span>
                   <span className="text-foreground min-w-0">{line}</span>
                 </li>
               ))}

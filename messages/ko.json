@@ -1194,6 +1194,15 @@
     "stickyNavExpand": "스팟 목록 펼치기",
     "stickyNavCollapse": "스팟 목록 접기",
     "stickyNavCollapsedHint": "스팟 칩으로 원하는 스팟으로 빠르게 이동할 수 있어요.",
+    "dayPreviewEyebrow": "하루 프리뷰",
+    "dayPreviewAria": "이 하루웨이 요약",
+    "dayPreviewAudienceLabel": "추천 대상",
+    "dayPreviewMoodLabel": "핵심 분위기",
+    "moodTag": {
+      "cafe_focused": "카페·휴게 중심",
+      "seoul_night_scene": "야경·야간 분위기",
+      "local_vibe": "로컬 동선·현장감"
+    },
     "flowTitle": "하루 흐름",
     "flowSubtitle": "순서대로 따라가면 되는 오늘의 동선입니다."
   },

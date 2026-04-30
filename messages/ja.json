@@ -1194,6 +1194,15 @@
     "stickyNavExpand": "スポット一覧を広げる",
     "stickyNavCollapse": "スポット一覧を閉じる",
     "stickyNavCollapsedHint": "地図ボタンで全体ルート、チップでスポットへ移動できます。",
+    "dayPreviewEyebrow": "今日のプレビュー",
+    "dayPreviewAria": "このハルウェイの概要",
+    "dayPreviewAudienceLabel": "向いている方",
+    "dayPreviewMoodLabel": "空気感",
+    "moodTag": {
+      "cafe_focused": "カフェ・休憩寄り",
+      "seoul_night_scene": "夜景・夜の雰囲気",
+      "local_vibe": "ローカル動線・現場感"
+    },
     "flowTitle": "Haruの流れ",
     "flowSubtitle": "順番通りに進んでください。"
   },

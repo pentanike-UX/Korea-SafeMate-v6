@@ -1195,6 +1195,15 @@
     "stickyNavExpand": "Expand stop list",
     "stickyNavCollapse": "Collapse stop list",
     "stickyNavCollapsedHint": "Use the map button for the full route map; use chips to jump between stops.",
+    "dayPreviewEyebrow": "พรีวิววันนี้",
+    "dayPreviewAria": "สรุปเส้นทางนี้",
+    "dayPreviewAudienceLabel": "เหมาะกับ",
+    "dayPreviewMoodLabel": "บรรยากาศหลัก",
+    "moodTag": {
+      "cafe_focused": "เน้นคาเฟ่และพักผ่อน",
+      "seoul_night_scene": "วิวกลางคืนและบรรยากาศเย็น",
+      "local_vibe": "จังหวะท้องถิ่น ใช้งานจริง"
+    },
     "flowTitle": "ลำดับ Haru",
     "flowSubtitle": "เดินตามลำดับ — นี่คือเส้นทางของวันนี้"
   },

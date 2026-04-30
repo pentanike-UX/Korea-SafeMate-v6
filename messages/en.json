@@ -1194,6 +1194,15 @@
     "stickyNavExpand": "Expand stop list",
     "stickyNavCollapse": "Collapse stop list",
     "stickyNavCollapsedHint": "Use the map button for the full route map; use chips to jump between stops.",
+    "dayPreviewEyebrow": "Day preview",
+    "dayPreviewAria": "Summary of this haruway",
+    "dayPreviewAudienceLabel": "Best for",
+    "dayPreviewMoodLabel": "Core vibe",
+    "moodTag": {
+      "cafe_focused": "Cafe & pause friendly",
+      "seoul_night_scene": "Night views & evening mood",
+      "local_vibe": "Local rhythm, on-the-ground"
+    },
     "flowTitle": "Haru Flow",
     "flowSubtitle": "Follow the order — this is your route for the day."
   },

@@ -1195,6 +1195,15 @@
     "stickyNavExpand": "Expand stop list",
     "stickyNavCollapse": "Collapse stop list",
     "stickyNavCollapsedHint": "Use the map button for the full route map; use chips to jump between stops.",
+    "dayPreviewEyebrow": "Xem trước trong ngày",
+    "dayPreviewAria": "Tóm tắt haruway này",
+    "dayPreviewAudienceLabel": "Phù hợp với",
+    "dayPreviewMoodLabel": "Không khí chính",
+    "moodTag": {
+      "cafe_focused": "Thiên về cà phê & nghỉ",
+      "seoul_night_scene": "Cảnh đêm & buổi tối",
+      "local_vibe": "Nhịp local, thực tế"
+    },
     "flowTitle": "Luồng Haru",
     "flowSubtitle": "Đi theo thứ tự — đây là lộ trình hôm nay."
   },
