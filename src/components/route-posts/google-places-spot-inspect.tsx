@@ -2,6 +2,7 @@
 
 import { ExternalLink } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 import type { RouteSpot } from "@/types/domain";
 import { buildGoogleMapsSpotUrl, type GoogleMapsSpotLinkKind } from "@/lib/google-maps-spot-link";
 import { Button } from "@/components/ui/button";
@@ -21,9 +22,45 @@ function statusTranslationKey(kind: GoogleMapsSpotLinkKind): string {
 }
 
 /** 슈퍼관리자 전용 — 스팟 카드 안에서 Google Maps로 빠르게 검수 */
-export function GooglePlacesSpotInspectRow({ spot, className }: { spot: RouteSpot; className?: string }) {
+export function GooglePlacesSpotInspectRow({
+  spot,
+  className,
+  postId,
+  canBindPlaceId = false,
+}: {
+  spot: RouteSpot;
+  className?: string;
+  postId?: string;
+  canBindPlaceId?: boolean;
+}) {
   const t = useTranslations("RoutePosts");
   const { href, kind } = buildGoogleMapsSpotUrl(spot);
+  const [binding, setBinding] = useState(false);
+  const [bindNote, setBindNote] = useState<string | null>(null);
+
+  async function handleBindPlaceId() {
+    if (!postId || binding) return;
+    setBinding(true);
+    setBindNote(null);
+    try {
+      const res = await fetch(`/api/admin/content-posts/${postId}/google-place-bind`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ spotId: spot.id }),
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => null)) as { error?: string } | null;
+        setBindNote(`${t("googleMapsBindFailed")} (${j?.error ?? res.status})`);
+        return;
+      }
+      setBindNote(t("googleMapsBindDone"));
+      window.setTimeout(() => window.location.reload(), 350);
+    } catch {
+      setBindNote(t("googleMapsBindFailed"));
+    } finally {
+      setBinding(false);
+    }
+  }
 
   return (
     <div
@@ -47,7 +84,20 @@ export function GooglePlacesSpotInspectRow({ spot, className }: { spot: RouteSpo
           </Button>
         )}
         <span className="text-muted-foreground text-[11px] leading-snug sm:text-xs">{t(statusTranslationKey(kind))}</span>
+        {canBindPlaceId && postId ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 px-2.5 text-[11px] font-semibold"
+            onClick={handleBindPlaceId}
+            disabled={binding}
+          >
+            {binding ? t("googleMapsBindSaving") : t("googleMapsBindButton")}
+          </Button>
+        ) : null}
       </div>
+      {bindNote ? <p className="text-muted-foreground text-[10px] sm:text-[11px]">{bindNote}</p> : null}
     </div>
   );
 }

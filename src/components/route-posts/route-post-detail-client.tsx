@@ -621,7 +621,7 @@ function EditorialSpotRow({
           </button>
           {isSuperAdmin ? (
             <div className="mt-2">
-              <GooglePlacesSpotInspectRow spot={spot} />
+              <GooglePlacesSpotInspectRow spot={spot} postId={post.id} canBindPlaceId />
             </div>
           ) : null}
           {adminBlock}
@@ -663,7 +663,7 @@ function EditorialSpotRow({
               </button>
               {isSuperAdmin ? (
                 <div className="border-border/40 border-t px-3 py-2.5 sm:px-4">
-                  <GooglePlacesSpotInspectRow spot={spot} />
+                  <GooglePlacesSpotInspectRow spot={spot} postId={post.id} canBindPlaceId />
                 </div>
               ) : null}
             </>
@@ -692,7 +692,9 @@ function EditorialSpotRow({
                   {addressLine ? (
                     <p className="text-muted-foreground mt-1 text-sm leading-snug">{addressLine}</p>
                   ) : null}
-                  {isSuperAdmin ? <GooglePlacesSpotInspectRow spot={spot} className="mt-3" /> : null}
+                  {isSuperAdmin ? (
+                    <GooglePlacesSpotInspectRow spot={spot} className="mt-3" postId={post.id} canBindPlaceId />
+                  ) : null}
                 </div>
                 <SpotImageCarousel key={`full-${carouselKey}`} slides={gallerySlides} className="sm:max-w-none" />
                 {spot.short_description ? (
