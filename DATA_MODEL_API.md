@@ -1042,6 +1042,14 @@ src/app/api/
     mock-complete/route.ts     ← POST (DEMO MODE 전용, 목업 결제 완료)
   jobs/
     route-generation/route.ts  ← POST (Edge Function 트리거)
+  naver/
+    local-search/route.ts       ← GET (?query=&display=) — 네이버 지역 검색 프록시
+    image-search/route.ts       ← GET — 네이버 이미지 검색 프록시
+  admin/
+    spots/
+      route.ts
+      naver-search/route.ts
+      [spotId]/images/route.ts
   messages/
     threads/route.ts           ← GET
     threads/[id]/route.ts      ← GET
@@ -1091,6 +1099,26 @@ export async function POST(req: NextRequest) {
 - `POST /api/requests` — Zod 검증 → `traveler_user_id` / 가디언 active 확인 → `bookings` INSERT → `orders` → 목업 시 paid 처리 등.
 - `POST /api/requests/[id]/deliver` — 가디언 권한, 루트 완성도, 상태 전이, Realtime 알림.
 - `POST /api/payments/mock-complete` — `process.env.NEXT_PUBLIC_DEMO_MODE === 'true'` 일 때만 허용.
+- `GET /api/naver/local-search` — 네이버 Local Search API 프록시. 환경변수 `NAVER_SEARCH_CLIENT_ID`, `NAVER_SEARCH_CLIENT_SECRET`(서버 전용, `NEXT_PUBLIC_` 금지). 미설정 시 빈 결과·에러 JSON으로 폴백(클라이언트는 기존 목업 유지).
+- `GET /api/naver/image-search` — 네이버 Image Search API 프록시. 동일 인증. 스팟 이미지 후보 새로고침 등에 사용.
+
+### 5.3 `content_posts.route_journey` — 클라이언트 `RouteSpot` 확장 (2026-04)
+
+DB의 `content_posts.route_journey` JSON은 앱에서 `RouteJourney`로 파싱한다. 스팟 배열 요소 `RouteSpot`에 실장소·이미지·검수용 필드가 있다(마이그레이션 컬럼 추가 전에도 JSON에 저장 가능).
+
+| 필드(요약) | 용도 |
+|------------|------|
+| `real_place_name`, `spot_name`, `display_name` | 실존 명칭·표시명 |
+| `category`, `district`, `address`, `road_address` | 분류·주소 |
+| `lat`, `lng`, `naver_place_id`, `naver_link` | 좌표·네이버 링크 |
+| `image_query`, `image_candidates`, `selected_image`, `image_source` | 네이버 이미지 검색·에디터 선택·출처 |
+| `images.hero`, `images.gallery[]`, `images.fallback` | 정적·자동 갤러리 메타(JSON). UI는 런타임에 후보를 점수화해 최대 10장 캐러셀 |
+| `source_status` | `mock` \| `verified` \| `needs_review` — 슈퍼관리자 검수 UI |
+| `leg_from_previous` | 이전 스팟→현재 스팟 이동 메모 |
+
+**이미지 해상도(제품 순서, `getSpotImageDisplayUrl`):** `selected_image` → **`images.gallery[0].url`(있을 때)** → 클라이언트 병합 Naver 후보(`link`/`url` 우선, 썸네일 보조) 또는 서버 `image_candidates` → `images.hero` → 에디터 로컬 `image_urls` → `spot_catalog`(옵션) → 지역 풀 mock(`buildLocalPostVisualPlan`). 탐색 카드 대표는 **`getRouteExploreCardCoverUrl`**(포스트 로컬 커버 → 대표 스팟 갤러리 1장 → `plan.hero`). 상세 스팟은 동일 데이터로 **`buildSpotGallerySlides`** → 캐러셀(최대 10).
+
+**향후 Supabase:** 편집기·검수에서 선택한 `selected_image`·`source_status` 등을 `content_posts.route_journey` JSON에 그대로 저장하거나, 정규화 시 `route_spots` 테이블 컬럼으로 이관. 저장 로직은 `src/lib/content-post-route.ts`에서 서버 액션/API로 분리해 두면 이행이 쉽다.
 
 ---
 
@@ -1302,10 +1330,15 @@ STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 
-# Tour / Naver (추후)
+# Tour API (추후)
 TOUR_API_KEY=
-NAVER_CLIENT_ID=
-NAVER_CLIENT_SECRET=
+
+# Naver Search API — 서버(Route Handler) 전용. 브라우저에 노출 금지.
+# 코드: src/app/api/naver/local-search, image-search; admin spots.
+NAVER_SEARCH_CLIENT_ID=
+NAVER_SEARCH_CLIENT_SECRET=
+# 지도 JS 클라이언트(선택, 브라우저 노출 가능)
+# NEXT_PUBLIC_NAVER_MAPS_CLIENT_ID=
 
 # 앱 설정
 NEXT_PUBLIC_APP_URL=

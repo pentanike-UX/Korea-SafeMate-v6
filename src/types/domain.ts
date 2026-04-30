@@ -206,6 +206,17 @@ export interface RouteJourneyMetadata {
   night_friendly: boolean;
 }
 
+/** 스팟 갤러리 1칸 — 자동 Naver·로컬 혼합 저장/표시 */
+export interface SpotGalleryItem {
+  url: string;
+  thumbnail?: string;
+  title?: string;
+  source?: "naver-image" | "local" | "fallback";
+  width?: number;
+  height?: number;
+  score?: number;
+}
+
 /** One stop on a guardian-curated route (or the single anchor for a spot post). */
 export interface RouteSpot {
   id: string;
@@ -288,7 +299,7 @@ export interface RouteSpot {
 
   /**
    * 역할별 이미지 URL (실제 장소 기반·에디터 지정).
-   * 해상도: selected_image → images.hero → … (see getSpotDisplayImageUrl).
+   * 해상도: selected_image → gallery → Naver → images.hero → … (see getSpotImageDisplayUrl).
    */
   images?: {
     hero?: string;
@@ -296,6 +307,10 @@ export interface RouteSpot {
     walking?: string;
     timing?: string;
     night?: string;
+    /** 자동·에디터 갤러리(최대 10) — DB/JSON 저장 시 */
+    gallery?: SpotGalleryItem[];
+    /** 최종 폴백 단일 URL */
+    fallback?: string;
   };
 
   /** 통합 표기용 실존 장소명 (플레이스명·동상 공식 명칭 등). */
@@ -384,14 +399,26 @@ export interface NaverImageCandidate {
   title: string;
   /** 원본 이미지 링크 (외부 사이트). */
   link: string;
+  /** 고해상도 표시용 — 보통 `link`와 동일 (정규화 시 설정). */
+  url?: string;
+  /** 일부 응답의 대체 원본 URL. */
+  original?: string;
+  imageUrl?: string;
   /** 썸네일 URL (Naver CDN). */
   thumbnail: string;
   /** 픽셀 너비 (문자열). */
   sizewidth: string;
   /** 픽셀 높이 (문자열). */
   sizeheight: string;
+  /** 정규화 시 숫자 변환 */
+  width?: number;
+  height?: number;
   /** 원본 링크 호스트 (표시·필터용, 서버에서 파싱). */
   source_domain?: string;
+  /** Route Handler 정규화 시 `"naver-image"`. */
+  source?: "naver-image";
+  /** 품질 점수 (서버/클라이언트) */
+  score?: number;
 }
 
 /**

@@ -37,6 +37,7 @@ Korea SafeMate 저장소에서 사람·AI가 동일한 기준으로 개발하기
 - **하드코딩 금지:** API 키, Supabase 서비스 롤, OAuth 시크릿 등을 소스에 넣지 않는다.
 - 실제 키는 Vercel·로컬 `.env.local` 등 **비저장소** 채널만 사용한다. 변수 이름·의미는 코드의 `process.env.*`와 루트 `env.example`을 기준으로 한다.
 - `NEXT_PUBLIC_*`는 브라우저에 노출된다는 전제로만 사용한다.
+- **네이버 검색:** `NAVER_SEARCH_CLIENT_ID` / `NAVER_SEARCH_CLIENT_SECRET`는 **서버(Route Handler)에서만** 사용한다. Local/Image Search는 `src/app/api/naver/*`를 통해서만 호출한다. 시크릿에 `NEXT_PUBLIC_` 접두사를 붙이지 않는다([DATA_MODEL_API.md](./DATA_MODEL_API.md) §5.3, §10).
 
 ## 5. 검증 파이프라인
 

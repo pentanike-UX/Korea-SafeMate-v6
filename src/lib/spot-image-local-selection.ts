@@ -7,6 +7,7 @@
 
 const LS_PREFIX = "haruway:spot:";
 const LS_SUFFIX = ":selectedImage";
+const LS_ALT_PREFIX = "haru:selected-spot-image:";
 
 export function spotSelectedImageStorageKey(spotId: string): string {
   return `${LS_PREFIX}${spotId}${LS_SUFFIX}`;
@@ -15,7 +16,9 @@ export function spotSelectedImageStorageKey(spotId: string): string {
 export function readLocalSelectedImage(spotId: string): string | null {
   if (typeof window === "undefined") return null;
   try {
-    return localStorage.getItem(spotSelectedImageStorageKey(spotId));
+    return (
+      localStorage.getItem(`${LS_ALT_PREFIX}${spotId}`) ?? localStorage.getItem(spotSelectedImageStorageKey(spotId))
+    );
   } catch {
     return null;
   }
@@ -23,6 +26,7 @@ export function readLocalSelectedImage(spotId: string): string | null {
 
 export function writeLocalSelectedImage(spotId: string, url: string): void {
   try {
+    localStorage.setItem(`${LS_ALT_PREFIX}${spotId}`, url);
     localStorage.setItem(spotSelectedImageStorageKey(spotId), url);
   } catch {
     /* ignore */
@@ -31,6 +35,7 @@ export function writeLocalSelectedImage(spotId: string, url: string): void {
 
 export function clearLocalSelectedImage(spotId: string): void {
   try {
+    localStorage.removeItem(`${LS_ALT_PREFIX}${spotId}`);
     localStorage.removeItem(spotSelectedImageStorageKey(spotId));
   } catch {
     /* ignore */

@@ -77,42 +77,78 @@ function practicalVisualSuffix(spot: RouteSpot): string {
   return "입구 외관";
 }
 
-export function buildSpotImageQuery(spot: RouteSpot, regionSlug?: string): string {
+export type BuildSpotImageQueryOpts = {
+  regionSlug?: string;
+  /** 포스트 제목 — 스팟 정보가 빈약할 때 보조 */
+  postTitle?: string;
+};
+
+/** 실장소명 중심 장면 키워드 (전경·랜드마크 인식률↑). */
+function landmarkSceneSuffix(spot: RouteSpot): string {
+  const rp = (spot.real_place_name ?? "").trim();
+  const name = spotDisplayName(spot);
+  const blob = `${rp} ${name} ${spot.title ?? ""} ${spot.place_name ?? ""}`;
+
+  if (/광화문광장|세종대왕|이순신|광화문/.test(blob)) {
+    if (/세종|세종대왕/.test(blob)) return "광화문광장 세종대왕 동상";
+    if (/이순신/.test(blob)) return "광화문 이순신장군 동상";
+    return "광화문광장 전경 세종대로";
+  }
+  if (/경복궁|광화문 정문|광화문/.test(blob) && /경복|궁/.test(blob)) return "경복궁 광화문 정문";
+  if (/블루보틀|Blue\s*Bottle/i.test(blob)) return `${name} 외관`;
+  if (/강남역\s*11|11번 출구/.test(blob)) return "강남역 11번 출구";
+  if (/테헤란로|역삼역.*강남역/.test(blob)) return "테헤란로 보행로";
+  return "";
+}
+
+export function buildSpotImageQuery(spot: RouteSpot, opts?: BuildSpotImageQueryOpts | string): string {
+  const regionSlug = typeof opts === "string" ? opts : opts?.regionSlug;
+  const postTitle = typeof opts === "string" ? undefined : opts?.postTitle;
+
   if (spot.image_query?.trim()) {
     return spot.image_query.trim();
   }
 
-  const name = spotDisplayName(spot);
+  const landmark = landmarkSceneSuffix(spot);
+  if (landmark) return landmark;
+
+  const name = spot.real_place_name?.trim() || spotDisplayName(spot);
   const district = effectiveDistrict(spot);
   const categoryShort = spot.category?.split(">").pop()?.trim();
   const practical = practicalVisualSuffix(spot);
 
-  // 2순위: 장소명 + 지역 + 실용 키워드
+  // 실장소 + 행정구 + 전경/외관
   if (district) {
-    return `${name} ${district} ${practical}`;
+    return `${name} ${district} 전경`;
   }
 
-  // 3순위: 장소명 + 카테고리 + 실용
   if (categoryShort) {
-    return `${name} ${categoryShort} ${practical}`;
+    return `${name} ${categoryShort} 외관`;
   }
 
-  // 4순위: 지역 slug + 랜드마크 키워드
   const regionLabel =
-    regionSlug === "gangnam" ? "강남"
-    : regionSlug === "gwanghwamun" ? "광화문"
-    : regionSlug === "hongdae" ? "홍대"
-    : regionSlug === "itaewon" ? "이태원"
-    : regionSlug === "myeongdong" ? "명동"
-    : null;
+    regionSlug === "gangnam"
+      ? "강남"
+      : regionSlug === "gwanghwamun"
+        ? "광화문"
+        : regionSlug === "hongdae"
+          ? "홍대"
+          : regionSlug === "itaewon"
+            ? "이태원"
+            : regionSlug === "myeongdong"
+              ? "명동"
+              : null;
 
   if (regionLabel) {
     return `${name} ${regionLabel} ${practical}`;
   }
 
-  // 5순위: 기존 목적 접미사
+  if (postTitle?.trim()) {
+    return `${postTitle.trim()} ${name}`.slice(0, 120);
+  }
+
   const goal = imageGoalSuffix(spot);
-  return `${name} ${goal}`;
+  return `${name} ${practical}`.trim() || `${name} ${goal}`;
 }
 
 /**
@@ -128,7 +164,7 @@ export function buildPostCardImageQuery(
   const featured = sorted.find((s) => s.featured) ?? sorted[0];
 
   if (featured) {
-    return buildSpotImageQuery(featured, regionSlug);
+    return buildSpotImageQuery(featured, { regionSlug, postTitle });
   }
 
   // 포스트 제목 기반 폴백

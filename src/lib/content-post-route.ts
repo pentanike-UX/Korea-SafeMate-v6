@@ -1,4 +1,11 @@
-import type { ContentPost, ContentPostFormat, MapLatLng, RouteJourney, RouteSpot } from "@/types/domain";
+import type {
+  ContentPost,
+  ContentPostFormat,
+  MapLatLng,
+  NaverImageCandidate,
+  RouteJourney,
+  RouteSpot,
+} from "@/types/domain";
 import { buildLocalPostVisualPlan, isExternalPostImageUrl, localHeroAlt } from "@/lib/post-local-images";
 import { spotDisplayName } from "@/lib/spot-image-query";
 
@@ -75,25 +82,88 @@ export type SpotImageOpts = {
    * over local mock images — matching the "real place first" strategy.
    */
   catalogImages?: Map<string, { url: string; image_type: string; is_primary: boolean }[]>;
+  /**
+   * 클라이언트에서 /api/naver/image-search + 세션 캐시로 채운 후보.
+   * `image_candidates`(JSON)보다 우선해 “방금 가져온 Naver”를 반영한다.
+   */
+  clientNaverCandidates?: NaverImageCandidate[] | null;
 };
 
 /**
- * 스팟 이미지 해상도 우선순위 (제품 스펙):
+ * Naver 후보에서 표시 URL 1개 — 고해상도 link/url 우선, 썸네일은 보조.
+ */
+export function firstUrlFromNaverCandidates(cands: NaverImageCandidate[] | null | undefined): string | null {
+  if (!cands?.length) return null;
+  for (const c of cands) {
+    const u = (c.url ?? c.link)?.trim();
+    if (u) return u;
+  }
+  for (const c of cands) {
+    const orig = c.original?.trim();
+    if (orig) return orig;
+  }
+  for (const c of cands) {
+    const iu = c.imageUrl?.trim();
+    if (iu) return iu;
+  }
+  for (const c of cands) {
+    const t = c.thumbnail?.trim();
+    if (t) return t;
+  }
+  return null;
+}
+
+export function mergeSpotNaverCandidates(
+  spot: RouteSpot,
+  client?: NaverImageCandidate[] | null,
+): NaverImageCandidate[] {
+  if (client && client.length > 0) return client;
+  return spot.image_candidates ?? [];
+}
+
+function mergedNaverCandidates(
+  spot: RouteSpot,
+  client?: NaverImageCandidate[] | null,
+): NaverImageCandidate[] {
+  return mergeSpotNaverCandidates(spot, client);
+}
+
+/** 썸네일 로드 실패 시 — Naver·외부 URL 건너뛰고 시드/플랜으로 폴백 */
+export function getSpotImageStaticFallbackChain(spot: RouteSpot, post: ContentPost, opts?: SpotImageOpts): string[] {
+  const plan = opts?.plan ?? buildLocalPostVisualPlan(post);
+  const raw = [
+    spot.images?.hero?.trim(),
+    ...spot.image_urls.map((u) => u?.trim()).filter(Boolean),
+    post.cover_image_url?.trim() && !isExternalPostImageUrl(post.cover_image_url) ? post.cover_image_url.trim() : null,
+    plan.spotImages.get(spot.id),
+    plan.hero,
+  ].filter(Boolean) as string[];
+  return [...new Set(raw)];
+}
+
+/**
+ * 스팟 이미지 해상도 (하루웨이·목록 공통):
  *
  * 1. selected_image
- * 2. images.hero
- * 3. image_candidates[0].thumbnail (Naver 검색 캐시)
- * 4. 에디터 로컬 업로드 (image_urls)
- * 5. spot_catalog (DB 실장소)
- * 6. 지역 풀 mock — buildLocalPostVisualPlan
+ * 2. `images.gallery[0]` · (clientNaverCandidates ?? image_candidates) — Naver 고해상도 link 우선
+ * 3. images.hero (에디터 정적 히어로)
+ * 4. 로컬 업로드 image_urls
+ * 5. spot_catalog
+ * 6. 포스트 cover (로컬·내부 경로일 때만)
+ * 7. 지역 풀 mock — buildLocalPostVisualPlan
+ *
+ * Naver 실사진이 시드 `images.hero`보다 먼저 오도록 2번을 3번보다 앞에 둔다.
  */
-export function getSpotDisplayImageUrl(spot: RouteSpot, post: ContentPost, opts?: SpotImageOpts): string {
+export function getSpotImageDisplayUrl(spot: RouteSpot, post: ContentPost, opts?: SpotImageOpts): string {
   if (spot.selected_image?.trim()) return spot.selected_image.trim();
 
-  if (spot.images?.hero?.trim()) return spot.images.hero.trim();
+  const g0 = spot.images?.gallery?.[0]?.url?.trim();
+  if (g0) return g0;
 
-  const cand = spot.image_candidates?.[0]?.thumbnail?.trim();
-  if (cand) return cand;
+  const naverUrl = firstUrlFromNaverCandidates(mergedNaverCandidates(spot, opts?.clientNaverCandidates));
+  if (naverUrl) return naverUrl;
+
+  if (spot.images?.hero?.trim()) return spot.images.hero.trim();
 
   const own = spot.image_urls.find((u) => u?.trim() && !isExternalPostImageUrl(u));
   if (own) return own.trim();
@@ -109,8 +179,16 @@ export function getSpotDisplayImageUrl(spot: RouteSpot, post: ContentPost, opts?
     }
   }
 
+  const cover = post.cover_image_url?.trim();
+  if (cover && !isExternalPostImageUrl(cover)) return cover;
+
   const plan = opts?.plan ?? buildLocalPostVisualPlan(post);
   return plan.spotImages.get(spot.id) ?? plan.hero;
+}
+
+/** @deprecated 이름 통일: {@link getSpotImageDisplayUrl} */
+export function getSpotDisplayImageUrl(spot: RouteSpot, post: ContentPost, opts?: SpotImageOpts): string {
+  return getSpotImageDisplayUrl(spot, post, opts);
 }
 
 /**
@@ -139,37 +217,14 @@ export function routeRepresentativeSpot(post: ContentPost): RouteSpot | null {
 
 /**
  * /explore/routes 등 리스트 카드 — 대표 스팟 기반, 없으면 포스트 히어로.
- * 순서: 대표 스팟 파이프라인 → cover_image_url → getPostHeroImageUrl 폴백
+ * SSR 시에는 clientNaverCandidates 없음 → 클라이언트 래퍼에서 동일 훅으로 덮어쓴다.
  */
 export function getRouteExploreCardImageUrl(post: ContentPost, opts?: SpotImageOpts): string {
   const rep = routeRepresentativeSpot(post);
   if (!rep) return getPostHeroImageUrl(post);
 
   const plan = opts?.plan ?? buildLocalPostVisualPlan(post);
-
-  if (rep.selected_image?.trim()) return rep.selected_image.trim();
-  if (rep.images?.hero?.trim()) return rep.images.hero.trim();
-
-  const own = rep.image_urls.find((u) => u?.trim() && !isExternalPostImageUrl(u));
-  if (own) return own.trim();
-
-  if (rep.spot_catalog_id && opts?.catalogImages) {
-    const imgs = opts.catalogImages.get(rep.spot_catalog_id);
-    if (imgs?.length) {
-      const primary = imgs.find((i) => i.image_type === "hero" && i.is_primary);
-      if (primary) return primary.url;
-      const anyHero = imgs.find((i) => i.image_type === "hero");
-      if (anyHero) return anyHero.url;
-      if (imgs[0]) return imgs[0].url;
-    }
-  }
-
-  if (rep.image_candidates?.[0]?.thumbnail?.trim()) return rep.image_candidates[0].thumbnail.trim();
-
-  const cover = post.cover_image_url?.trim();
-  if (cover && !isExternalPostImageUrl(cover)) return cover;
-
-  return plan.spotImages.get(rep.id) ?? plan.hero;
+  return getSpotImageDisplayUrl(rep, post, { ...opts, plan });
 }
 
 export function getRouteExploreCardImageAlt(post: ContentPost): string {
@@ -179,6 +234,9 @@ export function getRouteExploreCardImageAlt(post: ContentPost): string {
   }
   return getPostHeroImageAlt(post);
 }
+
+/** 카드·상세 공통 — 스팟 표시 URL 단일 진입점(별칭) */
+export { getSpotImageDisplayUrl as getSpotImageForRoute };
 
 export function countPostsWithoutOwnMedia(posts: ContentPost[]): number {
   return posts.filter((p) => !postHasOwnVisualMedia(p)).length;

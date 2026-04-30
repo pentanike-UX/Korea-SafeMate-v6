@@ -274,8 +274,9 @@ app/
 | ID | 경로 | 이름 | 목적 |
 |----|------|------|------|
 | T01 | `/explore` | Explore Feed | 가디언·샘플 루트 피드 |
+| T01a | `/explore/routes` | Haruway route list | 서울 하루웨이 전용 그리드(지역·대표 스팟·km·분·하루이) — 구현: `src/app/[locale]/(public)/explore/routes/page.tsx` |
 | T02 | `/explore/guardians/[id]` | Guardian Profile | 가디언 개인 프로필 + 샘플 루트 |
-| T03 | `/explore/routes/[id]` | Sample Route Preview | 샘플 루트 미리보기 (게스트도 요약 접근) |
+| T03 | `/explore/routes/[id]` | Sample Route Preview | IA 목표 경로; 실제 상세는 포스트 상세 `/posts/[postId]` 하루웨이와 동일 콘텐츠 축 |
 | T04 | `/request/new` | Custom Request Form | 맞춤 의뢰 작성 (티어 선택 포함) |
 | T05 | `/request/[id]` | Request Status | 의뢰 진행 상태 추적 |
 | T06 | `/checkout` | Checkout | 결제 (목업에서는 mock) |
@@ -376,7 +377,8 @@ app/
  │     │                                   ├─→ /routes/[id]/revision
  │     │                                   ├─→ /routes/[id]/map
  │     │                                   └─→ /reviews/new
- │     └─→ /explore/routes/[id] (샘플)
+ │     ├─→ /explore/routes (하루웨이 전용 목록)
+ │     └─→ /posts/[postId] (샘플 하루웨이 상세; IA 표 T03과 동일 콘텐츠 축)
  └─→ /guardian (가디언 신청으로 전환)
 ```
 
@@ -705,3 +707,4 @@ Foundation 섹션 10의 스캔 리포트 위에 다음을 추가:
 
 - **1.0** — 초판(사용자 제공 원문).
 - **1.0.1** — `FOUNDATION.md` 링크 통일, 저장소 메모(`src/app/`, mock·i18n 갭), §3.1 목표/실경로 구분, 코드펜스 `text` 라벨.
+- **1.0.2** — §4.3 Traveler에 **T01a** `/explore/routes` 하루웨이 목록, §6.1 여정에 `/explore/routes`·실제 상세 `/posts/[postId]` 정합.

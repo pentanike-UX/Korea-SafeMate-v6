@@ -5,6 +5,14 @@
 
 ---
 
+## 2026-04-30 — 하루웨이 실장소 보강·네이버 프록시·탐색 UX·스팟 이미지 자동 갤러리
+
+- **목적:** 기존 목업 하루웨이를 삭제하지 않고 `real_place_name`, 주소·좌표, `images.hero`, `source_status`, `leg_from_previous` 등으로 품질 보강. 네이버 Local/Image Search는 **Route Handler에서만** 호출(`NAVER_SEARCH_CLIENT_ID` / `NAVER_SEARCH_CLIENT_SECRET` — 시크릿은 서버 전용). 스팟 이미지는 **슈퍼관리자 후보 선택 UI 없이** 네이버 결과를 품질 점수·필터 후 자동 적용, 상세는 **최대 10장 캐러셀**, 목록 카드는 **`getRouteExploreCardCoverUrl`** 파이프라인. 쿼리별 **24h 로컬 캐시**(`naver:image:*`), **`/api/image-proxy`**로 hotlink 완화.
+- **코드:** `src/types/domain.ts` (`RouteSpot`·`NaverImageCandidate`·`images.gallery`), `src/data/mock/service-sample-overlay.ts`, `src/data/mock/mock-real-place-assets.ts`, `src/app/api/naver/local-search`, `src/app/api/naver/image-search`, `src/app/api/image-proxy`, `src/lib/content-post-route.ts` (`getSpotImageDisplayUrl`, `firstUrlFromNaverCandidates`), `src/lib/spot-image-gallery.ts`, `src/lib/naver-image-quality.ts`, `src/lib/naver-image-query-cache.ts`, `src/lib/naver-image-api-mapper.ts`, `src/hooks/use-spot-gallery.ts`, `src/hooks/use-route-representative-cover-image.ts`, `src/components/route-posts/spot-image-carousel.tsx`, `spot-image-admin-diagnostics.tsx`, `src/lib/route-post-card-meta.ts`, `next.config.ts`(`remotePatterns`). **제거:** `use-spot-display-image.ts`, `spot-image-candidates.tsx`.
+- **UI:** `/explore/routes` 카드(`ExploreRouteCard`/`RoutePostCard`·`useRouteRepresentativeCoverImage`), `RouteDayPreview`, 상세 **`SpotImageCarousel`**·슈퍼관리자 `SpotVerificationStrip` + **`SpotImageAdminDiagnostics`**(접이식 요약).
+- **문서:** `DATA_MODEL_API.md`(§5.3 이미지 순서·갤러리), `ARCHITECTURE.md`, `PRODUCT_SPEC.md`, `HARNESS.md`, `IA_SCREEN_INVENTORY.md`, `env.example`.
+- **후속:** 관리자 스팟 검수 선택값의 Supabase 영속화, `pnpm lint` 저장소 전체 경고·에러 정리.
+
 ## 2026-04-24 — Data Model & API (4단) 추가
 
 - **파일:** `DATA_MODEL_API.md` — 엔티티, 테이블·RLS·인덱스, 마이그레이션 트리, Zod, `src/app/api` 구조, Edge·시드·환경 변수, §11 절차.

@@ -4,11 +4,8 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { ContentPost } from "@/types/domain";
-import {
-  getContentPostFormat,
-  getRouteExploreCardImageAlt,
-  getRouteExploreCardImageUrl,
-} from "@/lib/content-post-route";
+import { getContentPostFormat } from "@/lib/content-post-route";
+import { useRouteRepresentativeCoverImage } from "@/hooks/use-route-representative-cover-image";
 import { PostSampleBadge } from "@/components/posts/post-sample-badge";
 import { GuardianMiniPreviewSheetTrigger } from "@/components/guardians/guardian-mini-preview-sheet";
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +22,7 @@ export function RoutePostCard({ post, regionLabel, className }: { post: ContentP
   const journey = post.route_journey!;
   const meta = journey.metadata;
   const format = getContentPostFormat(post);
-  const cover = getRouteExploreCardImageUrl(post);
-  const coverAlt = getRouteExploreCardImageAlt(post);
+  const { url: cover, alt: coverAlt, onCoverImgError } = useRouteRepresentativeCoverImage(post);
   const areaLabel = routeCardAreaLabel(post);
   const spotPreviewLine = routeCardSpotPreviewLine(post, 2);
 
@@ -57,6 +53,7 @@ export function RoutePostCard({ post, regionLabel, className }: { post: ContentP
             fill
             className={cn(postListCardCoverClass(post), "transition-transform duration-500 group-hover:scale-[1.02]")}
             sizes="(max-width:768px) 100vw, 33vw"
+            onError={onCoverImgError}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0e1b3d]/60 via-transparent to-transparent" />
           <div className="absolute top-3 left-3 z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap gap-1.5">

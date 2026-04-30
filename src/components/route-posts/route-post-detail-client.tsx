@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { ContentPost, RouteJourneyMetadata, RouteSpot } from "@/types/domain";
@@ -12,12 +11,11 @@ import {
   type GuardianRequestSheetHostProps,
 } from "@/components/guardians/guardian-request-sheet";
 import { GuardianSignatureQuote } from "@/components/posts/post-info-blocks";
-import { useSpotDetailImage } from "@/hooks/use-spot-display-image";
+import { useSpotGallery } from "@/hooks/use-spot-gallery";
 import { buildLocalPostVisualPlan, type LocalPostVisualPlan } from "@/lib/post-local-images";
-import { SpotImageCandidates } from "@/components/route-posts/spot-image-candidates";
+import { SpotImageCarousel } from "@/components/route-posts/spot-image-carousel";
+import { SpotImageAdminDiagnostics } from "@/components/route-posts/spot-image-admin-diagnostics";
 import { SpotVerificationStrip } from "@/components/route-posts/spot-verification-strip";
-import { buildSpotImageQuery } from "@/lib/spot-image-query";
-import { routeSpotImageCoverClass } from "@/lib/post-image-crop";
 import { cn } from "@/lib/utils";
 import { Check, Lock } from "lucide-react";
 import {
@@ -474,7 +472,9 @@ function EditorialSpotRow({
   const t = useTranslations("RoutePosts");
   const role = inferSpotRole(spot);
   const roleConf = ROLE_CONFIG[role];
-  const { url: img, alt: imgAlt, onAdminImagePicked } = useSpotDetailImage(spot, post, { plan: visualPlan });
+  const { slides, imageQuery, naverFetchedCount, usedFallbackOnly } = useSpotGallery(spot, post, {
+    plan: visualPlan,
+  });
 
   return (
     <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4">
@@ -531,25 +531,21 @@ function EditorialSpotRow({
           </span>
         ) : null}
 
-        {/* Image — 16:9 mobile, 2:1 sm+ */}
-        <div className="relative mb-4 aspect-[16/10] overflow-hidden rounded-xl border border-border/50 sm:aspect-[2/1]">
-          <Image
-            src={img}
-            alt={imgAlt}
-            fill
-            className={routeSpotImageCoverClass(post)}
-            sizes="(max-width:768px) 100vw, 640px"
-          />
-        </div>
+        <SpotImageCarousel
+          key={`${spot.id}-${imageQuery}-${naverFetchedCount}`}
+          slides={slides}
+          className="mb-4 sm:max-w-none"
+        />
 
         {isSuperAdmin ? (
           <>
             <SpotVerificationStrip spot={spot} className="mb-3" />
-            <SpotImageCandidates
-              spotId={spot.id}
-              imageQuery={buildSpotImageQuery(spot, post.region_slug)}
-              serverSelectedImage={spot.selected_image ?? null}
-              onPicked={onAdminImagePicked}
+            <SpotImageAdminDiagnostics
+              imageQuery={imageQuery}
+              naverCount={naverFetchedCount}
+              slideCount={slides.length}
+              usedFallbackOnly={usedFallbackOnly}
+              spot={spot}
             />
           </>
         ) : null}

@@ -349,7 +349,11 @@ export function PostsListClient({
               return (
                 <li key={p.id} className="w-full max-w-[420px]">
                   {postHasRouteJourney(p) ? (
-                    <RoutePostCard post={p} regionLabel={t(`region.${p.region_slug}` as "region.seoul")} />
+                    <RoutePostCard
+                      key={p.id}
+                      post={p}
+                      regionLabel={t(`region.${p.region_slug}` as "region.seoul")}
+                    />
                   ) : (
                     <Link
                       href={`/posts/${p.id}`}
