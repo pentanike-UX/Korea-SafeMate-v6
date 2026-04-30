@@ -217,6 +217,19 @@ export interface SpotGalleryItem {
   score?: number;
 }
 
+/**
+ * 스팟 이미지 검색·필터 전략 — 랜드마크/궁궐은 음식·상권 이미지 제외.
+ * 미지정 시 클라이언트에서 `resolveSpotImagePlaceType()` 휴리스틱.
+ */
+export type SpotImagePlaceType =
+  | "cafe"
+  | "landmark"
+  | "palace"
+  | "plaza"
+  | "walking"
+  | "nightview"
+  | "default";
+
 /** One stop on a guardian-curated route (or the single anchor for a spot post). */
 export interface RouteSpot {
   id: string;
@@ -279,6 +292,12 @@ export interface RouteSpot {
    * "naver" | "admin_upload" | "catalog" | "local" | "placeholder"
    */
   image_source?: "naver" | "admin_upload" | "catalog" | "local" | "placeholder";
+
+  /**
+   * 이미지 갤러리 visual identity (쿼리·랭킹). `default`는 일반(카페=실내·메뉴 쿼리 허용).
+   * @see SpotImagePlaceType
+   */
+  image_place_type?: SpotImagePlaceType;
 
   /** 원본 장소명(검색·Local API 결과와 매칭). 없으면 place_name·title 사용. */
   spot_name?: string;

@@ -4,6 +4,8 @@
 import type { NaverPrimaryPlace, RouteSpot } from "@/types/domain";
 import { buildSpotImageQuery, type BuildSpotImageQueryOpts } from "@/lib/spot-image-query";
 import { normalizePlaceTitle } from "@/lib/naver-place-similarity";
+import { buildHeritageVisualQueries } from "@/lib/spot-image-heritage";
+import { isHeritageVisualStrategy, resolveSpotImagePlaceType } from "@/lib/spot-image-place-type";
 
 function uniqShort(queries: string[]): string[] {
   const seen = new Set<string>();
@@ -45,6 +47,13 @@ export function buildRefinedImageQueries(
   primary: NaverPrimaryPlace | null,
   opts?: BuildSpotImageQueryOpts,
 ): { queries: string[]; mode: "entity" | "broad_fallback" } {
+  const placeType = resolveSpotImagePlaceType(spot);
+
+  if (primary && isHeritageVisualStrategy(placeType)) {
+    const qs = buildHeritageVisualQueries(spot, primary, placeType);
+    return { queries: qs.length ? qs : [], mode: "entity" };
+  }
+
   if (primary) {
     const t = normalizePlaceTitle(primary.title);
     const road = primary.roadAddress?.trim();
@@ -53,17 +62,11 @@ export function buildRefinedImageQueries(
 
     if (road) qs.push(`${t} ${road}`);
     if (dist) qs.push(`${t} ${dist}`);
-    qs.push(
-      `${t} 외관`,
-      `${t} 입구`,
-      `${t} 실내`,
-      `${t} 창가`,
-      `${t} 좌석`,
-      `${t} 거리`,
-      `${t} 보행로`,
-      `${t} 야경`,
-      `${t} 메뉴`,
-    );
+    qs.push(`${t} 외관`, `${t} 입구`, `${t} 거리`, `${t} 보행로`, `${t} 야경`);
+
+    if (placeType === "cafe" || placeType === "default") {
+      qs.push(`${t} 실내`, `${t} 창가`, `${t} 좌석`, `${t} 메뉴`);
+    }
 
     const blob = `${spot.real_place_name ?? ""} ${spot.title ?? ""}`;
     if (/광화문광장|세종대왕|이순신|광화문/.test(blob)) {

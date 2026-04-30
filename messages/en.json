@@ -1216,6 +1216,7 @@
     "playbookTeaserFooter": "Open field playbook",
     "playbookLockedRow": "Expand with premium",
     "playbookFoldHint": "Expand for real venue name, address, field notes, and photo gallery.",
+    "playbookCollapseShort": "Collapse",
     "playbookVisualLocked": "Images appear sharp after unlock",
     "playbookCtaUnlock": "Open field playbook",
     "playbookCtaView": "View",

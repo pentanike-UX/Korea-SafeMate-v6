@@ -7,6 +7,8 @@ import { buildLocalPostVisualPlan, isExternalPostImageUrl } from "@/lib/post-loc
 import { spotDisplayName } from "@/lib/spot-image-query";
 import { scoreAndSortNaverCandidates } from "@/lib/naver-image-quality";
 import { scoreAndSortWithPrimaryPlace } from "@/lib/naver-image-relevance";
+import { isHeritageHeroStrongCandidate } from "@/lib/spot-image-heritage";
+import { isHeritageVisualStrategy, resolveSpotImagePlaceType } from "@/lib/spot-image-place-type";
 
 export type SpotGallerySlide = {
   /** 표시 시도 순서: 원본 → 프록시 → 썸네일 */
@@ -22,6 +24,19 @@ export type SpotGallerySlide = {
 };
 
 const MAX_GALLERY = 10;
+
+/** heritage 타입: 시각 정체성 높은 후보를 앞으로 — 첫 장을 landmark 인지 가능 이미지로 */
+function reorderHeritageGalleryHeroFirst<T extends NaverImageCandidate & { score: number }>(
+  ranked: T[],
+  spot: RouteSpot,
+): T[] {
+  const pt = resolveSpotImagePlaceType(spot);
+  if (!isHeritageVisualStrategy(pt)) return ranked;
+  const strong = ranked.filter((c) => isHeritageHeroStrongCandidate(c, spot, pt));
+  const weak = ranked.filter((c) => !isHeritageHeroStrongCandidate(c, spot, pt));
+  if (strong.length === 0) return ranked;
+  return [...strong, ...weak];
+}
 
 function proxyUrl(original: string): string {
   return `/api/image-proxy?url=${encodeURIComponent(original)}`;
@@ -104,9 +119,10 @@ export function buildSpotGallerySlides(
     (opts as SpotImageOpts & { clientNaverItems?: NaverImageCandidate[] | null }).clientNaverItems ??
     opts.clientNaverCandidates;
   const merged = mergeSpotNaverCandidates(spot, clientItems);
-  const ranked = usePrimaryPipeline
+  let ranked = usePrimaryPipeline
     ? scoreAndSortWithPrimaryPlace(merged, spot, opts.primaryPlace ?? null)
     : scoreAndSortNaverCandidates(merged, spot);
+  ranked = reorderHeritageGalleryHeroFirst(ranked, spot);
   const roomNaver = MAX_GALLERY - slides.length;
 
   for (const c of ranked.slice(0, Math.max(0, roomNaver))) {

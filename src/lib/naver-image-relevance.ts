@@ -8,6 +8,11 @@ import {
   stripHtmlTitle,
 } from "@/lib/naver-image-quality";
 import { normalizePlaceTitle } from "@/lib/naver-place-similarity";
+import {
+  heritageVisualIdentityScore,
+  titleFailsHeritageVisualIdentity,
+} from "@/lib/spot-image-heritage";
+import { isHeritageVisualStrategy, resolveSpotImagePlaceType } from "@/lib/spot-image-place-type";
 
 const NEWS_HOST_LINK = /news\.|yna\.|joins\.|hani\.|chosun\.|donga\.|wikimedia|namu\.wiki|news\.naver\.com/i;
 
@@ -100,6 +105,9 @@ export function scoreAndSortWithPrimaryPlace(
   spot: RouteSpot,
   primaryPlace: NaverPrimaryPlace | null,
 ): Array<NaverImageCandidate & { score: number }> {
+  const placeType = resolveSpotImagePlaceType(spot);
+  const heritage = isHeritageVisualStrategy(placeType);
+
   const out: Array<NaverImageCandidate & { score: number }> = [];
   for (const c of items) {
     const title = stripHtmlTitle(c.title);
@@ -107,13 +115,24 @@ export function scoreAndSortWithPrimaryPlace(
     const h = parseDim(c.sizeheight);
     const link = (c.link ?? "").trim();
     if (shouldExcludeNaverCandidate(title, link, w, h)) continue;
+    if (heritage && titleFailsHeritageVisualIdentity(c.title, link)) continue;
     if (link && NEWS_HOST_LINK.test(link) && !POS_SCENE.test(title)) continue;
     if (primaryPlace && shouldExcludeLowRelevance(title, primaryPlace, spot)) continue;
 
     const q = getImageQualityScore(c, spot);
     const r = getImageRelevanceScore(c, primaryPlace, spot);
-    const score = primaryPlace ? q * 0.35 + r * 0.65 : q;
-    const minCut = primaryPlace ? 26 : 18;
+    const identity = heritage ? heritageVisualIdentityScore(c.title, spot, primaryPlace, placeType) : 0;
+
+    let score: number;
+    if (heritage) {
+      score = q * 0.2 + r * 0.28 + identity * 0.52;
+    } else if (primaryPlace) {
+      score = q * 0.35 + r * 0.65;
+    } else {
+      score = q;
+    }
+
+    const minCut = heritage ? 36 : primaryPlace ? 26 : 18;
     if (score < minCut) continue;
     out.push({ ...c, score });
   }

@@ -16,8 +16,7 @@ import { SpotVerificationStrip } from "@/components/route-posts/spot-verificatio
 import { cn } from "@/lib/utils";
 import type { FreeArchetype } from "@/lib/route-free-classification";
 import { inferFreeArchetype } from "@/lib/route-free-classification";
-import { Button } from "@/components/ui/button";
-import { ChevronDown, Lock } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
   POST_DETAIL_PROSE_P_MAIN,
@@ -27,8 +26,6 @@ import {
 import { resolveRouteArticleRender } from "@/lib/post-structured-content";
 import { RouteArticleStructuredBody } from "@/components/posts/route-article-structured-body";
 import {
-  atmospherePlaybookTitle,
-  collapsedSituationLine,
   freeTierMoodTitle,
   premiumSpotAddressLine,
   premiumSpotPlaceTitle,
@@ -507,6 +504,8 @@ function EditorialSpotRow({
   post,
   visualPlan,
   hasPlaybookPremium,
+  expandedSpotId,
+  onExpandedSpotChange,
   showAdminDebug,
   isFlashing,
   onOpenPayDrawer,
@@ -519,6 +518,9 @@ function EditorialSpotRow({
   visualPlan: LocalPostVisualPlan;
   /** 결제·구독 등 오픈 시 true — TODO: 서버에서 실제 구매 여부 연동 */
   hasPlaybookPremium: boolean;
+  /** 유료: 어느 스팟이 펼쳐졌는지(한 번에 하나) */
+  expandedSpotId: string | null;
+  onExpandedSpotChange: (id: string | null) => void;
   showAdminDebug: boolean;
   isFlashing: boolean;
   onOpenPayDrawer: () => void;
@@ -526,10 +528,7 @@ function EditorialSpotRow({
   const t = useTranslations("RoutePosts");
   const role = inferSpotRole(spot);
   const roleConf = ROLE_CONFIG[role];
-  const freeTitle = freeTierMoodTitle(spot);
-  const arch = inferFreeArchetype(spot);
-  const moodEyebrow = spot.display_mood_title?.trim() || atmospherePlaybookTitle(spot);
-  const situationPremium = spot.display_mood_subtitle?.trim() || collapsedSituationLine(spot);
+  const collapsedTitle = freeTierMoodTitle(spot);
   const placeTitle = premiumSpotPlaceTitle(spot);
   const addressFallback = premiumSpotAddressLine(spot);
 
@@ -547,14 +546,14 @@ function EditorialSpotRow({
     pipelineDone,
   } = useSpotGallery(spot, post, {
     plan: visualPlan,
-    fetchRemote: true,
+    fetchRemote: hasPlaybookPremium,
   });
 
   const heroSlides = slides.length ? slides.slice(0, 1) : slides;
   const gallerySlides = slides;
   const blurredHeroUrl = heroSlides[0]?.tryUrls?.[0];
 
-  const [expanded, setExpanded] = useState(false);
+  const expanded = hasPlaybookPremium && expandedSpotId === spot.id;
 
   const addressLine =
     primaryPlace?.roadAddress?.trim() ||
@@ -563,12 +562,7 @@ function EditorialSpotRow({
 
   const carouselKey = `${spot.id}-${pipelineDone ? "r" : "l"}-${primaryPlace?.title ?? "np"}-${naverFetchedCount}`;
 
-  const teaserLines = [
-    t("playbookTeaserPlace"),
-    t("playbookTeaserGallery"),
-    t("playbookTeaserMove"),
-    t("playbookTeaserSeat"),
-  ];
+  const closedExpandHint = t("playbookFoldHint");
 
   const adminBlock = showAdminDebug && hasPlaybookPremium ? (
     <AdminSpotDebug
@@ -610,150 +604,123 @@ function EditorialSpotRow({
     </div>
   );
 
-  /** 무료 — 완전 티저만: 실사진·실명·주소 미노출, 네이버 호출 없음, 펼침 불가 */
+  /** 닫힘 공통: 분류형 타이틀 → 안내 한 줄 → 칩 → 머무름 → 이미지만 (이미지 아래 텍스트 없음) */
+  const chipAndStay = (
+    <>
+      <span
+        className={cn(
+          "inline-flex w-fit items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+          roleConf.badgeClass,
+        )}
+      >
+        <span aria-hidden>{roleConf.emoji}</span>
+        {roleConf.label}
+      </span>
+      {spot.stay_duration_minutes ? (
+        <p className="text-muted-foreground text-[10px] font-medium">
+          {t("stayDuration", { minutes: spot.stay_duration_minutes })}
+        </p>
+      ) : null}
+    </>
+  );
+
+  /** 무료 — 항상 닫힘·펼침 불가. 카드 탭 시 업그레이드 시트. 원격 이미지 호출 없음 */
   if (!hasPlaybookPremium) {
     return (
       <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4">
         {spine}
         <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-6")}>
-          <div className="border-border/40 bg-card/80 rounded-lg border px-3 py-2.5 shadow-sm sm:px-3.5 sm:py-3">
-            <div className="flex flex-wrap items-start gap-2">
-              <p
-                className={cn(
-                  "text-[var(--text-strong)] min-w-0 flex-1 text-[14px] font-semibold leading-snug tracking-tight",
-                  isFlashing && "text-primary",
-                )}
-              >
-                {freeTitle}
-              </p>
-              <span
-                className={cn(
-                  "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
-                  roleConf.badgeClass,
-                )}
-              >
-                <span aria-hidden>{roleConf.emoji}</span>
-                {roleConf.label}
-              </span>
-            </div>
-            {spot.stay_duration_minutes ? (
-              <p className="text-muted-foreground mt-1 text-[10px] font-medium">
-                {t("stayDuration", { minutes: spot.stay_duration_minutes })}
-              </p>
-            ) : null}
-
+          <button
+            type="button"
+            onClick={onOpenPayDrawer}
+            className="border-border/40 bg-card/80 focus-visible:ring-ring w-full rounded-lg border px-3 py-2.5 text-left shadow-sm outline-none focus-visible:ring-2 sm:px-3.5 sm:py-3"
+          >
+            <p
+              className={cn(
+                "text-[var(--text-strong)] text-[14px] font-semibold leading-snug tracking-tight sm:text-[15px]",
+                isFlashing && "text-primary",
+              )}
+            >
+              {collapsedTitle}
+            </p>
+            <p className="text-muted-foreground mt-1 text-[12px] leading-snug">{closedExpandHint}</p>
+            <div className="mt-2 flex flex-col gap-1.5">{chipAndStay}</div>
             <div className="mt-2.5">
               <FreePlaybookBlurredHero imageUrl={blurredHeroUrl} fallbackMessage={t("playbookVisualLocked")} />
             </div>
-
-            <p className="text-foreground/85 mt-2.5 text-[13px] leading-snug line-clamp-2">
-              {arch === "prep"
-                ? t("freeArchetypeTeaser.prep")
-                : arch === "photo"
-                  ? t("freeArchetypeTeaser.photo")
-                  : arch === "rest"
-                    ? t("freeArchetypeTeaser.rest")
-                    : t("freeArchetypeTeaser.destination")}
-            </p>
-
-            <Button
-              type="button"
-              variant="secondary"
-              className="text-foreground/90 mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border-border/50 text-[13px] font-semibold shadow-none"
-              onClick={onOpenPayDrawer}
-            >
-              <Lock className="size-3.5 shrink-0 opacity-80" aria-hidden />
-              {t("playbookCtaView")}
-            </Button>
-          </div>
+          </button>
           {!isLast ? <MoveConnector spot={spot} /> : null}
         </div>
       </div>
     );
   }
 
-  /** 유료 — 기본 접힘; 펼침에서만 실명·주소·풀 갤러리·이동 메모·필드노트 */
+  /** 유료 — 기본 닫힘, 탭으로 해당 카드만 펼침. 펼침 시에만 실명·주소·노트·풀 갤러리 */
   return (
     <div id={`route-spot-${spot.id}`} className="flex gap-3 sm:gap-4">
       {spine}
       <div className={cn("min-w-0 flex-1", isLast ? "pb-2" : "pb-10")}>
         <div className="border-border/50 overflow-hidden rounded-2xl border bg-card shadow-[var(--shadow-xs)]">
-          <button
-            type="button"
-            onClick={() => setExpanded((e) => !e)}
-            className="hover:bg-muted/35 flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors sm:px-5 sm:py-4"
-            aria-expanded={expanded}
-          >
-            <div className="min-w-0 flex-1 space-y-1.5">
-              <p
-                className={cn(
-                  "text-[var(--text-strong)] text-[15px] font-semibold leading-snug tracking-tight",
-                  isFlashing && "text-primary",
-                )}
-              >
-                {moodEyebrow}
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
-                    roleConf.badgeClass,
-                  )}
-                >
-                  <span aria-hidden>{roleConf.emoji}</span>
-                  {roleConf.label}
-                </span>
-                {spot.stay_duration_minutes ? (
-                  <span className="text-muted-foreground text-[10px] font-medium">
-                    {t("stayDuration", { minutes: spot.stay_duration_minutes })}
-                  </span>
-                ) : null}
+          {!expanded ? (
+            <button
+              type="button"
+              onClick={() => onExpandedSpotChange(spot.id)}
+              className="hover:bg-muted/35 focus-visible:ring-ring w-full px-4 py-3.5 text-left transition-colors outline-none focus-visible:ring-2 sm:px-5 sm:py-4"
+              aria-expanded={false}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={cn(
+                      "text-[var(--text-strong)] text-[15px] font-semibold leading-snug tracking-tight",
+                      isFlashing && "text-primary",
+                    )}
+                  >
+                    {collapsedTitle}
+                  </p>
+                  <p className="text-muted-foreground mt-1 text-[12px] leading-snug">{closedExpandHint}</p>
+                </div>
+                <ChevronDown className="text-muted-foreground mt-0.5 size-5 shrink-0" aria-hidden />
               </div>
-            </div>
-            <ChevronDown
-              className={cn(
-                "text-muted-foreground mt-0.5 size-5 shrink-0 transition-transform duration-200",
-                expanded && "rotate-180",
-              )}
-              aria-hidden
-            />
-          </button>
-
-          <div className="border-border/45 border-t px-4 pb-4 sm:px-5">
-            {!expanded ? (
-              <>
-                <SpotImageCarousel key={`fold-${carouselKey}`} slides={heroSlides} className="pt-3 sm:max-w-none" />
-                {situationPremium ? (
-                  <p className="text-foreground/80 mt-3 text-sm leading-relaxed">&ldquo;{situationPremium}&rdquo;</p>
-                ) : null}
-                <ul className="text-muted-foreground mt-3 space-y-1 text-[11px] leading-relaxed">
-                  {teaserLines.map((line) => (
-                    <li key={line} className="flex gap-2">
-                      <span className="shrink-0 opacity-70">·</span>
-                      <span>{line}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="text-muted-foreground mt-3 text-[10px] leading-snug">{t("playbookFoldHint")}</p>
-              </>
-            ) : (
-              <>
+              <div className="mt-2 flex flex-col gap-1.5">{chipAndStay}</div>
+              <div className="mt-2.5">
+                <SpotImageCarousel key={`fold-${carouselKey}`} slides={heroSlides} className="sm:max-w-none" />
+              </div>
+            </button>
+          ) : (
+            <div>
+              <div className="border-border/45 flex items-center justify-between gap-2 border-b px-4 py-2.5 sm:px-5">
+                <p className="text-muted-foreground min-w-0 flex-1 truncate text-[12px] font-medium">{collapsedTitle}</p>
+                <button
+                  type="button"
+                  onClick={() => onExpandedSpotChange(null)}
+                  className="text-muted-foreground hover:bg-muted/50 inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-medium"
+                  aria-expanded
+                  aria-controls={`route-spot-${spot.id}-expanded`}
+                >
+                  <ChevronDown className="size-4 rotate-180" aria-hidden />
+                  {t("playbookCollapseShort")}
+                </button>
+              </div>
+              <div className="space-y-4 px-4 pb-5 pt-4 sm:px-5" id={`route-spot-${spot.id}-expanded`}>
                 {spot.leg_from_previous?.trim() ? <LegFromPrevious text={spot.leg_from_previous} /> : null}
-                <p className="text-muted-foreground text-[11px] font-medium">{moodEyebrow}</p>
-                <h3 className="text-[var(--text-strong)] mt-1 text-xl font-bold tracking-tight">
-                  {placeTitle || moodEyebrow}
-                </h3>
-                {addressLine ? (
-                  <p className="text-muted-foreground mt-1 text-sm leading-snug">{addressLine}</p>
-                ) : null}
-                <SpotImageCarousel key={`full-${carouselKey}`} slides={gallerySlides} className="mt-4 sm:max-w-none" />
+                <div>
+                  <p className="text-muted-foreground text-[11px] font-medium">{collapsedTitle}</p>
+                  <h3 className="text-[var(--text-strong)] mt-1 text-xl font-bold tracking-tight">
+                    {placeTitle || collapsedTitle}
+                  </h3>
+                  {addressLine ? (
+                    <p className="text-muted-foreground mt-1 text-sm leading-snug">{addressLine}</p>
+                  ) : null}
+                </div>
+                <SpotImageCarousel key={`full-${carouselKey}`} slides={gallerySlides} className="sm:max-w-none" />
                 {spot.short_description ? (
-                  <p className="text-foreground/85 mt-4 text-[15px] leading-relaxed">{spot.short_description}</p>
+                  <p className="text-foreground/85 text-[15px] leading-relaxed">{spot.short_description}</p>
                 ) : null}
                 <SpotFieldNotes spot={spot} />
-              </>
-            )}
-          </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {adminBlock}
@@ -842,6 +809,8 @@ export function RoutePostDetailClient({
   /** 데모 잠금 해제 — 메모리만(새로고침 시 초기화). TODO: 실제 구독/결제 연동 */
   const [playbookSessionUnlock, setPlaybookSessionUnlock] = useState(false);
   const [payDrawerOpen, setPayDrawerOpen] = useState(false);
+  /** 유료: 동시에 하나의 스팟만 펼침 */
+  const [expandedPlaybookSpotId, setExpandedPlaybookSpotId] = useState<string | null>(null);
 
   const effectivePlaybookPremium = hasPlaybookPremium || playbookSessionUnlock;
 
@@ -1009,6 +978,8 @@ export function RoutePostDetailClient({
                 post={post}
                 visualPlan={visualPlan}
                 hasPlaybookPremium={effectivePlaybookPremium}
+                expandedSpotId={expandedPlaybookSpotId}
+                onExpandedSpotChange={setExpandedPlaybookSpotId}
                 showAdminDebug={isSuperAdmin && adminDebugOpen}
                 isFlashing={flashId === spot.id}
                 onOpenPayDrawer={() => setPayDrawerOpen(true)}

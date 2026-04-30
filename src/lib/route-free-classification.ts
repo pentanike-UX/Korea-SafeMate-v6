@@ -41,14 +41,26 @@ export function freeClassificationTitle(spot: RouteSpot): string {
         return "궁궐 정문 진입 구간";
     }
   }
+  const d = spot.district?.trim() ?? "";
+  const near = d ? `${d} 근처 ` : "";
+
   switch (arch) {
     case "prep":
-      return "입장·동선 전 체크 구간";
+      return d ? `${d}에서 동선·행사 체크 구간` : "입장·동선 전 체크 구간";
     case "photo":
-      return "대표 포토 포인트";
+      if (/야경|야간|빌딩|스카이|전망/.test(spotText(spot))) {
+        return d ? `${near}야경·전망 포인트` : "유리 빌딩 야경 포인트";
+      }
+      return d ? `${near}대표 포토 포인트` : "대표 포토 포인트";
     case "rest":
-      return "그늘과 화장실을 정리하는 휴식 구간";
+      if (/골목|골목길|한옥|조용/.test(spotText(spot))) {
+        return "조용한 골목 카페 구간";
+      }
+      if (/강남|역삼|테헤란|오피스|비즈니스/.test(spotText(spot)) || /강남|역삼|테헤란/.test(d)) {
+        return "오피스 거리 산책·카페 구간";
+      }
+      return d ? `${near}카페` : "그늘과 화장실을 정리하는 휴식 구간";
     case "destination":
-      return "목적지·입장 동선 구간";
+      return d ? `${near}산책·명소 동선` : "목적지·입장 동선 구간";
   }
 }
