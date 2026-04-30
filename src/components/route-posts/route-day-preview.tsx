@@ -42,13 +42,25 @@ function dedupeHighlights(highlights: string[], referenceTexts: string[]): strin
   });
 }
 
-const proseArticle =
-  "[&_p]:text-[15px] [&_p]:leading-[1.75] [&_p]:text-foreground/90 sm:[&_p]:text-base sm:[&_p]:leading-[1.8]";
+function firstCompactLine(text: string | null | undefined): string | null {
+  if (!text?.trim()) return null;
+  const paras = splitPostBodyParagraphs(text);
+  const line = paras[0]?.trim();
+  if (!line) return null;
+  return line.slice(0, 140);
+}
 
-/**
- * 하루웨이 상단 — 카드 나열 대신 하나의 로컬 플레이북 article.
- * 요약·입장 전 정리·마무리·야간/무드를 한 흐름으로 읽습니다.
- */
+function extractJudgementQuote(texts: Array<string | null | undefined>): string | null {
+  const lines = texts
+    .flatMap((t) => splitPostBodyParagraphs(t ?? ""))
+    .map((x) => x.trim())
+    .filter((x) => x.length >= 12);
+  const strong = lines.find((x) => /궁 안|다시 나오기|길 수|대기 줄|변수/.test(x));
+  if (strong) return strong;
+  return lines[0] ?? null;
+}
+
+/** 상단 브리핑 — 긴 article 대신 compact 카드 모음 */
 export function RouteDayPreview({
   post,
   className,
@@ -134,36 +146,21 @@ export function RouteDayPreview({
   const beforeParas = beforeYouGoRaw ? splitPostBodyParagraphs(beforeYouGoRaw) : [];
   const closingParas = routeClosingRaw ? splitPostBodyParagraphs(routeClosingRaw) : [];
 
-  const showPrepSection = beforeParas.length > 0 || highlightLines.length > 0;
-
-  const nightLine = `${meta.night_friendly ? t("nightYes") : t("nightNo")} — ${t("summaryNightHint")}`;
+  const nightLine = `${meta.night_friendly ? t("nightYes") : t("nightNo")} · ${t("summaryNightHint")}`;
   const moodTailParts = [moodExtra && !textsOverlap(moodExtra, routeClosingRaw ?? "") ? moodExtra : null, moodTags.length ? moodTags.join(" · ") : null].filter(
     Boolean,
   ) as string[];
-
-  const showClosingSection =
-    closingParas.length > 0 || moodTailParts.length > 0 || Boolean(nightLine);
-
-  const statsLine = [
-    t("chipSpots", { count: journey.spots.length }),
-    t("chipDistance", { km: meta.estimated_total_distance_km.toFixed(1) }),
-    t("chipDuration", { minutes: meta.estimated_total_duration_minutes }),
-    transportLabel,
-    t(timeKey),
-    t(`difficulty.${meta.difficulty}` as "difficulty.easy"),
-  ].join(" · ");
+  const situationLine = firstCompactLine(recommendedAudience) || firstCompactLine(summaryParas[1]) || firstCompactLine(introLead);
+  const tipLine = firstCompactLine(beforeParas.join("\n")) || firstCompactLine(highlightLines[0]);
+  const finishLine = firstCompactLine(closingParas.join("\n")) || firstCompactLine(moodTailParts[0]);
+  const movementLine = firstCompactLine(spotPreviewLine) || areaLabel;
+  const judgementQuote = extractJudgementQuote([beforeYouGoRaw, routeClosingRaw, ...highlightLines]);
 
   return (
-    <article
-      className={cn(
-        "border-border/35 max-w-[42rem] rounded-xl border border-dashed bg-muted/[0.04] px-4 py-7 sm:px-6 sm:py-9",
-        proseArticle,
-        className,
-      )}
-      aria-label={t("dayPreviewAria")}
-    >
-      <header className="space-y-3">
-        <p className="text-muted-foreground text-[11px] font-medium tracking-[0.14em] uppercase">{t("playbookMemoEyebrow")}</p>
+    <section className={cn("max-w-[42rem] space-y-3.5", className)} aria-label={t("dayPreviewAria")}>
+      <header className="space-y-2">
+        <p className="text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase">{t("playbookMemoEyebrow")}</p>
+        <h2 className="text-[var(--text-strong)] text-lg font-semibold tracking-tight">{t("briefingTitle")}</h2>
         <div className="flex flex-wrap items-center gap-2">
           {post.is_sample ? <PostSampleBadge /> : null}
           <Badge className="rounded-full bg-primary/10 text-[10px] font-semibold text-primary">{formatLabel}</Badge>
@@ -178,76 +175,66 @@ export function RouteDayPreview({
           </span>
         </div>
         {spotPreviewLine ? (
-          <p className="text-muted-foreground text-[13px] leading-relaxed sm:text-sm">{spotPreviewLine}</p>
+          <p className="text-muted-foreground text-[12px] leading-relaxed sm:text-[13px]">{spotPreviewLine}</p>
         ) : null}
       </header>
 
-      <section className="mt-8 space-y-4" aria-labelledby="route-day-summary-heading">
-        <h2 id="route-day-summary-heading" className="text-foreground text-lg font-semibold tracking-tight">
-          {t("sectionDaySummary")}
-        </h2>
-        <p className="text-muted-foreground text-[13px] leading-relaxed">{statsLine}</p>
-        {recommendedAudience ? (
-          <p className="text-muted-foreground text-[13px] leading-relaxed">
-            <span className="font-medium text-foreground/85">{t("introForWhoLabel")}</span> {recommendedAudience}
+      <div className="grid gap-2.5 sm:grid-cols-2">
+        <section className="rounded-xl border border-border/45 bg-card/80 px-3.5 py-3">
+          <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingSummaryTitle")}</p>
+          <p className="text-muted-foreground mt-0.5 text-[11px]">{t("briefingSummarySubtitle")}</p>
+          <ul className="mt-2.5 space-y-1 text-[13px] leading-relaxed text-foreground/90">
+            <li>{t("chipDuration", { minutes: meta.estimated_total_duration_minutes })}</li>
+            <li>{t("chipDistance", { km: meta.estimated_total_distance_km.toFixed(1) })}</li>
+            <li>{t(timeKey)}</li>
+            <li>{t(`difficulty.${meta.difficulty}` as "difficulty.easy")}</li>
+          </ul>
+        </section>
+
+        <section className="rounded-xl border border-border/45 bg-muted/35 px-3.5 py-3">
+          <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingSituationTitle")}</p>
+          <p className="mt-2 text-[13px] leading-relaxed text-foreground/90">
+            {situationLine || t("introFallbackMinimal")}
           </p>
-        ) : null}
-        <div className="space-y-4">
-          {summaryParas.map((p, i) => (
-            <p key={i} className="whitespace-pre-line">
-              {p}
+          {recommendedAudience ? (
+            <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">
+              <span className="font-medium text-foreground/85">{t("introForWhoLabel")}</span> {recommendedAudience}
             </p>
-          ))}
-        </div>
-      </section>
-
-      {showPrepSection ? (
-        <section className="mt-10 space-y-4" aria-labelledby="route-day-prep-heading">
-          <h2 id="route-day-prep-heading" className="text-foreground text-lg font-semibold tracking-tight">
-            {t("sectionPrep")}
-          </h2>
-          {beforeParas.length > 0 ? (
-            <div className="space-y-4">
-              {beforeParas.map((p, i) => (
-                <p key={i} className="whitespace-pre-line">
-                  {p}
-                </p>
-              ))}
-            </div>
           ) : null}
+        </section>
+
+        <section className="rounded-xl border border-amber-300/45 bg-amber-50/70 px-3.5 py-3 dark:bg-amber-900/10">
+          <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingTipTitle")}</p>
+          <p className="mt-2 text-[13px] leading-relaxed text-foreground/90">{tipLine || t("insightTitle")}</p>
           {highlightLines.length > 0 ? (
-            <ul className="list-none space-y-3 pl-0" aria-label={t("insightTitle")}>
-              {highlightLines.map((line) => (
-                <li key={line} className="flex gap-3 text-[15px] leading-relaxed sm:text-base">
-                  <span className="text-primary mt-1.5 size-1.5 shrink-0 rounded-full bg-primary/80" aria-hidden />
-                  <span className="min-w-0 text-foreground/90">{line}</span>
-                </li>
-              ))}
-            </ul>
+            <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">{highlightLines[0]}</p>
           ) : null}
         </section>
-      ) : null}
 
-      {showClosingSection ? (
-        <section className="mt-10 space-y-4" aria-labelledby="route-day-close-heading">
-          <h2 id="route-day-close-heading" className="text-foreground text-lg font-semibold tracking-tight">
-            {t("sectionClosing")}
-          </h2>
-          {closingParas.length > 0 ? (
-            <div className="space-y-4">
-              {closingParas.map((p, i) => (
-                <p key={i} className="whitespace-pre-line">
-                  {p}
-                </p>
-              ))}
-            </div>
-          ) : null}
-          <p className="text-muted-foreground text-[14px] leading-relaxed">{nightLine}</p>
+        <section className="rounded-xl border border-sky-300/45 bg-sky-50/70 px-3.5 py-3 dark:bg-sky-900/10">
+          <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingMovementTitle")}</p>
+          <p className="mt-2 text-[13px] leading-relaxed text-foreground/90">{movementLine}</p>
+          <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">{transportLabel}</p>
+        </section>
+
+        <section className="rounded-xl border border-emerald-300/45 bg-emerald-50/70 px-3.5 py-3 dark:bg-emerald-900/10 sm:col-span-2">
+          <p className="text-[var(--text-strong)] text-[12px] font-semibold">{t("briefingFinishTitle")}</p>
+          <p className="mt-2 text-[13px] leading-relaxed text-foreground/90">{finishLine || nightLine}</p>
+          <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">{nightLine}</p>
           {moodTailParts.length > 0 ? (
-            <p className="text-muted-foreground text-[14px] leading-relaxed italic">{moodTailParts.join(" — ")}</p>
+            <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed italic">{moodTailParts.join(" · ")}</p>
           ) : null}
         </section>
+      </div>
+
+      {judgementQuote ? (
+        <blockquote className="rounded-xl border border-border/45 bg-card/60 px-3.5 py-3">
+          <p className="text-muted-foreground text-[10px] font-semibold tracking-[0.14em] uppercase">{t("briefingQuoteLabel")}</p>
+          <p className="text-[var(--text-strong)] mt-1.5 border-l-2 border-primary/45 pl-3 text-[13px] leading-relaxed italic">
+            “{judgementQuote}”
+          </p>
+        </blockquote>
       ) : null}
-    </article>
+    </section>
   );
 }
