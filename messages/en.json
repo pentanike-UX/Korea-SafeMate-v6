@@ -1107,6 +1107,7 @@
   "RoutePosts": {
     "introFallbackNoLead": "Skim the summary and map first, then read each stop in order.",
     "introFallbackMinimal": "We grouped walkable stops into one route. Check distance and time in the summary card.",
+    "introEyebrow": "About this haruway",
     "introForWhoLabel": "Especially if you travel like this",
     "summaryCardEyebrow": "Route summary",
     "summaryCardTitle": "At a Glance",
@@ -1127,7 +1128,7 @@
     },
     "routeEyebrow": "Curated route",
     "mapTitle": "This guardian’s recommended route",
-    "insightTitle": "What makes this 하루way",
+    "insightTitle": "Good to know before you go",
     "spotsTitle": "Spot Details",
     "stops": "stops",
     "chipDistance": "{km} km",

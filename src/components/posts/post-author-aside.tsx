@@ -20,7 +20,14 @@ import { GUARDIAN_TIER_ROLE_BADGE_CLASSNAME, guardianTierBadgeVariant } from "@/
 import { cn } from "@/lib/utils";
 import { PostSampleBadge } from "@/components/posts/post-sample-badge";
 
-export async function PostAuthorAside({ post }: { post: ContentPost }) {
+export async function PostAuthorAside({
+  post,
+  variant,
+}: {
+  post: ContentPost;
+  /** "route" hides the trust note and GuardianPostsExplorerSheet */
+  variant?: "article" | "route";
+}) {
   const t = await getTranslations("Posts");
   const tTier = await getTranslations("GuardianTier");
   const guardian = await getPublicGuardianByIdMerged(post.author_user_id);
@@ -104,7 +111,7 @@ export async function PostAuthorAside({ post }: { post: ContentPost }) {
                   ...postCtx,
                 }}
               />
-              {postSheetItems.length > 0 ? (
+              {variant !== "route" && postSheetItems.length > 0 ? (
                 <GuardianPostsExplorerSheet
                   guardianDisplayName={guardian.display_name}
                   posts={postSheetItems}
@@ -116,10 +123,12 @@ export async function PostAuthorAside({ post }: { post: ContentPost }) {
             <p className="text-muted-foreground text-sm">{t("authorFallback")}</p>
           )}
 
-          <div className="border-border/50 space-y-2 border-t pt-5">
-            <p className="text-sm font-semibold">{t("trustNoteTitle")}</p>
-            <p className="text-muted-foreground text-sm leading-relaxed">{t("trustNoteBody")}</p>
-          </div>
+          {variant !== "route" ? (
+            <div className="border-border/50 space-y-2 border-t pt-5">
+              <p className="text-sm font-semibold">{t("trustNoteTitle")}</p>
+              <p className="text-muted-foreground text-sm leading-relaxed">{t("trustNoteBody")}</p>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
     </aside>

@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PostDetailIntroPanel } from "@/components/posts/post-detail-intro-panel";
-import { PostGuardianAttributionRow } from "@/components/posts/post-guardian-attribution-row";
 import { GuardianRequestIntakeBullets } from "@/components/guardians/guardian-request-intake-bullets";
 import { GuardianRequestOpenTrigger, type GuardianRequestSheetHostProps } from "@/components/guardians/guardian-request-sheet";
 import { getSpotDisplayImageAlt, getSpotDisplayImageUrl } from "@/lib/content-post-route";
@@ -219,7 +218,12 @@ function SpotDetailBody({
         {cautionInner}
       </div>
 
-      {nextCue ? <RouteSpotNextFlowRow text={nextCue} label={t("spotNextFlowEyebrow")} /> : null}
+      {nextCue ? (
+        <RouteSpotNextFlowRow
+          text={nextCue.replace(/다음 핀/g, "다음 스팟")}
+          label={t("spotNextFlowEyebrow")}
+        />
+      ) : null}
 
       <RouteSpotMetaStayRow>{t("stayDuration", { minutes: spot.stay_duration_minutes })}</RouteSpotMetaStayRow>
 
@@ -349,23 +353,7 @@ export function RoutePostDetailClient({
       ) : null}
 
       <div className="space-y-5 sm:space-y-6">
-        <PostDetailIntroPanel
-          variant="route"
-          primary={introPrimary}
-          secondary={
-            routeStructured
-              ? (routeStructured.data.route_best_for?.trim() || goodForLine)
-              : goodForLine
-          }
-        />
-        <PostGuardianAttributionRow
-          variant="route"
-          displayName={requestHost.displayName}
-          avatarUrl={requestHost.avatarUrl}
-        />
-
-        <RouteSummaryCard meta={meta} spotCount={spots.length} goodForLine={goodForLine} />
-
+        {/* ① 하루 흐름 — Hero 바로 아래 첫 번째 카드 */}
         <div ref={triggerRef}>
           <HaruFlowTimeline
             spots={spots}
@@ -377,6 +365,19 @@ export function RoutePostDetailClient({
           />
         </div>
 
+        {/* ② 한눈에 보는 하루 */}
+        <RouteSummaryCard meta={meta} spotCount={spots.length} goodForLine={goodForLine} />
+
+        {/* ③ 이 하루웨이에 대해 — 인트로 리드가 있을 때만 표시 */}
+        {introPrimary.trim() ? (
+          <PostDetailIntroPanel
+            variant="route"
+            primary={introPrimary}
+            secondary={null}
+          />
+        ) : null}
+
+        {/* ④ 먼저 알고 가면 좋은 점 */}
         {post.route_highlights && post.route_highlights.length > 0 ? (
           <section className="rounded-2xl border border-border/60 bg-white/90 p-6 shadow-[var(--shadow-sm)]">
             <h2 className="text-text-strong text-lg font-semibold">{t("insightTitle")}</h2>

@@ -1107,6 +1107,7 @@
   "RoutePosts": {
     "introFallbackNoLead": "아래 흐름표로 동선을 먼저 잡은 뒤, 스팟별 설명으로 이어집니다.",
     "introFallbackMinimal": "지역과 스팟 구성을 바탕으로 걷기 좋은 동선을 묶었어요. 흐름표에서 거리·시간을 확인해 보세요.",
+    "introEyebrow": "이 하루웨이에 대해",
     "introForWhoLabel": "이 하루웨이가 잘 맞는 분",
     "summaryCardEyebrow": "하루웨이 요약",
     "summaryCardTitle": "한눈에 보는 하루",
@@ -1127,7 +1128,7 @@
     },
     "routeEyebrow": "하루웨이",
     "mapTitle": "이 하루이의 추천 동선",
-    "insightTitle": "이 하루웨이의 포인트",
+    "insightTitle": "먼저 알고 가면 좋은 점",
     "spotsTitle": "스팟별 상세",
     "stops": "스팟",
     "chipDistance": "{km} km",

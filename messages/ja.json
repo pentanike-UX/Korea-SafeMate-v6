@@ -1107,6 +1107,7 @@
   "RoutePosts": {
     "introFallbackNoLead": "まず概要と地図で動線をつかみ、スポットごとの説明に進んでください。",
     "introFallbackMinimal": "歩きやすいスポットを一つのルートにまとめました。距離・所要時間は要約カードで確認できます。",
+    "introEyebrow": "このharu wayについて",
     "introForWhoLabel": "こんな旅スタイルの方へ",
     "summaryCardEyebrow": "ルート要約",
     "summaryCardTitle": "動線の要点",
@@ -1127,7 +1128,7 @@
     },
     "routeEyebrow": "キュレーションルート",
     "mapTitle": "このGuardianおすすめルート",
-    "insightTitle": "このルートのポイント",
+    "insightTitle": "行く前に知っておきたいこと",
     "spotsTitle": "スポット詳細",
     "stops": "スポット",
     "chipDistance": "{km} km",

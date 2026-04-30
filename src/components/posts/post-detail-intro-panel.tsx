@@ -7,7 +7,6 @@ import {
   POST_DETAIL_PROSE_P_MAIN,
   splitPostBodyParagraphs,
 } from "@/lib/post-detail-body-split";
-
 export function PostDetailIntroPanel({
   variant,
   primary,
@@ -49,7 +48,10 @@ export function PostDetailIntroPanel({
   return (
     <Card className="border-border/60 rounded-2xl border bg-white/90 shadow-[var(--shadow-sm)]">
       <CardContent className="space-y-4 p-5 sm:p-6">
-        <p className="text-primary text-[10px] font-bold tracking-[0.2em] uppercase">{t("detailIntroEyebrow")}</p>
+        {/* route는 하루이 귀속 표현 제거 — 하루웨이 자체 소개 아이브로우 사용 */}
+        <p className="text-primary text-[10px] font-bold tracking-[0.2em] uppercase">
+          {tRoute("introEyebrow")}
+        </p>
         {leadParas.length > 0 ? (
           <div className={POST_DETAIL_PARAGRAPH_STACK}>
             {leadParas.map((block, i) => (
@@ -58,15 +60,11 @@ export function PostDetailIntroPanel({
               </p>
             ))}
           </div>
-        ) : null}
-        {!p && s ? (
-          <p className="text-foreground text-[15px] leading-relaxed sm:text-base whitespace-pre-line">
-            {tRoute("introFallbackNoLead")}
+        ) : (
+          <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">
+            {tRoute("introFallbackMinimal")}
           </p>
-        ) : null}
-        {!p && !s ? (
-          <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">{tRoute("introFallbackMinimal")}</p>
-        ) : null}
+        )}
         {s ? (
           <div className="border-border/50 rounded-xl border bg-muted/20 px-3 py-2.5">
             <p className="text-muted-foreground text-[10px] font-bold tracking-wide uppercase">{tRoute("introForWhoLabel")}</p>
