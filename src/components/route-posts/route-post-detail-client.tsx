@@ -13,6 +13,10 @@ import { buildLocalPostVisualPlan, type LocalPostVisualPlan } from "@/lib/post-l
 import { SpotImageCarousel } from "@/components/route-posts/spot-image-carousel";
 import { SpotImageAdminDiagnostics } from "@/components/route-posts/spot-image-admin-diagnostics";
 import { SpotVerificationStrip } from "@/components/route-posts/spot-verification-strip";
+import {
+  GooglePlacesSpotDebugBlock,
+  GooglePlacesSpotInspectRow,
+} from "@/components/route-posts/google-places-spot-inspect";
 import { cn } from "@/lib/utils";
 import type { FreeArchetype } from "@/lib/route-free-classification";
 import { inferFreeArchetype } from "@/lib/route-free-classification";
@@ -466,7 +470,8 @@ function EditorialSpotRow({
   hasPlaybookPremium,
   expandedSpotId,
   onExpandedSpotChange,
-  showAdminDebug,
+  isSuperAdmin,
+  adminDebugOpen,
   isFlashing,
   onOpenPayDrawer,
 }: {
@@ -481,7 +486,9 @@ function EditorialSpotRow({
   /** 유료: 어느 스팟이 펼쳐졌는지(한 번에 하나) */
   expandedSpotId: string | null;
   onExpandedSpotChange: (id: string | null) => void;
-  showAdminDebug: boolean;
+  /** 슈퍼관리자 — Google Places 검수 링크·디버그 */
+  isSuperAdmin: boolean;
+  adminDebugOpen: boolean;
   isFlashing: boolean;
   onOpenPayDrawer: () => void;
 }) {
@@ -523,22 +530,29 @@ function EditorialSpotRow({
 
   const closedExpandHint = t("playbookFoldHint");
 
-  const adminBlock = showAdminDebug && hasPlaybookPremium ? (
-    <AdminSpotDebug
-      spot={spot}
-      imageQuery={imageQuery}
-      naverFetchedCount={naverFetchedCount}
-      slidesLength={slides.length}
-      usedFallbackOnly={usedFallbackOnly}
-      usedBroadFallback={usedBroadFallback}
-      primaryPlace={primaryPlace}
-      placeSimilarityScore={placeSimilarityScore}
-      searchQueryUsedForResolve={searchQueryUsedForResolve}
-      imageQueriesTried={imageQueriesTried}
-      excludedApprox={excludedApprox}
-      carouselKey={carouselKey}
-    />
-  ) : null;
+  const adminBlock =
+    isSuperAdmin && adminDebugOpen ? (
+      hasPlaybookPremium ? (
+        <AdminSpotDebug
+          spot={spot}
+          imageQuery={imageQuery}
+          naverFetchedCount={naverFetchedCount}
+          slidesLength={slides.length}
+          usedFallbackOnly={usedFallbackOnly}
+          usedBroadFallback={usedBroadFallback}
+          primaryPlace={primaryPlace}
+          placeSimilarityScore={placeSimilarityScore}
+          searchQueryUsedForResolve={searchQueryUsedForResolve}
+          imageQueriesTried={imageQueriesTried}
+          excludedApprox={excludedApprox}
+          carouselKey={carouselKey}
+        />
+      ) : (
+        <div className="mt-3 rounded-xl border border-dashed border-emerald-500/25 bg-emerald-50/15 p-3 dark:bg-emerald-950/15">
+          <GooglePlacesSpotDebugBlock spot={spot} />
+        </div>
+      )
+    ) : null;
 
   const spine = (
     <div className="flex w-8 shrink-0 flex-col items-center sm:w-10">
@@ -605,6 +619,12 @@ function EditorialSpotRow({
             <p className="text-muted-foreground mt-0.5 text-[10px] leading-snug sm:text-[11px]">{closedExpandHint}</p>
             <div className="mt-1.5 flex flex-col gap-1">{chipAndStay}</div>
           </button>
+          {isSuperAdmin ? (
+            <div className="mt-2">
+              <GooglePlacesSpotInspectRow spot={spot} />
+            </div>
+          ) : null}
+          {adminBlock}
           {!isLast ? <MoveConnector spot={spot} /> : null}
         </div>
       </div>
@@ -618,28 +638,35 @@ function EditorialSpotRow({
       <div className={cn("min-w-0 flex-1", isLast ? "pb-0.5" : "pb-4")}>
         <div className="border-border/50 overflow-hidden rounded-xl border bg-card shadow-[var(--shadow-xs)]">
           {!expanded ? (
-            <button
-              type="button"
-              onClick={() => onExpandedSpotChange(spot.id)}
-              className="hover:bg-muted/35 focus-visible:ring-ring w-full px-2.5 py-2 text-left transition-colors outline-none focus-visible:ring-2 sm:px-3 sm:py-2.5"
-              aria-expanded={false}
-            >
-              <div className="flex items-start justify-between gap-1.5">
-                <div className="min-w-0 flex-1">
-                  <p
-                    className={cn(
-                      "text-[var(--text-strong)] text-[13px] font-semibold leading-snug tracking-tight sm:text-[14px]",
-                      isFlashing && "text-primary",
-                    )}
-                  >
-                    {collapsedTitle}
-                  </p>
-                  <p className="text-muted-foreground mt-0.5 text-[10px] leading-snug sm:text-[11px]">{closedExpandHint}</p>
+            <>
+              <button
+                type="button"
+                onClick={() => onExpandedSpotChange(spot.id)}
+                className="hover:bg-muted/35 focus-visible:ring-ring w-full px-2.5 py-2 text-left transition-colors outline-none focus-visible:ring-2 sm:px-3 sm:py-2.5"
+                aria-expanded={false}
+              >
+                <div className="flex items-start justify-between gap-1.5">
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className={cn(
+                        "text-[var(--text-strong)] text-[13px] font-semibold leading-snug tracking-tight sm:text-[14px]",
+                        isFlashing && "text-primary",
+                      )}
+                    >
+                      {collapsedTitle}
+                    </p>
+                    <p className="text-muted-foreground mt-0.5 text-[10px] leading-snug sm:text-[11px]">{closedExpandHint}</p>
+                  </div>
+                  <ChevronDown className="text-muted-foreground mt-0.5 size-4 shrink-0 sm:size-5" aria-hidden />
                 </div>
-                <ChevronDown className="text-muted-foreground mt-0.5 size-4 shrink-0 sm:size-5" aria-hidden />
-              </div>
-              <div className="mt-1.5 flex flex-col gap-1">{chipAndStay}</div>
-            </button>
+                <div className="mt-1.5 flex flex-col gap-1">{chipAndStay}</div>
+              </button>
+              {isSuperAdmin ? (
+                <div className="border-border/40 border-t px-3 py-2.5 sm:px-4">
+                  <GooglePlacesSpotInspectRow spot={spot} />
+                </div>
+              ) : null}
+            </>
           ) : (
             <div>
               <div className="border-border/45 flex items-center justify-between gap-2 border-b px-4 py-2.5 sm:px-5">
@@ -665,6 +692,7 @@ function EditorialSpotRow({
                   {addressLine ? (
                     <p className="text-muted-foreground mt-1 text-sm leading-snug">{addressLine}</p>
                   ) : null}
+                  {isSuperAdmin ? <GooglePlacesSpotInspectRow spot={spot} className="mt-3" /> : null}
                 </div>
                 <SpotImageCarousel key={`full-${carouselKey}`} slides={gallerySlides} className="sm:max-w-none" />
                 {spot.short_description ? (
@@ -712,6 +740,7 @@ function AdminSpotDebug({
 }) {
   return (
     <div className="mt-3 space-y-2 rounded-xl border border-dashed border-emerald-500/25 bg-emerald-50/15 p-3 dark:bg-emerald-950/15">
+      <GooglePlacesSpotDebugBlock spot={spot} />
       <SpotVerificationStrip spot={spot} />
       <SpotImageAdminDiagnostics
         key={carouselKey}
@@ -935,7 +964,8 @@ export function RoutePostDetailClient({
                 hasPlaybookPremium={effectivePlaybookPremium}
                 expandedSpotId={expandedPlaybookSpotId}
                 onExpandedSpotChange={setExpandedPlaybookSpotId}
-                showAdminDebug={isSuperAdmin && adminDebugOpen}
+                isSuperAdmin={isSuperAdmin}
+                adminDebugOpen={adminDebugOpen}
                 isFlashing={flashId === spot.id}
                 onOpenPayDrawer={() => setPayDrawerOpen(true)}
               />
