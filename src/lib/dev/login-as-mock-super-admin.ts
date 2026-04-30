@@ -1,4 +1,5 @@
 import { broadcastClientAuthContextChanged } from "@/lib/auth/client-auth-tab-sync";
+import { setMockSuperAdminLocalMirror } from "@/lib/dev/mock-super-admin-client";
 
 /**
  * Dev/demo 전용 — 슈퍼관리자 모의 세션을 설정합니다.
@@ -12,6 +13,7 @@ export async function loginAsMockSuperAdmin(): Promise<{ ok: true } | { ok: fals
   if (!res.ok) {
     return { ok: false, error: "request_failed" };
   }
+  setMockSuperAdminLocalMirror(true);
   broadcastClientAuthContextChanged();
   return { ok: true };
 }

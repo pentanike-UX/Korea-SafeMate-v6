@@ -1,7 +1,8 @@
 /**
  * 슈퍼관리자 모의 세션.
  * ENABLE_SUPER_ADMIN_LOGIN=1 환경변수로 활성화합니다 (dev·staging·production 공통).
- * 제거 시: 이 모듈 + /api/dev/mock-super-admin-login + MockSuperAdminLogin 컴포넌트를 함께 삭제.
+ * 제거 시: 이 모듈 + /api/dev/mock-super-admin-login + /api/dev/mock-super-admin-logout +
+ * MockSuperAdminLogin·헤더 슈퍼관리자 메뉴 관련 코드를 함께 삭제.
  */
 
 export const MOCK_SUPER_ADMIN_COOKIE_NAME = "safemate_mock_super_admin";

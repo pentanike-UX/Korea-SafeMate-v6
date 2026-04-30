@@ -4,6 +4,7 @@
  *
  * 브로드캐스트 호출 위치:
  * - `login-as-mock-guardian` — mock 로그인 API 성공 직후
+ * - `login-as-mock-super-admin` / `logout-mock-super-admin` — 슈퍼관리자 모의 세션 전환 직후
  * - `google-sign-in-button` — mock 쿠키 제거 직후
  * - `header-account-menu` — 로그아웃( mock 해제 + Supabase signOut ) 직후
  *

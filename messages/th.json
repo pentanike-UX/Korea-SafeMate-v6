@@ -48,7 +48,12 @@
     "accountGuardianApply": "Start as guardian",
     "accountAdminConsole": "Admin console",
     "accountSuperInvites": "Invite admins",
-    "attentionDotAria": "You have My Page updates to review"
+    "attentionDotAria": "You have My Page updates to review",
+    "mockSuperAdminLabel": "Super admin",
+    "mockSuperAdminMenuAria": "Super admin (test) menu",
+    "mockSuperAdminMenuTitle": "Super admin",
+    "mockSuperAdminDashboard": "Admin dashboard",
+    "mockSuperAdminPlanStatus": "Permissions & plan"
   },
   "LanguageSwitcher": {
     "label": "Language",

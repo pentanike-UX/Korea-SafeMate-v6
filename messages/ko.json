@@ -48,7 +48,12 @@
     "accountGuardianApply": "하루이 시작하기",
     "accountAdminConsole": "관리자 콘솔",
     "accountSuperInvites": "관리자 초대",
-    "attentionDotAria": "확인할 마이페이지 업데이트가 있습니다"
+    "attentionDotAria": "확인할 마이페이지 업데이트가 있습니다",
+    "mockSuperAdminLabel": "슈퍼관리자",
+    "mockSuperAdminMenuAria": "슈퍼관리자 테스트 메뉴",
+    "mockSuperAdminMenuTitle": "슈퍼관리자",
+    "mockSuperAdminDashboard": "관리자 대시보드",
+    "mockSuperAdminPlanStatus": "권한/요금제 상태"
   },
   "LanguageSwitcher": {
     "label": "언어",

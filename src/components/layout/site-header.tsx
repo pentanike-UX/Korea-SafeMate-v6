@@ -5,7 +5,9 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { BRAND } from "@/lib/constants";
 import { HeaderAccountMenu } from "@/components/auth/header-account-menu";
+import { MockSuperAdminHeaderMenu } from "@/components/auth/mock-super-admin-header-menu";
 import { useAuthUser } from "@/hooks/use-auth-user";
+import { useMockSuperAdminSession } from "@/hooks/use-mock-super-admin-session";
 import { useHomeHeaderContrast } from "@/hooks/use-home-header-contrast";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -76,6 +78,7 @@ function HeaderNavLinks({
 export function SiteHeader() {
   const pathname = usePathname();
   const user = useAuthUser();
+  const mockSuperAdmin = useMockSuperAdminSession();
   const tNav = useTranslations("Nav");
   const tHeader = useTranslations("Header");
   const tBrand = useTranslations("Brand");
@@ -155,6 +158,8 @@ export function SiteHeader() {
             />
           ) : user ? (
             <HeaderAccountMenu authUser={user} onDarkSurface={onDarkSurface} />
+          ) : mockSuperAdmin ? (
+            <MockSuperAdminHeaderMenu onDarkSurface={onDarkSurface} />
           ) : (
             <Button
               asChild
@@ -190,7 +195,7 @@ export function SiteHeader() {
               <div className="flex flex-1 flex-col gap-5 pb-2">
                 <HeaderNavLinks mobile pathname={pathname} onDarkSurface={onDarkSurface} tNav={tNav} />
                 <div className="border-border/60 flex flex-col gap-2.5 border-t pt-4">
-                  {!user ? (
+                  {user !== undefined && !user && !mockSuperAdmin ? (
                     <Button asChild variant="default" className="w-full justify-center rounded-[var(--radius-md)] font-semibold">
                       <Link href="/login">{tHeader("logIn")}</Link>
                     </Button>

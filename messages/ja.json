@@ -48,7 +48,12 @@
     "accountGuardianApply": "ガーディアンを始める",
     "accountAdminConsole": "管理コンソール",
     "accountSuperInvites": "管理者招待",
-    "attentionDotAria": "マイページに未確認の更新があります"
+    "attentionDotAria": "マイページに未確認の更新があります",
+    "mockSuperAdminLabel": "スーパー管理者",
+    "mockSuperAdminMenuAria": "スーパー管理者（テスト）メニュー",
+    "mockSuperAdminMenuTitle": "スーパー管理者",
+    "mockSuperAdminDashboard": "管理者ダッシュボード",
+    "mockSuperAdminPlanStatus": "権限・料金プラン"
   },
   "LanguageSwitcher": {
     "label": "言語",
