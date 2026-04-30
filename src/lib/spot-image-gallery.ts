@@ -6,6 +6,7 @@ import { mergeSpotNaverCandidates, type SpotImageOpts } from "@/lib/content-post
 import { buildLocalPostVisualPlan, isExternalPostImageUrl } from "@/lib/post-local-images";
 import { spotDisplayName } from "@/lib/spot-image-query";
 import { scoreAndSortNaverCandidates } from "@/lib/naver-image-quality";
+import { scoreAndSortWithPrimaryPlace } from "@/lib/naver-image-relevance";
 
 export type SpotGallerySlide = {
   /** 표시 시도 순서: 원본 → 프록시 → 썸네일 */
@@ -52,6 +53,17 @@ function stripHtml(s: string): string {
   return s.replace(/<[^>]*>/g, "").trim();
 }
 
+/** 캡션: 장소와 무관한 기사 꼬리 제거 */
+export function shortGalleryCaption(rawTitle: string | undefined): string | undefined {
+  if (!rawTitle?.trim()) return undefined;
+  let t = stripHtml(rawTitle);
+  const pipe = t.indexOf("|");
+  if (pipe > 0) t = t.slice(0, pipe);
+  const br = t.indexOf("[");
+  if (br > 0) t = t.slice(0, br);
+  return t.trim().slice(0, 72) || undefined;
+}
+
 /**
  * 서버 데이터 + 클라이언트 Naver 결과로 슬라이드 목록 생성.
  */
@@ -60,6 +72,7 @@ export function buildSpotGallerySlides(
   post: ContentPost,
   opts: SpotImageOpts & { clientNaverItems?: NaverImageCandidate[] | null },
 ): SpotGallerySlide[] {
+  const usePrimaryPipeline = Object.prototype.hasOwnProperty.call(opts, "primaryPlace");
   const plan = opts.plan ?? buildLocalPostVisualPlan(post);
   const slides: SpotGallerySlide[] = [];
   const seen = new Set<string>();
@@ -80,14 +93,20 @@ export function buildSpotGallerySlides(
     });
   }
 
-  const merged = mergeSpotNaverCandidates(spot, opts.clientNaverItems);
-  const ranked = scoreAndSortNaverCandidates(merged, spot);
+  const clientItems =
+    (opts as SpotImageOpts & { clientNaverItems?: NaverImageCandidate[] | null }).clientNaverItems ??
+    opts.clientNaverCandidates;
+  const merged = mergeSpotNaverCandidates(spot, clientItems);
+  const ranked = usePrimaryPipeline
+    ? scoreAndSortWithPrimaryPlace(merged, spot, opts.primaryPlace ?? null)
+    : scoreAndSortNaverCandidates(merged, spot);
   const roomNaver = MAX_GALLERY - slides.length;
 
   for (const c of ranked.slice(0, Math.max(0, roomNaver))) {
     const tryUrls = tryUrlsForNaverItem(c);
     if (tryUrls.length === 0) continue;
     const titleClean = stripHtml(c.title);
+    const cap = shortGalleryCaption(c.title);
     const pw = parseInt(c.sizewidth ?? "", 10);
     const ph = parseInt(c.sizeheight ?? "", 10);
     push({
@@ -95,7 +114,7 @@ export function buildSpotGallerySlides(
       thumbnail: c.thumbnail?.trim(),
       title: c.title,
       alt: galleryAltForSlide(spot, titleClean),
-      caption: titleClean.slice(0, 100) || undefined,
+      caption: (cap ?? titleClean.slice(0, 80)) || undefined,
       source: "naver-image",
       width: c.width ?? (Number.isFinite(pw) ? pw : undefined),
       height: c.height ?? (Number.isFinite(ph) ? ph : undefined),

@@ -472,7 +472,19 @@ function EditorialSpotRow({
   const t = useTranslations("RoutePosts");
   const role = inferSpotRole(spot);
   const roleConf = ROLE_CONFIG[role];
-  const { slides, imageQuery, naverFetchedCount, usedFallbackOnly } = useSpotGallery(spot, post, {
+  const {
+    slides,
+    imageQuery,
+    naverFetchedCount,
+    usedFallbackOnly,
+    primaryPlace,
+    placeSimilarityScore,
+    searchQueryUsedForResolve,
+    imageQueriesTried,
+    usedBroadFallback,
+    excludedApprox,
+    pipelineDone,
+  } = useSpotGallery(spot, post, {
     plan: visualPlan,
   });
 
@@ -532,7 +544,7 @@ function EditorialSpotRow({
         ) : null}
 
         <SpotImageCarousel
-          key={`${spot.id}-${imageQuery}-${naverFetchedCount}`}
+          key={`${spot.id}-${pipelineDone ? "r" : "l"}-${primaryPlace?.title ?? "np"}-${naverFetchedCount}`}
           slides={slides}
           className="mb-4 sm:max-w-none"
         />
@@ -545,7 +557,13 @@ function EditorialSpotRow({
               naverCount={naverFetchedCount}
               slideCount={slides.length}
               usedFallbackOnly={usedFallbackOnly}
+              usedBroadFallback={usedBroadFallback}
               spot={spot}
+              primaryPlace={primaryPlace}
+              placeSimilarityScore={placeSimilarityScore}
+              searchQueryUsedForResolve={searchQueryUsedForResolve}
+              imageQueriesTried={imageQueriesTried}
+              excludedApprox={excludedApprox}
             />
           </>
         ) : null}

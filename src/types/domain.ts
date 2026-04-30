@@ -390,6 +390,25 @@ export interface NaverPlaceSearchResult {
   mapy: string;
 }
 
+/**
+ * 로컬 검색 유사도 1순위로 확정한 장소 Entity — 이미지 검색어 정제에 사용.
+ */
+export interface NaverPrimaryPlace {
+  title: string;
+  category: string;
+  address: string;
+  roadAddress: string;
+  mapx: string;
+  mapy: string;
+  link: string;
+  /** `getPlaceSimilarityScore` 결과 */
+  similarityScore: number;
+  source: "naver-local";
+  naver_place_id?: string | null;
+  lat?: number;
+  lng?: number;
+}
+
 /** Typed catalog image map — keyed by spot_catalog_id, used for server-side pre-fetch. */
 export type CatalogImageMap = Map<string, SpotImage[]>;
 

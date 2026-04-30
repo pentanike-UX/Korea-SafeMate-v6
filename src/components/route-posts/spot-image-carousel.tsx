@@ -104,7 +104,7 @@ export function SpotImageCarousel({
     return (
       <div
         className={cn(
-          "flex aspect-[16/10] items-center justify-center rounded-xl border border-dashed border-border/40 bg-muted/30 text-xs text-muted-foreground",
+          "flex aspect-video items-center justify-center rounded-xl border border-dashed border-border/40 bg-muted/30 text-xs text-muted-foreground",
           className,
         )}
       >
@@ -121,7 +121,7 @@ export function SpotImageCarousel({
         <div
           ref={scrollerRef}
           className={cn(
-            "flex aspect-[16/10] w-full snap-x snap-mandatory overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+            "flex aspect-video w-full snap-x snap-mandatory overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
             showControls ? "touch-pan-x" : "",
           )}
         >

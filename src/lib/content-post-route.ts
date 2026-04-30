@@ -3,6 +3,7 @@ import type {
   ContentPostFormat,
   MapLatLng,
   NaverImageCandidate,
+  NaverPrimaryPlace,
   RouteJourney,
   RouteSpot,
 } from "@/types/domain";
@@ -87,6 +88,8 @@ export type SpotImageOpts = {
    * `image_candidates`(JSON)보다 우선해 “방금 가져온 Naver”를 반영한다.
    */
   clientNaverCandidates?: NaverImageCandidate[] | null;
+  /** Local Search로 확정한 장소 Entity — 이미지 관련도 점수에 사용(null은 미매칭). */
+  primaryPlace?: NaverPrimaryPlace | null;
 };
 
 /**

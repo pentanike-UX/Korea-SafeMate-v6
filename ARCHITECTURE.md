@@ -54,7 +54,7 @@ TODO: CI에서 사용하는 정확한 Node/pnpm 버전 고정 파일(예: `.nvmr
 
 - **`src/app/[locale]/`:** `(public)`, `(authed)` 등 그룹 라우트로 공개·로그인 후 화면 분리.
 - **`src/app/admin/`:** 관리자 UI(로케일 접두와 분리된 트리).
-- **`src/app/api/`:** REST형 Route Handlers(예약, 가디언, 여행자, 관리자, OSRM, **네이버 검색 프록시** `api/naver/local-search`·`api/naver/image-search`, **이미지 프록시** `api/image-proxy` 등).
+- **`src/app/api/`:** REST형 Route Handlers(예약, 가디언, 여행자, 관리자, OSRM, **네이버 검색 프록시** `api/naver/local-search`·`api/naver/resolve-primary-place`·`api/naver/image-search`, **이미지 프록시** `api/image-proxy` 등).
 - **`src/app/auth/callback/`:** OAuth 콜백.
 
 상세 트리는 `find src/app -type d` 또는 IDE에서 확인한다.
