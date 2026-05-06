@@ -7,6 +7,7 @@
 
 | 문서 | 목적 |
 |------|------|
+| [AI_DEVELOPMENT_RULES.md](./AI_DEVELOPMENT_RULES.md) | AI/인간 협업 절차·UX·개발·검증·보고 (가드 문서 개정 시 정합성 참조) |
 | [FOUNDATION.md](./FOUNDATION.md) | v6 리팩토링·제품·스택·데이터 원칙 (**개별 프롬프트와 충돌 시 우선**) |
 | [IA_SCREEN_INVENTORY.md](./IA_SCREEN_INVENTORY.md) | 2단 — IA·화면 인벤토리·릴리즈 매트릭스 (Foundation §10 이후 적용) |
 | [SCREEN_SPECS_3A.md](./SCREEN_SPECS_3A.md) | 3A — 마케팅+인증 화면 스펙 (IA §13 승인 후 구현) |
@@ -19,6 +20,7 @@
 
 ## 에이전트 공통 원칙 (요약)
 
+- 작업 방식·보고 형식은 **[AI_DEVELOPMENT_RULES.md](./AI_DEVELOPMENT_RULES.md)** 와 [HARNESS.md](./HARNESS.md)를 따른다. 제품·데이터 우선순위는 **FOUNDATION**이다.
 - 변경 전 **관련 소스·설정·문서**를 읽는다.
 - **기능 추가 / 버그 수정 / 리팩터링**을 구분해 범위와 검증을 맞춘다.
 - **UI ↔ 데이터·API·라우트·i18n** 연결 누락을 금지한다.

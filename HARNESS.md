@@ -4,6 +4,7 @@
 Korea SafeMate 저장소에서 사람·AI가 동일한 기준으로 개발하기 위한 운영 문서다.
 
 - **최우선:** [FOUNDATION.md](./FOUNDATION.md) — v6 리팩토링·제품 정체성·마이그레이션·스택 목표·데이터·프로세스. 개별 작업 프롬프트와 충돌 시 **Foundation이 우선**한다.
+- **AI 협업·UX·보고:** [AI_DEVELOPMENT_RULES.md](./AI_DEVELOPMENT_RULES.md) — Plan/Check, UX·개발 금지, 검증·완료 보고 형식. **이 문서(HARNESS)·AGENTS·FOUNDATION·DATA_MODEL_API 등을 개정할 때는 본 규칙과의 정합성을 반드시 확인한다.**
 - **IA·화면 지도:** [IA_SCREEN_INVENTORY.md](./IA_SCREEN_INVENTORY.md) — 역할·라우트·인벤토리·릴리즈 매트릭스. Foundation §10 완료 전에는 구현에 적용하지 않는다(IA §0).
 - **화면 스펙(3A):** [SCREEN_SPECS_3A.md](./SCREEN_SPECS_3A.md) — 마케팅·인증 7화면. **IA §13 갭 리포트·계획서 승인 전 구현 착수 금지**(3A 상단 전제).
 - **데이터·API(4단):** [DATA_MODEL_API.md](./DATA_MODEL_API.md) — 스키마·RLS·Zod·Route Handlers. **기존 `supabase/migrations`와 충돌 검토·DROP 금지** 후 적용.
@@ -54,7 +55,7 @@ Korea SafeMate 저장소에서 사람·AI가 동일한 기준으로 개발하기
 
 ## 6. 작업 결과 보고 형식
 
-에이전트·인간 모두 PR·채팅 마무리 시 아래를 맞춘다.
+에이전트·인간 모두 PR·채팅 마무리 시 아래를 맞춘다. 상세 10항목 체크리스트는 [AI_DEVELOPMENT_RULES.md](./AI_DEVELOPMENT_RULES.md) **보고 형식**을 사용한다(아래는 최소 공통).
 
 1. **요약:** 무엇을 왜 바꿨는지 한두 문단.
 2. **변경 파일:** 경로 목록(문서만 / 코드만 구분 가능하면 표시).
@@ -82,6 +83,7 @@ Korea SafeMate 저장소에서 사람·AI가 동일한 기준으로 개발하기
 
 ## 8. 관련 문서
 
+- [AI_DEVELOPMENT_RULES.md](./AI_DEVELOPMENT_RULES.md) — AI 파트너 절차·UX·검증·보고 (가드 문서 개정 시 교차 검토)
 - [FOUNDATION.md](./FOUNDATION.md) — v6 Foundation (Claude Code 주입·리팩토링 원칙)
 - [IA_SCREEN_INVENTORY.md](./IA_SCREEN_INVENTORY.md) — IA·화면 인벤토리 (2단)
 - [SCREEN_SPECS_3A.md](./SCREEN_SPECS_3A.md) — 화면 스펙 3A (마케팅+Auth)
