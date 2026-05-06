@@ -15,7 +15,8 @@
 | [HARNESS.md](./HARNESS.md) | AI 협업 작업 운영 기준, 검증, 도구별 역할 |
 | [PRODUCT_SPEC.md](./PRODUCT_SPEC.md) | 제품·화면·기능 초안 |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | 디렉터리 구조, 스택, 배포·환경 개요 |
-| [DEV_LOG.md](./DEV_LOG.md) | 날짜별 작업·결정 로그 |
+| [docs/dev-log.md](./docs/dev-log.md) | 날짜별 작업 로그 (**완료 후 필수**, 형식은 파일 상단 참고) |
+| [DEV_LOG.md](./DEV_LOG.md) | 과거 맥락·장문 요약(선택·참고) |
 | [README.md](./README.md) | Node 버전, 설치, 실행, 빌드 |
 
 ## 에이전트 공통 원칙 (요약)

@@ -1,6 +1,8 @@
 <!-- markdownlint-disable-file MD013 -->
 # DEV_LOG — 개발 로그
 
+> **신규 작업 기록:** 형식·필수 여부는 **[docs/dev-log.md](./docs/dev-log.md)** 를 따른다. 본 파일은 장문 맥락·역사 보존용으로 유지한다.
+
 날짜별로 작업 맥락·결정·후속 TODO를 남긴다. 최신 항목이 위에 오도록 추가한다.
 
 ---
