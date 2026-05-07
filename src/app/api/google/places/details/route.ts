@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { googlePlaceDetails, resolveGooglePhotoMediaBatch } from "@/lib/google-places-server";
 
+// GET 요청이므로 Vercel Route Handler 캐시 활성화 (1시간)
+export const revalidate = 3600;
+
 const qSchema = z.object({
   placeId: z.string().min(1).max(512),
   resolvePhotos: z.enum(["0", "1"]).optional(),

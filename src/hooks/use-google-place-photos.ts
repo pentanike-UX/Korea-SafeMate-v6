@@ -4,6 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import type { ContentPost, RouteSpot } from "@/types/domain";
 import { buildGoogleTextSearchQuery } from "@/lib/google-place-query";
 
+/**
+ * 브라우저 세션 내 in-memory 캐시 — 같은 spot을 접힘→펼침 반복해도 API 재호출 없음.
+ * key: cacheKey 문자열, value: { photoUris: string[] }
+ */
+const _sessionCache = new Map<string, { photoUris: string[] }>();
+
 function haversineKm(aLat: number, aLng: number, bLat: number, bLng: number): number {
   const R = 6371;
   const dLat = ((bLat - aLat) * Math.PI) / 180;
@@ -121,6 +127,14 @@ export function useGooglePlacePhotos(spot: RouteSpot | null, post: ContentPost, 
       return;
     }
 
+    // 세션 캐시 히트 — API 재호출 없이 즉시 반환
+    const cached = cacheKey ? _sessionCache.get(cacheKey) : undefined;
+    if (cached) {
+      setPhotoUris(cached.photoUris);
+      setDone(true);
+      return;
+    }
+
     let cancelled = false;
     setDone(false);
     setPhotoUris(undefined);
@@ -225,6 +239,8 @@ export function useGooglePlacePhotos(spot: RouteSpot | null, post: ContentPost, 
           photoFallbackReason?: string | null;
         };
         const resolvedUris = Array.isArray(dJson.photoUris) ? dJson.photoUris : [];
+        // 성공 시 세션 캐시에 저장 (결과가 비어도 캐시 — 반복 API 낭비 방지)
+        if (cacheKey) _sessionCache.set(cacheKey, { photoUris: resolvedUris });
         if (!cancelled) {
           setPhotoUris(resolvedUris);
         }

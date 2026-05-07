@@ -42,11 +42,16 @@ function proxyUrl(original: string): string {
   return `/api/image-proxy?url=${encodeURIComponent(original)}`;
 }
 
-/** Google Places `photoUri`(단기·referrer 민감) — 원본 실패 시 동일 Origin 프록시 */
+/**
+ * Google Places `photoUri` (lh3.googleusercontent.com) 표시 전략.
+ * 브라우저 직접 로드 시 Referer/CORS 이슈 가능 → 서버 프록시를 1순위로 시도.
+ * 프록시 실패 시 원본 직접 시도 (만료 전 환경에서 성공 가능).
+ */
 function tryUrlsForGooglePlacePhoto(original: string): string[] {
   const u = original?.trim();
   if (!u) return [];
-  return [u, proxyUrl(u)];
+  // 프록시 우선: 서버가 Referer + User-Agent를 올바르게 설정
+  return [proxyUrl(u), u];
 }
 
 /** 단일 Naver 후보에서 표시 URL 후보 배열 (원본 link → 고해상 url → 프록시 → 썸네일 마지막) */
