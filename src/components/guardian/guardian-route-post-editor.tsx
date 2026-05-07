@@ -861,14 +861,62 @@ export function GuardianRoutePostEditor({
                     className="rounded-xl"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label>이미지 URL</Label>
-                  <Input
-                    value={selectedSpot.image_urls[0] ?? ""}
-                    onChange={(e) => updateSpot(selectedSpot.id, { image_urls: e.target.value ? [e.target.value] : [] })}
-                    className="rounded-xl"
-                    placeholder="https://..."
-                  />
+                <div className="space-y-2 sm:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <Label>이미지 URL <span className="text-muted-foreground font-normal">({selectedSpot.image_urls.length}/10)</span></Label>
+                    {selectedSpot.image_urls.length < 10 && (
+                      <button
+                        type="button"
+                        onClick={() => updateSpot(selectedSpot.id, { image_urls: [...selectedSpot.image_urls, ""] })}
+                        className="text-primary hover:text-primary/80 text-xs font-medium transition-colors"
+                      >
+                        + URL 추가
+                      </button>
+                    )}
+                  </div>
+                  {selectedSpot.image_urls.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={() => updateSpot(selectedSpot.id, { image_urls: [""] })}
+                      className="border-border/60 text-muted-foreground hover:border-primary/50 hover:text-foreground w-full rounded-xl border border-dashed py-2.5 text-xs font-medium transition-colors"
+                    >
+                      + 첫 번째 이미지 URL 추가
+                    </button>
+                  )}
+                  <div className="space-y-2">
+                    {selectedSpot.image_urls.map((url, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="text-muted-foreground w-5 shrink-0 text-center text-xs font-medium">{idx + 1}</span>
+                        <Input
+                          value={url}
+                          onChange={(e) => {
+                            const next = [...selectedSpot.image_urls];
+                            next[idx] = e.target.value;
+                            updateSpot(selectedSpot.id, { image_urls: next });
+                          }}
+                          className="rounded-xl"
+                          placeholder="https://..."
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const next = selectedSpot.image_urls.filter((_, i) => i !== idx);
+                            updateSpot(selectedSpot.id, { image_urls: next });
+                          }}
+                          className="text-muted-foreground hover:text-destructive shrink-0 transition-colors"
+                          aria-label="URL 삭제"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  {selectedSpot.image_urls.length > 0 && selectedSpot.image_urls.length < 10 && (
+                    <p className="text-muted-foreground text-[11px]">최대 10장 · URL을 직접 입력하거나 붙여넣으세요</p>
+                  )}
+                  {selectedSpot.image_urls.length >= 10 && (
+                    <p className="text-muted-foreground text-[11px]">최대 10장에 도달했습니다</p>
+                  )}
                 </div>
                 <div className="space-y-1 sm:col-span-2">
                   <Label>포토 팁</Label>

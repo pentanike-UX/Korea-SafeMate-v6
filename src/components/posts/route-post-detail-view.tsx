@@ -20,9 +20,9 @@ import {
   isMockSuperAdminCookieValue,
   isSuperAdminLoginEnabled,
 } from "@/lib/dev/mock-super-admin-auth";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 
-export async function RoutePostDetailView({ post }: { post: ContentPost }) {
+export async function RoutePostDetailView({ post, editHref }: { post: ContentPost; editHref?: string }) {
   const t = await getTranslations("Posts");
 
   // 슈퍼관리자 쿠키가 있으면 페이월을 건너뜁니다 (ENABLE_SUPER_ADMIN_LOGIN=1 필요).
@@ -57,13 +57,24 @@ export async function RoutePostDetailView({ post }: { post: ContentPost }) {
         suggestedRegionSlug={sheetRegion}
       />
       <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
-        <Link
-          href="/posts"
-          className="group/back text-muted-foreground hover:text-foreground mb-4 -ml-2 inline-flex items-center gap-1.5 border-b-2 border-transparent pb-0.5 text-sm font-medium transition-all duration-200 hover:border-border/70 hover:gap-2"
-        >
-          <ArrowLeft className="size-4 shrink-0 transition-transform duration-200 group-hover/back:-translate-x-0.5" aria-hidden />
-          {t("backToList")}
-        </Link>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <Link
+            href="/posts"
+            className="group/back text-muted-foreground hover:text-foreground -ml-2 inline-flex items-center gap-1.5 border-b-2 border-transparent pb-0.5 text-sm font-medium transition-all duration-200 hover:border-border/70 hover:gap-2"
+          >
+            <ArrowLeft className="size-4 shrink-0 transition-transform duration-200 group-hover/back:-translate-x-0.5" aria-hidden />
+            {t("backToList")}
+          </Link>
+          {editHref ? (
+            <Link
+              href={editHref}
+              className="border-border/70 bg-card hover:bg-muted text-foreground inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold shadow-sm transition-colors"
+            >
+              <Pencil className="size-3.5" aria-hidden />
+              포스트 수정
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       <PostDetailHero post={post} coverUrl={heroCover} coverAlt={heroAlt} typeLabelKey={typeLabelKey} postId={post.id} isRoute />
