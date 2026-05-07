@@ -1139,9 +1139,9 @@
       "default": "중앙보다 측면이 덜 막힙니다."
     },
     "fieldMemoFallbackOrientation": "큰 길 기준만 잡아도 방향은 크게 안 흔들립니다.",
-    "fieldMemoFallbackPrep": "화장실·물은 들어가기 전에 먼저 끝내는 편이 편합니다.",
+    "fieldMemoFallbackPrep": "화장실·물은 들어가기 전에 먼저—안에서 찾으면 이동이 두 배로 걸립니다.",
     "fieldMemoFallbackCrowd": "줄이 길어지면 짧은 우회 하나만 챙기고 넘어가도 됩니다.",
-    "fieldMemoFallbackVibe": "현장에서 체감한 무드를 한 줄로만 남겨도 다음 방문 때 도움이 됩니다.",
+    "fieldMemoFallbackVibe": "뭔가 걸리는 분위기가 있으면 그냥 한 줄—같은 자리 두 번 오면 비교가 됩니다.",
     "briefingSummarySubtitle": "시간·거리 먼저 보고 시작",
     "briefingSituationTitle": "이런 분께 맞습니다",
     "briefingSummaryTitle": "처음이면 여기서 기준 잡기",

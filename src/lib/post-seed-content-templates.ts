@@ -5,7 +5,7 @@ export function formatRouteSummaryMeta(m: RouteJourneyMetadata): string {
   const diff = m.difficulty === "easy" ? "가벼움" : m.difficulty === "moderate" ? "보통" : "활동적";
   const tod = m.recommended_time_of_day;
   const todK = tod === "flexible" ? "시간대 자유" : tod;
-  return `예상 ${m.estimated_total_duration_minutes}분 전후 · 약 ${m.estimated_total_distance_km}km · ${mode} · 시간대 ${todK} · 난이도 ${diff}${m.night_friendly ? " · 야간 동선도 무난한 편" : ""}`;
+  return `예상 ${m.estimated_total_duration_minutes}분 전후 · 약 ${m.estimated_total_distance_km}km · ${mode} · 시간대 ${todK} · 난이도 ${diff}${m.night_friendly ? " · 밤에도 사람 있음" : ""}`;
 }
 
 /** 본문은 줄바꿈 문단 — 마크다운 미파싱 UI에 맞춤 */
@@ -81,7 +81,7 @@ export function practicalArticleShell(parts: {
 
 function inferSituation(p: ContentPost): string {
   const t = `${p.title} ${p.summary} ${p.tags.join(" ")}`;
-  if (/첫|처음|입국/.test(t)) return "서울·한국 첫 방문 직후, 동선과 습관을 빠르게 맞추고 싶을 때";
+  if (/첫|처음|입국/.test(t)) return "서울·한국 첫 방문 직후, 이동 흐름과 습관을 빠르게 맞추고 싶을 때";
   if (/밤|야간|택시/.test(t)) return "야간 이동·승차·안전이 걱정될 때";
   if (/카페|식사|음식/.test(t)) return "식사·카페 선택과 대기, 주문이 부담일 때";
   if (/사진|촬영/.test(t)) return "촬영 예절과 통행을 동시에 챙기고 싶을 때";

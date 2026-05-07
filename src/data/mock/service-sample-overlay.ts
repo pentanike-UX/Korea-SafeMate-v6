@@ -116,7 +116,7 @@ function journeyGwanghwamunClassic(postId: string): RouteJourney {
       images: { hero: IMG_GWANGHWAMUN_SQUARE },
       source_status: "verified",
       short_description: "[준비형] 북(경복궁)·남(시청·지하철)만 먼저 구분. 행사 펜스는 당일 표지가 우선.",
-      body: "여기서 방향이 틀리면 뒤 스팟이 줄줄이 밀립니다. 이순신·세종 동상이 있는 쪽이 경복궁·북쪽, 반대가 세종로·광화문역 쪽입니다. 화장실·물은 세종이야기 지하 입구가 무난한 편이라 궁 안 들어가기 전에 처리하는 게 안전합니다.",
+      body: "여기서 방향이 틀리면 뒤 스팟이 줄줄이 밀립니다. 이순신·세종 동상이 있는 쪽이 경복궁·북쪽, 반대가 세종로·광화문역 쪽입니다. 화장실·물은 세종이야기 지하 입구에서 먼저 해결—궁 안에 들어가면 중간에 다시 나오기가 번거롭습니다.",
       image_urls: localPair(postId, "gwanghwamun", 30),
       recommend_reason: "만남 좌표 잡기 쉬움. 광장 표지·순경 부스 밀도가 높아 길 물어보기도 수월한 편입니다.",
       stay_duration_minutes: 20,
@@ -185,13 +185,13 @@ function journeyGwanghwamunClassic(postId: string): RouteJourney {
       leg_from_previous:
         "이순신상에서 세종상까지는 같은 광장 안 직선입니다. 횡단이 필요하면 신호 대기 줄이 길어질 수 있어요. 급하면 지하 연결·세종이야기 입구 표지를 먼저 확인하세요.",
       short_description: "[휴식형] 그늘·벤치·물. 궁 입장 전 화장실은 여기서 끝내는 편이 덜 후회합니다.",
-      body: "여름엔 광장 중앙이 매우 뜨겁습니다. 벤치는 동상에서 조금 떨어진 그늘 쪽이 덜 붐빕니다. 경복궁 안은 다시 나오기 번거로우니, 입장 전 화장실·물은 세종이야기 지하나 광장 주변에서 마무리하는 걸 권합니다.",
+      body: "여름엔 광장 중앙이 매우 뜨겁습니다. 벤치는 동상에서 조금 떨어진 그늘 쪽이 덜 붐빕니다. 경복궁 안은 중간에 다시 나오기가 번거롭습니다. 화장실·물은 입장 전 세종이야기 지하나 광장 주변에서 먼저—안에서 찾으면 시간이 두 배로 걸립니다.",
       image_urls: localPair(postId, "gwanghwamun", 72),
       recommend_reason: "이순신상 다음 호흡 조절 지점. 전시 관심 없으면 동상만 보고 이동해도 됩니다.",
       stay_duration_minutes: 15,
       photo_tip: "정면은 사람이 줄 서면 실패 확률이 큽니다. 측면 끝에서 대각선으로 잡는 게 현실적입니다.",
       caution: "횡단 대기가 길면 스마트폰만 보고 끼어들지 마세요. 킥보드·자전거 겹치는 구간이 있습니다.",
-      theme_reason: "휴식형 — ‘감상’보다 물·화장실·그늘 체크용으로 쓰면 이후 동선이 편합니다.",
+      theme_reason: "휴식형 — ‘감상’보다 물·화장실·그늘 먼저. 나중에 발이 훨씬 가벼워집니다.",
       what_to_do: "물·화장실 → (선택) 세종이야기 → 광화문 쪽으로 발걸음.",
       image_place_type: "landmark",
       image_alt: "광화문광장 세종대왕 동상",
@@ -226,7 +226,7 @@ function journeyGwanghwamunClassic(postId: string): RouteJourney {
       photo_tip: "정문 정면은 개장 직후가 상대적으로 한산합니다. 아니면 담장 대각선이 사람 덜 붙습니다.",
       caution: "휴무·조기 마감은 공지가 우선입니다. 줄이 길면 억지로 입장하지 말고 담장 루트로 조정하세요.",
       featured: true,
-      theme_reason: "목적지형 — 입장이면 내부 동선 시간을 따로 잡으세요.",
+      theme_reason: "목적지형 — 입장이면 내부 이동 시간을 따로 잡으세요.",
       what_to_do: "매표 줄·가방 규정 확인 후 입장 여부 결정.",
       image_place_type: "palace",
       image_alt: "경복궁 광화문 정문",
@@ -264,7 +264,7 @@ function journeyGangnamWalk(postId: string): RouteJourney {
       short_description: "[준비형] 11번 출구 기준으로 잡기 쉬움. 줄 길면 테이크아웃만 하고 테헤란로로 바로 빠져도 됩니다.",
       body: "유리 파사드 건물이라 실내·실외 밝기 차가 큽니다. 창가는 여름에 햇빛이 강합니다. 여기서 할 일: 다음 스팟 방향(역삼 쪽 테헤란로)만 스마트폰에 한 줄로 적어 두면 팀원과 어긋날 확률이 줄어듭니다.",
       image_urls: localPair(postId, "gangnam", 40),
-      recommend_reason: "출발점에서 카페인·물을 확보하기 좋습니다. 웨이팅이 길면 앉지 않고 테이크아웃만 해도 일정은 유지됩니다.",
+      recommend_reason: "출발점에서 카페인·물을 확보하기 좋습니다. 웨이팅이 길면 테이크아웃만 들고 바로 테헤란로로 빠지면 됩니다.",
       stay_duration_minutes: 20,
       photo_tip: "실내 조명·유리 반사 때문에 피부톤이 깨질 수 있습니다. 건물 외곽 라인만 짧게 찍을 거면 입구 밖이 덜 요동칩니다.",
       caution: "금·토 저녁 웨이팅이 길어질 수 있습니다. 짐을 바닥에 두면 통행에 걸립니다.",
@@ -403,7 +403,7 @@ function journeyGwangShort(postId: string): RouteJourney {
       images: { hero: IMG_GWANGHWAMUN_SQUARE },
       source_status: "verified",
       short_description: "[준비형] 교차로 차량 많음—사진은 보도 안쪽. 광장·이순신상 방향만 확정하고 들어갑니다.",
-      body: "이 위치에서 광장이 트입니다. 시청·지하철 쪽과 경복궁 쪽을 헷갈리면 뒤 동선이 꼬입니다. 신호 대기 인파에 오래 서 있기보다 방향만 확인하고 횡단 타이밍을 잡으세요.",
+      body: "이 위치에서 광장이 트입니다. 시청·지하철 쪽과 경복궁 쪽을 헷갈리면 뒤 스팟이 줄줄이 엇갑니다. 신호 대기 인파에 오래 서 있기보다 방향만 확인하고 횡단 타이밍을 잡으세요.",
       image_urls: localPair(postId, "gwanghwamun", 110),
       recommend_reason: "짧은 코스에서 좌표를 잡기 좋습니다. 다음 스팟이 광장이라 이동 스텝이 짧습니다.",
       stay_duration_minutes: 15,
@@ -437,7 +437,7 @@ function journeyGwangShort(postId: string): RouteJourney {
       leg_from_previous:
         "교보 앞에서 광장으로 들어올 때 횡단 신호가 길게 걸릴 수 있습니다. 행사 펜스가 있으면 중앙으로 직진하지 말고 표지 우회로를 따르세요. 단체 관광객이 몰리면 속도가 줄어듭니다.",
       short_description: "[이동·휴식] 평지라 무릎 부담은 적습니다. 한여름엔 중앙보다 그늘·벤치를 먼저 잡으세요.",
-      body: "펜스가 있으면 동선이 바뀝니다. 물·화장실은 세종이야기 지하 입구가 무난한 편입니다. 벤치는 동상에서 조금 떨어진 그늘 쪽이 덜 붐빕니다.",
+      body: "펜스가 있으면 표지 우회로로 길이 바뀝니다. 물·화장실은 세종이야기 지하 입구가 빠릅니다—광장 중앙에서 찾으면 뺑뺑 돌게 됩니다. 벤치는 동상에서 조금 떨어진 그늘 쪽이 덜 붐빕니다.",
       image_urls: localPair(postId, "gwanghwamun", 131),
       recommend_reason: "짧은 루프의 핵심 걷는 구간입니다. 동행 속도가 다르면 여기서만 맞추면 됩니다.",
       stay_duration_minutes: 20,
@@ -513,7 +513,7 @@ function sampleForWhoLine(def: SampleDef): string {
   if (t.includes("첫") || t.includes("첫방문")) return "서울 첫 방문·오리엔테이션을 짧게 끝내고 싶은 분";
   if (t.includes("솔로")) return "혼자 이동하지만 밝은 도로와 짧은 휴게를 원하는 분";
   if (t.includes("사진") || t.includes("야경") || t.includes("야간")) return "사진·분위기를 남기되 통행을 해치지 않으려는 분";
-  if (t.includes("카페") || t.includes("식사") || t.includes("먹자")) return "카페·식사 동선을 부담 없이 짜고 싶은 분";
+  if (t.includes("카페") || t.includes("식사") || t.includes("먹자")) return "카페·식사 흐름을 부담 없이 잡고 싶은 분";
   if (def.kind === "practical") return "현장에서 작은 결정을 줄이고 실행 기준만 얻고 싶은 분";
   return "광화문·도심 랜드마크를 한 번에 잡고 싶은 분";
 }
@@ -560,11 +560,11 @@ function mergeSampleBody(def: SampleDef, route_journey: RouteJourney | undefined
       forWho: sampleForWhoLine(def),
       routeSummary: formatRouteSummaryMeta(route_journey.metadata),
       beforeYouGo:
-        "행사 펜스·통제는 당일 표지가 우선입니다. 횡단·킥보드 차로는 신호 보고 건너세요. 사진은 길 한복판보다 건물 홈·대기선 안쪽이 안전합니다.",
+        "행사 날 펜스 위치는 당일 표지 보는 게 맞음. 킥보드 차로는 횡단할 때만 신경 쓰면 됨. 사진 찍으려고 길 한가운데 서면 뒤에서 밀려옴—건물 홈 쪽으로 빠지는 게 나음.",
       introBody: def.body,
-      spotGuideLine: `아래 카드 ${route_journey.spots.length}곳 — 스팟 성격(준비·이동·휴식·사진·종착)마다 톤 나눠 두었습니다. 길게 읽기보다 카드만 타도 동선 잡힙니다.`,
-      closing: "비 오거나 줄 길면 담장 산책·테이크아웃만 하는 플랜 B 하나만 더 두면 됩니다.",
-      guardianLine: `${authorName}: 속도 다른 동행이면 ‘여기서 화장실만’ 같이 맞추고 출발하세요.`,
+      spotGuideLine: `카드 ${route_journey.spots.length}곳 — 스팟마다 할 것이 다름. 전부 읽기보다 카드만 훑어도 흐름 잡힘.`,
+      closing: "비 오거나 줄 길면 테이크아웃이나 담장 산책으로 타협하면 시간 안 날림.",
+      guardianLine: `${authorName}: 동행 속도 다르면 ‘여기서 화장실만’ 하나 먼저 맞추고 출발.`,
     });
   }
   const paras = def.body
@@ -581,7 +581,7 @@ function mergeSampleBody(def: SampleDef, route_journey: RouteJourney | undefined
   return practicalArticleShell({
     situation: def.tags.some((x) => x.includes("강남"))
       ? "강남·역세권에서 길·카페·만남이 겹칠 때"
-      : "광화문·도심에서 동선·촬영·휴게가 겹칠 때",
+      : "광화문·도심에서 이동·촬영·휴게가 한꺼번에 겹칠 때",
     conclusion: def.summary,
     coreTips: tips,
     checklist: [
@@ -612,10 +612,10 @@ function buildSampleStructured(
         route_summary: formatRouteSummaryMeta(route_journey.metadata),
         route_best_for: exposure.best_for_context,
         route_notes:
-          "당일 통제·매표 줄·휴무는 현장·공지가 우선입니다. 보행 중 장시간 정지 촬영은 피하고, 횡단·킥보드 차로만 주의하면 동선 유지됩니다.",
+          "매표 줄·휴무는 당일 공지가 실제 기준임. 걸으면서 사진 오래 잡으면 뒤 사람이 쌓임—짧게 찍고 빠지는 게 낫음. 킥보드 차로 침범 구간은 횡단할 때만 주의.",
         narrative: `${def.body.trim()}\n\n${spotGuideLine}`.trim(),
-        closing: "날씨·줄 변수 대비해 짧게 끝내는 대안 동선 하나만 더 두면 됩니다.",
-        guardian_signature: `${authorName}: 동행 속도 안 맞으면 화장실·그늘만 먼저 합치고 출발하세요.`,
+        closing: "비 오거나 줄 길면 테이크아웃이나 담장 산책으로 타협—억지로 다 채우려다 지침.",
+        guardian_signature: `${authorName}: 동행 속도 안 맞으면 화장실·그늘만 먼저 맞추고 출발.`,
         spots: [],
       },
     };
@@ -643,7 +643,7 @@ function buildSampleStructured(
     data: {
       context: def.tags.some((x) => x.includes("강남"))
         ? "강남·역세권에서 길·카페·만남이 겹칠 때"
-        : "광화문·도심에서 동선·촬영·휴게가 겹칠 때",
+        : "광화문·도심에서 이동·촬영·휴게가 한꺼번에 겹칠 때",
       one_line_conclusion: def.summary,
       tip_blocks: tipArr.slice(0, 5).map((primary) => ({ primary })),
       checklist,
@@ -663,7 +663,7 @@ const SAMPLE_DEFINITIONS: SampleDef[] = [
   { withRoute: true, journey: journeyGangnamWalk, title: "혼자 도보 — 강남역에서 테헤란로까지", summary: "혼행은 큰 길만 기억하면 됨. 창가는 햇빛·웨이팅 체크.", body: "밤에도 가로등 있는 메인으로만 다니면 방향 헷갈림 적음.\n카페 창가는 오후 서향이면 뜨거울 수 있음—겉옷·짧게 앉기.", tags: ["강남역권", "솔로", "K-무드", "야간"], category_slug: "local-tips", kind: "local_tip", post_format: "route", route_highlights: ["역→큰 길 우선", "골목 들어가기 전 지도 한 번", "야간 이어폰 소리 줄이기"] },
   { withRoute: true, journey: journeyGwanghwamunClassic, title: "사진 위주 광화문 루트", summary: "동상=기준점, 광장=넓이, 광화문=줄·각도. 삼각대는 통행 안 되는 곳만.", body: "인물은 배경 단순할 때만. 풍경은 대각선 담장이 사람 덜 붙음.", tags: ["광화문권", "사진", "풍경"], category_slug: "local-tips", kind: "local_tip", post_format: "hybrid", route_highlights: ["동상 앞은 ‘궁 쪽’으로 설명", "광장 중앙보다 측면", "입장 줄 길면 담장만"] },
   { withRoute: true, journey: journeyGangnamWalk, title: "강남 카페 2곳 — 밝은 실내→조용한 층", summary: "첫 매장은 줄·메뉴판 보고, 둘째는 콘센트·화장실 여부만 확인.", body: "같은 날 카페 두 번이면 카페인·물 분량만 조절—두 번째는 디카페인이 나을 때 많음.", tags: ["강남역권", "카페", "감성"], category_slug: "food", kind: "food", post_format: "route" },
-  { withRoute: true, journey: journeyGwangShort, title: "서울 첫날 오전 — 광화문만", summary: "입국 직후 무리한 동선 말고 광장·담장만으로 오리엔테이션.", body: "짐 있으면 광장 한 바퀴만 잡아도 체력 아낌. 궁 입장은 줄 보고 그날 결정.", tags: ["광화문권", "첫날", "오전"], category_slug: "practical", kind: "practical", post_format: "route" },
+  { withRoute: true, journey: journeyGwangShort, title: "서울 첫날 오전 — 광화문만", summary: "입국 직후 무리한 이동 말고 광장·담장만으로 오리엔테이션.", body: "짐 있으면 광장 한 바퀴만 잡아도 체력 아낌. 궁 입장은 줄 보고 그날 결정.", tags: ["광화문권", "첫날", "오전"], category_slug: "practical", kind: "practical", post_format: "route" },
   { withRoute: true, journey: journeyGangnamWalk, title: "강남 1시간 압축 — 카페·테헤란로", summary: "쇼핑몰 말고 길만 걸어도 역삼 방향 감 잡힘.", body: "한 시간이면 카페 줄에서 시간 다 갈 수 있음—테이크아웃으로 타협 각오.", tags: ["강남역권", "짧은코스", "K-무드", "카페"], category_slug: "hot-places", kind: "hot_place", post_format: "route" },
   { withRoute: true, journey: journeyGwanghwamunClassic, title: "경복궁 들어가기 전 광장 체크", summary: "화장실·물·그늘을 광장에서 끝내고 궁 안 들어가기.", body: "궁 안은 나오기까지 길 수 있음—화장실 타이밍이 실패하면 불편함 큼.", tags: ["광화문권", "준비", "경복궁"], category_slug: "practical", kind: "practical", post_format: "hybrid" },
   { withRoute: true, journey: journeyGangnamWalk, title: "강남 오후 — 실내 샷 vs 거리 샷", summary: "실내 조명이랑 거리 노출이 다름—같은 필터로 맞추려면 실패함.", body: "차라리 색 맞추지 말고 대비만 노리는 게 피드 정리에 빠름.", tags: ["강남역권", "사진", "카페"], category_slug: "local-tips", kind: "local_tip", post_format: "route" },
@@ -672,7 +672,7 @@ const SAMPLE_DEFINITIONS: SampleDef[] = [
   { withRoute: true, journey: journeyGwanghwamunClassic, title: "광화문 랜드마크 일직선 — 이순신·세종·경복궁", summary: "스팟마다 3분 넘기면 뒤 일정 다 밀림.", body: "사진·영상 욕심 줄이고 이동 시간부터 역산.", tags: ["광화문권", "이순신", "세종대왕", "경복궁"], category_slug: "hot-places", kind: "hot_place", post_format: "route", recommended_boost: 8 },
   { withRoute: true, journey: journeyGwangShort, title: "반나절 산책 — 광장·담장", summary: "언덕 거의 없음—운동화만 확실히.", body: "햇빛 강한 날 모자 없으면 광장 중앙에서 지침.", tags: ["광화문권", "산책", "가벼운코스"], category_slug: "hot-places", kind: "hot_place", post_format: "route" },
   { withRoute: true, journey: journeyGangnamWalk, title: "강남 야간 — 네온·카페 실내", summary: "밤엔 노출 흔들림 많음—연속 촬영이 장노출보다 낫.", body: "이어폰 줄이고 횡단만 집중—킥보드 차로 침범 금지 페인트 확인.", tags: ["강남역권", "야경", "카페"], category_slug: "hot-places", kind: "hot_place", post_format: "hybrid" },
-  { withRoute: true, journey: journeyGwanghwamunClassic, title: "첫 서울 최소 동선 — 광화문", summary: "지하철·버스 환승 기준점 잡기 좋은 한 블록.", body: "다음 날 다른 동네 가기 전 오늘은 방향 감만 익히면 됨.", tags: ["광화문권", "첫방문", "추천"], category_slug: "local-tips", kind: "local_tip", post_format: "route" },
+  { withRoute: true, journey: journeyGwanghwamunClassic, title: "첫 서울 최소 코스 — 광화문", summary: "지하철·버스 환승 기준점 잡기 좋은 한 블록.", body: "다음 날 다른 동네 가기 전 오늘은 방향 감만 익히면 됨.", tags: ["광화문권", "첫방문", "추천"], category_slug: "local-tips", kind: "local_tip", post_format: "route" },
   { withRoute: true, journey: journeyGangnamWalk, title: "테헤란로 카페 — 창가·2층", summary: "2층이면 거리 한눈에 들어옴—다만 계단·웨이팅 추가.", body: "오후 서향 창가는 뜨거움—음료 얼음량만 조절해도 체감 좋아짐.", tags: ["강남역권", "테헤란로", "카페"], category_slug: "food", kind: "food", post_format: "route" },
   { withRoute: false, title: "광화문에서 시작하는 첫 하루 — 무리하지 않는 기준", summary: "반나절이면 광장+담장 정도만 잡아도 됨. 궁은 줄 보고.", body: "첫날은 이동 거리보다 화장실·물·그늘부터.\n광화문은 표지판 밀도 높아서 길 물어보기 수월한 편.", tags: ["광화문권", "첫날", "팁"], category_slug: "practical", kind: "practical" },
   { withRoute: false, title: "경복궁 앞에서 사진·예절", summary: "통행 먼저. 삼각대는 낮게·짧게.", body: "셀카봉은 뒤 사람 얼굴 안 들어오게 각도만 조절.\n담장 길은 자전거 도로 겹침 구간 있음.", tags: ["광화문권", "사진", "예절"], category_slug: "local-tips", kind: "local_tip" },
@@ -683,7 +683,7 @@ const SAMPLE_DEFINITIONS: SampleDef[] = [
   { withRoute: false, title: "강남역 카페 한 곳만", summary: "메뉴는 단순·자리는 창가 vs 구석 하나만.", body: "한 번에 주문하면 줄 두 번 안 섬.\n혼자 코너·대화 소파만 정하면 실패 적음.", tags: ["강남역권", "카페", "솔로"], category_slug: "food", kind: "food" },
   { withRoute: false, title: "세종상·광장 산책", summary: "한 바퀴 말고 ‘저 벤치까지’만 목표.", body: "벤치는 그늘 있는 쪽이 여름에 유리.\n음수대 줄 길면 편의점이 빠를 때 있음.", tags: ["광화문권", "세종로", "산책"], category_slug: "hot-places", kind: "hot_place" },
   { withRoute: false, title: "강남 거리 30분만", summary: "살 거리 없이 테헤란로 속도만 보는 용도.", body: "이어폰 줄이고 횡단만 집중—킥보드 차로 유지.", tags: ["강남역권", "분위기", "도보"], category_slug: "local-tips", kind: "local_tip" },
-  { withRoute: false, title: "광화문→경복궁 버퍼", summary: "늦을 각오면 광장에 20분 여유 먼저 잡기.", body: "궁 줄 길면 담장 산책으로 대체—입장 실패해도 동선은 유지됨.", tags: ["광화문권", "경복궁", "여유"], category_slug: "local-tips", kind: "local_tip" },
+  { withRoute: false, title: "광화문→경복궁 버퍼", summary: "늦을 각오면 광장에 20분 여유 먼저 잡기.", body: "궁 줄 길면 담장 산책으로 대체—입장 못 해도 오늘 계획은 그대로 씁니다.", tags: ["광화문권", "경복궁", "여유"], category_slug: "local-tips", kind: "local_tip" },
   { withRoute: false, title: "강남 실내 15분 쉼", summary: "밖 붐비면 몰·카페로만 들어가도 체력 회복.", body: "냉방 세면 겉옷 챙기기.\n물은 나눠 마시기—한 번에 많이 마시면 또 찾게 됨.", tags: ["강남역권", "휴식", "실내"], category_slug: "practical", kind: "practical" },
   { withRoute: false, title: "광화문 사진 — 붐벌 때", summary: "멀리서 찍기—통행 안 막는 거리 유지.", body: "연속 촬영으로 고르고 길 한복판에서는 멈추지 않기.", tags: ["광화문권", "사진", "혼잡"], category_slug: "local-tips", kind: "local_tip" },
   { withRoute: false, title: "테헤란로 카페 창가 햇빛", summary: "오후 서향은 음료 얼음만 줄여도 체감 좋아짐.", body: "창가 노출 낮추면 거리만 살아남—피부톤은 후보정이 빠름.", tags: ["강남역권", "카페", "오후"], category_slug: "food", kind: "food" },
