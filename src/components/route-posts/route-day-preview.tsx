@@ -90,6 +90,10 @@ function extractJudgementQuote(texts: Array<string | null | undefined>): string 
     .flatMap((t) => splitPostBodyParagraphs(t ?? ""))
     .map((x) => x.trim())
     .filter((x) => x.length >= 12 && !isMemoNoiseLine(x));
+  // 우선 1: 장소 고유 사실·경험 (가장 짧고 기억하기 쉬운 한 줄)
+  const priority = lines.find((x) => /궁궐 내|화장실이 없|화장실 없/.test(x));
+  if (priority && !isMemoNoiseLine(priority)) return priority;
+  // 우선 2: 운영 주의
   const strong = lines.find((x) => /궁 안|다시 나오기|길 수|대기 줄|변수/.test(x));
   if (strong && !isMemoNoiseLine(strong)) return strong;
   return lines[0] ?? null;

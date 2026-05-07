@@ -1134,7 +1134,7 @@
       "default": "서울 중심부에서 리듬 빠른 MV 컷 잡힐 때의 공기랑 비슷합니다."
     },
     "fieldMemoQuote": {
-      "palace": "화장실은 입장 전에 끝내세요. 궁 안에서 나오기가 번거롭습니다.",
+      "palace": "궁 입장 전 화장실을 이용하세요. 궁궐 내에는 화장실이 없습니다.",
       "gangnam": "횡단 한 번 밀리면 뒤가 바로 밀립니다. 신호 때 건너세요.",
       "default": "중앙보다 측면으로 붙으세요. 덜 막힙니다."
     },
@@ -1144,10 +1144,10 @@
     "fieldMemoFallbackVibe": "뭔가 걸리는 게 있으면 그냥 한 줄 적어두세요. 같은 자리 두 번 오면 비교가 됩니다.",
     "briefingSummarySubtitle": "시간·거리 먼저 보고 시작",
     "briefingSituationTitle": "이런 분께 맞습니다",
-    "briefingSummaryTitle": "처음이면 여기서 기준 잡기",
-    "briefingTipTitle": "먼저 정리할 것",
-    "briefingMovementTitle": "사람 몰릴 때 움직이는 법",
-    "briefingFinishTitle": "분위기 메모",
+    "briefingSummaryTitle": "처음이라면 이곳을 기준으로",
+    "briefingTipTitle": "먼저 끝내세요",
+    "briefingMovementTitle": "사람 많을 때는 이렇게",
+    "briefingFinishTitle": "분위기 참고",
     "briefingQuoteLabel": "메모해두면 편한 한 줄",
     "sectionDaySummary": "하루 요약",
     "sectionPrep": "입장 전에 정리해두면 편한 것",
