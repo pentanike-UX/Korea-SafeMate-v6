@@ -116,14 +116,14 @@ function journeyGwanghwamunClassic(postId: string): RouteJourney {
       images: { hero: IMG_GWANGHWAMUN_SQUARE },
       source_status: "verified",
       short_description: "[준비형] 북(경복궁)·남(시청·지하철)만 먼저 구분. 행사 펜스는 당일 표지가 우선.",
-      body: "여기서 방향이 틀리면 뒤 스팟이 줄줄이 밀립니다. 이순신·세종 동상이 있는 쪽이 경복궁·북쪽, 반대가 세종로·광화문역 쪽입니다. 화장실·물은 세종이야기 지하 입구에서 먼저 해결—궁 안에 들어가면 중간에 다시 나오기가 번거롭습니다.",
+      body: "동상이 보이는 방향이 경복궁·북쪽입니다. 반대로 걸으면 지하철 쪽으로 빠집니다. 화장실은 세종이야기 지하에서 먼저 끝내세요. 궁 안에 들어가면 중간에 다시 나오기가 번거롭습니다.",
       image_urls: localPair(postId, "gwanghwamun", 30),
-      recommend_reason: "만남 좌표 잡기 쉬움. 광장 표지·순경 부스 밀도가 높아 길 물어보기도 수월한 편입니다.",
+      recommend_reason: "표지판 밀도가 높습니다. 방향 헷갈리면 순경 부스에 바로 물어보세요.",
       stay_duration_minutes: 20,
-      photo_tip: "넓은 샷은 사람만 많아집니다. 우선 동상 방향만 확인하고 찍을 거면 측면·그늘진 쪽으로 붙으세요.",
+      photo_tip: "넓게 잡으면 사람만 나옵니다. 측면·그늘 쪽으로 붙어서 찍으세요.",
       caution: "주말·연휴 행사 시 통제 구간이 바뀝니다. 펜스 따라 걷지 말고 표지 화살표를 우선하세요.",
       featured: true,
-      theme_reason: "준비형 — 방향·화장실·행사 여부만 여기서 정리하고 움직입니다.",
+      theme_reason: "준비형 — 방향과 화장실만 정리하고 움직이세요.",
       what_to_do: "① 북쪽=궁 방향 손으로 확인 ② 세종이야기 지하(화장실) 위치 ③ 펜스·행사 안내판 확인 후 안쪽으로.",
       image_place_type: "plaza",
       image_alt: "광화문광장과 세종대로, 경복궁 방향 랜드마크",
@@ -149,15 +149,15 @@ function journeyGwanghwamunClassic(postId: string): RouteJourney {
       images: { hero: IMG_YI_SUN_SHIN_STATUE },
       source_status: "verified",
       leg_from_previous:
-        "광장 입구에서 동상까지는 짧지만 단체 관광객이 몰리면 속도가 줄어듭니다. 행사 펜스가 있으면 표지 우회로만 따르고, 중앙에서 멈춰 서서 사진 찍지 말고 측면 보행로로 붙으세요.",
-      short_description: "[포토형] 만남 기준은 ‘동상 앞’보다 ‘동상에서 궁이 보이는 쪽 벤치’가 덜 엇갈립니다.",
-      body: "사람이 많을 때 ‘동상 앞’만으로는 위치가 어긋납니다. 동상을 등지고 궁이 보이는 면인지, 반대인지까지 말해 주세요. 역광이면 실루엣만 노리거나 플래시 끄고 연속 촬영이 덜 흔들립니다.",
+        "단체 관광객이 몰리면 속도가 확 줄어듭니다. 중앙에서 멈추지 말고 측면 보행로로 붙으세요.",
+      short_description: "[포토형] 만남 기준은 ‘동상 앞’보다 ‘동상에서 궁이 보이는 쪽 벤치’로 말해야 덜 엇갈립니다.",
+      body: "’동상 앞’만 말하면 위치가 어긋납니다. ‘궁이 보이는 쪽 발치’까지 붙여야 맞습니다. 역광이면 플래시 끄고 연속으로 찍으세요. 플래시는 노이즈만 올립니다.",
       image_urls: localPair(postId, "gwanghwamun", 51),
-      recommend_reason: "짧게 찍고 빠지기 좋은 각도가 많고, 다음 세종상까지 거리가 짧습니다.",
+      recommend_reason: "각도가 많습니다. 기준 컷 하나만 정하고 넘어가세요.",
       stay_duration_minutes: 15,
-      photo_tip: "발 아래 기준선 두고 찍으면 인물 비율이 덜 이상해집니다. 통행로 안에서는 삼각대·셀카봉 길이 조절이 우선입니다.",
-      caution: "관광버스 단체 시간대엔 어깨 충돌이 잦습니다. 가방은 앞쪽·몸 안쪽으로.",
-      theme_reason: "포토형 — 감상보다 각도만 정하고 넘어가면 전체 일정이 빨라집니다.",
+      photo_tip: "발 아래 기준선을 두면 인물 비율이 덜 이상해집니다. 삼각대·셀카봉은 뒤 통행에 걸리지 않게 짧게 접으세요.",
+      caution: "단체 시간대엔 어깨 충돌이 잦습니다. 가방은 앞쪽·몸 안쪽으로 당기세요.",
+      theme_reason: "포토형 — 각도만 정하고 넘어가세요.",
       what_to_do: "기준 컷 1장만 찍고 세종대왕상 방향으로 이동합니다.",
       image_place_type: "landmark",
       image_alt: "광화문광장 이순신장군 동상과 도심 배경",
@@ -185,11 +185,11 @@ function journeyGwanghwamunClassic(postId: string): RouteJourney {
       leg_from_previous:
         "이순신상에서 세종상까지는 같은 광장 안 직선입니다. 횡단이 필요하면 신호 대기 줄이 길어질 수 있어요. 급하면 지하 연결·세종이야기 입구 표지를 먼저 확인하세요.",
       short_description: "[휴식형] 그늘·벤치·물. 궁 입장 전 화장실은 여기서 끝내는 편이 덜 후회합니다.",
-      body: "여름엔 광장 중앙이 매우 뜨겁습니다. 벤치는 동상에서 조금 떨어진 그늘 쪽이 덜 붐빕니다. 경복궁 안은 중간에 다시 나오기가 번거롭습니다. 화장실·물은 입장 전 세종이야기 지하나 광장 주변에서 먼저—안에서 찾으면 시간이 두 배로 걸립니다.",
+      body: "여름에 광장 중앙은 뜨겁습니다. 벤치는 동상 뒤 그늘 쪽으로 가세요. 화장실은 세종이야기 지하에서 먼저. 궁 안에서 찾으면 시간이 두 배로 걸립니다.",
       image_urls: localPair(postId, "gwanghwamun", 72),
-      recommend_reason: "이순신상 다음 호흡 조절 지점. 전시 관심 없으면 동상만 보고 이동해도 됩니다.",
+      recommend_reason: "이순신상 다음 호흡 조절 지점입니다. 전시 관심 없으면 동상만 보고 이동해도 됩니다.",
       stay_duration_minutes: 15,
-      photo_tip: "정면은 사람이 줄 서면 실패 확률이 큽니다. 측면 끝에서 대각선으로 잡는 게 현실적입니다.",
+      photo_tip: "정면에 사람이 줄 서면 실패합니다. 측면 끝에서 대각선으로 잡으세요.",
       caution: "횡단 대기가 길면 스마트폰만 보고 끼어들지 마세요. 킥보드·자전거 겹치는 구간이 있습니다.",
       theme_reason: "휴식형 — ‘감상’보다 물·화장실·그늘 먼저. 나중에 발이 훨씬 가벼워집니다.",
       what_to_do: "물·화장실 → (선택) 세종이야기 → 광화문 쪽으로 발걸음.",
@@ -217,14 +217,14 @@ function journeyGwanghwamunClassic(postId: string): RouteJourney {
       images: { hero: IMG_GYEONGBOKGWUNG_GATE },
       source_status: "verified",
       leg_from_previous:
-        "세종상에서 광화문까지는 세종대로 북측 보행로를 따라가면 됩니다. 직선으로 보여도 행사 펜스가 있으면 우회해야 합니다. 교차로에서는 버스·킥보드 차로를 피해 보도 안쪽으로 붙어 걷는 편이 안전합니다.",
-      short_description: "[종착·분기] 입장할지 담장만 볼지 여기서 결정. 줄이 길면 담장 산책으로 만족도만 조절해도 됩니다.",
-      body: "입장이면 대형 가방·장대 삼각대 규정을 현장 안내 기준으로 확인하세요. 안 들어가도 담장 따라 걸으면 ‘궁 왔다’는 감은 살릴 수 있습니다. 한여름 내부는 걷는 구간이 길어 물은 광장에서 미리 채우는 게 좋습니다.",
+        "세종대로 북측 보행로를 따르세요. 행사 펜스가 있으면 표지 우회로를 따르세요. 교차로는 버스·킥보드 차로를 피해 보도 안쪽으로 붙어 걷는 게 안전합니다.",
+      short_description: "[종착·분기] 입장할지 담장만 볼지 여기서 결정하세요. 줄이 길면 담장만 걸어도 됩니다.",
+      body: "입장 전 대형 가방·삼각대 규정을 입구에서 확인하세요. 줄이 길면 담장만 걸어도 됩니다. 여름에 내부는 걷는 거리가 깁니다. 물은 광장에서 미리 채우세요.",
       image_urls: localPair(postId, "gwanghwamun", 93),
-      recommend_reason: "이 루트의 종착·분기점입니다. 사진만 찍고 빠지려면 성문 앞에서 통행 방해 없게 짧게만 하세요.",
+      recommend_reason: "루트 종착점입니다. 사진만 찍고 빠지려면 성문 앞에서 짧게만 하세요.",
       stay_duration_minutes: 40,
-      photo_tip: "정문 정면은 개장 직후가 상대적으로 한산합니다. 아니면 담장 대각선이 사람 덜 붙습니다.",
-      caution: "휴무·조기 마감은 공지가 우선입니다. 줄이 길면 억지로 입장하지 말고 담장 루트로 조정하세요.",
+      photo_tip: "정문 정면은 개장 직후가 한산합니다. 아니면 담장 대각선으로 잡으세요.",
+      caution: "휴무·조기 마감은 공지가 우선입니다. 줄이 길면 억지로 입장하지 말고 담장으로 조정하세요.",
       featured: true,
       theme_reason: "목적지형 — 입장이면 내부 이동 시간을 따로 잡으세요.",
       what_to_do: "매표 줄·가방 규정 확인 후 입장 여부 결정.",
@@ -262,12 +262,12 @@ function journeyGangnamWalk(postId: string): RouteJourney {
       images: { hero: IMG_SPECIALTY_COFFEE_STOREFRONT },
       source_status: "needs_review",
       short_description: "[준비형] 11번 출구 기준으로 잡기 쉬움. 줄 길면 테이크아웃만 하고 테헤란로로 바로 빠져도 됩니다.",
-      body: "유리 파사드 건물이라 실내·실외 밝기 차가 큽니다. 창가는 여름에 햇빛이 강합니다. 여기서 할 일: 다음 스팟 방향(역삼 쪽 테헤란로)만 스마트폰에 한 줄로 적어 두면 팀원과 어긋날 확률이 줄어듭니다.",
+      body: "창가는 여름에 직사광선이 강합니다. 오후엔 안쪽 자리를 잡으세요. 출발 전 역삼 방향을 폰에 한 줄 적어두세요. 팀원과 흩어지면 바로 꼬입니다.",
       image_urls: localPair(postId, "gangnam", 40),
-      recommend_reason: "출발점에서 카페인·물을 확보하기 좋습니다. 웨이팅이 길면 테이크아웃만 들고 바로 테헤란로로 빠지면 됩니다.",
+      recommend_reason: "출발점에서 카페인·물을 확보하기 좋습니다. 웨이팅이 길면 테이크아웃만 들고 바로 테헤란로로 빠지세요.",
       stay_duration_minutes: 20,
-      photo_tip: "실내 조명·유리 반사 때문에 피부톤이 깨질 수 있습니다. 건물 외곽 라인만 짧게 찍을 거면 입구 밖이 덜 요동칩니다.",
-      caution: "금·토 저녁 웨이팅이 길어질 수 있습니다. 짐을 바닥에 두면 통행에 걸립니다.",
+      photo_tip: "실내 조명으로 피부톤이 깨집니다. 건물 외곽은 입구 밖에서 찍으세요.",
+      caution: "금·토 저녁 웨이팅이 길어집니다. 짐을 바닥에 두면 통행에 걸립니다.",
       featured: true,
       theme_reason: "준비형 — 줄·테이크아웃·좌석만 빠르게 결정합니다.",
       what_to_do: "음료 수령 후 테헤란로를 따라 동쪽(역삼 방향) 보행을 시작합니다.",
@@ -294,14 +294,14 @@ function journeyGangnamWalk(postId: string): RouteJourney {
       images: { hero: IMG_TEHERAN_RO_WALK },
       source_status: "needs_review",
       leg_from_previous:
-        "카페에서 나와 테헤란로 큰 길로 붙을 때 횡단이 필요하면 신호를 따로 건너야 하는 경우가 많습니다. 대각선 횡단이 안 되는 교차로가 있어 지도상 직선이라도 한 블록 우회할 수 있습니다. 퇴근 피크(18~19시)에는 인도 속도가 확 떨어집니다.",
-      short_description: "[이동형] 오피스 밀집 구간—점심·저녁 피크에 인도가 좁아집니다. 멈춰 찍기보다 건물 입구 홈에서 짧게.",
-      body: "큰 길을 따라만 가도 역삼 방향 감은 잡힙니다. 인도가 좁을 땐 짐을 앞쪽으로 두고, 이어폰 볼륨은 줄여야 킥보드·자전거 소리를 놓치지 않습니다.",
+        "지도상 직선이라도 한 블록 우회할 수 있습니다. 대각선 횡단이 안 되는 교차로가 있어서입니다. 퇴근 시간(18~19시)엔 인도 속도가 확 떨어집니다.",
+      short_description: "[이동형] 오피스 밀집 구간—점심·저녁 피크에 인도가 좁아집니다. 건물 입구 홈에서 짧게 찍으세요.",
+      body: "큰 길 하나만 기억하면 역삼 방향은 잡힙니다. 이어폰은 킥보드 소리가 들릴 정도로 줄이세요. 좁은 구간에서 짐은 앞으로 당기세요.",
       image_urls: localPair(postId, "gangnam", 61),
-      recommend_reason: "랜드마크 빌딩 라인만 기억해도 길 잃기 어렵습니다. 전 구간을 다 걷지 않아도 다음 골목 진입 전 호흡 조절용으로 충분합니다.",
+      recommend_reason: "랜드마크 빌딩만 기억하면 길 잃기 어렵습니다. 전 구간을 다 안 걸어도 됩니다.",
       stay_duration_minutes: 15,
-      photo_tip: "횡단 대기 중 촬영은 신호 직전에만—발치 킥보드 주의.",
-      caution: "야간에는 차로 침범 금지 페인트 구역이 많습니다. 건널 때만 화면을 보지 마세요.",
+      photo_tip: "횡단 대기 중 촬영은 신호 직전에만. 발치 킥보드를 먼저 보세요.",
+      caution: "야간에 차로 침범 페인트 구역이 많습니다. 횡단할 때는 화면 보지 마세요.",
       theme_reason: "이동형 — 감상보다 건너고 골목 들어가기 전 속도 조절용.",
       what_to_do: "동쪽으로 큰 길 유지 → 다음 골목 직전 지도 한 번만 확인.",
       image_alt: "테헤란로와 강남 오피스 빌딩 거리",
@@ -327,14 +327,14 @@ function journeyGangnamWalk(postId: string): RouteJourney {
       images: { hero: IMG_GANGNAM_ALLEY_CAFE },
       source_status: "needs_review",
       leg_from_previous:
-        "테헤란로에서 골목으로 들어갈 때 건물 번지가 지도 핀과 어긋나는 경우가 많습니다. ‘언주로’ 큰 길에서 한 블록만 안쪽으로 들어가면 차량 통행이 줄어듭니다. 길가에서 멈춰 서면 뒤 보행자에게 방해됩니다.",
-      short_description: "[휴식형] 메인 도로에서 한 블록 안쪽—소음이 줄고 앉을 자리를 찾기 쉬워집니다.",
-      body: "자리에 앉기 전 메뉴판의 테이크아웃 전용·노노트북 표지를 확인하세요. 충전이 필요하면 카운터에 먼저 물어보는 게 빠릅니다.",
+        "지도 핀과 실제 입구가 어긋나는 경우가 많습니다. 언주로 큰 길에서 한 블록만 안쪽으로 들어가면 됩니다. 길에서 멈추면 뒤 보행자에게 방해됩니다.",
+      short_description: "[휴식형] 메인 도로에서 한 블록 안쪽—소음이 줄어듭니다. 앉기 전 노노트북 표지를 문에서 확인하세요.",
+      body: "앉기 전에 노노트북·노키즈 표지를 문에서 확인하세요. 들어가서 알면 민망합니다. 충전이 필요하면 자리 잡기 전에 카운터에 물어보세요.",
       image_urls: localPair(postId, "gangnam", 82),
-      recommend_reason: "테헤란로를 걷고 들어와 쉬기 좋은 간격입니다. 통화·메모하기에도 상대적으로 조용합니다.",
+      recommend_reason: "테헤란로를 걷고 들어와 쉬기 좋은 간격입니다. 통화·메모하기에도 조용합니다.",
       stay_duration_minutes: 30,
-      photo_tip: "골목 사진은 햇빛 각도가 있는 시간대가 덜 노이즈 납니다.",
-      caution: "노키즈·노노트북 매장을 문 앞에서 확인하세요. 화장실 없는 소매점도 있습니다.",
+      photo_tip: "햇빛 각도가 있을 때 찍으세요. 흐린 날은 노이즈만 납니다.",
+      caution: "노키즈·노노트북 매장은 문 앞에서 확인하세요. 화장실 없는 소매점도 있습니다.",
       theme_reason: "휴식형 — 앉아서 물·충전·화장실 체크용.",
       what_to_do: "주문 → 자리 → 20~30분 후 테헤란로로 복귀.",
       image_alt: "역삼동 골목과 카페 외관",
@@ -360,13 +360,13 @@ function journeyGangnamWalk(postId: string): RouteJourney {
       images: { hero: IMG_SEOUL_STREET_NIGHT },
       source_status: "needs_review",
       leg_from_previous:
-        "골목에서 테헤란로로 나올 때 다시 큰 길 횡단이 필요할 수 있습니다. 야간에는 유리 빌딩 반사로 카메라 노출이 흔들리니 연속 촬영이 장노출보다 낫습니다. 킥보드 차로 페인트를 밟지 않도록 보도 안쪽을 걷습니다.",
-      short_description: "[포토형·야간] 역삼·선릉역 방향으로 발 빼기 쉬운 큰 길. 사진은 짧게, 역 입구 찾는 데 집중.",
-      body: "야간 조명은 유리 반사로 색이 갈라질 수 있습니다. 길 한복판보다 건물 입구 홈에 서서 통행을 비켜 주세요.",
+        "골목에서 나오면 큰 길 횡단이 한 번 더 있을 수 있습니다. 연속 촬영이 장노출보다 낫습니다—야간 유리 반사로 노출이 흔들립니다. 보도 안쪽으로 걸으세요.",
+      short_description: "[포토형·야간] 큰 길이라 역 입구 찾기 쉽습니다. 사진은 짧게 찍고 빠지세요.",
+      body: "유리 반사로 빌딩 색이 갈립니다. 건물 입구 홈에 서서 찍으세요. 길 한복판에서 멈추면 뒤에서 밀립니다.",
       image_urls: localPair(postId, "gangnam", 103),
       recommend_reason: "마지막 구간이라 역만 정하면 종료입니다. 역삼 vs 선릉은 목적지 방향으로 고르세요.",
       stay_duration_minutes: 20,
-      photo_tip: "손떨림이 크면 노출을 길게 당기지 말고 짧게 여러 장을 찍는 편이 안전합니다.",
+      photo_tip: "노출을 길게 당기면 손떨림이 더 커집니다. 짧게 여러 장 찍으세요.",
       caution: "킥보드·자전거 차로 침범 금지 구역이 많습니다. 횡단할 때 이어폰 볼륨을 줄이세요.",
       featured: true,
       theme_reason: "포토형 마무리 — 안전하게 짧게 찍고 지하로 하차.",
@@ -403,7 +403,7 @@ function journeyGwangShort(postId: string): RouteJourney {
       images: { hero: IMG_GWANGHWAMUN_SQUARE },
       source_status: "verified",
       short_description: "[준비형] 교차로 차량 많음—사진은 보도 안쪽. 광장·이순신상 방향만 확정하고 들어갑니다.",
-      body: "이 위치에서 광장이 트입니다. 시청·지하철 쪽과 경복궁 쪽을 헷갈리면 뒤 스팟이 줄줄이 엇갑니다. 신호 대기 인파에 오래 서 있기보다 방향만 확인하고 횡단 타이밍을 잡으세요.",
+      body: "여기서 광장이 트입니다. 시청 쪽인지 궁 쪽인지 먼저 정하세요. 신호 대기 중에 방향을 확인하면 됩니다.",
       image_urls: localPair(postId, "gwanghwamun", 110),
       recommend_reason: "짧은 코스에서 좌표를 잡기 좋습니다. 다음 스팟이 광장이라 이동 스텝이 짧습니다.",
       stay_duration_minutes: 15,
@@ -437,7 +437,7 @@ function journeyGwangShort(postId: string): RouteJourney {
       leg_from_previous:
         "교보 앞에서 광장으로 들어올 때 횡단 신호가 길게 걸릴 수 있습니다. 행사 펜스가 있으면 중앙으로 직진하지 말고 표지 우회로를 따르세요. 단체 관광객이 몰리면 속도가 줄어듭니다.",
       short_description: "[이동·휴식] 평지라 무릎 부담은 적습니다. 한여름엔 중앙보다 그늘·벤치를 먼저 잡으세요.",
-      body: "펜스가 있으면 표지 우회로로 길이 바뀝니다. 물·화장실은 세종이야기 지하 입구가 빠릅니다—광장 중앙에서 찾으면 뺑뺑 돌게 됩니다. 벤치는 동상에서 조금 떨어진 그늘 쪽이 덜 붐빕니다.",
+      body: "펜스가 있으면 표지 우회로를 따르세요. 중앙으로 고집하면 뺑뺑 돌게 됩니다. 화장실은 세종이야기 지하가 빠릅니다. 벤치는 동상 뒤 그늘 쪽이 덜 붐빕니다.",
       image_urls: localPair(postId, "gwanghwamun", 131),
       recommend_reason: "짧은 루프의 핵심 걷는 구간입니다. 동행 속도가 다르면 여기서만 맞추면 됩니다.",
       stay_duration_minutes: 20,
@@ -468,9 +468,9 @@ function journeyGwangShort(postId: string): RouteJourney {
       images: { hero: IMG_GYEONGBOKGWUNG_WALL },
       source_status: "verified",
       leg_from_previous:
-        "광장에서 담장길로 붙을 때 행사 통제가 있으면 우회합니다. 담장 따라 걷다 보면 자전거 도로 페인트와 보행로가 겹칩니다. 뒤에서 벨이 울리면 한쪽으로 붙어 통행을 비켜 주세요.",
-      short_description: "[마무리] 궁 안을 안 들어가도 기와선·담장선으로 ‘왔다’는 감은 살릴 수 있습니다.",
-      body: "매표 줄이 길면 여기서 만족도를 조절해도 됩니다. 교대식을 기대했다면 광화문 쪽 공지 시간만 확인하고 기대치를 낮추세요.",
+        "담장길로 붙을 때 행사 통제가 있으면 우회합니다. 자전거 도로와 보행로가 겹치는 구간이 있습니다. 뒤에서 벨이 울리면 한쪽으로 붙으세요.",
+      short_description: "[마무리] 입장 안 해도 기와선이 사진에 살아납니다. 줄이 길면 담장만 걸어도 됩니다.",
+      body: "줄이 길면 담장만 걸어도 됩니다. 기와선이 사진에 살아납니다. 교대식은 당일 공지 시간을 먼저 확인하세요.",
       image_urls: localPair(postId, "gwanghwamun", 152),
       recommend_reason: "짧은 루프 종료용으로 체력을 아낄 수 있습니다.",
       stay_duration_minutes: 25,
@@ -560,11 +560,11 @@ function mergeSampleBody(def: SampleDef, route_journey: RouteJourney | undefined
       forWho: sampleForWhoLine(def),
       routeSummary: formatRouteSummaryMeta(route_journey.metadata),
       beforeYouGo:
-        "행사 날 펜스 위치는 당일 표지 보는 게 맞음. 킥보드 차로는 횡단할 때만 신경 쓰면 됨. 사진 찍으려고 길 한가운데 서면 뒤에서 밀려옴—건물 홈 쪽으로 빠지는 게 나음.",
+        "행사 날 펜스는 표지 먼저 보세요. 지도보다 현장 표지가 맞습니다. 킥보드 차로는 횡단할 때만 보면 됩니다. 길 한가운데서 사진 찍으면 뒤에서 밀려옵니다. 건물 홈 쪽으로 빠지세요.",
       introBody: def.body,
-      spotGuideLine: `카드 ${route_journey.spots.length}곳 — 스팟마다 할 것이 다름. 전부 읽기보다 카드만 훑어도 흐름 잡힘.`,
-      closing: "비 오거나 줄 길면 테이크아웃이나 담장 산책으로 타협하면 시간 안 날림.",
-      guardianLine: `${authorName}: 동행 속도 다르면 ‘여기서 화장실만’ 하나 먼저 맞추고 출발.`,
+      spotGuideLine: `카드 ${route_journey.spots.length}곳 — 스팟마다 할 것이 다릅니다. 전부 읽기보다 카드만 훑어도 흐름이 잡힙니다.`,
+      closing: "비 오거나 줄 길면 테이크아웃이나 담장만 걸어도 됩니다. 억지로 다 채우면 지칩니다.",
+      guardianLine: `${authorName}: 동행 속도가 다르면 ‘화장실 하나만’ 맞추고 출발하세요.`,
     });
   }
   const paras = def.body
@@ -576,7 +576,7 @@ function mergeSampleBody(def: SampleDef, route_journey: RouteJourney | undefined
       ? paras.slice(0, 5)
       : [def.summary, ...paras, def.body].map((x) => x.trim()).filter(Boolean).slice(0, 5);
   while (tips.length < 3) {
-    tips.push("작은 결정 하나를 줄여도 하루 피로도는 확 줄어듭니다.");
+    tips.push("결정 하나를 줄이면 하루 피로도가 확 줄어듭니다.");
   }
   return practicalArticleShell({
     situation: def.tags.some((x) => x.includes("강남"))
@@ -585,14 +585,14 @@ function mergeSampleBody(def: SampleDef, route_journey: RouteJourney | undefined
     conclusion: def.summary,
     coreTips: tips,
     checklist: [
-      "큰 길·랜드마크 기준으로 위치를 설명했는지",
-      "물·그늘·화장실 중 급한 것을 먼저 채웠는지",
-      "통행 중에는 잠깐 멈춰 주변을 한 번 확인했는지",
+      "큰 길·랜드마크 기준으로 위치를 설명했는가",
+      "물·그늘·화장실 중 급한 것을 먼저 채웠는가",
+      "통행 중 잠깐 멈춰 주변을 한 번 확인했는가",
     ],
     fieldTips: paras[0] ?? def.summary,
-    mistakes: "표지판과 횡단 타이밍을 동시에 확인하지 않으면 방향이 자주 흔들립니다.",
+    mistakes: "표지판을 지나치거나 스마트폰만 보다 보면 방향이 흔들립니다. 짧게 멈춰 한 번에 확인하세요.",
     summary: `${def.title} — ${def.summary}`.slice(0, 160),
-    guardianLine: `${authorName}: 오늘은 ‘한 번에 하나’만 고르는 연습을 해 보세요.`,
+    guardianLine: `${authorName}: ‘한 번에 하나’만 고르면 됩니다.`,
   });
 }
 
@@ -612,10 +612,10 @@ function buildSampleStructured(
         route_summary: formatRouteSummaryMeta(route_journey.metadata),
         route_best_for: exposure.best_for_context,
         route_notes:
-          "매표 줄·휴무는 당일 공지가 실제 기준임. 걸으면서 사진 오래 잡으면 뒤 사람이 쌓임—짧게 찍고 빠지는 게 낫음. 킥보드 차로 침범 구간은 횡단할 때만 주의.",
+          "매표 줄·휴무는 당일 공지가 기준입니다. 걸으면서 사진을 오래 잡으면 뒤에 사람이 쌓입니다. 짧게 찍고 빠지세요. 킥보드 차로 침범 구간은 횡단할 때만 주의하면 됩니다.",
         narrative: `${def.body.trim()}\n\n${spotGuideLine}`.trim(),
-        closing: "비 오거나 줄 길면 테이크아웃이나 담장 산책으로 타협—억지로 다 채우려다 지침.",
-        guardian_signature: `${authorName}: 동행 속도 안 맞으면 화장실·그늘만 먼저 맞추고 출발.`,
+        closing: "비 오거나 줄 길면 테이크아웃이나 담장만 걸어도 됩니다. 억지로 다 채우면 지칩니다.",
+        guardian_signature: `${authorName}: 속도가 안 맞으면 화장실 하나만 먼저 맞추고 출발하세요.`,
         spots: [],
       },
     };
@@ -630,12 +630,12 @@ function buildSampleStructured(
       : [def.summary, ...paras, def.body].map((x) => x.trim()).filter(Boolean).slice(0, 5);
   const tipArr = [...tipSource];
   while (tipArr.length < 3) {
-    tipArr.push("작은 결정 하나를 줄여도 하루 피로도는 확 줄어듭니다.");
+    tipArr.push("결정 하나를 줄이면 하루 피로도가 확 줄어듭니다.");
   }
   const checklist = [
-    "큰 길·랜드마크 기준으로 위치를 설명했는지",
-    "물·그늘·화장실 중 급한 것을 먼저 채웠는지",
-    "통행 중에는 잠깐 멈춰 주변을 한 번 확인했는지",
+    "큰 길·랜드마크 기준으로 위치를 설명했는가",
+    "물·그늘·화장실 중 급한 것을 먼저 채웠는가",
+    "통행 중 잠깐 멈춰 주변을 한 번 확인했는가",
   ];
   return {
     version: POST_STRUCTURED_CONTENT_VERSION,
@@ -648,9 +648,9 @@ function buildSampleStructured(
       tip_blocks: tipArr.slice(0, 5).map((primary) => ({ primary })),
       checklist,
       field_tips: paras[0] ?? def.summary,
-      mistakes_notes: "표지판과 횡단 타이밍을 동시에 확인하지 않으면 방향이 자주 흔들립니다.",
+      mistakes_notes: "표지판을 지나치거나 스마트폰만 보다 보면 방향이 흔들립니다. 짧게 멈춰 한 번에 확인하세요.",
       final_summary: `${def.title} — ${def.summary}`.slice(0, 160),
-      guardian_signature: `${authorName}: 오늘은 ‘한 번에 하나’만 고르는 연습을 해 보세요.`,
+      guardian_signature: `${authorName}: ‘한 번에 하나’만 고르면 됩니다.`,
     },
   };
 }

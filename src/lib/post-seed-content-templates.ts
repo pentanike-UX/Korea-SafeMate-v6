@@ -90,7 +90,7 @@ function inferSituation(p: ContentPost): string {
 }
 
 function defaultMistakes(p: ContentPost): string {
-  return "표지판을 급하게 지나치거나, 통행 중 스마트폰만 보다 보면 방향이 자주 흔들립니다. 짧게 멈춰 한 번에 확인하는 습관이 도움이 됩니다.";
+  return "표지판을 지나치거나 스마트폰만 보다 보면 방향이 흔들립니다. 짧게 멈춰 한 번에 확인하세요.";
 }
 
 /** 비샘플 아티클 포스트를 실용 팁 템플릿으로 감쌈(기존 본문은 핵심 팁에 흡수) */
@@ -102,7 +102,7 @@ export function wrapNonSamplePracticalBody(p: ContentPost): string {
   const coreFromBody = paras.length > 0 ? paras : [p.summary || "현장에서 자주 묻는 지점을 짧게 정리했습니다."];
   const coreTips = coreFromBody.slice(0, 5);
   while (coreTips.length < 3) {
-    coreTips.push("여행 중에는 ‘한 번에 하나’만 결정하면 피로가 줄어듭니다.");
+    coreTips.push("결정 하나를 줄이면 피로도가 확 줄어듭니다.");
   }
   const checklist = [
     "오늘 목표 지점을 2~3곳만 고정했는지",
@@ -117,7 +117,7 @@ export function wrapNonSamplePracticalBody(p: ContentPost): string {
     fieldTips: paras.slice(0, 2).join("\n") || p.summary,
     mistakes: defaultMistakes(p),
     summary: `${p.title} — ${p.summary}`.slice(0, 160),
-    guardianLine: `${p.author_display_name}: 오늘 컨디션에 맞춰 속도만 조절해도 체감이 달라집니다.`,
+    guardianLine: `${p.author_display_name}: 속도만 조절해도 체감이 달라집니다.`,
   });
 }
 
