@@ -54,10 +54,12 @@ export async function insertGuardianContentPost(payload: GuardianPostSavePayload
     .maybeSingle();
 
   if (re || !region?.id) {
-    return { ok: false, error: `Unknown region_slug: ${payload.region_slug}`, status: 400 };
+    console.error("[guardian-posts-persist] region lookup", { slug: payload.region_slug, re });
+    return { ok: false, error: `Unknown region_slug: ${payload.region_slug}${re ? ` — ${re.message}` : " (no row found)"}`, status: 400 };
   }
   if (ce || !category?.id) {
-    return { ok: false, error: `Unknown category_slug: ${payload.category_slug}`, status: 400 };
+    console.error("[guardian-posts-persist] category lookup", { slug: payload.category_slug, ce });
+    return { ok: false, error: `Unknown category_slug: ${payload.category_slug}${ce ? ` — ${ce.message}` : " (no row found)"}`, status: 400 };
   }
 
   const highlights = payload.route_highlights ?? [];
