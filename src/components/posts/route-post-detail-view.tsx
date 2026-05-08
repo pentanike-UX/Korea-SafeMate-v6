@@ -22,7 +22,7 @@ import {
 } from "@/lib/dev/mock-super-admin-auth";
 import { ArrowLeft, Pencil } from "lucide-react";
 
-export async function RoutePostDetailView({ post, editHref }: { post: ContentPost; editHref?: string }) {
+export async function RoutePostDetailView({ post, editHref, isOwner }: { post: ContentPost; editHref?: string; isOwner?: boolean }) {
   const t = await getTranslations("Posts");
 
   // 슈퍼관리자 쿠키가 있으면 페이월을 건너뜁니다 (ENABLE_SUPER_ADMIN_LOGIN=1 필요).
@@ -85,7 +85,7 @@ export async function RoutePostDetailView({ post, editHref }: { post: ContentPos
           <RoutePostDetailClient
             post={post}
             isSuperAdmin={isSuperAdmin}
-            hasPlaybookPremium={isSuperAdmin}
+            hasPlaybookPremium={isSuperAdmin || Boolean(isOwner)}
             requestHost={{
               guardianUserId: post.author_user_id,
               displayName: sheetName,

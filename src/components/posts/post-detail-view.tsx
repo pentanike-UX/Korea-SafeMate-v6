@@ -36,9 +36,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 
-export async function PostDetailView({ post, editHref }: { post: ContentPost; editHref?: string }) {
+export async function PostDetailView({ post, editHref, isOwner }: { post: ContentPost; editHref?: string; isOwner?: boolean }) {
   if (postHasRouteJourney(post)) {
-    return <RoutePostDetailView post={post} editHref={editHref} />;
+    return <RoutePostDetailView post={post} editHref={editHref} isOwner={isOwner} />;
   }
 
   const t = await getTranslations("Posts");
