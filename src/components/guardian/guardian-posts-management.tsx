@@ -3,6 +3,7 @@ import { GuardianPostsPageBlockBoundary } from "@/components/guardian/guardian-p
 import { Link } from "@/i18n/navigation";
 import { listPostsForGuardian } from "@/lib/posts-public";
 import { getContentPostFormat, postHasRouteJourney } from "@/lib/content-post-route";
+import type { RouteJourney } from "@/types/domain";
 import { isMockGuardianId, resolveMockGuardianUuid } from "@/lib/dev/mock-guardian-auth";
 import { GUARDIAN_WORKSPACE } from "@/lib/mypage/guardian-workspace-routes";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
@@ -70,7 +71,7 @@ export async function GuardianPostsManagement({
             ? p.post_format
             : undefined
         ) as import("@/types/domain").ContentPost["post_format"],
-        route_journey: undefined,
+        route_journey: (p.route_journey as RouteJourney | null) ?? undefined,
         route_highlights: [],
         is_sample: false,
       }));
