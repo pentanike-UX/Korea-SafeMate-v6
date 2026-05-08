@@ -1,5 +1,6 @@
 import type { GuardianPostSavePayload } from "@/lib/guardian-posts-api";
 import { isUuidString, resolveAuthorUserId } from "@/lib/guardian-posts-api";
+import { isMockGuardianId } from "@/lib/dev/mock-guardian-auth";
 import { processContentPostPointsAfterWrite } from "@/lib/points/point-hooks";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 
@@ -10,6 +11,16 @@ export type GuardianPostSaveResult =
 
 export async function insertGuardianContentPost(payload: GuardianPostSavePayload): Promise<GuardianPostSaveResult> {
   // Supabase 연결 여부를 먼저 확인 — 미설정 시 UUID 검증 없이 preview 반환
+  // Mock 하루이 계정(mg01~mg99)은 실제 DB 레코드가 없으므로 preview만 반환
+  if (isMockGuardianId(payload.author_user_id)) {
+    return {
+      ok: true,
+      saved: false,
+      message: "Mock 하루이 계정은 DB에 저장하지 않습니다. (데모 전용)",
+      preview: payload,
+    };
+  }
+
   const sb = createServiceRoleSupabase();
   if (!sb) {
     return {
@@ -88,6 +99,16 @@ export async function updateGuardianContentPost(
   postId: string,
   payload: GuardianPostSavePayload,
 ): Promise<GuardianPostSaveResult> {
+  // Mock 하루이 계정(mg01~mg99)은 실제 DB 레코드가 없으므로 preview만 반환
+  if (isMockGuardianId(payload.author_user_id)) {
+    return {
+      ok: true,
+      saved: false,
+      message: "Mock 하루이 계정은 DB에 저장하지 않습니다. (데모 전용)",
+      preview: payload,
+    };
+  }
+
   // Supabase 연결 여부를 먼저 확인 — 미설정 시 UUID/postId 검증 없이 preview 반환
   const sb = createServiceRoleSupabase();
   if (!sb) {
