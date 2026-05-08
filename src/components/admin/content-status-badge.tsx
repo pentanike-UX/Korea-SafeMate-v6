@@ -22,6 +22,10 @@ const MAP: Record<
     label: "Rejected",
     className: "border-destructive/30 bg-destructive/10 text-destructive",
   },
+  blocked: {
+    label: "Blocked",
+    className: "border-red-700/30 bg-red-700/10 text-red-800 dark:text-red-200",
+  },
 };
 
 export function ContentStatusBadge({ status }: { status: ContentPostStatus }) {

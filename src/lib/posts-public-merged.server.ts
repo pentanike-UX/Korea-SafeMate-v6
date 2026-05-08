@@ -130,7 +130,7 @@ export const listApprovedPostsMerged = cache(async (): Promise<ContentPost[]> =>
   const { data: rows, error } = await sb
     .from("content_posts")
     .select("*")
-    .eq("status", "approved")
+    .in("status", ["approved", "blocked"])
     .order("recommended_score", { ascending: false })
     .limit(400);
 

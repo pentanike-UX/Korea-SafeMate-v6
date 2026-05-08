@@ -14,7 +14,7 @@ import { listCardActionButtonClass, listCardMetaBlockClass } from "@/components/
 import { postListCardCoverClass } from "@/lib/post-image-crop";
 import { routeCardAreaLabel, routeCardSpotPreviewLine } from "@/lib/route-post-card-meta";
 import { cn } from "@/lib/utils";
-import { MapPin } from "lucide-react";
+import { MapPin, ShieldX } from "lucide-react";
 
 export function RoutePostCard({ post, regionLabel, className }: { post: ContentPost; regionLabel: string; className?: string }) {
   const t = useTranslations("RoutePosts");
@@ -25,6 +25,7 @@ export function RoutePostCard({ post, regionLabel, className }: { post: ContentP
   const { url: cover, alt: coverAlt, onCoverImgError } = useRouteRepresentativeCoverImage(post);
   const areaLabel = routeCardAreaLabel(post);
   const spotPreviewLine = routeCardSpotPreviewLine(post, 2);
+  const isBlocked = post.status === "blocked";
 
   const formatLabel =
     format === "hybrid"
@@ -38,6 +39,58 @@ export function RoutePostCard({ post, regionLabel, className }: { post: ContentP
   const showRouteIncludedBadge = format === "hybrid" || format === "route";
   const transportLabel = t(`transport.${meta.transport_mode}` as "transport.walk");
 
+  // ── blocked: 클릭 불가 카드 ─────────────────────────────────
+  if (isBlocked) {
+    return (
+      <div
+        className={cn(
+          "border-border/70 bg-card flex h-full flex-col overflow-hidden rounded-2xl border opacity-60 shadow-[var(--shadow-sm)]",
+          className,
+        )}
+      >
+        <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+          <Image
+            src={cover}
+            alt={coverAlt}
+            fill
+            className={cn(postListCardCoverClass(post))}
+            sizes="(max-width:768px) 100vw, 33vw"
+            onError={onCoverImgError}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0e1b3d]/60 via-transparent to-transparent" />
+          {/* 차단 오버레이 */}
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30">
+            <span className="flex items-center gap-1.5 rounded-full bg-red-600/90 px-3 py-1.5 text-[11px] font-bold text-white shadow-lg backdrop-blur-sm">
+              <ShieldX className="size-3.5" aria-hidden />
+              차단된 게시물
+            </span>
+          </div>
+        </div>
+        <div className="px-4 pb-1 pt-4 sm:px-5 sm:pb-2 sm:pt-5">
+          <p className="text-primary text-[10px] font-bold tracking-widest uppercase">{post.tags.slice(0, 3).join(" · ")}</p>
+          <h2 className="text-foreground mt-1.5 line-clamp-2 text-[15px] font-semibold leading-snug sm:mt-2 sm:text-base">
+            {post.title}
+          </h2>
+        </div>
+        <div className="flex flex-1 flex-col gap-3 px-4 pb-4 pt-1 sm:px-5 sm:pb-5 sm:pt-2">
+          <div className={listCardMetaBlockClass}>
+            <p>
+              <span className="text-foreground font-medium">{t("cardSpots", { count: journey.spots.length })}</span>
+              <span aria-hidden> · </span>
+              <span>{t("chipDistance", { km: meta.estimated_total_distance_km.toFixed(1) })}</span>
+            </p>
+          </div>
+          <div className="mt-auto flex flex-col gap-2 sm:flex-row sm:items-stretch">
+            <Button size="sm" disabled className={cn(listCardActionButtonClass, "flex-1 cursor-not-allowed")}>
+              {t("ctaViewRoute")}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 일반 카드 ────────────────────────────────────────────────
   return (
     <div
       className={cn(

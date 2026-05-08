@@ -31,7 +31,7 @@ export type GuardianApprovalStatus =
 
 export type ServiceTypeCode = "arrival" | "k_route" | "first_24h";
 
-export type ContentPostStatus = "draft" | "pending" | "approved" | "rejected";
+export type ContentPostStatus = "draft" | "pending" | "approved" | "rejected" | "blocked";
 
 export type ContentPostKind =
   | "hot_place"

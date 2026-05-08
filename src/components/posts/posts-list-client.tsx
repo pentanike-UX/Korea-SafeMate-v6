@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import Image from "next/image";
-import { ArrowDownWideNarrow, FileQuestion, Heart, Layers, MapPin, Search, Sparkles, Tag } from "lucide-react";
+import { ArrowDownWideNarrow, FileQuestion, Heart, Layers, MapPin, Search, ShieldX, Sparkles, Tag } from "lucide-react";
 
 const REGION_SLUGS = ["all", "seoul", "busan", "jeju"] as const;
 type RegionFilter = (typeof REGION_SLUGS)[number];
@@ -354,6 +354,29 @@ export function PostsListClient({
                       post={p}
                       regionLabel={t(`region.${p.region_slug}` as "region.seoul")}
                     />
+                  ) : p.status === "blocked" ? (
+                    /* blocked: 클릭 불가 카드 */
+                    <div className="border-border/70 bg-card flex h-full flex-col overflow-hidden rounded-[var(--radius-md)] border opacity-60 shadow-[var(--shadow-sm)]">
+                      <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+                        <Image
+                          src={coverUrl}
+                          alt={coverAlt}
+                          fill
+                          className={cn(postListCardCoverClass(p))}
+                          sizes="(max-width:768px) 100vw, 33vw"
+                        />
+                        <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-[#0e1b3d]/45 to-transparent" />
+                        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30">
+                          <span className="flex items-center gap-1.5 rounded-full bg-red-600/90 px-3 py-1.5 text-[11px] font-bold text-white shadow-lg backdrop-blur-sm">
+                            <ShieldX className="size-3.5" aria-hidden />
+                            차단된 게시물
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-1 flex-col p-5 sm:p-6">
+                        <h2 className="text-foreground line-clamp-2 text-[17px] font-semibold leading-snug sm:text-lg">{p.title}</h2>
+                      </div>
+                    </div>
                   ) : (
                     <Link
                       href={`/posts/${p.id}`}

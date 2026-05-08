@@ -451,6 +451,7 @@ const statusShort: Record<ContentPostStatus, string> = {
   pending: "pe",
   draft: "dr",
   rejected: "re",
+  blocked: "bl",
 };
 
 function pushPosts(
