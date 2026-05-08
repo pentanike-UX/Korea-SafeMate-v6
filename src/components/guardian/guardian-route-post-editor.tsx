@@ -512,7 +512,7 @@ export function GuardianRoutePostEditor({
   }
 
   async function onPublish() {
-    const payload = buildSavePayload({ ...post, status: "pending" }, routeDraft, "pending");
+    const payload = buildSavePayload({ ...post, status: "approved" }, routeDraft, "approved");
     if (!payload) {
       setSaveError("route_journey 가 없습니다.");
       return;
@@ -528,8 +528,8 @@ export function GuardianRoutePostEditor({
     }
     if (result.saved) {
       setPersistedPostId(result.id);
-      setPost((p) => ({ ...p, id: result.id, status: "pending" }));
-      setSaveNotice(COPY.savedPending);
+      setPost((p) => ({ ...p, id: result.id, status: "approved" }));
+      setSaveNotice("게시 완료 — 목록에 바로 노출됩니다.");
       router.push(`${GUARDIAN_WORKSPACE.posts}?saved=1`);
     } else {
       setSaveNotice(result.message ?? "Supabase 미설정: DB에 쓰지 않았습니다.");
