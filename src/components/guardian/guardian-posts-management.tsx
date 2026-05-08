@@ -29,7 +29,10 @@ export async function GuardianPostsManagement({
   const resolvedUserId = isMockGuardianId(sessionUserId)
     ? (resolveMockGuardianUuid(sessionUserId) ?? sessionUserId)
     : sessionUserId;
-  let posts = listPostsForGuardian(sessionUserId);
+  // mock 시드 포스트 (author_user_id === sessionUserId 기준, e.g. "mg10")
+  const mockPosts = listPostsForGuardian(sessionUserId);
+  let posts = mockPosts;
+
   if (sb) {
     const { data } = await sb
       .from("content_posts")
@@ -38,21 +41,22 @@ export async function GuardianPostsManagement({
       .order("created_at", { ascending: false })
       .limit(100);
     if (data) {
-      posts = data.map((p) => ({
+      const dbPosts = data.map((p) => ({
         id: p.id,
         author_user_id: p.author_user_id,
         author_display_name: "",
-        region_slug: "gwanghwamun",
-        category_slug: "culture",
-        kind: "practical",
+        region_slug: "seoul",
+        category_slug: "hot-places",
+        kind: "practical" as const,
         title: p.title ?? "",
         body: "",
         summary: p.summary ?? "",
-        status:
+        status: (
           p.status === "approved" || p.status === "pending" || p.status === "draft" ||
           p.status === "rejected" || p.status === "blocked"
             ? p.status
-            : "draft",
+            : "draft"
+        ) as import("@/types/domain").ContentPostStatus,
         created_at: p.created_at ?? new Date().toISOString(),
         tags: [],
         usefulness_votes: 0,
@@ -60,14 +64,22 @@ export async function GuardianPostsManagement({
         popular_score: 0,
         recommended_score: 0,
         featured: false,
-        post_format:
-          p.post_format === "article" || p.post_format === "spot" || p.post_format === "route" || p.post_format === "hybrid"
+        post_format: (
+          p.post_format === "article" || p.post_format === "spot" ||
+          p.post_format === "route" || p.post_format === "hybrid"
             ? p.post_format
-            : undefined,
+            : undefined
+        ) as import("@/types/domain").ContentPost["post_format"],
         route_journey: undefined,
         route_highlights: [],
         is_sample: false,
       }));
+      // DB 포스트 우선, mock 포스트 중 DB에 없는 것만 보충
+      const dbIds = new Set(dbPosts.map((p) => p.id));
+      const mockOnly = mockPosts.filter((p) => !dbIds.has(p.id));
+      posts = [...dbPosts, ...mockOnly].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
     }
   }
 
