@@ -14,13 +14,15 @@ import type {
   RouteSpot,
 } from "@/types/domain";
 import { POST_STRUCTURED_CONTENT_VERSION } from "@/types/domain";
-import { inferRouteStructuredDraftFromPost, serializeRoutePostToShellBody } from "@/lib/post-structured-content";
+import { inferRouteStructuredDraftFromPost, routeDataToArticleParsed, serializeRoutePostToShellBody } from "@/lib/post-structured-content";
+import { formatRouteSummaryMeta } from "@/lib/post-seed-content-templates";
 import { saveGuardianRoutePostAction } from "@/app/[locale]/(authed)/guardian/posts/actions";
 import { signGuardianPostPreviewTokenAction } from "@/app/[locale]/(authed)/guardian/posts/preview-token-action";
 import { GUARDIAN_WORKSPACE } from "@/lib/mypage/guardian-workspace-routes";
 import type { GuardianPostSavePayload } from "@/lib/guardian-posts-api";
 import { isUuidString } from "@/lib/guardian-posts-api";
 import { RouteMapPreview } from "@/components/maps/route-map-preview";
+import { RouteDayPreview } from "@/components/route-posts/route-day-preview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +31,113 @@ import { Badge } from "@/components/ui/badge";
 import { mockSeoulSearchPlaces } from "@/data/mock/guardian-mock-places";
 import { GuardianPostAiMetaPanel } from "@/components/guardian/guardian-post-ai-meta-panel";
 import { cn } from "@/lib/utils";
-import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Copy, Loader2, MapPin, Star, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowUp, ChevronDown, ChevronUp, Copy, Loader2, Map, MapPin, StickyNote, Star, Trash2, Wand2 } from "lucide-react";
+
+// ─── 금지 표현 감지 ──────────────────────────────────────────────────
+const BANNED_PHRASES = [
+  /권장합니다/,
+  /가능합니다/,
+  /무난합니다/,
+  /유지됩니다/,
+  /편리합니다/,
+  /체크하세요/,
+  /\b동선\b/,
+];
+
+function detectBanned(text: string): string[] {
+  return BANNED_PHRASES.filter((re) => re.test(text)).map((re) => re.source.replace(/\\b/g, ""));
+}
+
+function hasBanned(text: string): boolean {
+  return BANNED_PHRASES.some((re) => re.test(text));
+}
+
+// ─── AI 보정 (규칙 기반 행동형 변환) ─────────────────────────────────
+function applyActionCorrection(text: string): string {
+  return text
+    .replace(/권장합니다/g, "하세요")
+    .replace(/가능합니다/g, "됩니다")
+    .replace(/무난합니다/g, "괜찮습니다")
+    .replace(/유지됩니다/g, "이어집니다")
+    .replace(/편리합니다/g, "좋습니다")
+    .replace(/체크하세요/g, "확인하세요")
+    .replace(/동선/g, "이동 흐름");
+}
+
+// ─── FieldMemo 타입 ───────────────────────────────────────────────────
+interface FieldMemo {
+  orientation: string; // 기준 잡기 → route_summary 2단락
+  prep: string;        // 먼저 정리할 것 → route_notes
+  crowd: string;       // 사람 많을 때 → route_highlights[0]
+  vibe: string;        // 분위기 → closing 1단락
+  quote: string;       // 한 줄 메모 → closing 2단락
+}
+
+function initFieldMemoFromDraft(draft: RoutePostStructuredContentV1, highlights: string[]): FieldMemo {
+  const summaryParas = draft.route_summary.split(/\n\n+/);
+  const closingParas = draft.closing.split(/\n\n+/);
+  return {
+    orientation: summaryParas[1]?.trim() ?? "",
+    prep: draft.route_notes.trim(),
+    crowd: highlights[0]?.trim() ?? "",
+    vibe: closingParas[0]?.trim() ?? "",
+    quote: closingParas[1]?.trim() ?? "",
+  };
+}
+
+// ─── 필드 메모 입력 단위 컴포넌트 ────────────────────────────────────
+function FieldMemoInput({
+  label,
+  value,
+  placeholder,
+  rows = 2,
+  onChange,
+  onCorrect,
+}: {
+  label: string;
+  value: string;
+  placeholder: string;
+  rows?: number;
+  onChange: (v: string) => void;
+  onCorrect: () => void;
+}) {
+  const banned = detectBanned(value);
+  const warn = banned.length > 0;
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <Label className="text-[13px] font-semibold">{label}</Label>
+        <button
+          type="button"
+          onClick={onCorrect}
+          className="text-primary hover:text-primary/75 flex items-center gap-1 text-[11px] font-medium transition-colors"
+          title="금지 표현을 행동형으로 자동 변환합니다"
+        >
+          <Wand2 className="size-3" />
+          AI 보정
+        </button>
+      </div>
+      <Textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={rows}
+        className={cn(
+          "rounded-xl text-sm transition-colors",
+          warn && "border-amber-400 ring-1 ring-amber-300/60 focus-visible:ring-amber-400",
+        )}
+      />
+      {warn && (
+        <div className="flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1.5 dark:bg-amber-950/30">
+          <AlertTriangle className="mt-0.5 size-3 shrink-0 text-amber-500" />
+          <p className="text-[11px] leading-snug text-amber-700 dark:text-amber-400">
+            금지 표현 감지: {banned.join(", ")} — AI 보정 버튼으로 변환하세요
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function buildSavePayload(
   p: ContentPost,
@@ -140,18 +248,14 @@ const COPY = {
   savedPending: "검토 대기(pending)로 저장됨",
   flowStep1: "유형",
   flowStep2: "기본 정보",
-  flowStep3: "본문·스팟",
-  flowStep4: "AI 추천",
-  flowStep5: "검토·수정",
-  flowStep6: "미리보기·발행",
-  structuredSectionTitle: "루트 소개 (구조형 JSON 저장)",
-  structuredHint: "아래 필드가 상세 화면에 우선 표시됩니다. 저장 시 본문 문자열은 같은 내용으로 자동 생성됩니다.",
-  structIntro: "이 포스트가 맞는 사람 (intro)",
-  structRouteSummary: "루트 요약",
+  flowStep3: "스팟",
+  flowStep4: "현장 메모",
+  flowStep5: "AI 추천",
+  flowStep6: "발행",
+  fieldMemoTitle: "현장 메모",
+  fieldMemoHint: "5개 입력값이 사용자 카드로 자동 변환됩니다. 금지 표현 감지 시 주황 경고가 표시됩니다.",
+  structIntro: "이 포스트가 맞는 사람",
   structRouteBestFor: "이 루트가 잘 맞는 분 (선택)",
-  structRouteNotes: "먼저 알고 가면 좋은 점",
-  structNarrative: "본문·스팟 안내 문단",
-  structClosing: "루트 마무리",
   structGuardian: "가디언 한 줄 제안",
   kindLabel: "콘텐츠 종류(kind)",
   kindHint: "실용 팁·로컬 팁을 고르면 AI 추천은 본문 팁 블록 개수 기준으로 켜집니다. 그 외는 스팟·본문 문단 기준입니다.",
@@ -212,6 +316,48 @@ export function GuardianRoutePostEditor({
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
   const [previewBusy, setPreviewBusy] = useState(false);
   const [showAdvancedCoords, setShowAdvancedCoords] = useState(false);
+  const [rightPanel, setRightPanel] = useState<"map" | "preview">("map");
+
+  // ─── 현장 메모 상태 ───────────────────────────────────────────────
+  const [fieldMemo, setFieldMemo] = useState<FieldMemo>(() =>
+    initFieldMemoFromDraft(inferRouteStructuredDraftFromPost(initialPost), initialPost.route_highlights ?? []),
+  );
+
+  // fieldMemo → routeDraft + route_highlights 자동 동기화
+  useEffect(() => {
+    const meta = post.route_journey?.metadata;
+    const statsMeta = meta ? formatRouteSummaryMeta(meta) : "";
+    const orientationTip = fieldMemo.orientation.trim();
+    const newRouteSummary = orientationTip ? `${statsMeta}\n\n${orientationTip}` : statsMeta;
+    const vibe = fieldMemo.vibe.trim();
+    const quote = fieldMemo.quote.trim();
+    const newClosing = vibe ? (quote ? `${vibe}\n\n${quote}` : vibe) : quote;
+
+    setRouteDraft((d) => ({
+      ...d,
+      route_summary: newRouteSummary,
+      route_notes: fieldMemo.prep.trim(),
+      closing: newClosing,
+    }));
+
+    if (fieldMemo.crowd.trim()) {
+      setPost((p) => ({
+        ...p,
+        route_highlights: [fieldMemo.crowd.trim(), ...(p.route_highlights ?? []).slice(1)],
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fieldMemo]);
+
+  // 현장 메모 단일 필드 업데이트 헬퍼
+  function updateFieldMemo<K extends keyof FieldMemo>(key: K, val: FieldMemo[K]) {
+    setFieldMemo((m) => ({ ...m, [key]: val }));
+  }
+
+  // AI 보정 단일 필드
+  function correctField(key: keyof FieldMemo) {
+    setFieldMemo((m) => ({ ...m, [key]: applyActionCorrection(m[key]) }));
+  }
 
   const filteredPlaces = useMemo(() => {
     const s = searchQ.trim().toLowerCase();
@@ -974,95 +1120,87 @@ export function GuardianRoutePostEditor({
             </div>
           ) : null}
 
-          <div className="space-y-2">
-            <Label>루트 하이라이트 (줄바꿈으로 구분)</Label>
-            <Textarea
-              value={(post.route_highlights ?? []).join("\n")}
-              onChange={(e) =>
-                setPost((p) => ({
-                  ...p,
-                  route_highlights: e.target.value.split("\n").map((x) => x.trim()).filter(Boolean),
-                }))
-              }
-              className="rounded-xl"
-              rows={3}
-            />
-          </div>
+          {/* ── 현장 메모 블록 ──────────────────────────────────────── */}
+          <div className="space-y-5 rounded-2xl border border-border/60 bg-gradient-to-br from-muted/20 to-background p-5">
+            <div className="space-y-1">
+              <h3 className="text-foreground flex items-center gap-2 text-sm font-semibold">
+                <StickyNote className="size-4 text-primary/70" />
+                {COPY.fieldMemoTitle}
+              </h3>
+              <p className="text-muted-foreground text-xs leading-relaxed">{COPY.fieldMemoHint}</p>
+            </div>
 
-          <div className="space-y-4 rounded-2xl border border-border/60 bg-muted/10 p-4 sm:p-5">
-            <div>
-              <h3 className="text-foreground text-sm font-semibold">{COPY.structuredSectionTitle}</h3>
-              <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{COPY.structuredHint}</p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="struct-intro">{COPY.structIntro}</Label>
-              <Textarea
-                id="struct-intro"
-                value={routeDraft.intro}
-                onChange={(e) => setRouteDraft((d) => ({ ...d, intro: e.target.value }))}
-                className="rounded-xl"
-                rows={2}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="struct-sum">{COPY.structRouteSummary}</Label>
-              <Textarea
-                id="struct-sum"
-                value={routeDraft.route_summary}
-                onChange={(e) => setRouteDraft((d) => ({ ...d, route_summary: e.target.value }))}
-                className="rounded-xl"
-                rows={2}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="struct-bf">{COPY.structRouteBestFor}</Label>
-              <Textarea
-                id="struct-bf"
-                value={routeDraft.route_best_for ?? ""}
-                onChange={(e) => setRouteDraft((d) => ({ ...d, route_best_for: e.target.value || undefined }))}
-                className="rounded-xl"
-                rows={2}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="struct-notes">{COPY.structRouteNotes}</Label>
-              <Textarea
-                id="struct-notes"
-                value={routeDraft.route_notes}
-                onChange={(e) => setRouteDraft((d) => ({ ...d, route_notes: e.target.value }))}
-                className="rounded-xl"
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="struct-narr">{COPY.structNarrative}</Label>
-              <Textarea
-                id="struct-narr"
-                value={routeDraft.narrative}
-                onChange={(e) => setRouteDraft((d) => ({ ...d, narrative: e.target.value }))}
-                className="rounded-xl"
-                rows={4}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="struct-close">{COPY.structClosing}</Label>
-              <Textarea
-                id="struct-close"
-                value={routeDraft.closing}
-                onChange={(e) => setRouteDraft((d) => ({ ...d, closing: e.target.value }))}
-                className="rounded-xl"
-                rows={2}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="struct-guard">{COPY.structGuardian}</Label>
-              <Textarea
-                id="struct-guard"
-                value={routeDraft.guardian_signature}
-                onChange={(e) => setRouteDraft((d) => ({ ...d, guardian_signature: e.target.value }))}
-                className="rounded-xl"
-                rows={2}
-              />
+            <FieldMemoInput
+              label="처음이라면 이곳을 기준으로"
+              value={fieldMemo.orientation}
+              placeholder="광화문 쪽 출구 먼저 찾으세요. 이곳에서 방향 잡으면 안 헤맵니다."
+              onChange={(v) => updateFieldMemo("orientation", v)}
+              onCorrect={() => correctField("orientation")}
+            />
+            <FieldMemoInput
+              label="먼저 끝내세요"
+              value={fieldMemo.prep}
+              placeholder="화장실은 지하철 또는 궁 입구에서 해결하세요. 궁 안 들어가면 다시 나오기 번거롭습니다."
+              onChange={(v) => updateFieldMemo("prep", v)}
+              onCorrect={() => correctField("prep")}
+            />
+            <FieldMemoInput
+              label="사람 많을 때는 이렇게"
+              value={fieldMemo.crowd}
+              placeholder="광장 중앙에서 멈추지 마세요. 옆 보행로로 빠지면 훨씬 덜 막힙니다."
+              onChange={(v) => updateFieldMemo("crowd", v)}
+              onCorrect={() => correctField("crowd")}
+            />
+            <FieldMemoInput
+              label="분위기 참고"
+              value={fieldMemo.vibe}
+              placeholder="도깨비·서울의봄 같은 서울 중심부 느낌입니다. 광장 + 궁 + 도심이 한 번에 겹칩니다."
+              onChange={(v) => updateFieldMemo("vibe", v)}
+              onCorrect={() => correctField("vibe")}
+            />
+            <FieldMemoInput
+              label="한 줄 메모 (인용구)"
+              value={fieldMemo.quote}
+              placeholder="궁 입장 전 화장실을 이용하세요. 궁궐 내에는 화장실이 없습니다."
+              onChange={(v) => updateFieldMemo("quote", v)}
+              onCorrect={() => correctField("quote")}
+            />
+
+            <div className="border-t border-border/40 pt-4 space-y-4">
+              <p className="text-muted-foreground text-[10px] font-semibold tracking-widest uppercase">보조 정보 (선택)</p>
+              <div className="space-y-2">
+                <Label htmlFor="struct-intro" className="text-[13px]">{COPY.structIntro}</Label>
+                <Textarea
+                  id="struct-intro"
+                  value={routeDraft.intro}
+                  onChange={(e) => setRouteDraft((d) => ({ ...d, intro: e.target.value }))}
+                  className="rounded-xl text-sm"
+                  rows={2}
+                  placeholder="솔로 여행자·첫 방문자에게 잘 맞는 루트입니다."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="struct-bf" className="text-[13px]">{COPY.structRouteBestFor}</Label>
+                <Textarea
+                  id="struct-bf"
+                  value={routeDraft.route_best_for ?? ""}
+                  onChange={(e) => setRouteDraft((d) => ({ ...d, route_best_for: e.target.value || undefined }))}
+                  className="rounded-xl text-sm"
+                  rows={2}
+                  placeholder="아침 일찍 움직이는 여행자, 사진 위주 동행"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="struct-guard" className="text-[13px]">{COPY.structGuardian}</Label>
+                <Textarea
+                  id="struct-guard"
+                  value={routeDraft.guardian_signature}
+                  onChange={(e) => setRouteDraft((d) => ({ ...d, guardian_signature: e.target.value }))}
+                  className="rounded-xl text-sm"
+                  rows={2}
+                  placeholder="박도윤: 속도가 안 맞으면 화장실 하나만 먼저 맞추고 출발하세요."
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -1116,59 +1254,112 @@ export function GuardianRoutePostEditor({
         </div>
       </div>
 
-      <div className="lg:sticky lg:top-24 flex h-[min(560px,70vh)] flex-col gap-3 self-start">
+      <div className="lg:sticky lg:top-24 flex flex-col gap-3 self-start">
+        {/* ── 탭 헤더 ─────────────────────────────────────────────── */}
         <div className="flex items-center justify-between gap-2">
-          <div>
-            <p className="text-primary text-[10px] font-bold tracking-widest uppercase">Live preview</p>
-            <p className="text-foreground text-sm font-semibold">{COPY.mapPanelTitle}</p>
+          <div className="flex items-center gap-1 rounded-xl border border-border/60 bg-muted/30 p-1">
+            <button
+              type="button"
+              onClick={() => setRightPanel("map")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+                rightPanel === "map"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Map className="size-3.5" />
+              지도
+            </button>
+            <button
+              type="button"
+              onClick={() => setRightPanel("preview")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+                rightPanel === "preview"
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <StickyNote className="size-3.5" />
+              카드 미리보기
+            </button>
           </div>
-          {mapPick ? <Badge className="rounded-full">지도 선택 모드</Badge> : null}
+          {mapPick && rightPanel === "map" ? <Badge className="rounded-full">지도 선택 모드</Badge> : null}
         </div>
-        <p className="text-muted-foreground text-xs">{COPY.mapPanelHint}</p>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            className="gap-2 rounded-xl"
-            disabled={routing || journey.spots.length < 2}
-            onClick={() => void refreshRouteFromOsrm()}
-          >
-            {routing ? <Loader2 className="size-4 animate-spin" /> : null}
-            {COPY.routeOsrm}
-          </Button>
-          <p className="text-muted-foreground max-w-md text-[11px] leading-snug">{COPY.routeOsrmHint}</p>
-        </div>
-        <div className="border-border/60 relative min-h-0 flex-1 overflow-hidden rounded-2xl border bg-white shadow-[var(--shadow-md)]">
-          <RouteMapPreview
-            spots={journey.spots}
-            path={journey.path}
-            selectedSpotId={selectedSpotId}
-            onSpotSelect={(id) => setSelectedSpotId(id)}
-            mapClickEnabled={mapPick}
-            onMapClick={(lat, lng) => addSpotAt(lat, lng, "", true)}
-            className="h-full min-h-[280px]"
-          />
-        </div>
-        <div className="border-border/60 flex flex-wrap gap-2 rounded-2xl border bg-white/90 p-4 text-xs">
-          <Badge variant="secondary" className="rounded-full font-medium">
-            {journey.metadata.estimated_total_distance_km} km
-          </Badge>
-          <Badge variant="secondary" className="rounded-full font-medium">
-            {journey.metadata.estimated_total_duration_minutes}분
-          </Badge>
-          <Badge variant="secondary" className="rounded-full font-medium">
-            스팟 {journey.spots.length}
-          </Badge>
-          <Badge variant="outline" className="rounded-full">
-            {journey.metadata.transport_mode}
-          </Badge>
-          {post.tags.slice(0, 3).map((tag) => (
-            <Badge key={tag} variant="outline" className="rounded-full">
-              {tag}
-            </Badge>
-          ))}
-        </div>
+
+        {/* ── 지도 패널 ────────────────────────────────────────────── */}
+        {rightPanel === "map" && (
+          <>
+            <p className="text-muted-foreground text-xs">{COPY.mapPanelHint}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="gap-2 rounded-xl"
+                disabled={routing || journey.spots.length < 2}
+                onClick={() => void refreshRouteFromOsrm()}
+              >
+                {routing ? <Loader2 className="size-4 animate-spin" /> : null}
+                {COPY.routeOsrm}
+              </Button>
+              <p className="text-muted-foreground max-w-md text-[11px] leading-snug">{COPY.routeOsrmHint}</p>
+            </div>
+            <div className="border-border/60 relative overflow-hidden rounded-2xl border bg-white shadow-[var(--shadow-md)]" style={{ height: "min(500px,65vh)" }}>
+              <RouteMapPreview
+                spots={journey.spots}
+                path={journey.path}
+                selectedSpotId={selectedSpotId}
+                onSpotSelect={(id) => setSelectedSpotId(id)}
+                mapClickEnabled={mapPick}
+                onMapClick={(lat, lng) => addSpotAt(lat, lng, "", true)}
+                className="h-full min-h-[280px]"
+              />
+            </div>
+            <div className="border-border/60 flex flex-wrap gap-2 rounded-2xl border bg-white/90 p-4 text-xs">
+              <Badge variant="secondary" className="rounded-full font-medium">{journey.metadata.estimated_total_distance_km} km</Badge>
+              <Badge variant="secondary" className="rounded-full font-medium">{journey.metadata.estimated_total_duration_minutes}분</Badge>
+              <Badge variant="secondary" className="rounded-full font-medium">스팟 {journey.spots.length}</Badge>
+              <Badge variant="outline" className="rounded-full">{journey.metadata.transport_mode}</Badge>
+              {post.tags.slice(0, 3).map((tag) => (
+                <Badge key={tag} variant="outline" className="rounded-full">{tag}</Badge>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ── 카드 미리보기 패널 ────────────────────────────────────── */}
+        {rightPanel === "preview" && (
+          <div className="space-y-3">
+            <p className="text-muted-foreground text-[11px] leading-relaxed">
+              입력값이 실제 사용자 카드로 실시간 반영됩니다. 저장 전 최종 확인에 활용하세요.
+            </p>
+            {/* 금지어 전체 요약 */}
+            {(["orientation", "prep", "crowd", "vibe", "quote"] as const).some((k) => hasBanned(fieldMemo[k])) && (
+              <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2.5 dark:bg-amber-950/30">
+                <AlertTriangle className="size-4 shrink-0 text-amber-500" />
+                <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                  금지 표현이 남아 있습니다. 좌측 입력에서 AI 보정을 실행하세요.
+                </p>
+              </div>
+            )}
+            <div className="overflow-y-auto rounded-2xl border border-border/60 bg-muted/10 p-4" style={{ maxHeight: "min(72vh,640px)" }}>
+              <RouteDayPreview
+                post={post}
+                introLead={post.summary}
+                topHighlights={fieldMemo.crowd.trim() ? [fieldMemo.crowd.trim()] : (post.route_highlights ?? [])}
+                articleParsed={{
+                  routeSummary: routeDraft.route_summary || undefined,
+                  beforeYouGo: fieldMemo.prep.trim() || undefined,
+                  routeClosing: routeDraft.closing || undefined,
+                  narrative: undefined,
+                  guardianLine: routeDraft.guardian_signature.trim() || undefined,
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
