@@ -55,7 +55,8 @@ export default async function MypageGuardianPostPreviewPage({ params, searchPara
       <p className="text-foreground mx-auto max-w-6xl px-4 py-2 text-center text-xs font-medium sm:px-6">
         Draft / pending preview — not visible on the public site ({post.status})
       </p>
-      {postHasRouteJourney(post) ? <RoutePostDetailView post={post} /> : <PostDetailView post={post} />}
+      {/* preview는 토큰 소지자(= 작성자)만 접근 → 페이월 없이 전체 공개 */}
+  {postHasRouteJourney(post) ? <RoutePostDetailView post={post} isOwner /> : <PostDetailView post={post} isOwner />}
     </div>
   );
 }

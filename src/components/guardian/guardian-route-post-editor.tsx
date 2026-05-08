@@ -1031,29 +1031,45 @@ export function GuardianRoutePostEditor({
                   )}
                   <div className="space-y-2">
                     {selectedSpot.image_urls.map((url, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <span className="text-muted-foreground w-5 shrink-0 text-center text-xs font-medium">{idx + 1}</span>
-                        <Input
-                          value={url}
-                          onChange={(e) => {
-                            const next = [...selectedSpot.image_urls];
-                            next[idx] = e.target.value;
-                            updateSpot(selectedSpot.id, { image_urls: next });
-                          }}
-                          className="rounded-xl"
-                          placeholder="https://..."
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const next = selectedSpot.image_urls.filter((_, i) => i !== idx);
-                            updateSpot(selectedSpot.id, { image_urls: next });
-                          }}
-                          className="text-muted-foreground hover:text-destructive shrink-0 transition-colors"
-                          aria-label="URL 삭제"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </button>
+                      <div key={idx} className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground w-5 shrink-0 text-center text-xs font-medium">{idx + 1}</span>
+                          <Input
+                            value={url}
+                            onChange={(e) => {
+                              const next = [...selectedSpot.image_urls];
+                              next[idx] = e.target.value;
+                              updateSpot(selectedSpot.id, { image_urls: next });
+                            }}
+                            className="rounded-xl"
+                            placeholder="/mock/posts/... 또는 https://..."
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const next = selectedSpot.image_urls.filter((_, i) => i !== idx);
+                              updateSpot(selectedSpot.id, { image_urls: next });
+                            }}
+                            className="text-muted-foreground hover:text-destructive shrink-0 transition-colors"
+                            aria-label="URL 삭제"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
+                        {url.trim() && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={url.trim()}
+                            alt={`이미지 ${idx + 1} 미리보기`}
+                            className="ml-7 h-20 w-32 rounded-lg border border-border/50 object-cover bg-muted"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).style.display = "none";
+                            }}
+                            onLoad={(e) => {
+                              (e.currentTarget as HTMLImageElement).style.display = "block";
+                            }}
+                          />
+                        )}
                       </div>
                     ))}
                   </div>
