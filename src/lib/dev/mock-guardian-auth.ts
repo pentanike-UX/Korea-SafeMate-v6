@@ -20,6 +20,33 @@ export function isMockGuardianId(id: string | null | undefined): id is string {
   return !!id && MOCK_ID_RE.test(id);
 }
 
+/**
+ * mock guardian ID → Supabase auth.users.id (real UUID) 매핑.
+ * Supabase에 guardian.seed.mg{N}@example.dev 계정으로 등록된 실제 UUID.
+ */
+export const MOCK_GUARDIAN_UUID_MAP: Record<string, string> = {
+  mg01: "97690bb8-8dc0-5c79-a11d-a48a61eb6b82",
+  mg02: "606b9b03-dab2-541f-a387-f8de54aa59a8",
+  mg03: "3cad8eb3-bd9d-5966-a1c1-8673ec3e3cd1",
+  mg04: "bb8f49f7-8a2e-5e99-9aef-2d888f029332",
+  mg05: "6eef0ee6-12b6-5aab-ac86-c77575aab156",
+  mg06: "3418a757-2971-5102-9dd5-165cc27804db",
+  mg07: "04a64a1c-d84b-58ad-b09a-bb9338dd9575",
+  mg08: "50aa86d6-1e55-5411-8b29-c3723bce45c7",
+  mg09: "e53936e8-79b6-587b-8a67-a8b15756dea1",
+  mg10: "325e8a02-9683-5a53-8e26-42aca7a8f431",
+  mg11: "f31cc799-409b-5e39-b6c8-d40d4bb3d3cd",
+  mg12: "bf73fab3-25fc-5f0b-b0f5-d263f5235e78",
+  mg13: "e1c15fda-0462-5000-a5df-961ca128dc7d",
+  mg14: "2da22c42-ce72-5937-be7e-bddfbe036a4a",
+  mg15: "af9ab549-ab0b-50a0-b6ac-1c22503b1872",
+};
+
+/** mock guardian ID가 주어지면 실제 Supabase UUID로 변환, 아니면 null 반환. */
+export function resolveMockGuardianUuid(id: string): string | null {
+  return MOCK_GUARDIAN_UUID_MAP[id] ?? null;
+}
+
 export function getGuardianSeedRow(id: string): GuardianSeedRow | undefined {
   return GUARDIAN_SEED_ROWS.find((r) => r.id === id);
 }

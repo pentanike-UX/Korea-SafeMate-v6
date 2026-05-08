@@ -1,8 +1,20 @@
 import type { GuardianPostSavePayload } from "@/lib/guardian-posts-api";
 import { isUuidString, resolveAuthorUserId } from "@/lib/guardian-posts-api";
-import { isMockGuardianId } from "@/lib/dev/mock-guardian-auth";
+import { isMockGuardianId, resolveMockGuardianUuid } from "@/lib/dev/mock-guardian-auth";
 import { processContentPostPointsAfterWrite } from "@/lib/points/point-hooks";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
+
+/**
+ * mock guardian ID(mg01~mg15)면 Supabase에 등록된 실제 UUID로 치환.
+ * 매핑 없는 경우 payload를 그대로 반환(resolveAuthorUserId가 이후 처리).
+ */
+function normalizeMockAuthor(payload: GuardianPostSavePayload): GuardianPostSavePayload {
+  if (isMockGuardianId(payload.author_user_id)) {
+    const realUuid = resolveMockGuardianUuid(payload.author_user_id);
+    if (realUuid) return { ...payload, author_user_id: realUuid };
+  }
+  return payload;
+}
 
 export type GuardianPostSaveResult =
   | { ok: true; id: string; saved: true }
@@ -10,17 +22,9 @@ export type GuardianPostSaveResult =
   | { ok: false; error: string; status?: number };
 
 export async function insertGuardianContentPost(payload: GuardianPostSavePayload): Promise<GuardianPostSaveResult> {
-  // Supabase 연결 여부를 먼저 확인 — 미설정 시 UUID 검증 없이 preview 반환
-  // Mock 하루이 계정(mg01~mg99)은 실제 DB 레코드가 없으므로 preview만 반환
-  if (isMockGuardianId(payload.author_user_id)) {
-    return {
-      ok: true,
-      saved: false,
-      message: "Mock 하루이 계정은 DB에 저장하지 않습니다. (데모 전용)",
-      preview: payload,
-    };
-  }
+  payload = normalizeMockAuthor(payload);
 
+  // Supabase 연결 여부를 먼저 확인 — 미설정 시 UUID 검증 없이 preview 반환
   const sb = createServiceRoleSupabase();
   if (!sb) {
     return {
@@ -99,15 +103,7 @@ export async function updateGuardianContentPost(
   postId: string,
   payload: GuardianPostSavePayload,
 ): Promise<GuardianPostSaveResult> {
-  // Mock 하루이 계정(mg01~mg99)은 실제 DB 레코드가 없으므로 preview만 반환
-  if (isMockGuardianId(payload.author_user_id)) {
-    return {
-      ok: true,
-      saved: false,
-      message: "Mock 하루이 계정은 DB에 저장하지 않습니다. (데모 전용)",
-      preview: payload,
-    };
-  }
+  payload = normalizeMockAuthor(payload);
 
   // Supabase 연결 여부를 먼저 확인 — 미설정 시 UUID/postId 검증 없이 preview 반환
   const sb = createServiceRoleSupabase();
