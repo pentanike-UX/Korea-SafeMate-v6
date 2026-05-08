@@ -3,7 +3,7 @@ import { GuardianPostsPageBlockBoundary } from "@/components/guardian/guardian-p
 import { Link } from "@/i18n/navigation";
 import { listPostsForGuardian } from "@/lib/posts-public";
 import { getContentPostFormat, postHasRouteJourney } from "@/lib/content-post-route";
-import { isMockGuardianId } from "@/lib/dev/mock-guardian-auth";
+import { isMockGuardianId, resolveMockGuardianUuid } from "@/lib/dev/mock-guardian-auth";
 import { GUARDIAN_WORKSPACE } from "@/lib/mypage/guardian-workspace-routes";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 import { Button } from "@/components/ui/button";
@@ -25,12 +25,16 @@ export async function GuardianPostsManagement({
   savedBanner?: boolean;
 }) {
   const sb = createServiceRoleSupabase();
+  // mock guardian ID(mg01~mg15)면 실제 UUID로 치환해 DB 조회
+  const resolvedUserId = isMockGuardianId(sessionUserId)
+    ? (resolveMockGuardianUuid(sessionUserId) ?? sessionUserId)
+    : sessionUserId;
   let posts = listPostsForGuardian(sessionUserId);
-  if (sb && !isMockGuardianId(sessionUserId)) {
+  if (sb) {
     const { data } = await sb
       .from("content_posts")
       .select("id, author_user_id, title, summary, status, created_at, post_format, route_journey")
-      .eq("author_user_id", sessionUserId)
+      .eq("author_user_id", resolvedUserId)
       .order("created_at", { ascending: false })
       .limit(100);
     if (data) {
@@ -45,9 +49,10 @@ export async function GuardianPostsManagement({
         body: "",
         summary: p.summary ?? "",
         status:
-          p.status === "approved" || p.status === "pending" || p.status === "draft"
+          p.status === "approved" || p.status === "pending" || p.status === "draft" ||
+          p.status === "rejected" || p.status === "blocked"
             ? p.status
-            : "rejected",
+            : "draft",
         created_at: p.created_at ?? new Date().toISOString(),
         tags: [],
         usefulness_votes: 0,
