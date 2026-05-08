@@ -9,16 +9,7 @@ export type GuardianPostSaveResult =
   | { ok: false; error: string; status?: number };
 
 export async function insertGuardianContentPost(payload: GuardianPostSavePayload): Promise<GuardianPostSaveResult> {
-  const authorUuid = resolveAuthorUserId(payload.author_user_id);
-  if (!authorUuid) {
-    return {
-      ok: false,
-      error:
-        "Could not resolve author_user_id to a UUID. Set GUARDIAN_AUTHOR_USER_MAP or DEFAULT_GUARDIAN_AUTHOR_USER_ID.",
-      status: 400,
-    };
-  }
-
+  // Supabase 연결 여부를 먼저 확인 — 미설정 시 UUID 검증 없이 preview 반환
   const sb = createServiceRoleSupabase();
   if (!sb) {
     return {
@@ -27,6 +18,16 @@ export async function insertGuardianContentPost(payload: GuardianPostSavePayload
       message:
         "Supabase not configured — set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Nothing was written.",
       preview: payload,
+    };
+  }
+
+  const authorUuid = resolveAuthorUserId(payload.author_user_id);
+  if (!authorUuid) {
+    return {
+      ok: false,
+      error:
+        "Could not resolve author_user_id to a UUID. Set GUARDIAN_AUTHOR_USER_MAP or DEFAULT_GUARDIAN_AUTHOR_USER_ID.",
+      status: 400,
     };
   }
 
@@ -87,15 +88,7 @@ export async function updateGuardianContentPost(
   postId: string,
   payload: GuardianPostSavePayload,
 ): Promise<GuardianPostSaveResult> {
-  if (!isUuidString(postId)) {
-    return { ok: false, error: "postId must be a UUID", status: 400 };
-  }
-
-  const authorUuid = resolveAuthorUserId(payload.author_user_id);
-  if (!authorUuid) {
-    return { ok: false, error: "Could not resolve author_user_id", status: 400 };
-  }
-
+  // Supabase 연결 여부를 먼저 확인 — 미설정 시 UUID/postId 검증 없이 preview 반환
   const sb = createServiceRoleSupabase();
   if (!sb) {
     return {
@@ -104,6 +97,15 @@ export async function updateGuardianContentPost(
       message: "Supabase not configured — nothing persisted.",
       preview: payload,
     };
+  }
+
+  if (!isUuidString(postId)) {
+    return { ok: false, error: "postId must be a UUID", status: 400 };
+  }
+
+  const authorUuid = resolveAuthorUserId(payload.author_user_id);
+  if (!authorUuid) {
+    return { ok: false, error: "Could not resolve author_user_id", status: 400 };
   }
 
   const { data: existing, error: fe } = await sb
