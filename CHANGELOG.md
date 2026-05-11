@@ -19,12 +19,38 @@
 ### Feature flags
 - `NEXT_PUBLIC_INQUIRE_NOW_ON_PROFILE` (기본 `"1"`). `"0"` 설정 시 프로필 aside의 "지금 문의하기" 버튼만 숨김. 정규화·하루웨이 채움은 무조건 활성(버그 수정).
 
+## Chat UX overhaul (PR-F → PR-I)
+
+### Fixed
+- **칩 클릭 시 메시지 2번 입력** — `messages.client_msg_id` 도입, Realtime + 낙관 dedup 통합.
+- **하루이가 새 메시지 받았는지 모름** — `/api/notifications/unread` + 헤더 메신저 아이콘(빨간 카운트 배지) + LNB 메시지함 항목.
+- **인박스 진입 경로 없음** — LNB(여행자·하루이 각자), 헤더 아이콘.
+- **여행자별 채팅 목록 미식별** — `/api/threads` 응답에 `other`(이름·아바타·역할·last_seen) 조인, `last_message_preview`, `unread_count`.
+- **시작 포스트가 어느 것인지 모름** — `message_threads.source_post_id` 컬럼 + 시트/인박스 헤더에 "📍 {포스트 제목}" 칩.
+
+### Added
+- `messages.client_msg_id text` + unique partial idx `(thread_id, client_msg_id)`.
+- `message_threads.source_post_id uuid → content_posts(id)` + idx.
+- `GET /api/notifications/unread`.
+- `src/components/layout/header-inbox-button.tsx` — 60초 폴링.
+- LNB i18n: `guardianNavMessages` (ko/en).
+- 인박스 행 UX: 아바타·온라인 점·이름·포스트 칩·미리보기·시간·미확인 배지.
+
+### Idempotency
+- `POST /api/threads/[id]/messages` — `client_msg_id` 중복 시 200 `deduped: true` 반환 (재전송 안전).
+
 ## Rollback
 
 DB:
 ```sql
+-- last_seen_at
 drop index if exists public.guardian_profiles_last_seen_idx;
 alter table public.guardian_profiles drop column if exists last_seen_at;
+-- chat dedup + source_post
+drop index if exists public.messages_client_msg_id_uidx;
+alter table public.messages drop column if exists client_msg_id;
+drop index if exists public.message_threads_source_post_idx;
+alter table public.message_threads drop column if exists source_post_id;
 ```
 
-코드: 본 브랜치를 `git revert <merge-sha>` 또는 PR-A/B/C 각각 개별 revert.
+코드: `git revert <commit-sha>` (각 PR 단위 reversible).
