@@ -33,6 +33,7 @@ type GpRow = {
   expertise_tags: string[] | null;
   is_sample?: boolean | null;
   seed_guardian_key?: string | null;
+  last_seen_at?: string | null;
 };
 
 function mapProficiency(p: string): GuardianLanguage["proficiency"] {
@@ -64,6 +65,7 @@ function toGuardianProfile(row: GpRow, primary_region_slug: string, languages: G
     avg_traveler_rating: row.avg_traveler_rating,
     expertise_tags: row.expertise_tags ?? [],
     ...(row.is_sample === true ? { is_sample: true } : {}),
+    last_seen_at: row.last_seen_at ?? null,
   };
 }
 
@@ -73,7 +75,7 @@ async function loadApprovedGuardiansFromDb(): Promise<GpRow[]> {
   const { data, error } = await sb
     .from("guardian_profiles")
     .select(
-      "user_id, display_name, headline, bio, guardian_tier, approval_status, years_in_seoul, photo_url, avatar_image_url, list_card_image_url, detail_hero_image_url, intro_gallery_image_urls, primary_region_id, posts_approved_last_30d, posts_approved_last_7d, featured, influencer_seed, matching_enabled, avg_traveler_rating, expertise_tags, is_sample, seed_guardian_key",
+      "user_id, display_name, headline, bio, guardian_tier, approval_status, years_in_seoul, photo_url, avatar_image_url, list_card_image_url, detail_hero_image_url, intro_gallery_image_urls, primary_region_id, posts_approved_last_30d, posts_approved_last_7d, featured, influencer_seed, matching_enabled, avg_traveler_rating, expertise_tags, is_sample, seed_guardian_key, last_seen_at",
     )
     .eq("approval_status", "approved");
   if (error) {
@@ -132,7 +134,7 @@ export async function getPublicGuardianByIdMerged(userId: string): Promise<Publi
   if (!sb) return mock;
 
   const selectCols =
-    "user_id, display_name, headline, bio, guardian_tier, approval_status, years_in_seoul, photo_url, avatar_image_url, list_card_image_url, detail_hero_image_url, intro_gallery_image_urls, primary_region_id, posts_approved_last_30d, posts_approved_last_7d, featured, influencer_seed, matching_enabled, avg_traveler_rating, expertise_tags, is_sample, seed_guardian_key";
+    "user_id, display_name, headline, bio, guardian_tier, approval_status, years_in_seoul, photo_url, avatar_image_url, list_card_image_url, detail_hero_image_url, intro_gallery_image_urls, primary_region_id, posts_approved_last_30d, posts_approved_last_7d, featured, influencer_seed, matching_enabled, avg_traveler_rating, expertise_tags, is_sample, seed_guardian_key, last_seen_at";
 
   const { data: byUid, error: errUid } = await sb
     .from("guardian_profiles")
