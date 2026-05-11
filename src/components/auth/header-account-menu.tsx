@@ -53,6 +53,8 @@ type MeResponse = {
   };
 };
 
+type MenuSegment = "guardian" | "traveler";
+
 function initials(name: string, email: string) {
   const s = name.trim() || email;
   const parts = s.split(/[\s@]+/).filter(Boolean);
@@ -142,6 +144,44 @@ function AccountSummary({
   );
 }
 
+function SegmentTabs({
+  segment,
+  onSegmentChange,
+}: {
+  segment: MenuSegment;
+  onSegmentChange: (s: MenuSegment) => void;
+}) {
+  const t = useTranslations("Header");
+  return (
+    <div className="border-border/60 flex gap-1 border-b px-3 py-2">
+      <button
+        type="button"
+        onClick={() => onSegmentChange("guardian")}
+        className={cn(
+          "flex-1 rounded-lg py-1.5 text-xs font-semibold transition-colors",
+          segment === "guardian"
+            ? "bg-foreground text-background"
+            : "text-muted-foreground hover:bg-muted/60",
+        )}
+      >
+        {t("menuSegmentGuardian")}
+      </button>
+      <button
+        type="button"
+        onClick={() => onSegmentChange("traveler")}
+        className={cn(
+          "flex-1 rounded-lg py-1.5 text-xs font-semibold transition-colors",
+          segment === "traveler"
+            ? "bg-foreground text-background"
+            : "text-muted-foreground hover:bg-muted/60",
+        )}
+      >
+        {t("menuSegmentTraveler")}
+      </button>
+    </div>
+  );
+}
+
 export function HeaderAccountMenu({
   authUser,
   onDarkSurface,
@@ -158,6 +198,7 @@ export function HeaderAccountMenu({
   const [loading, setLoading] = useState(true);
   const [desktopOpen, setDesktopOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [segment, setSegment] = useState<MenuSegment>("guardian");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -180,6 +221,13 @@ export function HeaderAccountMenu({
     window.addEventListener(MYPAGE_ATTENTION_UPDATED_EVENT, onAttention);
     return () => window.removeEventListener(MYPAGE_ATTENTION_UPDATED_EVENT, onAttention);
   }, [load]);
+
+  const role = me?.user?.app_role ?? "traveler";
+
+  // Default segment to traveler when role is traveler
+  useEffect(() => {
+    if (role !== "guardian") setSegment("traveler");
+  }, [role]);
 
   const publicHomeHref = locale === routing.defaultLocale ? "/" : `/${locale}`;
 
@@ -218,7 +266,6 @@ export function HeaderAccountMenu({
   const email = me?.auth.email ?? authUser.email ?? "";
   const display = me?.profile?.display_name?.trim() || me?.auth.sessionName || me?.user?.legal_name || email.split("@")[0] || "User";
   const avatarSrc = me?.profile?.profile_image_url || me?.user?.avatar_url || me?.auth.sessionAvatar || null;
-  const role = me?.user?.app_role ?? "traveler";
 
   const triggerClassBase =
     "inline-flex h-9 min-h-9 min-w-0 items-center gap-1.5 rounded-[var(--radius-md)] border text-left text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50";
@@ -320,8 +367,33 @@ export function HeaderAccountMenu({
         </>
       );
     }
+
     if (role === "guardian") {
-      return (
+      const guardianItems = (
+        <>
+          <DropdownMenuItem className="min-h-11" onClick={itemClick("/guardian")}>
+            <LayoutDashboard className="size-4 opacity-80" aria-hidden />
+            {t("accountGuardianDashboard")}
+          </DropdownMenuItem>
+          <DropdownMenuItem className="min-h-11" onClick={itemClick("/guardian/profile")}>
+            <UserRound className="size-4 opacity-80" aria-hidden />
+            {t("accountGuardianProfile")}
+          </DropdownMenuItem>
+          <DropdownMenuItem className="min-h-11" onClick={itemClick("/mypage/guardian/posts")}>
+            <FileText className="size-4 opacity-80" aria-hidden />
+            {t("accountGuardianPosts")}
+          </DropdownMenuItem>
+          <DropdownMenuItem className="min-h-11" onClick={itemClick("/mypage/guardian/matches")}>
+            <Heart className="size-4 opacity-80" aria-hidden />
+            {t("accountGuardianMatches")}
+          </DropdownMenuItem>
+          <DropdownMenuItem className="min-h-11" onClick={itemClick("/mypage/guardian/points")}>
+            <Coins className="size-4 opacity-80" aria-hidden />
+            {t("accountGuardianEarnings")}
+          </DropdownMenuItem>
+        </>
+      );
+      const travelerItems = (
         <>
           <DropdownMenuItem className="min-h-11" onClick={itemClick("/mypage")}>
             <LayoutDashboard className="size-4 opacity-80" aria-hidden />
@@ -343,18 +415,11 @@ export function HeaderAccountMenu({
             <Users className="size-4 opacity-80" aria-hidden />
             {t("accountMatches")}
           </DropdownMenuItem>
-          <DropdownMenuItem className="min-h-11" onClick={itemClick("/guardian/profile")}>
-            <Users className="size-4 opacity-80" aria-hidden />
-            {t("accountGuardianProfile")}
-          </DropdownMenuItem>
-          <DropdownMenuItem className="min-h-11" onClick={itemClick("/mypage/guardian/posts")}>
-            <FileText className="size-4 opacity-80" aria-hidden />
-            {t("accountGuardianPosts")}
-          </DropdownMenuItem>
-          <DropdownMenuItem className="min-h-11" onClick={itemClick("/mypage/guardian/matches")}>
-            <Heart className="size-4 opacity-80" aria-hidden />
-            {t("accountGuardianMatches")}
-          </DropdownMenuItem>
+        </>
+      );
+      return (
+        <>
+          {segment === "guardian" ? guardianItems : travelerItems}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
@@ -369,6 +434,8 @@ export function HeaderAccountMenu({
         </>
       );
     }
+
+    // Traveler role
     return (
       <>
         <DropdownMenuItem className="min-h-11" onClick={itemClick("/mypage")}>
@@ -390,10 +457,6 @@ export function HeaderAccountMenu({
         <DropdownMenuItem className="min-h-11" onClick={itemClick("/mypage/matches")}>
           <Users className="size-4 opacity-80" aria-hidden />
           {t("accountMatches")}
-        </DropdownMenuItem>
-        <DropdownMenuItem className="min-h-11" onClick={itemClick("/guardians/apply")}>
-          <Shield className="size-4 opacity-80" aria-hidden />
-          {t("accountGuardianApply")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -438,9 +501,34 @@ export function HeaderAccountMenu({
         </nav>
       );
     }
+
     if (role === "guardian") {
-      return (
-        <nav className="flex flex-col gap-1 px-2" aria-label={t("accountMenuTitle")}>
+      const guardianRows = (
+        <>
+          <button type="button" className={row} onClick={() => go("/guardian", close)}>
+            <LayoutDashboard className="size-5 shrink-0 opacity-80" aria-hidden />
+            {t("accountGuardianDashboard")}
+          </button>
+          <button type="button" className={row} onClick={() => go("/guardian/profile", close)}>
+            <UserRound className="size-5 shrink-0 opacity-80" aria-hidden />
+            {t("accountGuardianProfile")}
+          </button>
+          <button type="button" className={row} onClick={() => go("/mypage/guardian/posts", close)}>
+            <FileText className="size-5 shrink-0 opacity-80" aria-hidden />
+            {t("accountGuardianPosts")}
+          </button>
+          <button type="button" className={row} onClick={() => go("/mypage/guardian/matches", close)}>
+            <Heart className="size-5 shrink-0 opacity-80" aria-hidden />
+            {t("accountGuardianMatches")}
+          </button>
+          <button type="button" className={row} onClick={() => go("/mypage/guardian/points", close)}>
+            <Coins className="size-5 shrink-0 opacity-80" aria-hidden />
+            {t("accountGuardianEarnings")}
+          </button>
+        </>
+      );
+      const travelerRows = (
+        <>
           <button type="button" className={row} onClick={() => go("/mypage", close)}>
             <LayoutDashboard className="size-5 shrink-0 opacity-80" aria-hidden />
             {t("accountMypage")}
@@ -461,18 +549,11 @@ export function HeaderAccountMenu({
             <Users className="size-5 shrink-0 opacity-80" aria-hidden />
             {t("accountMatches")}
           </button>
-          <button type="button" className={row} onClick={() => go("/guardian/profile", close)}>
-            <Users className="size-5 shrink-0 opacity-80" aria-hidden />
-            {t("accountGuardianProfile")}
-          </button>
-          <button type="button" className={row} onClick={() => go("/mypage/guardian/posts", close)}>
-            <FileText className="size-5 shrink-0 opacity-80" aria-hidden />
-            {t("accountGuardianPosts")}
-          </button>
-          <button type="button" className={row} onClick={() => go("/mypage/guardian/matches", close)}>
-            <Heart className="size-5 shrink-0 opacity-80" aria-hidden />
-            {t("accountGuardianMatches")}
-          </button>
+        </>
+      );
+      return (
+        <nav className="flex flex-col gap-1 px-2" aria-label={t("accountMenuTitle")}>
+          {segment === "guardian" ? guardianRows : travelerRows}
           <div className="border-border/60 my-2 border-t" />
           <button
             type="button"
@@ -484,6 +565,8 @@ export function HeaderAccountMenu({
         </nav>
       );
     }
+
+    // Traveler role
     return (
       <nav className="flex flex-col gap-1 px-2" aria-label={t("accountMenuTitle")}>
         <button type="button" className={row} onClick={() => go("/mypage", close)}>
@@ -505,10 +588,6 @@ export function HeaderAccountMenu({
         <button type="button" className={row} onClick={() => go("/mypage/matches", close)}>
           <Users className="size-5 shrink-0 opacity-80" aria-hidden />
           {t("accountMatches")}
-        </button>
-        <button type="button" className={row} onClick={() => go("/guardians/apply", close)}>
-          <Shield className="size-5 shrink-0 opacity-80" aria-hidden />
-          {t("accountGuardianApply")}
         </button>
         <div className="border-border/60 my-2 border-t" />
         <button
@@ -543,6 +622,9 @@ export function HeaderAccountMenu({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-[min(calc(100vw-2rem),20rem)] p-0" sideOffset={6}>
             <AccountSummary me={me} authUser={authUser} onDarkSurface={false} />
+            {role === "guardian" ? (
+              <SegmentTabs segment={segment} onSegmentChange={setSegment} />
+            ) : null}
             <div className="p-1">{menuItemsDesktop(() => setDesktopOpen(false))}</div>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -560,11 +642,14 @@ export function HeaderAccountMenu({
               </>
             )}
           </SheetTrigger>
-          <SheetContent side="bottom" className="max-h-[min(85vh,32rem)] rounded-t-2xl px-0 pt-4 pb-6">
+          <SheetContent side="bottom" className="max-h-[min(85vh,36rem)] rounded-t-2xl px-0 pt-4 pb-6">
             <SheetHeader className="sr-only">
               <SheetTitle>{t("accountMenuTitle")}</SheetTitle>
             </SheetHeader>
             <AccountSummary me={me} authUser={authUser} onDarkSurface={false} />
+            {role === "guardian" ? (
+              <SegmentTabs segment={segment} onSegmentChange={setSegment} />
+            ) : null}
             {menuItemsMobile(() => setMobileOpen(false))}
           </SheetContent>
         </Sheet>
