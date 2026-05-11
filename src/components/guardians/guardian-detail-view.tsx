@@ -2,6 +2,8 @@ import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { mockContentCategories, mockContentPosts, mockRegions } from "@/data/mock";
+import { listPostsForGuardianMerged, listApprovedPostsByIdsMerged } from "@/lib/posts-public-merged.server";
+import { isGuardianOnline, isInquireNowOnProfileEnabled } from "@/lib/guardian-online";
 import {
   getContentPostFormat,
   getPostHeroImageUrl,
@@ -62,7 +64,42 @@ export async function GuardianDetailView({
   const line = (copy: LocalizedCopy) => marketingLine(locale, copy);
 
   const areaLive = isActiveLaunchArea(g.launch_area_slug);
-  const insightPosts = resolveRepresentativeContentPosts(g, mockContentPosts, 3);
+  // 하루웨이 섹션: 대표 포스트(repIds) 우선 + 그 외 가디언의 승인 포스트로 보강.
+  // DB+mock 병합본을 사용해 슬러그/uuid 비대칭 문제를 회피한다.
+  const repIds = (g.representative_post_ids ?? []).map((id) => id.trim()).filter(Boolean);
+  const [repFromCatalog, guardianAllPosts] = await Promise.all([
+    repIds.length > 0 ? listApprovedPostsByIdsMerged(repIds) : Promise.resolve([] as typeof mockContentPosts),
+    listPostsForGuardianMerged(g.user_id),
+  ]);
+  // repIds 우선순위 유지, 그 후 가디언 승인 포스트로 3건까지 채움
+  const seen = new Set<string>();
+  const insightPosts: typeof mockContentPosts = [];
+  for (const p of repFromCatalog) {
+    if (!seen.has(p.id) && insightPosts.length < 3) {
+      seen.add(p.id);
+      insightPosts.push(p);
+    }
+  }
+  for (const p of guardianAllPosts) {
+    if (p.status !== "approved") continue;
+    if (!seen.has(p.id) && insightPosts.length < 3) {
+      seen.add(p.id);
+      insightPosts.push(p);
+    }
+  }
+  // 마지막 폴백: mock 카탈로그(슬러그 id 매칭 케이스)
+  if (insightPosts.length === 0) {
+    const mockFallback = resolveRepresentativeContentPosts(g, mockContentPosts, 3);
+    for (const p of mockFallback) {
+      if (!seen.has(p.id)) {
+        seen.add(p.id);
+        insightPosts.push(p);
+      }
+    }
+  }
+
+  const online = isGuardianOnline(g.last_seen_at);
+  const showInquireOnProfile = isInquireNowOnProfileEnabled();
 
   const authorApprovedPosts = listPostsForGuardian(g.user_id).filter((p) => p.status === "approved");
   const postSheetItems = authorApprovedPosts.map((p) => ({
@@ -152,7 +189,7 @@ export async function GuardianDetailView({
                       >
                         {tTier(g.guardian_tier)}
                       </Badge>
-                      {(g.last_seen_at === "mock:online" || (g.last_seen_at && Date.now() - new Date(g.last_seen_at).getTime() < 30 * 60 * 1000)) ? (
+                      {online ? (
                         <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-emerald-500/80 px-2 py-0.5 text-[11px] font-semibold text-white shadow-sm backdrop-blur-sm">
                           <span className="size-1.5 animate-pulse rounded-full bg-white" aria-hidden />
                           지금 온라인
@@ -417,18 +454,20 @@ export async function GuardianDetailView({
               </li>
             </ul>
             <p className="text-muted-foreground text-xs leading-relaxed">{t("requestGuide")}</p>
-            <GuardianInquiryOpenTrigger
-              detail={{
-                guardianUserId: g.user_id,
-                displayName: g.display_name,
-                headline: sheetHeadlineForPublisher,
-                avatarUrl: imgs.avatar,
-              }}
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-500/50 bg-emerald-50 text-base font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
-            >
-              <MessageCircle className="size-5" aria-hidden />
-              지금 문의하기
-            </GuardianInquiryOpenTrigger>
+            {showInquireOnProfile ? (
+              <GuardianInquiryOpenTrigger
+                detail={{
+                  guardianUserId: g.user_id,
+                  displayName: g.display_name,
+                  headline: sheetHeadlineForPublisher,
+                  avatarUrl: imgs.avatar,
+                }}
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-500/50 bg-emerald-50 text-base font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+              >
+                <MessageCircle className="size-5" aria-hidden />
+                지금 문의하기
+              </GuardianInquiryOpenTrigger>
+            ) : null}
             <GuardianRequestOpenTrigger size="lg" className="h-12 w-full rounded-2xl text-base font-semibold shadow-[var(--shadow-brand)]">
               {tReq("openCta")}
             </GuardianRequestOpenTrigger>

@@ -68,6 +68,7 @@ export function GuardianInquirySheetGlobal() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
+  const [threadError, setThreadError] = useState<"not_found" | "network" | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -79,67 +80,70 @@ export function GuardianInquirySheetGlobal() {
     return () => window.removeEventListener(GUARDIAN_REQUEST_DEFAULTS_EVENT, onDefaults);
   }, []);
 
+  /* 스레드 초기화 — open 이벤트 + retry 둘 다 호출 */
+  const initThread = useCallback(async (guardianUserId: string) => {
+    setIsLoading(true);
+    setThreadError(null);
+    try {
+      const res = await fetch("/api/threads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ guardian_user_id: guardianUserId }),
+      });
+
+      if (res.status === 401) {
+        setAuthRequired(true);
+        return;
+      }
+      if (res.status === 404) {
+        setThreadError("not_found");
+        return;
+      }
+      if (!res.ok) {
+        setThreadError("network");
+        return;
+      }
+      const { thread } = (await res.json()) as { thread: { id: string } };
+      setThreadId(thread.id);
+
+      // 기존 메시지 로드
+      const msgRes = await fetch(`/api/threads/${thread.id}/messages`);
+      if (msgRes.ok) {
+        const { messages: existing } = (await msgRes.json()) as { messages: ChatMessage[] };
+        setMessages(existing ?? []);
+      }
+    } catch {
+      setThreadError("network");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   /* 문의 시트 열기 이벤트 수신 */
   useEffect(() => {
-    const onOpen = async (e: Event) => {
+    const onOpen = (e: Event) => {
       const d: GuardianInquiryOpenDetail =
         (e as CustomEvent<GuardianInquiryOpenDetail>).detail ?? {};
       setDetail(d);
       setInput("");
       setAuthRequired(false);
+      setThreadError(null);
       setMessages([]);
       setThreadId(null);
       setOpen(true);
 
       if (!d.guardianUserId) return;
-
-      setIsLoading(true);
-      try {
-        // 스레드 생성 or 기존 반환
-        const res = await fetch("/api/threads", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ guardian_user_id: d.guardianUserId }),
-        });
-
-        if (res.status === 401) {
-          setAuthRequired(true);
-          setIsLoading(false);
-          return;
-        }
-
-        if (!res.ok) throw new Error("Thread init failed");
-        const { thread } = (await res.json()) as { thread: { id: string } };
-        setThreadId(thread.id);
-
-        // 기존 메시지 로드
-        const msgRes = await fetch(`/api/threads/${thread.id}/messages`);
-        if (msgRes.ok) {
-          const { messages: existing } = (await msgRes.json()) as { messages: ChatMessage[] };
-          setMessages(existing ?? []);
-        }
-      } catch {
-        // 비인증 상태 or 네트워크 오류 → 가이드 메시지 표시
-        setMessages([
-          {
-            id: "welcome",
-            thread_id: "",
-            sender_user_id: d.guardianUserId ?? "",
-            sender_role: "guardian",
-            content: "안녕하세요! 😊 궁금한 점이 있으시면 편하게 물어보세요.",
-            content_type: "text",
-            is_read: false,
-            is_ai_reply: false,
-            created_at: new Date().toISOString(),
-          },
-        ]);
-      } finally {
-        setIsLoading(false);
-      }
+      void initThread(d.guardianUserId);
     };
     window.addEventListener(GUARDIAN_INQUIRY_OPEN_EVENT, onOpen);
     return () => window.removeEventListener(GUARDIAN_INQUIRY_OPEN_EVENT, onOpen);
-  }, []);
+  }, [initThread]);
+
+  const retryThreadInit = useCallback(() => {
+    const guardianRef = detail.guardianUserId ?? defaults.guardianUserId;
+    if (!guardianRef) return;
+    void initThread(guardianRef);
+  }, [detail.guardianUserId, defaults.guardianUserId, initThread]);
 
   /* Realtime 구독: 새 메시지 수신 */
   useThreadRealtime(threadId, (newMsg) => {
@@ -296,6 +300,26 @@ export function GuardianInquirySheetGlobal() {
                 <span className="size-2 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:300ms]" />
               </div>
             </div>
+          ) : threadError ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
+              <p className="text-base font-semibold text-foreground">
+                {threadError === "not_found" ? "하루이를 찾을 수 없어요" : "잠시 연결이 어려워요"}
+              </p>
+              <p className="max-w-[260px] text-sm leading-relaxed text-muted-foreground">
+                {threadError === "not_found"
+                  ? "이 하루이의 문의 채널을 열 수 없습니다. 잠시 후 다시 시도해 주세요."
+                  : "네트워크가 불안정합니다. 다시 시도해 주세요."}
+              </p>
+              {threadError !== "not_found" ? (
+                <button
+                  type="button"
+                  onClick={retryThreadInit}
+                  className="rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white"
+                >
+                  다시 시도
+                </button>
+              ) : null}
+            </div>
           ) : (
             <>
               {messages.map((msg) =>
@@ -372,7 +396,7 @@ export function GuardianInquirySheetGlobal() {
         </div>
 
         {/* ── 입력 바 ── */}
-        {!authRequired && (
+        {!authRequired && !threadError && (
           <div className="shrink-0 border-t border-border/50 bg-card px-3 py-3">
             <div className="flex items-end gap-2">
               <textarea

@@ -17,6 +17,7 @@ import { guardianProfileImageUrls, GUARDIAN_AVATAR_COVER_CLASS } from "@/lib/gua
 import { getSessionUserId } from "@/lib/supabase/server-user";
 import { getTravelerSavedGuardianIdsUnified } from "@/lib/traveler-saved-unified.server";
 import { GUARDIAN_TIER_ROLE_BADGE_CLASSNAME, guardianTierBadgeVariant } from "@/lib/guardian-tier-ui";
+import { isGuardianOnline } from "@/lib/guardian-online";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -78,7 +79,7 @@ export default async function TravelerSavedGuardiansPage() {
                 <div className="flex gap-4 p-4 sm:p-5">
                   <div className="relative size-20 shrink-0 overflow-hidden rounded-xl sm:size-24">
                     <Image src={imgs.avatar} alt="" fill className={GUARDIAN_AVATAR_COVER_CLASS} sizes="96px" />
-                    {(g.last_seen_at === "mock:online" || (g.last_seen_at && Date.now() - new Date(g.last_seen_at).getTime() < 30 * 60 * 1000)) ? (
+                    {isGuardianOnline(g.last_seen_at) ? (
                       <span className="absolute bottom-1 right-1 size-3 rounded-full border-2 border-white bg-emerald-500" aria-label="온라인" />
                     ) : (
                       <span className="absolute bottom-1 right-1 size-3 rounded-full border-2 border-white bg-muted-foreground/40" aria-label="오프라인" />
@@ -87,7 +88,7 @@ export default async function TravelerSavedGuardiansPage() {
                   <CardContent className="flex flex-1 flex-col gap-2 p-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-semibold leading-snug">{g.display_name}</p>
-                      {(g.last_seen_at === "mock:online" || (g.last_seen_at && Date.now() - new Date(g.last_seen_at).getTime() < 30 * 60 * 1000)) ? (
+                      {isGuardianOnline(g.last_seen_at) ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
                           <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" aria-hidden />
                           지금 온라인
