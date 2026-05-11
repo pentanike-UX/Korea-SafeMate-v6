@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Link } from "@/i18n/navigation";
 import {
   FALLBACK_GUARDIAN_REQUEST_AVATAR,
   GUARDIAN_REQUEST_DEFAULTS_EVENT,
@@ -280,12 +281,12 @@ export function GuardianInquirySheetGlobal() {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 하루이에게 문의하려면 먼저 로그인해 주세요.
               </p>
-              <a
-                href="/auth/login"
+              <Link
+                href="/login"
                 className="mt-2 rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white"
               >
                 로그인하기
-              </a>
+              </Link>
             </div>
           ) : isLoading ? (
             <div className="flex flex-1 items-center justify-center">
