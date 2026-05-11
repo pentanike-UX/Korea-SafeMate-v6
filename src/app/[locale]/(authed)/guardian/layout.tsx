@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getServerSupabaseForUser } from "@/lib/supabase/server-user";
 import { loginPathForLocale, withLocalePath } from "@/lib/auth/route-path";
 import { routing, type AppLocale } from "@/i18n/routing";
+import { GuardianPresenceHeartbeat } from "@/components/guardians/guardian-presence-heartbeat";
 
 type Props = {
   children: React.ReactNode;
@@ -30,5 +31,10 @@ export default async function GuardianSectionLayout({ children, params }: Props)
     redirect(`${loginPathForLocale(locale)}?next=${encodeURIComponent(next)}`);
   }
 
-  return <div className="bg-bg-sunken min-h-full">{children}</div>;
+  return (
+    <div className="bg-bg-sunken min-h-full">
+      <GuardianPresenceHeartbeat />
+      {children}
+    </div>
+  );
 }
