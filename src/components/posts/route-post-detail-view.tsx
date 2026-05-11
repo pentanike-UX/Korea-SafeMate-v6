@@ -55,6 +55,8 @@ export async function RoutePostDetailView({ post, editHref, isOwner }: { post: C
         headline={sheetHeadline}
         avatarUrl={sheetAvatar}
         suggestedRegionSlug={sheetRegion}
+        sourcePostId={post.id}
+        sourcePostTitle={post.title}
       />
       <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6">
         <div className="mb-4 flex items-center justify-between gap-3">

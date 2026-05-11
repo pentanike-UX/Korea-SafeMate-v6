@@ -18,6 +18,8 @@ export function GuardianRequestDefaultsPublisher(props: GuardianRequestSheetHost
     props.headline,
     props.avatarUrl,
     props.suggestedRegionSlug ?? "",
+    props.sourcePostId ?? "",
+    props.sourcePostTitle ?? "",
   ]);
   return null;
 }

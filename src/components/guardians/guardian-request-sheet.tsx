@@ -97,6 +97,9 @@ export type GuardianRequestSheetHostProps = {
   headline: string;
   avatarUrl: string;
   suggestedRegionSlug?: string | null;
+  /** 이 페이지의 source post — 문의 시트가 스레드 생성 시 함께 전달 */
+  sourcePostId?: string | null;
+  sourcePostTitle?: string | null;
 };
 
 export function GuardianRequestSheetHost({

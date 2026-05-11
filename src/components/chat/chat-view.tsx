@@ -40,10 +40,18 @@ export function ChatView({
       .finally(() => setIsLoading(false));
   }, [threadId]);
 
-  /* Realtime 구독 */
+  /* Realtime 구독 + dedup */
   useThreadRealtime(threadId, (newMsg) => {
     setMessages((prev) => {
       if (prev.some((m) => m.id === newMsg.id)) return prev;
+      if (newMsg.client_msg_id) {
+        const idx = prev.findIndex((m) => m.client_msg_id === newMsg.client_msg_id);
+        if (idx >= 0) {
+          const copy = [...prev];
+          copy[idx] = newMsg;
+          return copy;
+        }
+      }
       return [...prev, newMsg];
     });
   });
@@ -68,7 +76,11 @@ export function ChatView({
   const sendMessage = useCallback(
     async (text: string) => {
       if (!text.trim() || isSending) return;
-      const optimisticId = `opt-${Date.now()}`;
+      const clientMsgId =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `cmi-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      const optimisticId = `opt-${clientMsgId}`;
       const optimistic: ChatMessage = {
         id: optimisticId,
         thread_id: threadId,
@@ -79,6 +91,7 @@ export function ChatView({
         is_read: false,
         is_ai_reply: false,
         created_at: new Date().toISOString(),
+        client_msg_id: clientMsgId,
       };
       setMessages((prev) => [...prev, optimistic]);
       setInput("");
@@ -88,11 +101,21 @@ export function ChatView({
         const res = await fetch(`/api/threads/${threadId}/messages`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: text.trim() }),
+          body: JSON.stringify({ content: text.trim(), client_msg_id: clientMsgId }),
         });
         if (!res.ok) throw new Error("Send failed");
         const { message } = (await res.json()) as { message: ChatMessage };
-        setMessages((prev) => prev.map((m) => (m.id === optimisticId ? message : m)));
+        setMessages((prev) => {
+          const without = prev.filter((m) => m.id !== optimisticId);
+          if (without.some((m) => m.id === message.id)) return without;
+          const byClient = without.findIndex((m) => m.client_msg_id && m.client_msg_id === message.client_msg_id);
+          if (byClient >= 0) {
+            const copy = [...without];
+            copy[byClient] = message;
+            return copy;
+          }
+          return [...without, message];
+        });
       } catch {
         setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
       } finally {

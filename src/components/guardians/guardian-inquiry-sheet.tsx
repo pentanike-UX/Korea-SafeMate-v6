@@ -21,6 +21,8 @@ export type GuardianInquiryOpenDetail = {
   displayName?: string;
   avatarUrl?: string;
   headline?: string;
+  sourcePostId?: string | null;
+  sourcePostTitle?: string | null;
 };
 
 const QUICK_REPLIES = [
@@ -81,14 +83,16 @@ export function GuardianInquirySheetGlobal() {
   }, []);
 
   /* 스레드 초기화 — open 이벤트 + retry 둘 다 호출 */
-  const initThread = useCallback(async (guardianUserId: string) => {
+  const initThread = useCallback(async (guardianUserId: string, sourcePostId?: string | null) => {
     setIsLoading(true);
     setThreadError(null);
     try {
+      const body: Record<string, unknown> = { guardian_user_id: guardianUserId };
+      if (sourcePostId) body.source_post_id = sourcePostId;
       const res = await fetch("/api/threads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ guardian_user_id: guardianUserId }),
+        body: JSON.stringify(body),
       });
 
       if (res.status === 401) {
@@ -133,23 +137,34 @@ export function GuardianInquirySheetGlobal() {
       setOpen(true);
 
       if (!d.guardianUserId) return;
-      void initThread(d.guardianUserId);
+      const postId = d.sourcePostId ?? defaults.sourcePostId ?? null;
+      void initThread(d.guardianUserId, postId);
     };
     window.addEventListener(GUARDIAN_INQUIRY_OPEN_EVENT, onOpen);
     return () => window.removeEventListener(GUARDIAN_INQUIRY_OPEN_EVENT, onOpen);
-  }, [initThread]);
+  }, [initThread, defaults.sourcePostId]);
 
   const retryThreadInit = useCallback(() => {
     const guardianRef = detail.guardianUserId ?? defaults.guardianUserId;
     if (!guardianRef) return;
-    void initThread(guardianRef);
-  }, [detail.guardianUserId, defaults.guardianUserId, initThread]);
+    const postId = detail.sourcePostId ?? defaults.sourcePostId ?? null;
+    void initThread(guardianRef, postId);
+  }, [detail.guardianUserId, detail.sourcePostId, defaults.guardianUserId, defaults.sourcePostId, initThread]);
 
-  /* Realtime 구독: 새 메시지 수신 */
+  /* Realtime 구독: 새 메시지 수신 + dedup */
   useThreadRealtime(threadId, (newMsg) => {
     setMessages((prev) => {
-      // 낙관적 업데이트로 이미 추가된 경우 중복 방지
+      // 동일 server id 중복
       if (prev.some((m) => m.id === newMsg.id)) return prev;
+      // client_msg_id 로 매칭되는 낙관 메시지가 있으면 실 메시지로 교체
+      if (newMsg.client_msg_id) {
+        const idx = prev.findIndex((m) => m.client_msg_id === newMsg.client_msg_id);
+        if (idx >= 0) {
+          const copy = [...prev];
+          copy[idx] = newMsg;
+          return copy;
+        }
+      }
       return [...prev, newMsg];
     });
   });
@@ -176,6 +191,8 @@ export function GuardianInquirySheetGlobal() {
     avatarUrl: detail.avatarUrl ?? defaults.avatarUrl ?? FALLBACK_GUARDIAN_REQUEST_AVATAR,
     headline: detail.headline ?? defaults.headline ?? "현지 전문 하루이",
     guardianUserId: detail.guardianUserId ?? defaults.guardianUserId ?? "",
+    sourcePostId: detail.sourcePostId ?? defaults.sourcePostId ?? null,
+    sourcePostTitle: detail.sourcePostTitle ?? defaults.sourcePostTitle ?? null,
   };
 
   const sendMessage = useCallback(
@@ -183,7 +200,11 @@ export function GuardianInquirySheetGlobal() {
       if (!text.trim() || isSending) return;
       if (!threadId) return;
 
-      const optimisticId = `opt-${Date.now()}`;
+      const clientMsgId =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `cmi-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      const optimisticId = `opt-${clientMsgId}`;
       const optimisticMsg: ChatMessage = {
         id: optimisticId,
         thread_id: threadId,
@@ -194,6 +215,7 @@ export function GuardianInquirySheetGlobal() {
         is_read: false,
         is_ai_reply: false,
         created_at: new Date().toISOString(),
+        client_msg_id: clientMsgId,
       };
 
       setMessages((prev) => [...prev, optimisticMsg]);
@@ -204,16 +226,24 @@ export function GuardianInquirySheetGlobal() {
         const res = await fetch(`/api/threads/${threadId}/messages`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: text.trim() }),
+          body: JSON.stringify({ content: text.trim(), client_msg_id: clientMsgId }),
         });
         if (!res.ok) throw new Error("Send failed");
         const { message } = (await res.json()) as { message: ChatMessage };
-        // 낙관적 메시지를 실제 ID로 교체
-        setMessages((prev) =>
-          prev.map((m) => (m.id === optimisticId ? message : m)),
-        );
+        // optimistic 제거 + 실 메시지 중복 방지하며 추가
+        setMessages((prev) => {
+          const without = prev.filter((m) => m.id !== optimisticId);
+          if (without.some((m) => m.id === message.id)) return without;
+          // Realtime이 client_msg_id 매칭으로 이미 추가했을 수 있음
+          const byClient = without.findIndex((m) => m.client_msg_id && m.client_msg_id === message.client_msg_id);
+          if (byClient >= 0) {
+            const copy = [...without];
+            copy[byClient] = message;
+            return copy;
+          }
+          return [...without, message];
+        });
       } catch {
-        // 실패 시 낙관적 메시지 제거
         setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
       } finally {
         setIsSending(false);
@@ -261,10 +291,20 @@ export function GuardianInquirySheetGlobal() {
             <p className="text-sm font-semibold leading-tight text-foreground">
               {resolved.displayName}
             </p>
-            <p className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400">
-              <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" aria-hidden />
-              지금 온라인 · 빠른 응답
-            </p>
+            {resolved.sourcePostTitle && resolved.sourcePostId ? (
+              <Link
+                href={`/posts/${resolved.sourcePostId}`}
+                className="mt-0.5 inline-flex max-w-full items-center gap-1 truncate text-[11px] font-medium text-[var(--brand-primary)] hover:underline"
+                title={resolved.sourcePostTitle}
+              >
+                📍 <span className="truncate">{resolved.sourcePostTitle}</span>
+              </Link>
+            ) : (
+              <p className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400">
+                <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" aria-hidden />
+                지금 온라인 · 빠른 응답
+              </p>
+            )}
           </div>
           <button
             type="button"
