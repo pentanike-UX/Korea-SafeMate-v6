@@ -730,6 +730,8 @@ export interface MessageThread {
   traveler_message_count: number;
   last_message_at: string | null;
   created_at: string;
+  /** 문의가 시작된 content_posts.id (null 허용) */
+  source_post_id?: string | null;
 }
 
 /** Row shape for public.messages */
@@ -743,6 +745,25 @@ export interface ChatMessage {
   is_read: boolean;
   is_ai_reply: boolean;
   created_at: string;
+  /** 클라이언트 발급 uuid v4 — dedup용 */
+  client_msg_id?: string | null;
+}
+
+/** 출처 포스트 미니 카드용 */
+export interface ThreadSourcePost {
+  id: string;
+  title: string;
+  cover_image_url: string | null;
+}
+
+/** 인박스 상대방 표시용 */
+export interface ThreadOtherParty {
+  user_id: string;
+  display_name: string;
+  avatar_url: string | null;
+  role: "traveler" | "guardian";
+  /** 가디언인 경우만 — last_seen_at */
+  last_seen_at?: string | null;
 }
 
 /** Thread with joined display info for UI rendering */
@@ -755,4 +776,12 @@ export interface MessageThreadWithMeta extends MessageThread {
   last_message_preview: string | null;
   /** Unread count for the current viewer */
   unread_count: number;
+  /** 보강된 상대방 정보 (인박스 신규 응답) */
+  other?: ThreadOtherParty;
+  /** 출처 포스트 (인박스 신규 응답) */
+  source_post?: ThreadSourcePost | null;
+  /** 마지막 메시지 발신자 역할 */
+  last_message_role?: "traveler" | "guardian" | "admin" | null;
+  /** 마지막 메시지가 AI 답변인지 */
+  last_message_is_ai?: boolean;
 }
