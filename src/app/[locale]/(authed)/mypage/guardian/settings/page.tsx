@@ -3,7 +3,8 @@ import { Link } from "@/i18n/navigation";
 import { BRAND } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bell, Shield, UserCircle2 } from "lucide-react";
+import { AiReplyToggle } from "@/components/guardian/settings/ai-reply-toggle";
+import { Bell, Bot, Shield, UserCircle2 } from "lucide-react";
 
 export async function generateMetadata() {
   const t = await getTranslations("TravelerHub");
@@ -68,6 +69,43 @@ export default async function MypageGuardianSettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* AI 자동답변 설정 카드 */}
+      <Card className="rounded-2xl border-violet-200/60 bg-violet-50/30 py-0 shadow-[var(--shadow-sm)] dark:border-violet-900/40 dark:bg-violet-950/10">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Bot className="size-4 text-violet-500" aria-hidden />
+            AI 채팅 어시스턴트
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm">
+          <p className="text-muted-foreground leading-relaxed">
+            여행자가 문의를 보내면 AI가 즉시 초안 답변을 전송합니다.
+            가디언이 직접 답변할 시간을 확보하거나 바쁠 때 활성화하세요.
+          </p>
+          <div className="rounded-xl border border-border/60 bg-card p-4">
+            <AiReplyToggle />
+          </div>
+          <ul className="space-y-1 text-[12px] text-muted-foreground">
+            <li className="flex items-start gap-1.5">
+              <span className="mt-0.5 text-violet-500">•</span>
+              AI 답변은 채팅창에서 가디언 로그인 시에만{" "}
+              <span className="inline-flex items-center gap-0.5 rounded bg-violet-100 px-1 py-0.5 text-[10px] font-bold text-violet-600 dark:bg-violet-950/40 dark:text-violet-400">
+                AI
+              </span>{" "}
+              배지로 표시됩니다
+            </li>
+            <li className="flex items-start gap-1.5">
+              <span className="mt-0.5 text-violet-500">•</span>
+              여행자에게는 일반 답변과 동일하게 보입니다
+            </li>
+            <li className="flex items-start gap-1.5">
+              <span className="mt-0.5 text-violet-500">•</span>
+              모든 AI 답변은 대화 기록에 저장됩니다
+            </li>
+          </ul>
+        </CardContent>
+      </Card>
     </div>
   );
 }

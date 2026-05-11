@@ -714,3 +714,45 @@ export interface BookingWithDetails extends Booking {
   guardian_name: string | null;
   service_name: string;
 }
+
+// ─── Chat / Messaging ────────────────────────────────────────────────────────
+
+export type InquiryKind = "pre_booking" | "post_booking";
+
+/** Row shape for public.message_threads */
+export interface MessageThread {
+  id: string;
+  booking_id: string | null;
+  inquiry_kind: InquiryKind;
+  traveler_user_id: string;
+  guardian_user_id: string;
+  max_messages_traveler: number;
+  traveler_message_count: number;
+  last_message_at: string | null;
+  created_at: string;
+}
+
+/** Row shape for public.messages */
+export interface ChatMessage {
+  id: string;
+  thread_id: string;
+  sender_user_id: string;
+  sender_role: "traveler" | "guardian" | "admin";
+  content: string;
+  content_type: "text" | "image" | "route_preview";
+  is_read: boolean;
+  is_ai_reply: boolean;
+  created_at: string;
+}
+
+/** Thread with joined display info for UI rendering */
+export interface MessageThreadWithMeta extends MessageThread {
+  /** Other party's display name */
+  other_display_name: string;
+  /** Other party's avatar URL */
+  other_avatar_url: string | null;
+  /** Last message preview text */
+  last_message_preview: string | null;
+  /** Unread count for the current viewer */
+  unread_count: number;
+}
