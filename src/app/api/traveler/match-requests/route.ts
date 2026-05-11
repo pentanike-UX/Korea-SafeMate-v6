@@ -9,6 +9,7 @@ import {
 import { cookieOpts, getMatchRequestsForTraveler } from "@/lib/traveler-match-requests.server";
 import { getSupabaseAuthUserIdOnly } from "@/lib/supabase/server-user";
 import { createMatchRecord } from "@/lib/points/match-service";
+import { normalizeGuardianRef } from "@/lib/guardian-id-normalize.server";
 
 function isUuid(s: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
@@ -33,9 +34,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const gid = typeof body.guardian_user_id === "string" ? body.guardian_user_id.trim() : "";
-  if (!gid) return NextResponse.json({ error: "guardian_user_id required" }, { status: 400 });
+  const gInput = typeof body.guardian_user_id === "string" ? body.guardian_user_id.trim() : "";
+  if (!gInput) return NextResponse.json({ error: "guardian_user_id required" }, { status: 400 });
   const gname = typeof body.guardian_display_name === "string" ? body.guardian_display_name.trim() : null;
+
+  const norm = await normalizeGuardianRef(gInput);
+  if (!norm.ok) {
+    const status = norm.reason === "invalid" ? 400 : 404;
+    return NextResponse.json({ error: norm.reason === "invalid" ? "guardian_user_id invalid" : "guardian_not_found" }, { status });
+  }
+  const gid = norm.uuid;
 
   if (isUuid(travelerId) && isUuid(gid)) {
     const db = await createMatchRecord({ travelerUserId: travelerId, guardianUserId: gid, bookingId: null });
