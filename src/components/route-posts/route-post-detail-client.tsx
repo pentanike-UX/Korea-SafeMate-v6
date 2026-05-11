@@ -940,6 +940,32 @@ export function RoutePostDetailClient({
   );
   const routeArticleBlocks = routeArticleRender.mode === "blocks" ? routeArticleRender.data : null;
 
+  /**
+   * ② narrative 중복 표출 방지 — route_summary·before_you_go·route_closing과
+   * 실질적으로 동일한 텍스트면 표시 억제. (textsOverlap 기준: 짧은 쪽이 긴 쪽에 포함)
+   */
+  const showNarrative = useMemo<boolean>(() => {
+    if (routeArticleRender.mode !== "blocks") return false;
+    const narrative = routeArticleRender.data.narrative?.trim();
+    if (!narrative) return false;
+    const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+    const overlaps = (a: string, b: string): boolean => {
+      const na = norm(a);
+      const nb = norm(b);
+      if (!na || !nb) return false;
+      if (na === nb) return true;
+      const [sh, lo] = na.length <= nb.length ? [na, nb] : [nb, na];
+      if (sh.length < 20) return na === nb;
+      return lo.includes(sh);
+    };
+    const peers = [
+      routeArticleRender.data.routeSummary,
+      routeArticleRender.data.beforeYouGo,
+      routeArticleRender.data.routeClosing,
+    ].filter(Boolean) as string[];
+    return !peers.some((p) => overlaps(narrative, p));
+  }, [routeArticleRender]);
+
   const spotTimes = useMemo(() => {
     const startHour = startHourFromTimeOfDay(journey.metadata.recommended_time_of_day);
     return computeSpotTimes(spots, startHour);
@@ -986,10 +1012,11 @@ export function RoutePostDetailClient({
           />
         </div>
 
-        {/* ② 스토리 본문 — 상단 플레이북 article과 분리(읽는 영역 연속) */}
-        {routeArticleRender.mode === "blocks" && routeArticleRender.data.narrative?.trim() ? (
+        {/* ② 스토리 본문 — 상단 플레이북 article과 분리(읽는 영역 연속).
+             narrative가 routeSummary·beforeYouGo·routeClosing과 겹치면 숨김(중복 방지). */}
+        {showNarrative && routeArticleRender.mode === "blocks" ? (
           <div className="max-w-[42rem] space-y-5">
-            <PostInfoNarrativeStack text={routeArticleRender.data.narrative} />
+            <PostInfoNarrativeStack text={routeArticleRender.data.narrative!} />
           </div>
         ) : routeArticleRender.mode === "plain" && rest.trim() ? (
           <div className={POST_DETAIL_PARAGRAPH_STACK}>
