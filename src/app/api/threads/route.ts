@@ -1,17 +1,21 @@
 /**
  * POST /api/threads — pre_booking 스레드 upsert (여행자가 가디언에게 첫 문의)
  * GET  /api/threads — 현재 로그인 사용자의 스레드 목록
+ *
+ * `guardian_user_id`는 uuid 또는 시드 슬러그(mg01..mg15) 양쪽 허용.
+ * 내부에서 normalizeGuardianRef로 uuid 정규화 후 DB에 들어간다.
  */
 import { NextResponse } from "next/server";
 import { getSessionUserId } from "@/lib/supabase/server-user";
 import { getServerSupabaseForUser } from "@/lib/supabase/server-user";
+import { normalizeGuardianRef } from "@/lib/guardian-id-normalize.server";
 
 // ── POST: 스레드 생성 or 기존 반환 ──────────────────────────────────────────
 export async function POST(req: Request) {
   const userId = await getSessionUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: { guardian_user_id: string };
+  let body: { guardian_user_id?: string };
   try {
     body = (await req.json()) as typeof body;
   } catch {
@@ -20,7 +24,17 @@ export async function POST(req: Request) {
   if (!body.guardian_user_id) {
     return NextResponse.json({ error: "guardian_user_id required" }, { status: 400 });
   }
-  if (body.guardian_user_id === userId) {
+
+  const norm = await normalizeGuardianRef(body.guardian_user_id);
+  if (!norm.ok) {
+    const status = norm.reason === "invalid" ? 400 : 404;
+    const error = norm.reason === "invalid" ? "guardian_user_id invalid" : "guardian_not_found";
+    console.warn("[POST /api/threads] normalize fail", { input: body.guardian_user_id, reason: norm.reason });
+    return NextResponse.json({ error }, { status });
+  }
+  const guardianUuid = norm.uuid;
+
+  if (guardianUuid === userId) {
     return NextResponse.json({ error: "Cannot start thread with yourself" }, { status: 400 });
   }
 
@@ -32,7 +46,7 @@ export async function POST(req: Request) {
     .from("message_threads")
     .select("*")
     .eq("traveler_user_id", userId)
-    .eq("guardian_user_id", body.guardian_user_id)
+    .eq("guardian_user_id", guardianUuid)
     .eq("inquiry_kind", "pre_booking")
     .maybeSingle();
 
@@ -43,13 +57,16 @@ export async function POST(req: Request) {
     .from("message_threads")
     .insert({
       traveler_user_id: userId,
-      guardian_user_id: body.guardian_user_id,
+      guardian_user_id: guardianUuid,
       inquiry_kind: "pre_booking",
     })
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error("[POST /api/threads] insert fail", { source: norm.source, message: error.message });
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ thread: created, created: true }, { status: 201 });
 }
 
