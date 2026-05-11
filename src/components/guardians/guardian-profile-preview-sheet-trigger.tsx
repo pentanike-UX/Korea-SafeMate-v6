@@ -18,7 +18,42 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { regionDisplayLabelFromSlug } from "@/lib/mypage/region-label-i18n";
 import { cn } from "@/lib/utils";
-import { Star } from "lucide-react";
+import { Circle, Star } from "lucide-react";
+
+// ─── Online status helper ─────────────────────────────────────────────────────
+
+function resolveOnlineStatus(lastSeenAt: string | null | undefined): "online" | "recently" | null {
+  if (!lastSeenAt) return null;
+  if (lastSeenAt === "mock:online") return "online";   // dev mock sentinel
+  const diffMs = Date.now() - new Date(lastSeenAt).getTime();
+  if (diffMs < 30 * 60 * 1000) return "online";       // 30분 이내
+  if (diffMs < 24 * 60 * 60 * 1000) return "recently"; // 24시간 이내
+  return null;
+}
+
+function OnlineStatusBadge({ lastSeenAt }: { lastSeenAt?: string | null }) {
+  const status = resolveOnlineStatus(lastSeenAt);
+  if (!status) return null;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold",
+        status === "online"
+          ? "bg-emerald-500/12 text-emerald-600"
+          : "bg-amber-400/12 text-amber-600",
+      )}
+    >
+      <Circle
+        className={cn(
+          "size-2 fill-current",
+          status === "online" ? "text-emerald-500" : "text-amber-400",
+        )}
+        aria-hidden
+      />
+      {status === "online" ? "온라인" : "최근 활동"}
+    </span>
+  );
+}
 
 export type { GuardianProfileSheetPreview };
 
@@ -64,16 +99,27 @@ export function GuardianProfilePreviewPanel({
           />
         </div>
         <div className="flex items-start gap-3">
-          <div className="border-border/60 relative size-12 shrink-0 overflow-hidden rounded-full border bg-muted">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={imgs.avatar}
-              alt=""
-              className={cn("absolute inset-0 size-full min-h-0 min-w-0", GUARDIAN_AVATAR_COVER_CLASS)}
-            />
+          <div className="relative shrink-0">
+            <div className="border-border/60 size-12 overflow-hidden rounded-full border bg-muted">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imgs.avatar}
+                alt=""
+                className={cn("size-full min-h-0 min-w-0", GUARDIAN_AVATAR_COVER_CLASS)}
+              />
+            </div>
+            {resolveOnlineStatus(guardian.last_seen_at) === "online" && (
+              <span
+                className="absolute right-0 bottom-0 size-3 rounded-full border-2 border-background bg-emerald-500"
+                aria-label="온라인"
+              />
+            )}
           </div>
-          <div className="min-w-0">
-            <p className="text-foreground text-sm font-semibold">{guardian.display_name}</p>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-foreground text-sm font-semibold">{guardian.display_name}</p>
+              <OnlineStatusBadge lastSeenAt={guardian.last_seen_at} />
+            </div>
             {guardian.headline ? <p className="text-muted-foreground mt-1 text-sm leading-relaxed">{guardian.headline}</p> : null}
           </div>
         </div>

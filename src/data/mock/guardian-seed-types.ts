@@ -61,4 +61,6 @@ export interface GuardianSeedRow {
     draft: number;
     rejected: number;
   };
+  /** ISO timestamp — 온라인 상태 표시용 (없으면 표시 안 함) */
+  last_seen_at?: string | null;
 }

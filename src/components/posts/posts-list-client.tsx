@@ -30,6 +30,22 @@ type SortMode = (typeof SORTS)[number];
 const CONTENT_FILTERS = ["all", "article", "route"] as const;
 type ContentFilter = (typeof CONTENT_FILTERS)[number];
 
+/** 외국인 선호 테마 태그 — 포스트 tags[] 와 매칭 */
+const THEME_TAGS = [
+  { label: "#쇼핑", value: "쇼핑" },
+  { label: "#사진", value: "사진" },
+  { label: "#관광지", value: "관광지" },
+  { label: "#사찰", value: "사찰" },
+  { label: "#Kpop", value: "Kpop" },
+  { label: "#전망대", value: "전망대" },
+  { label: "#K뷰티", value: "K뷰티" },
+  { label: "#카페", value: "카페" },
+  { label: "#디저트", value: "디저트" },
+  { label: "#가라오케", value: "가라오케" },
+  { label: "#맛집", value: "맛집" },
+  { label: "#산책", value: "산책" },
+] as const;
+
 export function PostsListClient({
   posts,
   categories,
@@ -46,6 +62,7 @@ export function PostsListClient({
   const [region, setRegion] = useState<RegionFilter>("all");
   const [sort, setSort] = useState<SortMode>("recommended");
   const [contentFilter, setContentFilter] = useState<ContentFilter>("all");
+  const [themeTag, setThemeTag] = useState<string | null>(null);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [desktopFilterDrawer, setDesktopFilterDrawer] = useState(false);
 
@@ -68,7 +85,8 @@ export function PostsListClient({
     category !== "all" ||
     region !== "all" ||
     sort !== "recommended" ||
-    contentFilter !== "all";
+    contentFilter !== "all" ||
+    themeTag !== null;
 
   const resetFilters = () => {
     setQ("");
@@ -76,6 +94,7 @@ export function PostsListClient({
     setRegion("all");
     setSort("recommended");
     setContentFilter("all");
+    setThemeTag(null);
   };
 
   const pickCategory = (slug: string) => {
@@ -100,6 +119,10 @@ export function PostsListClient({
           p.summary.toLowerCase().includes(s) ||
           p.tags.some((tag) => tag.toLowerCase().includes(s)),
       );
+    }
+    if (themeTag) {
+      const t = themeTag.toLowerCase();
+      list = list.filter((p) => p.tags.some((tag) => tag.toLowerCase() === t));
     }
     if (category !== "all") {
       list = list.filter((p) => p.category_slug === category);
@@ -164,8 +187,15 @@ export function PostsListClient({
         onClear: () => setContentFilter("all"),
       });
     }
+    if (themeTag) {
+      chips.push({
+        id: "themeTag",
+        label: `#${themeTag}`,
+        onClear: () => setThemeTag(null),
+      });
+    }
     return chips;
-  }, [q, category, region, sort, contentFilter, categories, t]);
+  }, [q, category, region, sort, contentFilter, themeTag, categories, t]);
 
   const filterPanel = (
     <div className="flex flex-col gap-6 sm:gap-7">
@@ -301,6 +331,30 @@ export function PostsListClient({
           chipClearLabel={(label) => tExplore("chipRemoveAria", { label })}
         />
       </StickyListingFiltersBar>
+
+      {/* ── 테마 태그 칩 바 ──────────────────────────────────────────── */}
+      <div className="border-b border-border/30 bg-[var(--bg-page)]">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="no-scrollbar flex items-center gap-2 overflow-x-auto py-2.5 sm:py-3">
+            {THEME_TAGS.map(({ label, value }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setThemeTag((prev) => (prev === value ? null : value))}
+                className={cn(
+                  "inline-flex shrink-0 items-center rounded-full border px-3.5 py-1.5 text-[12px] font-semibold transition-all duration-150",
+                  themeTag === value
+                    ? "border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white shadow-sm"
+                    : "border-border/60 bg-background text-muted-foreground hover:border-[var(--brand-primary)]/50 hover:text-foreground",
+                )}
+                aria-pressed={themeTag === value}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
         <SheetContent

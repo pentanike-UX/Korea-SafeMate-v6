@@ -290,6 +290,8 @@ export const GUARDIAN_SEED_ROWS: readonly GuardianSeedRow[] = [
       { code: "zh", proficiency: "conversational" },
     ],
     posts_plan: { approved: 3, pending: 0, draft: 0, rejected: 0 },
+    /** MVP: mock 온라인 상태 — 실서비스에서는 DB guardian_profiles.last_seen_at 로 교체 */
+    last_seen_at: "mock:online",
   },
   {
     id: "mg11",
@@ -443,6 +445,7 @@ function rowToGuardianProfile(row: GuardianSeedRow): GuardianProfile {
     matching_enabled: row.matching_enabled,
     avg_traveler_rating: row.avg_traveler_rating,
     expertise_tags: row.expertise_tags,
+    last_seen_at: row.last_seen_at ?? null,
   };
 }
 

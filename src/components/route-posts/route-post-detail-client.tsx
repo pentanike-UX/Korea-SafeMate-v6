@@ -5,7 +5,11 @@ import { useTranslations } from "next-intl";
 import type { ContentPost, NaverPrimaryPlace, RouteJourneyMetadata, RouteSpot } from "@/types/domain";
 import { RouteDayPreview } from "@/components/route-posts/route-day-preview";
 import { RouteStickyLocalNav } from "@/components/route-posts/route-sticky-local-nav";
-import { type GuardianRequestSheetHostProps } from "@/components/guardians/guardian-request-sheet";
+import {
+  GUARDIAN_REQUEST_OPEN_EVENT,
+  type GuardianRequestOpenDetail,
+  type GuardianRequestSheetHostProps,
+} from "@/components/guardians/guardian-request-sheet";
 import { GuardianSignatureQuote, PostInfoNarrativeStack } from "@/components/posts/post-info-blocks";
 import { PlaybookUnlockSheet } from "@/components/route-posts/playbook-unlock-sheet";
 import { useSpotGallery } from "@/hooks/use-spot-gallery";
@@ -20,7 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { FreeArchetype } from "@/lib/route-free-classification";
 import { inferFreeArchetype } from "@/lib/route-free-classification";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, MessageCircle } from "lucide-react";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
   POST_DETAIL_PROSE_P_MAIN,
@@ -33,6 +37,77 @@ import {
   premiumSpotAddressLine,
   premiumSpotPlaceTitle,
 } from "@/lib/route-playbook-labels";
+
+// ─── FAQ Section ──────────────────────────────────────────────────────────────
+
+const ROUTE_FAQ_ITEMS = [
+  {
+    q: "이 루트, 직접 동행해 줄 수 있나요?",
+    a: "네! 하루이에게 직접 문의하면 동행 가능 여부와 일정을 확인해 드립니다. 오른쪽 '문의하기' 버튼으로 바로 연결하세요.",
+  },
+  {
+    q: "루트 일정이 하루치인가요? 반나절도 가능한가요?",
+    a: "포스트에 표기된 예상 소요 시간을 기준으로 하되, 체력이나 관심 스팟에 따라 코스를 줄이거나 조합하는 것도 괜찮습니다. 하루이가 현장 상황에 맞게 조율해 드릴 수 있어요.",
+  },
+  {
+    q: "날씨가 좋지 않으면 어떡하나요?",
+    a: "우천 시 대체 실내 코스를 제안해 드립니다. 출발 전날 하루이에게 메시지를 남겨 주시면 플랜 B를 미리 준비해 드릴 수 있어요.",
+  },
+  {
+    q: "영어로 소통 가능한가요?",
+    a: "하루이의 언어 능력은 프로필에서 확인할 수 있습니다. 언어가 걱정된다면 문의 시 함께 알려 주세요.",
+  },
+] as const;
+
+function RouteFaqSection({ onOpenRequest }: { onOpenRequest?: () => void }) {
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+  return (
+    <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-9">
+      <header className="mb-5 flex items-center justify-between gap-4">
+        <div className="space-y-1">
+          <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+            FAQ · 문의
+          </p>
+          <h2 className="text-base font-semibold tracking-tight text-[var(--text-strong)]">자주 묻는 질문</h2>
+        </div>
+        {onOpenRequest && (
+          <button
+            type="button"
+            onClick={onOpenRequest}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--brand-primary)]/40 bg-[var(--brand-primary)]/8 px-3.5 py-1.5 text-[12px] font-semibold text-[var(--brand-primary)] transition-colors hover:bg-[var(--brand-primary)]/15"
+          >
+            <MessageCircle className="size-3.5" aria-hidden />
+            하루이에게 문의
+          </button>
+        )}
+      </header>
+      <ul className="divide-y divide-border/30">
+        {ROUTE_FAQ_ITEMS.map((item, idx) => (
+          <li key={idx}>
+            <button
+              type="button"
+              onClick={() => setOpenIdx((prev) => (prev === idx ? null : idx))}
+              className="flex w-full items-start justify-between gap-3 py-4 text-left"
+              aria-expanded={openIdx === idx}
+            >
+              <span className="text-sm font-medium text-foreground">{item.q}</span>
+              <ChevronDown
+                className={cn(
+                  "mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                  openIdx === idx && "rotate-180",
+                )}
+                aria-hidden
+              />
+            </button>
+            {openIdx === idx && (
+              <p className="pb-4 text-sm leading-relaxed text-muted-foreground">{item.a}</p>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
 
 // ─── Time utilities ───────────────────────────────────────────────────────────
 
@@ -985,6 +1060,24 @@ export function RoutePostDetailClient({
             {guardianSignature}
           </GuardianSignatureQuote>
         ) : null}
+
+        {/* ⑧ FAQ / 문의 */}
+        <RouteFaqSection
+          onOpenRequest={() => {
+            const event = new CustomEvent(GUARDIAN_REQUEST_OPEN_EVENT, {
+              detail: {
+                guardianUserId: requestHost.guardianUserId,
+                displayName: requestHost.displayName,
+                headline: requestHost.headline,
+                avatarUrl: requestHost.avatarUrl,
+                suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
+                postId: post.id,
+                postTitle: post.title,
+              } satisfies GuardianRequestOpenDetail,
+            });
+            window.dispatchEvent(event);
+          }}
+        />
       </div>
 
       <div ref={spotsEndRef} aria-hidden className="h-px w-full" />

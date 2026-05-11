@@ -16,6 +16,8 @@ export type GuardianProfileSheetPreview = GuardianImageSource & {
   representativePosts?: Pick<ContentPost, "id" | "title" | "summary">[];
   /** 대표 id로 해석됨 | 폴백으로 최신 승인 글만 채운 경우(시트 힌트용) */
   representativePostsSource?: "curated" | "recent_approved";
+  /** ISO timestamp — 30분 이내면 "온라인", 24시간 이내면 "최근 활동" 표시 */
+  last_seen_at?: string | null;
 };
 
 export function publicGuardianToSheetPreview(
@@ -41,5 +43,6 @@ export function publicGuardianToSheetPreview(
     companion_style_slugs: g.companion_style_slugs,
     representativePosts: repPosts.slice(0, 3),
     ...(representativePostsSource ? { representativePostsSource } : {}),
+    last_seen_at: g.last_seen_at ?? null,
   };
 }

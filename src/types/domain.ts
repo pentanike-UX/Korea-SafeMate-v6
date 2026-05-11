@@ -159,6 +159,8 @@ export interface GuardianProfile {
   expertise_tags: string[];
   /** DB sample row — 공개 UI에서 샘플 배지(실데이터와 동일 렌더). */
   is_sample?: boolean;
+  /** ISO timestamp — 온라인 상태 표시용. DB: guardian_profiles.last_seen_at */
+  last_seen_at?: string | null;
 }
 
 export interface Region {
