@@ -1008,8 +1008,8 @@
     "metaTitle": "하루way",
     "metaDescription": "Guardian insights and field-tested tips for K-culture trips.",
     "notFound": "Post not found",
-    "heroTitle": "Reviewed insights to read Seoul faster",
-    "heroBody": "Editorially reviewed posts only — built for routes, mood, and field notes, not brochure summaries.",
+    "heroTitle": "Seoul days, your way",
+    "heroBody": "Guardian-designed Seoul itineraries. Follow them as-is.",
     "searchPlaceholder": "Search title, summary, tags",
     "listResultsCount": "{count} 하루ways",
     "resetFilters": "Reset",
@@ -1107,7 +1107,8 @@
     "filterApply": "Apply",
     "filterClose": "Close",
     "ctaRequestCourseBody": "Want a custom day route designed just for you?",
-    "ctaRequestBtn": "Request this Haru"
+    "ctaRequestBtn": "Request this Haru",
+    "heroEyebrow": "Guardian-made Haruways"
   },
   "RoutePosts": {
     "introFallbackNoLead": "Skim the summary and map first, then read each stop in order.",

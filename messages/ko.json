@@ -1008,8 +1008,8 @@
     "metaTitle": "하루웨이",
     "metaDescription": "하루이가 직접 만든 서울 하루웨이 — K-컬처 여정에 맞춘 큐레이션.",
     "notFound": "하루웨이를 찾을 수 없습니다",
-    "heroTitle": "하루이가 직접 만든 서울 하루웨이",
-    "heroBody": "편집·검토를 거친 하루웨이만 모았습니다. 동선·무드·현장 주의를 빠르게 훑을 수 있게 구성했습니다.",
+    "heroTitle": "서울 하루, 골라보세요",
+    "heroBody": "현지 하루이가 직접 설계한 하루 동선입니다. 그대로 따라가면 됩니다.",
     "searchPlaceholder": "제목, 요약, 태그 검색",
     "listResultsCount": "{count}개의 하루웨이",
     "resetFilters": "초기화",
@@ -1107,7 +1107,8 @@
     "filterApply": "적용",
     "filterClose": "닫기",
     "ctaRequestCourseBody": "일정과 취향을 남기면 이 분위기에 맞춰 하루를 조정할 수 있습니다.",
-    "ctaRequestBtn": "이 하루로 요청하기"
+    "ctaRequestBtn": "이 하루로 요청하기",
+    "heroEyebrow": "하루이가 만든 하루웨이"
   },
   "RoutePosts": {
     "introFallbackNoLead": "아래 흐름표로 동선을 먼저 잡은 뒤, 스팟별 설명으로 이어집니다.",

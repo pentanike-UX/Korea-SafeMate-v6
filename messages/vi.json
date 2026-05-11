@@ -1009,8 +1009,8 @@
     "metaTitle": "Posts",
     "metaDescription": "Guardian insights and field-tested tips for K-culture trips.",
     "notFound": "Post not found",
-    "heroTitle": "Reviewed insights to read Seoul faster",
-    "heroBody": "Editorially reviewed posts only — built for routes, mood, and field notes, not brochure summaries.",
+    "heroTitle": "Một ngày Seoul, bạn chọn nhé",
+    "heroBody": "Lịch trình Seoul 1 ngày do Harui địa phương trực tiếp thiết kế. Cứ thế mà đi thôi.",
     "searchPlaceholder": "Search title, summary, tags",
     "listResultsCount": "{count} posts",
     "resetFilters": "Reset",
@@ -1108,7 +1108,8 @@
     "filterApply": "Apply",
     "filterClose": "Close",
     "ctaRequestCourseBody": "Muốn có lộ trình một ngày được thiết kế riêng cho bạn?",
-    "ctaRequestBtn": "Yêu cầu Haru này"
+    "ctaRequestBtn": "Yêu cầu Haru này",
+    "heroEyebrow": "Haruway do Harui thiết kế"
   },
   "RoutePosts": {
     "introFallbackNoLead": "Skim the summary and map first, then read each stop in order.",

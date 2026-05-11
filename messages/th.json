@@ -1009,8 +1009,8 @@
     "metaTitle": "Posts",
     "metaDescription": "Guardian insights and field-tested tips for K-culture trips.",
     "notFound": "Post not found",
-    "heroTitle": "Reviewed insights to read Seoul faster",
-    "heroBody": "Editorially reviewed posts only — built for routes, mood, and field notes, not brochure summaries.",
+    "heroTitle": "วันในโซล เลือกเลย",
+    "heroBody": "เส้นทาง 1 วันในโซลที่ Harui ท้องถิ่นออกแบบมาให้ ตามไปได้เลย",
     "searchPlaceholder": "Search title, summary, tags",
     "listResultsCount": "{count} posts",
     "resetFilters": "Reset",
@@ -1108,7 +1108,8 @@
     "filterApply": "Apply",
     "filterClose": "Close",
     "ctaRequestCourseBody": "ต้องการเส้นทางหนึ่งวันที่ออกแบบเฉพาะสำหรับคุณหรือไม่?",
-    "ctaRequestBtn": "ขอ Haru นี้"
+    "ctaRequestBtn": "ขอ Haru นี้",
+    "heroEyebrow": "Haruway โดย Harui"
   },
   "RoutePosts": {
     "introFallbackNoLead": "Skim the summary and map first, then read each stop in order.",

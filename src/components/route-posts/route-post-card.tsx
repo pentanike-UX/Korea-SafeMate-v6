@@ -11,6 +11,7 @@ import { GuardianMiniPreviewSheetTrigger } from "@/components/guardians/guardian
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { listCardActionButtonClass, listCardMetaBlockClass } from "@/components/ui/action-variants";
+import { normalizeDisplayTags } from "@/lib/content-post-tags";
 import { postListCardCoverClass } from "@/lib/post-image-crop";
 import { routeCardAreaLabel, routeCardSpotPreviewLine } from "@/lib/route-post-card-meta";
 import { cn } from "@/lib/utils";
@@ -67,7 +68,7 @@ export function RoutePostCard({ post, regionLabel, className }: { post: ContentP
           </div>
         </div>
         <div className="px-4 pb-1 pt-4 sm:px-5 sm:pb-2 sm:pt-5">
-          <p className="text-primary text-[10px] font-bold tracking-widest uppercase">{post.tags.slice(0, 3).join(" · ")}</p>
+          <p className="text-primary text-[10px] font-bold tracking-widest uppercase">{normalizeDisplayTags(post.tags).slice(0, 3).join(" · ")}</p>
           <h2 className="text-foreground mt-1.5 line-clamp-2 text-[15px] font-semibold leading-snug sm:mt-2 sm:text-base">
             {post.title}
           </h2>
@@ -129,7 +130,7 @@ export function RoutePostCard({ post, regionLabel, className }: { post: ContentP
           </div>
         </div>
         <div className="px-4 pb-1 pt-4 sm:px-5 sm:pb-2 sm:pt-5">
-          <p className="text-primary text-[10px] font-bold tracking-widest uppercase">{post.tags.slice(0, 3).join(" · ")}</p>
+          <p className="text-primary text-[10px] font-bold tracking-widest uppercase">{normalizeDisplayTags(post.tags).slice(0, 3).join(" · ")}</p>
           <h2 className="text-foreground mt-1.5 line-clamp-2 text-[15px] font-semibold leading-snug group-hover:text-primary sm:mt-2 sm:text-base">
             {post.title}
           </h2>

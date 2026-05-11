@@ -1008,8 +1008,8 @@
     "metaTitle": "投稿",
     "metaDescription": "Guardianの洞察と現場向けTips。",
     "notFound": "見つかりません",
-    "heroTitle": "審査済みインサイトでソウルを素早く読む",
-    "heroBody": "編集・審査を経た投稿のみ。パンフ要約ではなく動線・ムード・現場の注意を素早く拾える構成です。",
+    "heroTitle": "ソウルの1日、選んでみてください",
+    "heroBody": "地元ハルイが設計したソウル1日コースです。そのまま辿るだけで大丈夫です。",
     "searchPlaceholder": "タイトル・要約・タグで検索",
     "listResultsCount": "{count}件の投稿",
     "resetFilters": "リセット",
@@ -1107,7 +1107,8 @@
     "filterApply": "適用",
     "filterClose": "閉じる",
     "ctaRequestCourseBody": "あなただけのカスタム1日ルートを作成しませんか？",
-    "ctaRequestBtn": "このHaruでリクエスト"
+    "ctaRequestBtn": "このHaruでリクエスト",
+    "heroEyebrow": "ハルイが作ったハルウェイ"
   },
   "RoutePosts": {
     "introFallbackNoLead": "まず概要と地図で動線をつかみ、スポットごとの説明に進んでください。",
