@@ -14,7 +14,7 @@ export async function SiteFooter() {
   /** 헤더와 동일한 1차 정보 구조 + 지원·약관 */
   const sitemap: { href: AppHref; label: string }[] = [
     { href: "/", label: tNav("home") },
-    { href: "/explore/routes", label: tNav("explore") },
+    { href: "/posts", label: tNav("explore") },
     { href: "/guardians", label: tNav("guardians") },
     { href: "/about", label: tNav("about") },
     { href: "/guardians/apply", label: tFooter("apply") },

@@ -53,7 +53,7 @@ export function AboutLanding() {
           </p>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
-              href="/explore/routes"
+              href="/posts"
               className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-white px-6 py-3 text-sm font-semibold text-zinc-900 shadow-md transition-all hover:bg-white/95 hover:scale-[1.02] active:scale-[0.98]"
             >
               <Compass className="size-4" strokeWidth={1.75} aria-hidden />
@@ -132,7 +132,7 @@ export function AboutLanding() {
                 하루 단위 루트입니다.
               </p>
               <Link
-                href="/explore/routes"
+                href="/posts"
                 className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-[var(--brand-trust-blue)] transition-colors hover:opacity-80"
               >
                 하루웨이 보기
@@ -400,7 +400,7 @@ export function AboutLanding() {
           </p>
           <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4">
             <Link
-              href="/explore/routes"
+              href="/posts"
               className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-white px-8 py-3 text-sm font-semibold text-zinc-900 shadow-md transition-all hover:bg-white/95 hover:scale-[1.02] active:scale-[0.98]"
             >
               <Compass className="size-4" strokeWidth={1.75} aria-hidden />

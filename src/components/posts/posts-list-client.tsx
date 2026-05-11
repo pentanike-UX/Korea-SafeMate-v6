@@ -30,6 +30,15 @@ type SortMode = (typeof SORTS)[number];
 const CONTENT_FILTERS = ["all", "article", "route"] as const;
 type ContentFilter = (typeof CONTENT_FILTERS)[number];
 
+/**
+ * 카드 태그 표시용 노이즈 필터 — 컨텐츠 포맷 설명 태그(루트, Route 등)는
+ * 카드에 표출해도 여행자에게 의미 없으므로 제거. (DB 태그값 정규화 불필요)
+ */
+const TAG_NOISE_RE = /^(루트포함|루트|Route|하이브리드\s*루트|hybrid\s*route|sample|Sample)$/i;
+function filterDisplayTags(tags: string[]): string[] {
+  return tags.filter((t) => !TAG_NOISE_RE.test(t.trim()));
+}
+
 /** 외국인 선호 테마 태그 — 포스트 tags[] 와 매칭 */
 const THEME_TAGS = [
   { label: "#쇼핑", value: "쇼핑" },
@@ -457,7 +466,7 @@ export function PostsListClient({
                       <div className="flex flex-1 flex-col p-5 sm:p-6">
                         <p className="text-muted-foreground flex items-center gap-1.5 text-[10px] font-bold tracking-widest uppercase">
                           <Tag className="text-[var(--brand-trust-blue)] size-3 shrink-0" aria-hidden />
-                          {p.tags.slice(0, 3).join(" · ")}
+                          {filterDisplayTags(p.tags).slice(0, 3).join(" · ")}
                         </p>
                         <div className="mt-3 flex flex-wrap items-start gap-2 gap-y-1">
                           <h2 className="text-foreground line-clamp-2 min-w-0 flex-1 text-[17px] font-semibold leading-snug group-hover:text-[var(--link-color)] sm:text-lg">

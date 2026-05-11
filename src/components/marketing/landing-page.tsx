@@ -28,7 +28,7 @@ import {
   X,
 } from "lucide-react";
 
-const ROUTES_LIST_HREF = "/explore/routes";
+const ROUTES_LIST_HREF = "/posts";
 
 type PricingCompareMark = "o" | "x" | "limited" | "unlimited";
 
@@ -276,7 +276,7 @@ export function LandingPage() {
             {/* 단일 CTA 블록 — desktop: flex-row, mobile: flex-col (CSS hero-cta-block) */}
             <div className="animate-fade-up-delay-3 hero-cta-block">
               <Link
-                href="/explore/routes"
+                href="/posts"
                 className="cta-primary inline-flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-6 py-3 text-sm font-semibold text-white shadow-[var(--shadow-card)] transition-all duration-200 hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98]"
               >
                 {t("hero_cta_primary")}
@@ -479,7 +479,7 @@ export function LandingPage() {
           </div>
 
           <div className="mt-10 flex justify-center">
-            <Link href="/explore/routes" className="text-sm font-semibold text-accent-ksm transition-colors hover:text-accent-dark">
+            <Link href="/posts" className="text-sm font-semibold text-accent-ksm transition-colors hover:text-accent-dark">
               {t("guardians_cta")} →
             </Link>
           </div>
@@ -564,7 +564,7 @@ export function LandingPage() {
             {t("final_cta_traveler")}
           </h2>
           <Link
-            href="/explore/routes"
+            href="/posts"
             className="inline-flex items-center gap-2 rounded-[var(--radius-md)] bg-accent-ksm px-8 py-3.5 text-sm font-semibold text-white shadow-[var(--shadow-md)] transition-all duration-200 hover:bg-accent-dark hover:scale-[1.02] active:scale-[0.98]"
           >
             {t("hero_cta_primary")}
