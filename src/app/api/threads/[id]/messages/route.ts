@@ -53,7 +53,7 @@ export async function POST(req: Request, { params }: Params) {
   const userId = await getSessionUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: { content: string; content_type?: "text" | "image" | "route_preview" };
+  let body: { content: string; content_type?: "text" | "image" | "route_preview"; client_msg_id?: string };
   try {
     body = (await req.json()) as typeof body;
   } catch {
@@ -62,6 +62,7 @@ export async function POST(req: Request, { params }: Params) {
   if (!body.content?.trim()) {
     return NextResponse.json({ error: "content required" }, { status: 400 });
   }
+  const clientMsgId = typeof body.client_msg_id === "string" && body.client_msg_id.trim() ? body.client_msg_id.trim() : null;
 
   const sb = await getServerSupabaseForUser();
   if (!sb) return NextResponse.json({ error: "DB unavailable" }, { status: 503 });
@@ -83,20 +84,48 @@ export async function POST(req: Request, { params }: Params) {
 
   const senderRole = isGuardian ? "guardian" : "traveler";
 
+  // 멱등성: client_msg_id 가 있고 이미 동일 (thread_id, client_msg_id) 행이 있으면 그 행 반환
+  if (clientMsgId) {
+    const { data: dup } = await sb
+      .from("messages")
+      .select("*")
+      .eq("thread_id", threadId)
+      .eq("client_msg_id", clientMsgId)
+      .maybeSingle();
+    if (dup) {
+      return NextResponse.json({ message: dup, deduped: true }, { status: 200 });
+    }
+  }
+
   // 메시지 삽입
+  const insertRow: Record<string, unknown> = {
+    thread_id: threadId,
+    sender_user_id: userId,
+    sender_role: senderRole,
+    content: body.content.trim(),
+    content_type: body.content_type ?? "text",
+  };
+  if (clientMsgId) insertRow.client_msg_id = clientMsgId;
+
   const { data: message, error: msgErr } = await sb
     .from("messages")
-    .insert({
-      thread_id: threadId,
-      sender_user_id: userId,
-      sender_role: senderRole,
-      content: body.content.trim(),
-      content_type: body.content_type ?? "text",
-    })
+    .insert(insertRow)
     .select()
     .single();
 
-  if (msgErr) return NextResponse.json({ error: msgErr.message }, { status: 500 });
+  if (msgErr) {
+    // 23505 unique violation → 동시성 race; 기존 행 반환
+    if (msgErr.code === "23505" && clientMsgId) {
+      const { data: existing } = await sb
+        .from("messages")
+        .select("*")
+        .eq("thread_id", threadId)
+        .eq("client_msg_id", clientMsgId)
+        .maybeSingle();
+      if (existing) return NextResponse.json({ message: existing, deduped: true }, { status: 200 });
+    }
+    return NextResponse.json({ error: msgErr.message }, { status: 500 });
+  }
 
   // last_message_at 갱신
   void sb
