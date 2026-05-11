@@ -17,6 +17,7 @@ import { GuardianPostsExplorerSheet } from "@/components/guardians/guardian-post
 import { GuardianRequestDefaultsPublisher } from "@/components/guardians/guardian-request-defaults-publisher";
 import { GuardianRequestOpenTrigger } from "@/components/guardians/guardian-request-sheet";
 import { GuardianStickyCta } from "@/components/guardians/guardian-sticky-cta";
+import { GuardianInquiryOpenTrigger } from "@/components/guardians/guardian-inquiry-sheet";
 import { GuardianTravelerReviewsList } from "@/components/guardians/guardian-traveler-reviews-list";
 import { clampSheetHeadline } from "@/lib/guardian-sheet-headline";
 import { filterIntroGalleryExcludingHero } from "@/lib/guardian-intro-gallery";
@@ -32,7 +33,7 @@ import type { GuardianTrustBadgeId, LocalizedCopy } from "@/types/guardian-marke
 import type { TravelerReview } from "@/types/domain";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle2, Globe2, MessageCircleHeart, Sparkles, Star, Zap } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Globe2, MessageCircle, MessageCircleHeart, Sparkles, Star, Zap } from "lucide-react";
 
 function marketingLine(locale: string, copy: LocalizedCopy): string {
   return locale === "ko" ? copy.ko : copy.en;
@@ -151,6 +152,17 @@ export async function GuardianDetailView({
                       >
                         {tTier(g.guardian_tier)}
                       </Badge>
+                      {(g.last_seen_at === "mock:online" || (g.last_seen_at && Date.now() - new Date(g.last_seen_at).getTime() < 30 * 60 * 1000)) ? (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-emerald-500/80 px-2 py-0.5 text-[11px] font-semibold text-white shadow-sm backdrop-blur-sm">
+                          <span className="size-1.5 animate-pulse rounded-full bg-white" aria-hidden />
+                          지금 온라인
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/40 px-2 py-0.5 text-[11px] font-medium text-white/60 backdrop-blur-sm">
+                          <span className="size-1.5 rounded-full bg-white/40" aria-hidden />
+                          오프라인
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -405,6 +417,18 @@ export async function GuardianDetailView({
               </li>
             </ul>
             <p className="text-muted-foreground text-xs leading-relaxed">{t("requestGuide")}</p>
+            <GuardianInquiryOpenTrigger
+              detail={{
+                guardianUserId: g.user_id,
+                displayName: g.display_name,
+                headline: sheetHeadlineForPublisher,
+                avatarUrl: imgs.avatar,
+              }}
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-500/50 bg-emerald-50 text-base font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+            >
+              <MessageCircle className="size-5" aria-hidden />
+              지금 문의하기
+            </GuardianInquiryOpenTrigger>
             <GuardianRequestOpenTrigger size="lg" className="h-12 w-full rounded-2xl text-base font-semibold shadow-[var(--shadow-brand)]">
               {tReq("openCta")}
             </GuardianRequestOpenTrigger>

@@ -17,6 +17,9 @@ import { GUARDIAN_TIER_ROLE_BADGE_CLASSNAME, guardianTierBadgeVariant } from "@/
 import { GuardianProfilePreviewSheetTrigger } from "@/components/guardians/guardian-profile-preview-sheet-trigger";
 import { GuardianRequestOpenTrigger } from "@/components/guardians/guardian-request-sheet";
 import {
+  GuardianInquiryOpenTrigger,
+} from "@/components/guardians/guardian-inquiry-sheet";
+import {
   postContextFromGuardianRepresentative,
   representativePostLinesForSheetPreview,
   resolveRepresentativeContentPost,
@@ -31,12 +34,20 @@ import { cn } from "@/lib/utils";
 import {
   ArrowDownWideNarrow,
   MapPin,
+  MessageCircle,
   Palette,
   ShieldCheck,
   Star,
   Languages,
   UserCircle,
 } from "lucide-react";
+
+function isGuardianOnline(g: { last_seen_at?: string | null }): boolean {
+  return (
+    g.last_seen_at === "mock:online" ||
+    (!!g.last_seen_at && Date.now() - new Date(g.last_seen_at).getTime() < 30 * 60 * 1000)
+  );
+}
 
 type SortMode = "recommended" | "rating" | "reviews" | "fast";
 
@@ -469,10 +480,15 @@ export function GuardiansDiscoverClient({
                       <div className="relative min-h-0 w-[30%] min-w-[6.75rem] max-w-[8.5rem] shrink-0 self-stretch overflow-hidden bg-muted sm:min-w-[7.25rem] sm:max-w-[9rem]">
                         <Image src={imgs.default} alt="" fill className={GUARDIAN_LIST_CARD_COVER_CLASS} sizes="(max-width:640px) 32vw, 18vw" />
                         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/35 to-transparent" />
-                        {(g.last_seen_at === "mock:online" || (g.last_seen_at && Date.now() - new Date(g.last_seen_at).getTime() < 30 * 60 * 1000)) && (
+                        {isGuardianOnline(g) ? (
                           <span className="absolute top-2 right-2 flex items-center gap-1 rounded-full border border-white/20 bg-emerald-500/90 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm backdrop-blur-sm">
-                            <span className="size-1.5 rounded-full bg-white" aria-hidden />
+                            <span className="size-1.5 animate-pulse rounded-full bg-white" aria-hidden />
                             온라인
+                          </span>
+                        ) : (
+                          <span className="absolute top-2 right-2 flex items-center gap-1 rounded-full border border-white/10 bg-black/50 px-1.5 py-0.5 text-[10px] font-medium text-white/70 shadow-sm backdrop-blur-sm">
+                            <span className="size-1.5 rounded-full bg-white/40" aria-hidden />
+                            오프라인
                           </span>
                         )}
                       </div>
@@ -551,20 +567,40 @@ export function GuardiansDiscoverClient({
                               <Link href={`/guardians/${g.user_id}#guardian-posts`}>하루웨이 보기</Link>
                             </Button>
                           ) : (
-                            <GuardianRequestOpenTrigger
-                              size="sm"
-                              className={cn(listCardActionButtonClass, "w-full rounded-[var(--radius-md)]")}
-                              openDetail={{
-                                guardianUserId: g.user_id,
-                                displayName: g.display_name,
-                                headline: g.headline,
-                                avatarUrl: imgs.avatar,
-                                suggestedRegionSlug: g.primary_region_slug,
-                                ...(repCtx ?? {}),
-                              }}
-                            >
-                              {t("cardCtaRequest")}
-                            </GuardianRequestOpenTrigger>
+                            <>
+                              <GuardianInquiryOpenTrigger
+                                detail={{
+                                  guardianUserId: g.user_id,
+                                  displayName: g.display_name,
+                                  headline: g.headline,
+                                  avatarUrl: imgs.avatar,
+                                }}
+                                className={cn(
+                                  listCardActionButtonClass,
+                                  "inline-flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)]",
+                                  "border border-emerald-500/50 bg-emerald-50 font-semibold text-emerald-700",
+                                  "transition-colors hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50",
+                                )}
+                              >
+                                <MessageCircle className="size-3.5" aria-hidden />
+                                지금 문의하기
+                              </GuardianInquiryOpenTrigger>
+                              <GuardianRequestOpenTrigger
+                                size="sm"
+                                variant="outline"
+                                className={cn(listCardActionButtonClass, "w-full rounded-[var(--radius-md)]")}
+                                openDetail={{
+                                  guardianUserId: g.user_id,
+                                  displayName: g.display_name,
+                                  headline: g.headline,
+                                  avatarUrl: imgs.avatar,
+                                  suggestedRegionSlug: g.primary_region_slug,
+                                  ...(repCtx ?? {}),
+                                }}
+                              >
+                                {t("cardCtaRequest")}
+                              </GuardianRequestOpenTrigger>
+                            </>
                           )}
                           <div className="grid grid-cols-2 gap-2">
                             <GuardianProfilePreviewSheetTrigger

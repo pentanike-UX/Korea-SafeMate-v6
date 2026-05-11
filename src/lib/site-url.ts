@@ -16,7 +16,7 @@ function deployedOAuthFallbackOrigin(): string {
     const parsed = parseTrustedPublicOrigin(fromEnv);
     if (parsed) return parsed;
   }
-  return "https://korea-safe-mate-v3.vercel.app";
+  return "https://korea-safe-mate-v6.vercel.app";
 }
 
 /** Git-connected Vercel previews use `project-git-branch-….vercel.app` — unsafe for OAuth. */

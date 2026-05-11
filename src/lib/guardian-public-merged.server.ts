@@ -142,7 +142,7 @@ export async function getPublicGuardianByIdMerged(userId: string): Promise<Publi
     .maybeSingle();
 
   let row = !errUid ? byUid : null;
-  if (!errUid && !row) {
+  if (!row) {
     const { data: bySeed, error: errSeed } = await sb
       .from("guardian_profiles")
       .select(selectCols)
@@ -152,7 +152,7 @@ export async function getPublicGuardianByIdMerged(userId: string): Promise<Publi
     if (!errSeed) row = bySeed;
   }
 
-  if (errUid || !row) return mock;
+  if (!row) return mock;
 
   const r = row as GpRow;
   let primary_region_slug = "gwanghwamun";

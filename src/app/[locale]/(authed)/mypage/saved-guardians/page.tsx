@@ -25,7 +25,8 @@ import { TrustBadgesServer } from "@/components/forty-two/trust-badges-server";
 import { BRAND } from "@/lib/constants";
 import { MypageGuardianProfileSheetTrigger } from "@/components/mypage/mypage-guardian-profile-sheet-trigger";
 import { SavedGuardianRequestButton } from "@/components/mypage/saved-guardian-request-button";
-import { Star } from "lucide-react";
+import { GuardianInquiryOpenTrigger } from "@/components/guardians/guardian-inquiry-sheet";
+import { MessageCircle, Star } from "lucide-react";
 
 export async function generateMetadata() {
   const t = await getTranslations("TravelerHub");
@@ -77,9 +78,27 @@ export default async function TravelerSavedGuardiansPage() {
                 <div className="flex gap-4 p-4 sm:p-5">
                   <div className="relative size-20 shrink-0 overflow-hidden rounded-xl sm:size-24">
                     <Image src={imgs.avatar} alt="" fill className={GUARDIAN_AVATAR_COVER_CLASS} sizes="96px" />
+                    {(g.last_seen_at === "mock:online" || (g.last_seen_at && Date.now() - new Date(g.last_seen_at).getTime() < 30 * 60 * 1000)) ? (
+                      <span className="absolute bottom-1 right-1 size-3 rounded-full border-2 border-white bg-emerald-500" aria-label="온라인" />
+                    ) : (
+                      <span className="absolute bottom-1 right-1 size-3 rounded-full border-2 border-white bg-muted-foreground/40" aria-label="오프라인" />
+                    )}
                   </div>
                   <CardContent className="flex flex-1 flex-col gap-2 p-0">
-                    <p className="font-semibold leading-snug">{g.display_name}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-semibold leading-snug">{g.display_name}</p>
+                      {(g.last_seen_at === "mock:online" || (g.last_seen_at && Date.now() - new Date(g.last_seen_at).getTime() < 30 * 60 * 1000)) ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                          <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" aria-hidden />
+                          지금 온라인
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          <span className="size-1.5 rounded-full bg-muted-foreground/40" aria-hidden />
+                          오프라인
+                        </span>
+                      )}
+                    </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant={guardianTierBadgeVariant(g.guardian_tier)} className={cn(GUARDIAN_TIER_ROLE_BADGE_CLASSNAME)}>
                         {tTier(g.guardian_tier)}
@@ -93,38 +112,52 @@ export default async function TravelerSavedGuardiansPage() {
                         {g.avg_traveler_rating.toFixed(1)}
                       </p>
                     ) : null}
-                    <div className="border-border/50 mt-auto flex flex-col gap-2 border-t border-dashed pt-4 sm:flex-row sm:flex-wrap">
-                      <MypageGuardianProfileSheetTrigger
-                        guardian={{
-                          user_id: g.user_id,
-                          display_name: g.display_name,
-                          headline: g.headline,
-                          primary_region_slug: g.primary_region_slug,
-                          guardian_tier: g.guardian_tier,
-                          photo_url: g.photo_url,
-                          avatar_image_url: g.avatar_image_url,
-                          list_card_image_url: g.list_card_image_url,
-                          detail_hero_image_url: g.detail_hero_image_url,
-                          ...(repLines.length > 0
-                            ? { representativePosts: repLines, representativePostsSource }
-                            : {}),
-                        }}
-                        triggerLabel={t("openProfile")}
-                        className="h-10 w-full sm:min-w-0 sm:flex-1"
-                        postContext={repCtx}
-                      />
-                      <SavedGuardianRequestButton
-                        className="h-10 w-full rounded-xl sm:min-w-0 sm:flex-1"
-                        label={tReq("openCta")}
-                        openDetail={{
+                    <div className="border-border/50 mt-auto flex flex-col gap-2 border-t border-dashed pt-4">
+                      <GuardianInquiryOpenTrigger
+                        detail={{
                           guardianUserId: g.user_id,
                           displayName: g.display_name,
                           headline: g.headline,
                           avatarUrl: imgs.avatar,
-                          suggestedRegionSlug: g.primary_region_slug,
-                          ...(repCtx ?? {}),
                         }}
-                      />
+                        className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-emerald-500/50 bg-emerald-50 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+                      >
+                        <MessageCircle className="size-4" aria-hidden />
+                        지금 문의하기
+                      </GuardianInquiryOpenTrigger>
+                      <div className="flex flex-wrap gap-2 sm:flex-row">
+                        <MypageGuardianProfileSheetTrigger
+                          guardian={{
+                            user_id: g.user_id,
+                            display_name: g.display_name,
+                            headline: g.headline,
+                            primary_region_slug: g.primary_region_slug,
+                            guardian_tier: g.guardian_tier,
+                            photo_url: g.photo_url,
+                            avatar_image_url: g.avatar_image_url,
+                            list_card_image_url: g.list_card_image_url,
+                            detail_hero_image_url: g.detail_hero_image_url,
+                            ...(repLines.length > 0
+                              ? { representativePosts: repLines, representativePostsSource }
+                              : {}),
+                          }}
+                          triggerLabel={t("openProfile")}
+                          className="h-10 min-w-0 flex-1"
+                          postContext={repCtx}
+                        />
+                        <SavedGuardianRequestButton
+                          className="h-10 min-w-0 flex-1 rounded-xl"
+                          label={tReq("openCta")}
+                          openDetail={{
+                            guardianUserId: g.user_id,
+                            displayName: g.display_name,
+                            headline: g.headline,
+                            avatarUrl: imgs.avatar,
+                            suggestedRegionSlug: g.primary_region_slug,
+                            ...(repCtx ?? {}),
+                          }}
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </div>
