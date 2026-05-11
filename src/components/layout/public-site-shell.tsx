@@ -1,4 +1,5 @@
 import { GuardianRequestSheetGlobal } from "@/components/guardians/guardian-request-sheet";
+import { GuardianInquirySheetGlobal } from "@/components/guardians/guardian-inquiry-sheet";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 
@@ -9,6 +10,7 @@ export function PublicSiteShell({ children }: { children: React.ReactNode }) {
       <main className="flex-1">{children}</main>
       <SiteFooter />
       <GuardianRequestSheetGlobal />
+      <GuardianInquirySheetGlobal />
     </>
   );
 }

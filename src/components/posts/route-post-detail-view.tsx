@@ -48,7 +48,7 @@ export async function RoutePostDetailView({ post, editHref, isOwner }: { post: C
   const typeLabelKey = resolvePostTypeLabelKey(post);
 
   return (
-    <article className="bg-[var(--bg-page)] pb-16">
+    <article className="pb-16">
       <GuardianRequestDefaultsPublisher
         guardianUserId={post.author_user_id}
         displayName={sheetName}

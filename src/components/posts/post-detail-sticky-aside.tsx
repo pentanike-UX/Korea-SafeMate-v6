@@ -24,8 +24,8 @@ export function PostDetailStickyAside({
   /** 루트 상단 고정 네비(z-40)보다 낮게, 긴 카드는 뷰포트 안에서 스크롤 */
   const scrollShell =
     variant === "route"
-      ? "md:max-h-[calc(100dvh-10.5rem)] md:overflow-y-auto md:overflow-x-hidden md:pr-0.5 md:[scrollbar-gutter:stable]"
-      : "md:max-h-[calc(100dvh-6rem)] md:overflow-y-auto md:overflow-x-hidden md:pr-0.5 md:[scrollbar-gutter:stable]";
+      ? "md:max-h-[calc(100dvh-10.5rem)] md:overflow-y-auto md:pr-0.5 md:pl-1 md:-ml-1 md:[scrollbar-gutter:stable]"
+      : "md:max-h-[calc(100dvh-6rem)] md:overflow-y-auto md:pr-0.5 md:pl-1 md:-ml-1 md:[scrollbar-gutter:stable]";
 
   return (
     <div

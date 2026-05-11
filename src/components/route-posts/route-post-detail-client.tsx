@@ -10,7 +10,8 @@ import {
   type GuardianRequestOpenDetail,
   type GuardianRequestSheetHostProps,
 } from "@/components/guardians/guardian-request-sheet";
-import { GuardianSignatureQuote, PostInfoNarrativeStack } from "@/components/posts/post-info-blocks";
+import { GUARDIAN_INQUIRY_OPEN_EVENT, type GuardianInquiryOpenDetail } from "@/components/guardians/guardian-inquiry-sheet";
+import { PostInfoNarrativeStack } from "@/components/posts/post-info-blocks";
 import { PlaybookUnlockSheet } from "@/components/route-posts/playbook-unlock-sheet";
 import { useSpotGallery } from "@/hooks/use-spot-gallery";
 import { buildLocalPostVisualPlan, type LocalPostVisualPlan } from "@/lib/post-local-images";
@@ -24,7 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { FreeArchetype } from "@/lib/route-free-classification";
 import { inferFreeArchetype } from "@/lib/route-free-classification";
-import { ChevronDown, MessageCircle } from "lucide-react";
+import { ChevronDown, ClipboardList, MessageCircle } from "lucide-react";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
   POST_DETAIL_PROSE_P_MAIN,
@@ -59,27 +60,45 @@ const ROUTE_FAQ_ITEMS = [
   },
 ] as const;
 
-function RouteFaqSection({ onOpenRequest }: { onOpenRequest?: () => void }) {
+function RouteFaqSection({
+  onOpenInquiry,
+  onOpenRequest,
+}: {
+  onOpenInquiry?: () => void;
+  onOpenRequest?: () => void;
+}) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   return (
     <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-9">
-      <header className="mb-5 flex items-center justify-between gap-4">
+      <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
             FAQ · 문의
           </p>
           <h2 className="text-base font-semibold tracking-tight text-[var(--text-strong)]">자주 묻는 질문</h2>
         </div>
-        {onOpenRequest && (
-          <button
-            type="button"
-            onClick={onOpenRequest}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--brand-primary)]/40 bg-[var(--brand-primary)]/8 px-3.5 py-1.5 text-[12px] font-semibold text-[var(--brand-primary)] transition-colors hover:bg-[var(--brand-primary)]/15"
-          >
-            <MessageCircle className="size-3.5" aria-hidden />
-            하루이에게 문의
-          </button>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          {onOpenInquiry && (
+            <button
+              type="button"
+              onClick={onOpenInquiry}
+              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-50 px-3 py-1.5 text-[12px] font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+            >
+              <MessageCircle className="size-3.5" aria-hidden />
+              지금 문의
+            </button>
+          )}
+          {onOpenRequest && (
+            <button
+              type="button"
+              onClick={onOpenRequest}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--brand-primary)]/40 bg-[var(--brand-primary)]/8 px-3 py-1.5 text-[12px] font-semibold text-[var(--brand-primary)] transition-colors hover:bg-[var(--brand-primary)]/15"
+            >
+              <ClipboardList className="size-3.5" aria-hidden />
+              요청하기
+            </button>
+          )}
+        </div>
       </header>
       <ul className="divide-y divide-border/30">
         {ROUTE_FAQ_ITEMS.map((item, idx) => (
@@ -1077,32 +1096,34 @@ export function RoutePostDetailClient({
           </div>
         </section>
 
-        {/* ⑦ 가디언 서명 */}
-        {guardianSignature ? (
-          <GuardianSignatureQuote
-            label={t("routeEyebrow")}
-            badge={requestHost.displayName}
-            className="max-w-[42rem]"
-          >
-            {guardianSignature}
-          </GuardianSignatureQuote>
-        ) : null}
-
-        {/* ⑧ FAQ / 문의 */}
+        {/* ⑦ FAQ / 문의 */}
         <RouteFaqSection
+          onOpenInquiry={() => {
+            window.dispatchEvent(
+              new CustomEvent<GuardianInquiryOpenDetail>(GUARDIAN_INQUIRY_OPEN_EVENT, {
+                detail: {
+                  guardianUserId: requestHost.guardianUserId,
+                  displayName: requestHost.displayName,
+                  headline: requestHost.headline,
+                  avatarUrl: requestHost.avatarUrl,
+                },
+              }),
+            );
+          }}
           onOpenRequest={() => {
-            const event = new CustomEvent(GUARDIAN_REQUEST_OPEN_EVENT, {
-              detail: {
-                guardianUserId: requestHost.guardianUserId,
-                displayName: requestHost.displayName,
-                headline: requestHost.headline,
-                avatarUrl: requestHost.avatarUrl,
-                suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
-                postId: post.id,
-                postTitle: post.title,
-              } satisfies GuardianRequestOpenDetail,
-            });
-            window.dispatchEvent(event);
+            window.dispatchEvent(
+              new CustomEvent(GUARDIAN_REQUEST_OPEN_EVENT, {
+                detail: {
+                  guardianUserId: requestHost.guardianUserId,
+                  displayName: requestHost.displayName,
+                  headline: requestHost.headline,
+                  avatarUrl: requestHost.avatarUrl,
+                  suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
+                  postId: post.id,
+                  postTitle: post.title,
+                } satisfies GuardianRequestOpenDetail,
+              }),
+            );
           }}
         />
       </div>

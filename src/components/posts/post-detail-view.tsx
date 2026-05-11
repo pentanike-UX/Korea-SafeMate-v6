@@ -80,7 +80,7 @@ export async function PostDetailView({ post, editHref, isOwner }: { post: Conten
   const showOneLineTip = oneLineTip.length > 0;
 
   return (
-    <article className="bg-[var(--bg-page)] pb-16">
+    <article className="pb-16">
       <GuardianRequestDefaultsPublisher
         guardianUserId={post.author_user_id}
         displayName={sheetName}
