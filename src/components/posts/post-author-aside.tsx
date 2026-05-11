@@ -63,7 +63,14 @@ export async function PostAuthorAside({
           )}
         </div>
         <CardContent className="space-y-3 p-5">
-          <p className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">{t("authorCardEyebrow")}</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">{t("authorCardEyebrow")}</p>
+            {/* 온라인 상태 배지 */}
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+              지금 온라인
+            </span>
+          </div>
           {post.is_sample ? (
             <p className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs leading-relaxed">
               <PostSampleBadge />

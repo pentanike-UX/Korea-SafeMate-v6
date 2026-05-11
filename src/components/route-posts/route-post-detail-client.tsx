@@ -5,12 +5,7 @@ import { useTranslations } from "next-intl";
 import type { ContentPost, NaverPrimaryPlace, RouteJourneyMetadata, RouteSpot } from "@/types/domain";
 import { RouteDayPreview } from "@/components/route-posts/route-day-preview";
 import { RouteStickyLocalNav } from "@/components/route-posts/route-sticky-local-nav";
-import {
-  GUARDIAN_REQUEST_OPEN_EVENT,
-  type GuardianRequestOpenDetail,
-  type GuardianRequestSheetHostProps,
-} from "@/components/guardians/guardian-request-sheet";
-import { GUARDIAN_INQUIRY_OPEN_EVENT, type GuardianInquiryOpenDetail } from "@/components/guardians/guardian-inquiry-sheet";
+import type { GuardianRequestSheetHostProps } from "@/components/guardians/guardian-request-sheet";
 import { PostInfoNarrativeStack } from "@/components/posts/post-info-blocks";
 import { PlaybookUnlockSheet } from "@/components/route-posts/playbook-unlock-sheet";
 import { useSpotGallery } from "@/hooks/use-spot-gallery";
@@ -25,7 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { FreeArchetype } from "@/lib/route-free-classification";
 import { inferFreeArchetype } from "@/lib/route-free-classification";
-import { ChevronDown, ClipboardList, MessageCircle } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
   POST_DETAIL_PROSE_P_MAIN,
@@ -60,45 +55,15 @@ const ROUTE_FAQ_ITEMS = [
   },
 ] as const;
 
-function RouteFaqSection({
-  onOpenInquiry,
-  onOpenRequest,
-}: {
-  onOpenInquiry?: () => void;
-  onOpenRequest?: () => void;
-}) {
+function RouteFaqSection() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   return (
     <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-9">
-      <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
-          <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
-            FAQ · 문의
-          </p>
-          <h2 className="text-base font-semibold tracking-tight text-[var(--text-strong)]">자주 묻는 질문</h2>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          {onOpenInquiry && (
-            <button
-              type="button"
-              onClick={onOpenInquiry}
-              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-50 px-3 py-1.5 text-[12px] font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
-            >
-              <MessageCircle className="size-3.5" aria-hidden />
-              지금 문의
-            </button>
-          )}
-          {onOpenRequest && (
-            <button
-              type="button"
-              onClick={onOpenRequest}
-              className="inline-flex items-center gap-1.5 rounded-full border border-[var(--brand-primary)]/40 bg-[var(--brand-primary)]/8 px-3 py-1.5 text-[12px] font-semibold text-[var(--brand-primary)] transition-colors hover:bg-[var(--brand-primary)]/15"
-            >
-              <ClipboardList className="size-3.5" aria-hidden />
-              요청하기
-            </button>
-          )}
-        </div>
+      <header className="mb-5 space-y-1">
+        <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+          FAQ
+        </p>
+        <h2 className="text-base font-semibold tracking-tight text-[var(--text-strong)]">자주 묻는 질문</h2>
       </header>
       <ul className="divide-y divide-border/30">
         {ROUTE_FAQ_ITEMS.map((item, idx) => (
@@ -1097,35 +1062,7 @@ export function RoutePostDetailClient({
         </section>
 
         {/* ⑦ FAQ / 문의 */}
-        <RouteFaqSection
-          onOpenInquiry={() => {
-            window.dispatchEvent(
-              new CustomEvent<GuardianInquiryOpenDetail>(GUARDIAN_INQUIRY_OPEN_EVENT, {
-                detail: {
-                  guardianUserId: requestHost.guardianUserId,
-                  displayName: requestHost.displayName,
-                  headline: requestHost.headline,
-                  avatarUrl: requestHost.avatarUrl,
-                },
-              }),
-            );
-          }}
-          onOpenRequest={() => {
-            window.dispatchEvent(
-              new CustomEvent(GUARDIAN_REQUEST_OPEN_EVENT, {
-                detail: {
-                  guardianUserId: requestHost.guardianUserId,
-                  displayName: requestHost.displayName,
-                  headline: requestHost.headline,
-                  avatarUrl: requestHost.avatarUrl,
-                  suggestedRegionSlug: requestHost.suggestedRegionSlug ?? null,
-                  postId: post.id,
-                  postTitle: post.title,
-                } satisfies GuardianRequestOpenDetail,
-              }),
-            );
-          }}
-        />
+        <RouteFaqSection />
       </div>
 
       <div ref={spotsEndRef} aria-hidden className="h-px w-full" />
