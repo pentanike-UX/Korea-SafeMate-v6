@@ -2,51 +2,46 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { Link } from "@/i18n/navigation";
 import { ChatView } from "@/components/chat/chat-view";
 import { GUARDIAN_AVATAR_COVER_CLASS } from "@/lib/guardian-profile-images";
 import { FALLBACK_GUARDIAN_REQUEST_AVATAR } from "@/components/guardians/guardian-request-sheet";
+import { isGuardianOnline } from "@/lib/guardian-online";
 import { cn } from "@/lib/utils";
-import type { MessageThread } from "@/types/domain";
-import { MessageCircle } from "lucide-react";
-
-interface ThreadWithMeta extends MessageThread {
-  other_display_name: string;
-  other_avatar_url: string | null;
-  last_message_preview: string | null;
-}
+import type { MessageThreadWithMeta } from "@/types/domain";
+import { MessageCircle, Bot } from "lucide-react";
 
 interface Props {
-  /** "traveler" | "guardian" — determines AI badge visibility */
+  /** "traveler" | "guardian" — AI 배지·헤더 라벨 분기 */
   viewerRole: "traveler" | "guardian";
-  /** 현재 로그인 사용자 ID — opposite party 식별에 사용 */
+  /** 현재 로그인 사용자 ID */
   viewerUserId: string;
 }
 
-export function ThreadListClient({ viewerRole, viewerUserId }: Props) {
-  const [threads, setThreads] = useState<ThreadWithMeta[]>([]);
+function relativeTime(iso: string | null): string {
+  if (!iso) return "";
+  const ts = new Date(iso).getTime();
+  const diff = Date.now() - ts;
+  if (diff < 60 * 1000) return "방금 전";
+  if (diff < 60 * 60 * 1000) return `${Math.floor(diff / 60000)}분 전`;
+  if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / 3600000)}시간 전`;
+  const d = new Date(iso);
+  return `${d.getMonth() + 1}.${d.getDate()}`;
+}
+
+export function ThreadListClient({ viewerRole }: Props) {
+  const [threads, setThreads] = useState<MessageThreadWithMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/threads")
+    fetch("/api/threads", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { threads: [] }))
-      .then(({ threads: list }: { threads: MessageThread[] }) => {
-        // TODO(prod): 서버에서 join으로 display_name, avatar, preview를 내려주도록 개선
-        // 현재는 기본값으로 렌더
-        setThreads(
-          list.map((t) => ({
-            ...t,
-            other_display_name:
-              viewerRole === "traveler" ? "하루이" : "여행자",
-            other_avatar_url: null,
-            last_message_preview: t.last_message_at
-              ? `마지막 메시지: ${new Date(t.last_message_at).toLocaleDateString("ko")}`
-              : null,
-          })),
-        );
+      .then(({ threads: list }: { threads: MessageThreadWithMeta[] }) => {
+        setThreads(list ?? []);
       })
       .finally(() => setLoading(false));
-  }, [viewerRole, viewerUserId]);
+  }, [viewerRole]);
 
   const selected = threads.find((t) => t.id === selectedId) ?? null;
 
@@ -80,64 +75,107 @@ export function ThreadListClient({ viewerRole, viewerUserId }: Props) {
   return (
     <div className="flex h-[calc(100dvh-12rem)] gap-0 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-sm)]">
       {/* 스레드 목록 */}
-      <div className="w-full shrink-0 overflow-y-auto border-r border-border/50 sm:w-64 md:w-72">
-        {threads.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setSelectedId(t.id)}
-            className={cn(
-              "flex w-full items-start gap-3 px-4 py-3.5 text-left transition-colors hover:bg-muted/50",
-              selectedId === t.id && "bg-primary/5",
-            )}
-          >
-            <div className="relative size-10 shrink-0 overflow-hidden rounded-full border border-border/40">
-              <Image
-                src={t.other_avatar_url ?? FALLBACK_GUARDIAN_REQUEST_AVATAR}
-                alt={t.other_display_name}
-                fill
-                className={cn(GUARDIAN_AVATAR_COVER_CLASS)}
-                sizes="40px"
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">{t.other_display_name}</p>
-              {t.last_message_preview && (
-                <p className="line-clamp-1 text-[11px] text-muted-foreground">
-                  {t.last_message_preview}
-                </p>
+      <div className="w-full shrink-0 overflow-y-auto border-r border-border/50 sm:w-72 md:w-80">
+        {threads.map((t) => {
+          const other = t.other;
+          const name = other?.display_name ?? t.other_display_name ?? "사용자";
+          const avatar = other?.avatar_url ?? t.other_avatar_url ?? FALLBACK_GUARDIAN_REQUEST_AVATAR;
+          const online =
+            other?.role === "guardian" && isGuardianOnline(other.last_seen_at);
+          const isAi = t.last_message_is_ai;
+          const preview = t.last_message_preview ?? null;
+          const stamp = relativeTime(t.last_message_at);
+          const unread = t.unread_count ?? 0;
+          const sp = t.source_post ?? null;
+          const isSelected = selectedId === t.id;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setSelectedId(t.id)}
+              className={cn(
+                "flex w-full items-start gap-3 border-b border-border/40 px-4 py-3 text-left transition-colors hover:bg-muted/50",
+                isSelected && "bg-primary/5",
               )}
-            </div>
-          </button>
-        ))}
+            >
+              <div className="relative size-11 shrink-0 overflow-hidden rounded-full border border-border/40">
+                <Image src={avatar} alt={name} fill className={cn(GUARDIAN_AVATAR_COVER_CLASS)} sizes="44px" />
+                {online ? (
+                  <span className="absolute bottom-0 right-0 size-2.5 rounded-full border-2 border-white bg-emerald-500" aria-label="온라인" />
+                ) : null}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <p className={cn("truncate text-sm font-semibold", unread > 0 ? "text-foreground" : "text-foreground/80")}>{name}</p>
+                  <span className="shrink-0 text-[10px] text-muted-foreground">{stamp}</span>
+                </div>
+                {sp ? (
+                  <p className="mt-0.5 truncate text-[11px] font-medium text-[var(--brand-primary)]">📍 {sp.title}</p>
+                ) : null}
+                {preview ? (
+                  <p
+                    className={cn(
+                      "mt-0.5 line-clamp-1 flex items-center gap-1 text-xs",
+                      unread > 0 ? "font-medium text-foreground" : "text-muted-foreground",
+                    )}
+                  >
+                    {isAi ? <Bot className="size-3 shrink-0 text-violet-500" aria-hidden /> : null}
+                    {preview}
+                  </p>
+                ) : null}
+              </div>
+              {unread > 0 ? (
+                <span
+                  aria-label={`읽지 않은 메시지 ${unread}건`}
+                  className="ml-2 inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-rose-500 px-1.5 text-[10px] font-bold leading-none text-white"
+                >
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
 
       {/* 채팅 뷰 */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {selected ? (
           <>
-            {/* 채팅 헤더 */}
+            {/* 채팅 헤더 — 아바타 + 이름 + 온라인 + 출처 포스트 칩 */}
             <div className="flex shrink-0 items-center gap-3 border-b border-border/50 px-4 py-3">
-              <div className="relative size-8 overflow-hidden rounded-full border border-border/40">
+              <div className="relative size-9 overflow-hidden rounded-full border border-border/40">
                 <Image
-                  src={selected.other_avatar_url ?? FALLBACK_GUARDIAN_REQUEST_AVATAR}
-                  alt={selected.other_display_name}
+                  src={selected.other?.avatar_url ?? selected.other_avatar_url ?? FALLBACK_GUARDIAN_REQUEST_AVATAR}
+                  alt={selected.other?.display_name ?? selected.other_display_name ?? ""}
                   fill
                   className={cn(GUARDIAN_AVATAR_COVER_CLASS)}
-                  sizes="32px"
+                  sizes="36px"
                 />
               </div>
-              <p className="text-sm font-semibold text-foreground">{selected.other_display_name}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold leading-tight text-foreground">
+                  {selected.other?.display_name ?? selected.other_display_name}
+                </p>
+                {selected.source_post ? (
+                  <Link
+                    href={`/posts/${selected.source_post.id}`}
+                    className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-[var(--brand-primary)] hover:underline"
+                    title={selected.source_post.title}
+                  >
+                    📍 {selected.source_post.title}
+                  </Link>
+                ) : null}
+              </div>
             </div>
             <ChatView
               threadId={selected.id}
               viewerRole={viewerRole}
-              otherDisplayName={selected.other_display_name}
-              otherAvatarUrl={selected.other_avatar_url}
+              otherDisplayName={selected.other?.display_name ?? selected.other_display_name}
+              otherAvatarUrl={selected.other?.avatar_url ?? selected.other_avatar_url}
             />
           </>
         ) : (
-          <div className="flex flex-1 items-center justify-center">
+          <div className="hidden flex-1 items-center justify-center sm:flex">
             <p className="text-sm text-muted-foreground">대화를 선택해 주세요</p>
           </div>
         )}

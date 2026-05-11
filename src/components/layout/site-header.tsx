@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { BRAND } from "@/lib/constants";
 import { HeaderAccountMenu } from "@/components/auth/header-account-menu";
+import { HeaderInboxButton } from "@/components/layout/header-inbox-button";
 import { MockSuperAdminHeaderMenu } from "@/components/auth/mock-super-admin-header-menu";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { useMockSuperAdminSession } from "@/hooks/use-mock-super-admin-session";
@@ -157,7 +158,10 @@ export function SiteHeader() {
               aria-hidden
             />
           ) : user ? (
-            <HeaderAccountMenu authUser={user} onDarkSurface={onDarkSurface} />
+            <>
+              <HeaderInboxButton onDarkSurface={onDarkSurface} />
+              <HeaderAccountMenu authUser={user} onDarkSurface={onDarkSurface} />
+            </>
           ) : mockSuperAdmin ? (
             <MockSuperAdminHeaderMenu onDarkSurface={onDarkSurface} />
           ) : (
