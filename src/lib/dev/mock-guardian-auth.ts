@@ -47,6 +47,14 @@ export function resolveMockGuardianUuid(id: string): string | null {
   return MOCK_GUARDIAN_UUID_MAP[id] ?? null;
 }
 
+/** uuid → mock guardian slug (역방향). mg 슬러그가 아니면 null. */
+export function resolveSlugFromMockGuardianUuid(uuid: string): string | null {
+  for (const [slug, uid] of Object.entries(MOCK_GUARDIAN_UUID_MAP)) {
+    if (uid === uuid) return slug;
+  }
+  return null;
+}
+
 export function getGuardianSeedRow(id: string): GuardianSeedRow | undefined {
   return GUARDIAN_SEED_ROWS.find((r) => r.id === id);
 }

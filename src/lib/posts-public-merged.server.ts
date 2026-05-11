@@ -338,6 +338,17 @@ export async function listPostsForGuardianMerged(authorUserId: string): Promise<
 }
 
 /**
+ * 가디언의 승인 포스트를 uuid + 슬러그 양쪽 식별자로 조회.
+ * DB 행은 uuid author, mock 행은 슬러그 author이므로 둘 다 받아 매칭한다.
+ */
+export async function listPostsForGuardianByAnyRefMerged(refs: ReadonlyArray<string>): Promise<ContentPost[]> {
+  const set = new Set(refs.map((r) => r?.trim()).filter(Boolean));
+  if (set.size === 0) return [];
+  const all = await listApprovedPostsMerged();
+  return all.filter((p) => set.has(p.author_user_id));
+}
+
+/**
  * 상세 하단·시트용 관련 포스트. `min` 미만이면 지역/카테고리 필터 밖에서도 채워 최소 노출을 맞춘다.
  */
 export async function relatedPostsForMerged(

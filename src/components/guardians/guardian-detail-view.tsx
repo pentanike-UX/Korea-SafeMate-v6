@@ -2,7 +2,8 @@ import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { mockContentCategories, mockContentPosts, mockRegions } from "@/data/mock";
-import { listPostsForGuardianMerged, listApprovedPostsByIdsMerged } from "@/lib/posts-public-merged.server";
+import { listPostsForGuardianByAnyRefMerged, listApprovedPostsByIdsMerged } from "@/lib/posts-public-merged.server";
+import { resolveSlugFromMockGuardianUuid } from "@/lib/dev/mock-guardian-auth";
 import { isGuardianOnline, isInquireNowOnProfileEnabled } from "@/lib/guardian-online";
 import {
   getContentPostFormat,
@@ -67,9 +68,13 @@ export async function GuardianDetailView({
   // 하루웨이 섹션: 대표 포스트(repIds) 우선 + 그 외 가디언의 승인 포스트로 보강.
   // DB+mock 병합본을 사용해 슬러그/uuid 비대칭 문제를 회피한다.
   const repIds = (g.representative_post_ids ?? []).map((id) => id.trim()).filter(Boolean);
+  // 가디언 author 식별자는 DB(uuid)와 mock(슬러그) 두 형태로 존재 — 둘 다 매칭.
+  const authorRefs = [g.user_id, resolveSlugFromMockGuardianUuid(g.user_id)].filter(
+    (x): x is string => Boolean(x),
+  );
   const [repFromCatalog, guardianAllPosts] = await Promise.all([
     repIds.length > 0 ? listApprovedPostsByIdsMerged(repIds) : Promise.resolve([] as typeof mockContentPosts),
-    listPostsForGuardianMerged(g.user_id),
+    listPostsForGuardianByAnyRefMerged(authorRefs),
   ]);
   // repIds 우선순위 유지, 그 후 가디언 승인 포스트로 3건까지 채움
   const seen = new Set<string>();
