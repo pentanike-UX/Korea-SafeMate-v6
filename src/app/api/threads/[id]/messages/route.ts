@@ -151,11 +151,9 @@ export async function POST(req: Request, { params }: Params) {
   if (isTraveler) {
     const gId = thread.guardian_user_id;
     const text = body.content.trim();
-    const keyStatus = process.env.AI_GATEWAY_API_KEY ? `set(${process.env.AI_GATEWAY_API_KEY.slice(0, 6)}…)` : "MISSING";
-    console.log(`[AI reply trigger] key=${keyStatus} thread=${threadId}`);
-    after(() => {
-      void triggerAiReplyWithServiceRole(threadId, gId, text);
-    });
+    console.log(`[AI reply trigger] key=${process.env.AI_GATEWAY_API_KEY ? `set(${process.env.AI_GATEWAY_API_KEY.slice(0, 6)}…)` : "MISSING"} thread=${threadId}`);
+    // DEBUG: 동기 호출로 Gateway 에러 확인 (after() 밖에서)
+    void triggerAiReplyWithServiceRole(threadId, gId, text);
   }
 
   return NextResponse.json({ message }, { status: 201 });
