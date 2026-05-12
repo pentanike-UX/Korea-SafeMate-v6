@@ -1,21 +1,29 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { ChatView } from "@/components/chat/chat-view";
 import { GUARDIAN_AVATAR_COVER_CLASS } from "@/lib/guardian-profile-images";
 import { FALLBACK_GUARDIAN_REQUEST_AVATAR } from "@/components/guardians/guardian-request-sheet";
 import { isGuardianOnline } from "@/lib/guardian-online";
 import { cn } from "@/lib/utils";
-import type { MessageThreadWithMeta } from "@/types/domain";
+import type { ChatMessage, MessageThreadWithMeta } from "@/types/domain";
 import { MessageCircle, Bot } from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
 interface Props {
   /** "traveler" | "guardian" — AI 배지·헤더 라벨 분기 */
   viewerRole: "traveler" | "guardian";
   /** 현재 로그인 사용자 ID */
   viewerUserId: string;
+}
+
+/** 정렬: last_message_at desc nulls last */
+function sortByLastMessage(a: MessageThreadWithMeta, b: MessageThreadWithMeta): number {
+  const ta = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+  const tb = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+  return tb - ta;
 }
 
 function relativeTime(iso: string | null): string {
@@ -29,19 +37,80 @@ function relativeTime(iso: string | null): string {
   return `${d.getMonth() + 1}.${d.getDate()}`;
 }
 
-export function ThreadListClient({ viewerRole }: Props) {
+export function ThreadListClient({ viewerRole, viewerUserId }: Props) {
   const [threads, setThreads] = useState<MessageThreadWithMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selectedIdRef = useRef<string | null>(null);
+  selectedIdRef.current = selectedId;
 
-  useEffect(() => {
-    fetch("/api/threads", { cache: "no-store" })
+  const refetch = useCallback(() => {
+    return fetch("/api/threads", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { threads: [] }))
       .then(({ threads: list }: { threads: MessageThreadWithMeta[] }) => {
         setThreads(list ?? []);
-      })
-      .finally(() => setLoading(false));
-  }, [viewerRole]);
+      });
+  }, []);
+
+  useEffect(() => {
+    void refetch().finally(() => setLoading(false));
+  }, [refetch, viewerRole]);
+
+  /* PR-K: Realtime — 새 메시지 INSERT 시 해당 스레드 행 부분 갱신 */
+  useEffect(() => {
+    const sb = createSupabaseBrowserClient();
+    if (!sb) return;
+    const channel = sb
+      .channel(`inbox-list:${viewerUserId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        (payload) => {
+          const msg = payload.new as ChatMessage & { sender_user_id?: string };
+          if (!msg?.thread_id) return;
+          const isMine = msg.sender_user_id === viewerUserId;
+          setThreads((prev) => {
+            const idx = prev.findIndex((t) => t.id === msg.thread_id);
+            if (idx < 0) {
+              // 신규 스레드일 가능성 → 전체 재 fetch
+              void refetch();
+              return prev;
+            }
+            const copy = [...prev];
+            const t = copy[idx]!;
+            const preview = msg.content ? (msg.content.length > 80 ? msg.content.slice(0, 80) + "…" : msg.content) : null;
+            const becameUnread = !isMine && selectedIdRef.current !== msg.thread_id;
+            copy[idx] = {
+              ...t,
+              last_message_at: msg.created_at ?? new Date().toISOString(),
+              last_message_preview: preview,
+              last_message_role: msg.sender_role,
+              last_message_is_ai: !!msg.is_ai_reply,
+              unread_count: becameUnread ? (t.unread_count ?? 0) + 1 : t.unread_count ?? 0,
+            };
+            return copy.sort(sortByLastMessage);
+          });
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "message_threads" },
+        () => {
+          // 신규 스레드(여행자 측에서 처음 생성) → 전체 재fetch
+          void refetch();
+        },
+      )
+      .subscribe();
+    return () => {
+      void sb.removeChannel(channel);
+    };
+  }, [viewerUserId, refetch]);
+
+  /* 선택한 스레드의 unread 0으로 (행 클릭 시 즉시) */
+  useEffect(() => {
+    if (!selectedId) return;
+    setThreads((prev) => prev.map((t) => (t.id === selectedId ? { ...t, unread_count: 0 } : t)));
+  }, [selectedId]);
 
   const selected = threads.find((t) => t.id === selectedId) ?? null;
 
