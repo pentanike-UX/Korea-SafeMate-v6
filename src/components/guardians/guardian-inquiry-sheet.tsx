@@ -9,6 +9,7 @@ import {
   GUARDIAN_REQUEST_DEFAULTS_EVENT,
 } from "@/components/guardians/guardian-request-sheet";
 import { GUARDIAN_AVATAR_COVER_CLASS } from "@/lib/guardian-profile-images";
+import { isUuidString } from "@/lib/guardian-posts-api";
 import { useThreadRealtime } from "@/hooks/use-thread-realtime";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/types/domain";
@@ -71,6 +72,7 @@ export function GuardianInquirySheetGlobal() {
   const [isSending, setIsSending] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [inquiryError, setInquiryError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -93,6 +95,7 @@ export function GuardianInquirySheetGlobal() {
       setMessages([]);
       setThreadId(null);
       setSendError(null);
+      setInquiryError(null);
       setOpen(true);
 
       if (!d.guardianUserId) return;
@@ -102,7 +105,9 @@ export function GuardianInquirySheetGlobal() {
         const payload: { guardian_user_id: string; content_post_id?: string } = {
           guardian_user_id: d.guardianUserId,
         };
-        if (d.contentPostId) payload.content_post_id = d.contentPostId;
+        if (d.contentPostId && isUuidString(d.contentPostId)) {
+          payload.content_post_id = d.contentPostId;
+        }
 
         // 스레드 생성 or 기존 반환
         const res = await fetch("/api/threads", {
@@ -117,31 +122,40 @@ export function GuardianInquirySheetGlobal() {
           return;
         }
 
-        if (!res.ok) throw new Error("Thread init failed");
-        const { thread } = (await res.json()) as { thread: { id: string } };
-        setThreadId(thread.id);
+        const resBody = (await res.json().catch(() => (null))) as
+          | { thread?: { id?: string }; error?: string; detail?: string }
+          | null;
+
+        if (!res.ok) {
+          const msg =
+            resBody && typeof resBody.detail === "string"
+              ? resBody.detail
+              : resBody && typeof resBody.error === "string"
+                ? resBody.error
+                : `문의를 시작할 수 없어요. (${res.status})`;
+          setInquiryError(msg);
+          setMessages([]);
+          return;
+        }
+
+        const body = resBody;
+        const tid = body?.thread?.id;
+        if (!tid) {
+          setInquiryError("서버 응답이 올바르지 않아요. 잠시 후 다시 시도해 주세요.");
+          setMessages([]);
+          return;
+        }
+        setThreadId(tid);
 
         // 기존 메시지 로드
-        const msgRes = await fetch(`/api/threads/${thread.id}/messages`);
+        const msgRes = await fetch(`/api/threads/${tid}/messages`);
         if (msgRes.ok) {
           const { messages: existing } = (await msgRes.json()) as { messages: ChatMessage[] };
           setMessages(existing ?? []);
         }
       } catch {
-        // 비인증 상태 or 네트워크 오류 → 가이드 메시지 표시
-        setMessages([
-          {
-            id: "welcome",
-            thread_id: "",
-            sender_user_id: d.guardianUserId ?? "",
-            sender_role: "guardian",
-            content: "안녕하세요! 😊 궁금한 점이 있으시면 편하게 물어보세요.",
-            content_type: "text",
-            is_read: false,
-            is_ai_reply: false,
-            created_at: new Date().toISOString(),
-          },
-        ]);
+        setInquiryError("네트워크 오류가 발생했어요. 연결을 확인한 뒤 다시 시도해 주세요.");
+        setMessages([]);
       } finally {
         setIsLoading(false);
       }
@@ -251,7 +265,9 @@ export function GuardianInquirySheetGlobal() {
   );
 
   const showQuickReplies =
-    !isLoading && messages.filter((m) => m.sender_role === "traveler").length === 0;
+    !inquiryError &&
+    !isLoading &&
+    messages.filter((m) => m.sender_role === "traveler").length === 0;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -307,6 +323,23 @@ export function GuardianInquirySheetGlobal() {
               >
                 로그인하기
               </Link>
+            </div>
+          ) : inquiryError ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 px-3 text-center">
+              <p className="text-sm leading-relaxed text-muted-foreground">{inquiryError}</p>
+              <button
+                type="button"
+                className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold shadow-sm transition-colors hover:bg-muted/50"
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent<GuardianInquiryOpenDetail>(GUARDIAN_INQUIRY_OPEN_EVENT, {
+                      detail: { ...detail },
+                    }),
+                  );
+                }}
+              >
+                다시 시도
+              </button>
             </div>
           ) : isLoading ? (
             <div className="flex flex-1 items-center justify-center">
@@ -392,7 +425,7 @@ export function GuardianInquirySheetGlobal() {
         </div>
 
         {/* ── 입력 바 ── */}
-        {!authRequired && (
+        {!authRequired && !inquiryError && (
           <div className="shrink-0 border-t border-border/50 bg-card px-3 py-3">
             {sendError ? (
               <p className="text-destructive mb-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs leading-relaxed">

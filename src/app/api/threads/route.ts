@@ -49,10 +49,12 @@ export async function POST(req: Request) {
   let contentPostId: string | null = null;
   if (body.content_post_id != null && String(body.content_post_id).trim() !== "") {
     const raw = String(body.content_post_id).trim();
-    if (!isUuidString(raw)) {
-      return NextResponse.json({ error: "Invalid content_post_id" }, { status: 400 });
+    if (isUuidString(raw)) {
+      contentPostId = raw;
+    } else {
+      // 시드·데모 포스트 ID(`seed-…` 등)는 DB FK에 없을 수 있음 — 문의 스레드 생성은 막지 않음
+      console.warn("[threads POST] ignoring non-uuid content_post_id:", raw.slice(0, 80));
     }
-    contentPostId = raw;
   }
 
   const sb = await getServerSupabaseForUser();
@@ -60,7 +62,10 @@ export async function POST(req: Request) {
 
   if (contentPostId) {
     const err = await validateContentPostForGuardian(sb, contentPostId, body.guardian_user_id);
-    if (err) return NextResponse.json({ error: err }, { status: 400 });
+    if (err) {
+      console.warn("[threads POST] dropping content_post_id after validation:", err);
+      contentPostId = null;
+    }
   }
 
   // 기존 pre_booking 스레드 확인 (unique 인덱스 기반)

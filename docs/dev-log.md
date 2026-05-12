@@ -30,9 +30,9 @@
 ### 변경 내용
 
 - DB: `content_post_id`, `max_messages_traveler` 기본 완화, 여행자 메시지 수 트리거·재집계, `messages` 읽음 전용 UPDATE RLS+가드, `message_threads_list_for_viewer` RPC, `service_count_unread_chat_threads`(service_role).
-- API: 스레드 POST에 `content_post_id` 검증·기존 스레드 시 메타 갱신; GET은 RPC 목록(메시지 0건 스레드 제외); POST 메시지 시 여행자 한도 검사; AI 답변은 `after()` + 서비스 롤 INSERT; 읽음 `await` 및 실패 로그.
+- API: 스레드 POST에 `content_post_id` 검증·기존 스레드 시 메타 갱신(비UUID·DB 불일치 시 무시하고 스레드는 생성); GET은 RPC 목록(메시지 0건 스레드 제외); POST 메시지 시 여행자 한도 검사; AI 답변은 `after()` + 서비스 롤 INSERT; 읽음 `await` 및 실패 로그.
 - 마이페이지: 여행자/가디언 LNB에 메시지·미읽음 배지; 가디언 모드에서 `/mypage/messages` → `/mypage/guardian/messages` 리다이렉트; attention `menuKey`에 메시지 경로 매핑.
-- UI: 스레드 목록 실데이터 프리뷰·미읽음 뱃지·폴링; 전송 한도·네트워크 오류 메시지; 포스트 CTA·탐색 카드·프로필·모바일 스티키에서 「지금 문의하기」; AI 저장 본문 `[자동 초답]` 접두사.
+- UI: 스레드 목록 실데이터 프리뷰·미읽음 뱃지·폴링; 전송 한도·네트워크 오류 메시지; 포스트 CTA·탐색 카드·프로필·모바일 스티키에서 「지금 문의하기」; AI 저장 본문 `[자동 초답]` 접두사; 문의 시트 스레드 생성 실패 시 안내·재시도(가짜 환영 메시지 제거).
 
 ### 검증 결과
 
@@ -49,7 +49,7 @@
 
 - 스테이징/프로덕션에 마이그레이션 적용 후 메시지함·AI·배지 스모크 테스트.
 
----
+## 2026-05-07 - AI 협업 규칙 문서 및 가드 문서 연동
 
 ### 목표
 
