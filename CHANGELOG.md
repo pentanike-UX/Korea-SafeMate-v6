@@ -39,6 +39,37 @@
 ### Idempotency
 - `POST /api/threads/[id]/messages` — `client_msg_id` 중복 시 200 `deduped: true` 반환 (재전송 안전).
 
+## Realtime + Toast + Sound + Web Push (PR-J → PR-M)
+
+### Added — instant notification UX
+- **PR-J Header Realtime**: HeaderInboxButton 이 Supabase Realtime로 `messages INSERT` 구독 → 새 메시지 도착 시 수 초 내 빨간 배지 + 토스트.
+- **PR-K Inbox Realtime**: ThreadListClient 가 인박스 목록을 Realtime 패치 → 행이 실시간으로 상단 이동, preview/unread/시간 즉시 갱신, 신규 스레드는 자동 fetch.
+- **PR-L Toast + Sound + Desktop**:
+  - `<ToastProvider>` locale 레이아웃에 마운트.
+  - `<InboundNotifyBridge />` 가 `safemate:inbound-message` 이벤트 수신 → 토스트 + Web Audio 비프 + OS 데스크톱 알림.
+  - 사용자 설정: `localStorage.safemate.notif.sound`, `safemate.notif.desktop`.
+- **PR-M Web Push**:
+  - `user_push_subscriptions` 테이블 + RLS (own select/insert/delete).
+  - `public/sw.js` Service Worker (push + notificationclick).
+  - `<PushSubscriptionAutoSubscribe />` 가 첫 인터랙션 후 SW 등록 + 권한 + pushManager.subscribe.
+  - `/api/notifications/push/subscribe` 멱등 upsert (endpoint unique).
+  - `/api/notifications/push/unsubscribe`.
+  - `sendInboundMessagePush()` → `/api/threads/[id]/messages` POST 후 호출.
+  - VAPID 키 미설정 시 silent skip (dev/local 호환).
+- Dependencies: `web-push@3.6.7` + `@types/web-push`.
+
+### Env vars required (PR-M only)
+- `VAPID_PUBLIC_KEY`
+- `VAPID_PRIVATE_KEY`
+- `VAPID_SUBJECT` (메일 형식 권장)
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY` (클라이언트 — 공개 키와 동일)
+
+VAPID 키 생성:
+```bash
+npx web-push generate-vapid-keys
+```
+미설정해도 build/dev/runtime 정상 — 푸시 전송만 silent skip.
+
 ## Rollback
 
 DB:
@@ -51,6 +82,8 @@ drop index if exists public.messages_client_msg_id_uidx;
 alter table public.messages drop column if exists client_msg_id;
 drop index if exists public.message_threads_source_post_idx;
 alter table public.message_threads drop column if exists source_post_id;
+-- web push subscriptions
+drop table if exists public.user_push_subscriptions;
 ```
 
 코드: `git revert <commit-sha>` (각 PR 단위 reversible).
