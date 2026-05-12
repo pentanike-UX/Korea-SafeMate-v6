@@ -249,8 +249,10 @@ async function generateAiReply(opts: AiReplyOptions): Promise<string | null> {
   const apiKey = process.env.AI_GATEWAY_API_KEY;
 
   if (!apiKey) {
+    console.error("[AI reply] AI_GATEWAY_API_KEY not set — using fallback");
     return buildFallbackReply(opts.userMessage, opts.guardianName);
   }
+  console.log("[AI reply] key present, calling gateway…");
 
   const systemPrompt = `당신은 한국 여행 가이드 "${opts.guardianName}"의 AI 어시스턴트입니다.
 ${opts.guardianHeadline ? `소개: ${opts.guardianHeadline}` : ""}
