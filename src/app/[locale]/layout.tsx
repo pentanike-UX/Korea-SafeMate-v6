@@ -3,6 +3,9 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { HtmlLangSync } from "@/components/i18n/html-lang-sync";
 import { routing, type AppLocale } from "@/i18n/routing";
+import { ToastProvider } from "@/components/ui/toast";
+import { InboundNotifyBridge } from "@/components/layout/inbound-notify-bridge";
+import { PushSubscriptionAutoSubscribe } from "@/components/layout/push-subscription-auto-subscribe";
 
 type Props = {
   children: React.ReactNode;
@@ -24,7 +27,11 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider messages={messages}>
       <HtmlLangSync />
-      {children}
+      <ToastProvider>
+        <InboundNotifyBridge />
+        <PushSubscriptionAutoSubscribe />
+        {children}
+      </ToastProvider>
     </NextIntlClientProvider>
   );
 }
