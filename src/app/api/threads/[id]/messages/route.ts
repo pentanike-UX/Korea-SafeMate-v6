@@ -4,8 +4,15 @@
  */
 import { NextResponse } from "next/server";
 import { getSessionUserId, getServerSupabaseForUser } from "@/lib/supabase/server-user";
+import { sendInboundMessagePush } from "@/lib/push-server";
+import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 
 type Params = { params: Promise<{ id: string }> };
+
+function body_content_preview(s: string): string {
+  const t = (s ?? "").trim();
+  return t.length > 100 ? t.slice(0, 100) + "…" : t;
+}
 
 // ── GET: 메시지 조회 ──────────────────────────────────────────────────────────
 export async function GET(_req: Request, { params }: Params) {
@@ -132,6 +139,30 @@ export async function POST(req: Request, { params }: Params) {
     .from("message_threads")
     .update({ last_message_at: new Date().toISOString() })
     .eq("id", threadId);
+
+  // ── 푸시 알림 (수신자에게) ────────────────────────────────────────────────
+  void (async () => {
+    const otherUserId = isTraveler ? thread.guardian_user_id : thread.traveler_user_id;
+    if (!otherUserId) return;
+    const svc = createServiceRoleSupabase();
+    let displayName = "새 메시지";
+    let postTitle: string | null = null;
+    if (svc) {
+      const [{ data: prof }, { data: th }] = await Promise.all([
+        svc.from("user_profiles").select("display_name").eq("user_id", userId).maybeSingle(),
+        svc.from("message_threads").select("source_post_id").eq("id", threadId).maybeSingle(),
+      ]);
+      if (prof?.display_name) displayName = prof.display_name as string;
+      if (th?.source_post_id) {
+        const { data: post } = await svc.from("content_posts").select("title").eq("id", th.source_post_id).maybeSingle();
+        if (post?.title) postTitle = post.title as string;
+      }
+    }
+    const inboxHref = isTraveler ? "/mypage/guardian/messages" : "/mypage/messages";
+    const title = `${displayName}님으로부터 새 메시지`;
+    const body = postTitle ? `📍 ${postTitle}\n${body_content_preview(message.content)}` : body_content_preview(message.content);
+    await sendInboundMessagePush(otherUserId, { title, body, href: inboxHref, tag: `thread:${threadId}` });
+  })();
 
   // ── AI 자동답변 (여행자 메시지 + AI 설정 ON인 경우) ───────────────────────
   if (isTraveler) {
