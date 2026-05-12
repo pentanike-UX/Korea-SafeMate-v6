@@ -4,6 +4,7 @@
  */
 import { after } from "next/server";
 import { NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
 import { isMockGuardianId, sessionUserIdToDbParticipantId } from "@/lib/dev/mock-guardian-auth";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 import { getSessionUserId, getServerSupabaseForUser } from "@/lib/supabase/server-user";
@@ -151,9 +152,9 @@ export async function POST(req: Request, { params }: Params) {
   if (isTraveler) {
     const gId = thread.guardian_user_id;
     const text = body.content.trim();
-    console.log(`[AI reply trigger] key=${process.env.AI_GATEWAY_API_KEY ? `set(${process.env.AI_GATEWAY_API_KEY.slice(0, 6)}…)` : "MISSING"} thread=${threadId}`);
-    // DEBUG: 동기 호출로 Gateway 에러 확인 (after() 밖에서)
-    void triggerAiReplyWithServiceRole(threadId, gId, text);
+    after(() => {
+      void triggerAiReplyWithServiceRole(threadId, gId, text);
+    });
   }
 
   return NextResponse.json({ message }, { status: 201 });
@@ -236,7 +237,7 @@ async function triggerAiReplyWithServiceRole(
   }
 }
 
-// ── Vercel AI Gateway 호출 ────────────────────────────────────────────────────
+// ── Anthropic SDK 호출 ───────────────────────────────────────────────────────
 interface AiReplyOptions {
   userMessage: string;
   guardianName: string;
@@ -246,13 +247,11 @@ interface AiReplyOptions {
 }
 
 async function generateAiReply(opts: AiReplyOptions): Promise<string | null> {
-  const apiKey = process.env.AI_GATEWAY_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
 
   if (!apiKey) {
-    console.error("[AI reply] AI_GATEWAY_API_KEY not set — using fallback");
     return buildFallbackReply(opts.userMessage, opts.guardianName);
   }
-  console.log("[AI reply] key present, calling gateway…");
 
   const systemPrompt = `당신은 한국 여행 가이드 "${opts.guardianName}"의 AI 어시스턴트입니다.
 ${opts.guardianHeadline ? `소개: ${opts.guardianHeadline}` : ""}
@@ -267,36 +266,20 @@ ${opts.guardianBio ? `프로필: ${opts.guardianBio}` : ""}
 - 메시지 본문에는 "[자동]" 같은 머리말을 넣지 마세요(시스템이 접두사를 붙입니다).`.trim();
 
   try {
-    const res = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "anthropic/claude-haiku-4.5",
-        max_tokens: 300,
-        temperature: 0.7,
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...opts.conversationHistory.slice(-4),
-          { role: "user", content: opts.userMessage },
-        ],
-      }),
-      signal: AbortSignal.timeout(8000),
+    const client = new Anthropic({ apiKey, timeout: 8000 });
+    const msg = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 300,
+      system: systemPrompt,
+      messages: [
+        ...opts.conversationHistory.slice(-4),
+        { role: "user", content: opts.userMessage },
+      ],
     });
-
-    if (!res.ok) {
-      console.error("[AI reply] Gateway error:", res.status, await res.text());
-      return buildFallbackReply(opts.userMessage, opts.guardianName);
-    }
-
-    const data = (await res.json()) as {
-      choices: Array<{ message: { content: string } }>;
-    };
-    return data.choices?.[0]?.message?.content?.trim() ?? null;
+    const block = msg.content[0];
+    return block.type === "text" ? block.text.trim() : null;
   } catch (err) {
-    console.error("[AI reply] Fetch failed:", err);
+    console.error("[AI reply] Anthropic error:", err);
     return buildFallbackReply(opts.userMessage, opts.guardianName);
   }
 }
