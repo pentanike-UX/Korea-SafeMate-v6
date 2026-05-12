@@ -2,8 +2,10 @@
  * GET  /api/threads/[id]/messages — 메시지 목록 (최신 100건)
  * POST /api/threads/[id]/messages — 메시지 전송 + AI 자동답변 트리거
  */
+import { after } from "next/server";
 import { NextResponse } from "next/server";
 import { getSessionUserId, getServerSupabaseForUser } from "@/lib/supabase/server-user";
+import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -36,13 +38,16 @@ export async function GET(_req: Request, { params }: Params) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // 상대방 메시지 읽음 처리 (fire-and-forget)
-  void sb
+  const { error: readErr } = await sb
     .from("messages")
     .update({ is_read: true })
     .eq("thread_id", threadId)
     .neq("sender_user_id", userId)
     .eq("is_read", false);
+
+  if (readErr) {
+    console.warn("[messages GET] read receipt update failed:", readErr.message);
+  }
 
   return NextResponse.json({ messages: messages ?? [] });
 }
@@ -66,13 +71,13 @@ export async function POST(req: Request, { params }: Params) {
   const sb = await getServerSupabaseForUser();
   if (!sb) return NextResponse.json({ error: "DB unavailable" }, { status: 503 });
 
-  // 참여 권한 + 역할 확인
-  const { data: thread } = await sb
+  const { data: thread, error: threadErr } = await sb
     .from("message_threads")
-    .select("id, traveler_user_id, guardian_user_id")
+    .select("id, traveler_user_id, guardian_user_id, traveler_message_count, max_messages_traveler")
     .eq("id", threadId)
     .maybeSingle();
 
+  if (threadErr) return NextResponse.json({ error: threadErr.message }, { status: 500 });
   if (!thread) return NextResponse.json({ error: "Thread not found" }, { status: 404 });
 
   const isGuardian = thread.guardian_user_id === userId;
@@ -81,9 +86,22 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  if (
+    isTraveler &&
+    thread.traveler_message_count >= thread.max_messages_traveler
+  ) {
+    return NextResponse.json(
+      {
+        error: "traveler_message_limit",
+        detail:
+          "이 대화에서 보낼 수 있는 메시지 수에 도달했어요. 맞춤 요청이나 예약을 통해 이어가실 수 있어요.",
+      },
+      { status: 403 },
+    );
+  }
+
   const senderRole = isGuardian ? "guardian" : "traveler";
 
-  // 메시지 삽입
   const { data: message, error: msgErr } = await sb
     .from("messages")
     .insert({
@@ -98,31 +116,48 @@ export async function POST(req: Request, { params }: Params) {
 
   if (msgErr) return NextResponse.json({ error: msgErr.message }, { status: 500 });
 
-  // last_message_at 갱신
-  void sb
+  const { error: lmErr } = await sb
     .from("message_threads")
     .update({ last_message_at: new Date().toISOString() })
     .eq("id", threadId);
+  if (lmErr) {
+    console.warn("[messages POST] last_message_at update:", lmErr.message);
+  }
 
-  // ── AI 자동답변 (여행자 메시지 + AI 설정 ON인 경우) ───────────────────────
   if (isTraveler) {
-    // AI 트리거는 응답 반환 후 비동기로 처리 (waitUntil 없으면 best-effort)
-    void triggerAiReply(sb, threadId, thread.guardian_user_id, body.content.trim());
+    const gId = thread.guardian_user_id;
+    const text = body.content.trim();
+    after(() => {
+      void triggerAiReplyWithServiceRole(threadId, gId, text);
+    });
   }
 
   return NextResponse.json({ message }, { status: 201 });
 }
 
-// ── AI 자동답변 트리거 (비동기) ──────────────────────────────────────────────
-async function triggerAiReply(
-  sb: Awaited<ReturnType<typeof getServerSupabaseForUser>>,
+// ── AI 자동답변 (서비스 롤 — RLS·세션 없는 after() 컨텍스트에서도 동작) ───────
+async function triggerAiReplyWithServiceRole(
   threadId: string,
   guardianUserId: string,
   userMessage: string,
-) {
-  if (!sb) return;
+): Promise<void> {
+  const svc = createServiceRoleSupabase();
+  if (!svc) {
+    console.warn("[AI reply] service role unavailable");
+    return;
+  }
 
-  const { data: guardianProfile } = await sb
+  const { data: t, error: tErr } = await svc
+    .from("message_threads")
+    .select("id, guardian_user_id")
+    .eq("id", threadId)
+    .maybeSingle();
+  if (tErr || !t || t.guardian_user_id !== guardianUserId) {
+    console.warn("[AI reply] thread validation failed", tErr?.message);
+    return;
+  }
+
+  const { data: guardianProfile } = await svc
     .from("guardian_profiles")
     .select("ai_auto_reply_enabled, display_name, headline, bio")
     .eq("user_id", guardianUserId)
@@ -130,8 +165,7 @@ async function triggerAiReply(
 
   if (!guardianProfile?.ai_auto_reply_enabled) return;
 
-  // 최근 5개 메시지를 컨텍스트로 제공 (자연스러운 대화 흐름 유지)
-  const { data: recentMessages } = await sb
+  const { data: recentMessages } = await svc
     .from("messages")
     .select("sender_role, content")
     .eq("thread_id", threadId)
@@ -153,19 +187,29 @@ async function triggerAiReply(
 
   if (!aiContent) return;
 
-  await sb.from("messages").insert({
+  const body = `[자동 초답] ${aiContent}`;
+
+  const { error: insErr } = await svc.from("messages").insert({
     thread_id: threadId,
     sender_user_id: guardianUserId,
     sender_role: "guardian",
-    content: aiContent,
+    content: body,
     content_type: "text",
     is_ai_reply: true,
   });
 
-  void sb
+  if (insErr) {
+    console.error("[AI reply] insert failed:", insErr.message);
+    return;
+  }
+
+  const { error: upErr } = await svc
     .from("message_threads")
     .update({ last_message_at: new Date().toISOString() })
     .eq("id", threadId);
+  if (upErr) {
+    console.warn("[AI reply] last_message_at:", upErr.message);
+  }
 }
 
 // ── Vercel AI Gateway 호출 ────────────────────────────────────────────────────
@@ -180,7 +224,6 @@ interface AiReplyOptions {
 async function generateAiReply(opts: AiReplyOptions): Promise<string | null> {
   const apiKey = process.env.AI_GATEWAY_API_KEY;
 
-  // API 키가 없으면 fallback 응답 반환
   if (!apiKey) {
     return buildFallbackReply(opts.userMessage, opts.guardianName);
   }
@@ -195,7 +238,7 @@ ${opts.guardianBio ? `프로필: ${opts.guardianBio}` : ""}
 - 날짜/금액 확정이 필요한 사항은 "요청하기를 통해 상세 조율이 가능하다"고 안내합니다.
 - 확실하지 않은 정보(가격, 정확한 일정 등)는 추측하지 않습니다.
 - 한국어로 답변합니다. 이모지를 적절히 사용해 친근한 느낌을 줍니다.
-- AI 어시스턴트임을 밝히지 않습니다.`.trim();
+- 메시지 본문에는 "[자동]" 같은 머리말을 넣지 마세요(시스템이 접두사를 붙입니다).`.trim();
 
   try {
     const res = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", {
@@ -210,11 +253,11 @@ ${opts.guardianBio ? `프로필: ${opts.guardianBio}` : ""}
         temperature: 0.7,
         messages: [
           { role: "system", content: systemPrompt },
-          ...opts.conversationHistory.slice(-4), // 최근 4턴 컨텍스트
+          ...opts.conversationHistory.slice(-4),
           { role: "user", content: opts.userMessage },
         ],
       }),
-      signal: AbortSignal.timeout(8000), // 8초 타임아웃
+      signal: AbortSignal.timeout(8000),
     });
 
     if (!res.ok) {
@@ -232,7 +275,6 @@ ${opts.guardianBio ? `프로필: ${opts.guardianBio}` : ""}
   }
 }
 
-// ── API 키 미설정 / 오류 시 fallback ─────────────────────────────────────────
 function buildFallbackReply(userMessage: string, guardianName: string): string {
   const lower = userMessage.toLowerCase();
   if (lower.includes("동행") || lower.includes("같이"))

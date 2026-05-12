@@ -1,52 +1,80 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatView } from "@/components/chat/chat-view";
 import { GUARDIAN_AVATAR_COVER_CLASS } from "@/lib/guardian-profile-images";
 import { FALLBACK_GUARDIAN_REQUEST_AVATAR } from "@/components/guardians/guardian-request-sheet";
 import { cn } from "@/lib/utils";
-import type { MessageThread } from "@/types/domain";
+import type { MessageThreadListRow } from "@/types/domain";
 import { MessageCircle } from "lucide-react";
 
-interface ThreadWithMeta extends MessageThread {
-  other_display_name: string;
-  other_avatar_url: string | null;
-  last_message_preview: string | null;
-}
-
 interface Props {
-  /** "traveler" | "guardian" — determines AI badge visibility */
   viewerRole: "traveler" | "guardian";
-  /** 현재 로그인 사용자 ID — opposite party 식별에 사용 */
   viewerUserId: string;
 }
 
+const POLL_MS = 18_000;
+
 export function ThreadListClient({ viewerRole, viewerUserId }: Props) {
-  const [threads, setThreads] = useState<ThreadWithMeta[]>([]);
+  const [threads, setThreads] = useState<MessageThreadListRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
+  const mounted = useRef(true);
+
+  const loadThreads = useCallback(async () => {
+    try {
+      const r = await fetch("/api/threads", { credentials: "include" });
+      const raw = (await r.json().catch(() => ({}))) as {
+        threads?: MessageThreadListRow[];
+        error?: string;
+        detail?: string;
+      };
+      if (!r.ok) {
+        if (mounted.current)
+          setListError(
+            typeof raw.detail === "string" ? raw.detail : raw.error ?? "목록을 불러오지 못했어요.",
+          );
+        return;
+      }
+      if (mounted.current) {
+        setListError(null);
+        setThreads(raw.threads ?? []);
+      }
+    } catch {
+      if (mounted.current) setListError("네트워크 오류가 발생했어요.");
+    } finally {
+      if (mounted.current) setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    fetch("/api/threads")
-      .then((r) => (r.ok ? r.json() : { threads: [] }))
-      .then(({ threads: list }: { threads: MessageThread[] }) => {
-        // TODO(prod): 서버에서 join으로 display_name, avatar, preview를 내려주도록 개선
-        // 현재는 기본값으로 렌더
-        setThreads(
-          list.map((t) => ({
-            ...t,
-            other_display_name:
-              viewerRole === "traveler" ? "하루이" : "여행자",
-            other_avatar_url: null,
-            last_message_preview: t.last_message_at
-              ? `마지막 메시지: ${new Date(t.last_message_at).toLocaleDateString("ko")}`
-              : null,
-          })),
-        );
-      })
-      .finally(() => setLoading(false));
-  }, [viewerRole, viewerUserId]);
+    mounted.current = true;
+    void loadThreads();
+    return () => {
+      mounted.current = false;
+    };
+  }, [loadThreads, viewerUserId]);
+
+  useEffect(() => {
+    const id = setInterval(() => void loadThreads(), POLL_MS);
+    const onVis = () => {
+      if (document.visibilityState === "visible") void loadThreads();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [loadThreads]);
+
+  useEffect(() => {
+    if (threads.length === 0) return;
+    if (!selectedId || !threads.some((t) => t.id === selectedId)) {
+      setSelectedId(threads[0].id);
+    }
+  }, [threads, selectedId]);
 
   const selected = threads.find((t) => t.id === selectedId) ?? null;
 
@@ -66,6 +94,24 @@ export function ThreadListClient({ viewerRole, viewerUserId }: Props) {
     );
   }
 
+  if (listError) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-16 text-center">
+        <p className="text-sm text-destructive">{listError}</p>
+        <button
+          type="button"
+          onClick={() => {
+            setLoading(true);
+            void loadThreads();
+          }}
+          className="text-primary text-sm font-semibold underline"
+        >
+          다시 시도
+        </button>
+      </div>
+    );
+  }
+
   if (threads.length === 0) {
     return (
       <div className="flex flex-col items-center gap-4 py-20 text-center">
@@ -79,7 +125,6 @@ export function ThreadListClient({ viewerRole, viewerUserId }: Props) {
 
   return (
     <div className="flex h-[calc(100dvh-12rem)] gap-0 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-sm)]">
-      {/* 스레드 목록 */}
       <div className="w-full shrink-0 overflow-y-auto border-r border-border/50 sm:w-64 md:w-72">
         {threads.map((t) => (
           <button
@@ -99,24 +144,29 @@ export function ThreadListClient({ viewerRole, viewerUserId }: Props) {
                 className={cn(GUARDIAN_AVATAR_COVER_CLASS)}
                 sizes="40px"
               />
+              {t.unread_count > 0 ? (
+                <span className="absolute -right-0.5 -top-0.5 flex min-w-[1.1rem] items-center justify-center rounded-full bg-[var(--brand-primary)] px-1 text-[10px] font-bold text-white shadow">
+                  {t.unread_count > 9 ? "9+" : t.unread_count}
+                </span>
+              ) : null}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-foreground">{t.other_display_name}</p>
-              {t.last_message_preview && (
+              {t.last_message_preview ? (
+                <p className="line-clamp-1 text-[11px] text-muted-foreground">{t.last_message_preview}</p>
+              ) : t.last_message_at ? (
                 <p className="line-clamp-1 text-[11px] text-muted-foreground">
-                  {t.last_message_preview}
+                  {new Date(t.last_message_at).toLocaleDateString("ko")}
                 </p>
-              )}
+              ) : null}
             </div>
           </button>
         ))}
       </div>
 
-      {/* 채팅 뷰 */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {selected ? (
           <>
-            {/* 채팅 헤더 */}
             <div className="flex shrink-0 items-center gap-3 border-b border-border/50 px-4 py-3">
               <div className="relative size-8 overflow-hidden rounded-full border border-border/40">
                 <Image
@@ -134,6 +184,7 @@ export function ThreadListClient({ viewerRole, viewerUserId }: Props) {
               viewerRole={viewerRole}
               otherDisplayName={selected.other_display_name}
               otherAvatarUrl={selected.other_avatar_url}
+              onMessageSent={() => void loadThreads()}
             />
           </>
         ) : (

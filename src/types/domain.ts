@@ -730,6 +730,18 @@ export interface MessageThread {
   traveler_message_count: number;
   last_message_at: string | null;
   created_at: string;
+  /** 문의 진입 시 참조한 포스트(선택) */
+  content_post_id?: string | null;
+}
+
+/** GET /api/threads — RPC `message_threads_list_for_viewer` 한 행 */
+export interface MessageThreadListRow extends MessageThread {
+  other_user_id: string;
+  other_display_name: string;
+  other_avatar_url: string | null;
+  unread_count: number;
+  last_message_preview: string | null;
+  message_count: number;
 }
 
 /** Row shape for public.messages */

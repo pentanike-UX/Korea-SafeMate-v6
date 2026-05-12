@@ -15,6 +15,8 @@ interface ChatViewProps {
   viewerRole: "traveler" | "guardian";
   otherDisplayName: string;
   otherAvatarUrl?: string | null;
+  /** 전송 성공 시 상위(목록 미읽음 등) 갱신 */
+  onMessageSent?: () => void;
 }
 
 export function ChatView({
@@ -22,11 +24,13 @@ export function ChatView({
   viewerRole,
   otherDisplayName,
   otherAvatarUrl,
+  onMessageSent,
 }: ChatViewProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const avatarSrc = otherAvatarUrl ?? FALLBACK_GUARDIAN_REQUEST_AVATAR;
@@ -83,6 +87,7 @@ export function ChatView({
       setMessages((prev) => [...prev, optimistic]);
       setInput("");
       setIsSending(true);
+      setSendError(null);
 
       try {
         const res = await fetch(`/api/threads/${threadId}/messages`, {
@@ -90,16 +95,31 @@ export function ChatView({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: text.trim() }),
         });
-        if (!res.ok) throw new Error("Send failed");
-        const { message } = (await res.json()) as { message: ChatMessage };
-        setMessages((prev) => prev.map((m) => (m.id === optimisticId ? message : m)));
+        const raw = (await res.json().catch(() => null)) as
+          | { message: ChatMessage }
+          | { error?: string; detail?: string }
+          | null;
+        if (!res.ok) {
+          const human =
+            raw && "error" in raw && raw.error === "traveler_message_limit" && typeof raw.detail === "string"
+              ? raw.detail
+              : "메시지를 보내지 못했어요.";
+          setSendError(human);
+          setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
+          return;
+        }
+        if (raw && "message" in raw && raw.message && typeof raw.message === "object" && "id" in raw.message) {
+          setMessages((prev) => prev.map((m) => (m.id === optimisticId ? raw.message : m)));
+          onMessageSent?.();
+        }
       } catch {
+        setSendError("네트워크 오류가 발생했어요.");
         setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
       } finally {
         setIsSending(false);
       }
     },
-    [threadId, isSending, viewerRole],
+    [threadId, isSending, viewerRole, onMessageSent],
   );
 
   const handleKeyDown = useCallback(
@@ -196,12 +216,16 @@ export function ChatView({
 
       {/* 입력 바 */}
       <div className="shrink-0 border-t border-border/50 bg-card px-3 py-3">
+        {sendError ? (
+          <p className="text-destructive mb-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs leading-relaxed">{sendError}</p>
+        ) : null}
         <div className="flex items-end gap-2">
           <textarea
             ref={inputRef}
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
+              setSendError(null);
               e.target.style.height = "auto";
               e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
             }}

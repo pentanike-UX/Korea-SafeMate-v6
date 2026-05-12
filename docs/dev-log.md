@@ -9,7 +9,47 @@
 
 ---
 
-## 2026-05-07 - AI 협업 규칙 문서 및 가드 문서 연동
+## 2026-05-12 - 채팅·문의 비즈니스 로직 정비 (DB·API·마이페이지·진입 UX)
+
+### 목표
+
+- 여행자/하루이 문의·메시지함·미읽음 배지·AI 자동답변·메시지 한도·읽음 처리·포스트 맥락을 제품 흐름에 맞게 정리한다.
+
+### 변경 파일
+
+- `supabase/migrations/20260512140000_chat_messaging_business_logic.sql`
+- `src/app/api/threads/route.ts`, `src/app/api/threads/[id]/messages/route.ts`
+- `src/lib/mypage-hub-snapshot.server.ts`, `src/types/mypage-hub.ts`, `src/types/domain.ts`
+- `src/lib/mypage-attention-read-state.ts`
+- `src/components/mypage/mypage-hub-nav-items.ts`, `mypage-hub-side-navigation.tsx`, `mypage-hub-shell.tsx`
+- `src/components/chat/thread-list-client.tsx`, `chat-view.tsx`
+- `src/components/guardians/guardian-inquiry-sheet.tsx`, `guardian-sticky-cta.tsx`, `guardians-discover-client.tsx`, `guardian-detail-view.tsx`
+- `src/components/posts/post-author-request-cta.tsx`
+- `messages/*.json` (`guardianNavMessages`, `inquiryQuickCta`)
+
+### 변경 내용
+
+- DB: `content_post_id`, `max_messages_traveler` 기본 완화, 여행자 메시지 수 트리거·재집계, `messages` 읽음 전용 UPDATE RLS+가드, `message_threads_list_for_viewer` RPC, `service_count_unread_chat_threads`(service_role).
+- API: 스레드 POST에 `content_post_id` 검증·기존 스레드 시 메타 갱신; GET은 RPC 목록(메시지 0건 스레드 제외); POST 메시지 시 여행자 한도 검사; AI 답변은 `after()` + 서비스 롤 INSERT; 읽음 `await` 및 실패 로그.
+- 마이페이지: 여행자/가디언 LNB에 메시지·미읽음 배지; 가디언 모드에서 `/mypage/messages` → `/mypage/guardian/messages` 리다이렉트; attention `menuKey`에 메시지 경로 매핑.
+- UI: 스레드 목록 실데이터 프리뷰·미읽음 뱃지·폴링; 전송 한도·네트워크 오류 메시지; 포스트 CTA·탐색 카드·프로필·모바일 스티키에서 「지금 문의하기」; AI 저장 본문 `[자동 초답]` 접두사.
+
+### 검증 결과
+
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm build` 통과(로컬 Node 25 경고만).
+- `pnpm lint`는 저장소 내 `.claude/worktrees` 등 비표준 경로 스캔으로 실패할 수 있음 — 본 변경 파일 단위 ESLint는 `guardians-discover-client` 기존 `Date.now` purity 규칙 외 신규 오류 없음.
+
+### 남은 이슈
+
+- Supabase에 본 마이그레이션 적용 전에는 `GET /api/threads`가 503을 반환할 수 있음(RPC 부재).
+- `pnpm lint` 전역 통과를 위해서는 eslint `globalIgnores`에 `.claude/**` 등 추가 검토.
+
+### 다음 작업
+
+- 스테이징/프로덕션에 마이그레이션 적용 후 메시지함·AI·배지 스모크 테스트.
+
+---
 
 ### 목표
 

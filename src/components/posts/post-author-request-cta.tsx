@@ -34,6 +34,7 @@ export function PostAuthorRequestCta({
           displayName: openDetail.displayName,
           headline: openDetail.headline,
           avatarUrl: openDetail.avatarUrl,
+          contentPostId: openDetail.postId,
         },
       }),
     );

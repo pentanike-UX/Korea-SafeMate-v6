@@ -839,6 +839,7 @@
   },
   "GuardianRequest": {
     "openCta": "リクエスト",
+    "inquiryQuickCta": "今すぐ相談",
     "sheetIntroLead": "このパネルから送信すると、チームが内容を確認しGuardianとの接続をサポートします。別ページには移動しません。",
     "fieldRequestKindHelp": "半日・1日・旅程全体・軽い問い合わせから選べます。日程は後から調整できます。",
     "asideBulletHalfFull": "半日・1日など、同伴・案内のリクエストが可能です。",
@@ -1390,6 +1391,7 @@
     "guardianStripTitle": "ガーディアン",
     "guardianNavHub": "ハブ",
     "guardianNavHome": "ガーディアンホーム",
+    "guardianNavMessages": "メッセージ",
     "guardianNavProfile": "プロフィール管理",
     "guardianNavPosts": "投稿管理",
     "guardianNavNewPost": "投稿作成",

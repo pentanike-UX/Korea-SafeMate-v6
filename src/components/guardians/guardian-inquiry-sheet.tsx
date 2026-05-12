@@ -21,6 +21,8 @@ export type GuardianInquiryOpenDetail = {
   displayName?: string;
   avatarUrl?: string;
   headline?: string;
+  /** 문의 진입 포스트(선택) — 스레드 메타에 저장 */
+  contentPostId?: string;
 };
 
 const QUICK_REPLIES = [
@@ -68,6 +70,7 @@ export function GuardianInquirySheetGlobal() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -89,17 +92,23 @@ export function GuardianInquirySheetGlobal() {
       setAuthRequired(false);
       setMessages([]);
       setThreadId(null);
+      setSendError(null);
       setOpen(true);
 
       if (!d.guardianUserId) return;
 
       setIsLoading(true);
       try {
+        const payload: { guardian_user_id: string; content_post_id?: string } = {
+          guardian_user_id: d.guardianUserId,
+        };
+        if (d.contentPostId) payload.content_post_id = d.contentPostId;
+
         // 스레드 생성 or 기존 반환
         const res = await fetch("/api/threads", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ guardian_user_id: d.guardianUserId }),
+          body: JSON.stringify(payload),
         });
 
         if (res.status === 401) {
@@ -195,6 +204,7 @@ export function GuardianInquirySheetGlobal() {
       setMessages((prev) => [...prev, optimisticMsg]);
       setInput("");
       setIsSending(true);
+      setSendError(null);
 
       try {
         const res = await fetch(`/api/threads/${threadId}/messages`, {
@@ -202,14 +212,24 @@ export function GuardianInquirySheetGlobal() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: text.trim() }),
         });
-        if (!res.ok) throw new Error("Send failed");
-        const { message } = (await res.json()) as { message: ChatMessage };
-        // 낙관적 메시지를 실제 ID로 교체
-        setMessages((prev) =>
-          prev.map((m) => (m.id === optimisticId ? message : m)),
-        );
+        const raw = (await res.json().catch(() => null)) as
+          | { message: ChatMessage }
+          | { error?: string; detail?: string }
+          | null;
+        if (!res.ok) {
+          const human =
+            raw && "error" in raw && raw.error === "traveler_message_limit" && typeof raw.detail === "string"
+              ? raw.detail
+              : "메시지를 보내지 못했어요. 잠시 후 다시 시도해 주세요.";
+          setSendError(human);
+          setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
+          return;
+        }
+        if (raw && "message" in raw && raw.message && typeof raw.message === "object" && "id" in raw.message) {
+          setMessages((prev) => prev.map((m) => (m.id === optimisticId ? raw.message : m)));
+        }
       } catch {
-        // 실패 시 낙관적 메시지 제거
+        setSendError("네트워크 오류가 발생했어요.");
         setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
       } finally {
         setIsSending(false);
@@ -374,12 +394,18 @@ export function GuardianInquirySheetGlobal() {
         {/* ── 입력 바 ── */}
         {!authRequired && (
           <div className="shrink-0 border-t border-border/50 bg-card px-3 py-3">
+            {sendError ? (
+              <p className="text-destructive mb-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs leading-relaxed">
+                {sendError}
+              </p>
+            ) : null}
             <div className="flex items-end gap-2">
               <textarea
                 ref={inputRef}
                 value={input}
                 onChange={(e) => {
                   setInput(e.target.value);
+                  setSendError(null);
                   e.target.style.height = "auto";
                   e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
                 }}

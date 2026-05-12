@@ -58,14 +58,6 @@ function lnbBadgeCount(
   if (section === "traveler") {
     return travelerNavBadges[item.labelKey as TravelerNavBadgeKey] ?? 0;
   }
-  if (
-    item.labelKey !== "guardianNavProfile" &&
-    item.labelKey !== "guardianNavNewPost" &&
-    item.labelKey !== "guardianNavPosts" &&
-    item.labelKey !== "guardianNavMatches"
-  ) {
-    return 0;
-  }
   return guardianWorkspaceNavBadges[item.labelKey as GuardianWorkspaceNavBadgeKey] ?? 0;
 }
 

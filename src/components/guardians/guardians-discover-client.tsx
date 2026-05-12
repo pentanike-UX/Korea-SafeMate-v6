@@ -16,6 +16,7 @@ import { guardianProfileImageUrls, GUARDIAN_LIST_CARD_COVER_CLASS } from "@/lib/
 import { GUARDIAN_TIER_ROLE_BADGE_CLASSNAME, guardianTierBadgeVariant } from "@/lib/guardian-tier-ui";
 import { GuardianProfilePreviewSheetTrigger } from "@/components/guardians/guardian-profile-preview-sheet-trigger";
 import { GuardianRequestOpenTrigger } from "@/components/guardians/guardian-request-sheet";
+import { GuardianInquiryOpenTrigger } from "@/components/guardians/guardian-inquiry-sheet";
 import {
   postContextFromGuardianRepresentative,
   representativePostLinesForSheetPreview,
@@ -57,6 +58,7 @@ export function GuardiansDiscoverClient({
   const tThemes = useTranslations("ExperienceThemes");
   const tStyles = useTranslations("CompanionStyles");
   const tTier = useTranslations("GuardianTier");
+  const tReq = useTranslations("GuardianRequest");
 
   const [region, setRegion] = useState<LaunchAreaSlug | "all" | "">("");
   const [language, setLanguage] = useState<string>("");
@@ -532,6 +534,23 @@ export function GuardiansDiscoverClient({
                         ) : null}
 
                         <div className="mt-auto flex flex-col gap-2 pt-1">
+                          {g.approval_status !== "paused" ? (
+                            <GuardianInquiryOpenTrigger
+                              className={cn(
+                                listCardActionButtonClass,
+                                "inline-flex h-9 w-full items-center justify-center rounded-[var(--radius-md)] border border-emerald-500/45 bg-emerald-50/90 text-[11px] font-semibold text-emerald-800 sm:text-sm dark:bg-emerald-950/25 dark:text-emerald-300",
+                              )}
+                              detail={{
+                                guardianUserId: g.user_id,
+                                displayName: g.display_name,
+                                headline: g.headline,
+                                avatarUrl: imgs.avatar,
+                                ...(rep ? { contentPostId: rep.id } : {}),
+                              }}
+                            >
+                              {tReq("inquiryQuickCta")}
+                            </GuardianInquiryOpenTrigger>
+                          ) : null}
                           {g.approval_status === "paused" ? (
                             <Button
                               type="button"

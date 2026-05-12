@@ -1,19 +1,41 @@
 /**
  * POST /api/threads — pre_booking 스레드 upsert (여행자가 가디언에게 첫 문의)
- * GET  /api/threads — 현재 로그인 사용자의 스레드 목록
+ * GET  /api/threads — 현재 로그인 사용자의 스레드 목록 (미리보기·미읽음 포함)
  */
 import { NextResponse } from "next/server";
-import { getSessionUserId } from "@/lib/supabase/server-user";
-import { getServerSupabaseForUser } from "@/lib/supabase/server-user";
+import { getSessionUserId, getServerSupabaseForUser } from "@/lib/supabase/server-user";
+import { isUuidString } from "@/lib/guardian-posts-api";
+import type { MessageThreadListRow } from "@/types/domain";
+
+type PostBody = {
+  guardian_user_id: string;
+  content_post_id?: string | null;
+};
+
+async function validateContentPostForGuardian(
+  sb: NonNullable<Awaited<ReturnType<typeof getServerSupabaseForUser>>>,
+  contentPostId: string,
+  guardianUserId: string,
+): Promise<string | null> {
+  const { data: post, error } = await sb
+    .from("content_posts")
+    .select("id, author_user_id")
+    .eq("id", contentPostId)
+    .maybeSingle();
+  if (error) return error.message;
+  if (!post) return "content_post not found";
+  if (post.author_user_id !== guardianUserId) return "content_post does not match guardian";
+  return null;
+}
 
 // ── POST: 스레드 생성 or 기존 반환 ──────────────────────────────────────────
 export async function POST(req: Request) {
   const userId = await getSessionUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: { guardian_user_id: string };
+  let body: PostBody;
   try {
-    body = (await req.json()) as typeof body;
+    body = (await req.json()) as PostBody;
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
@@ -24,8 +46,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Cannot start thread with yourself" }, { status: 400 });
   }
 
+  let contentPostId: string | null = null;
+  if (body.content_post_id != null && String(body.content_post_id).trim() !== "") {
+    const raw = String(body.content_post_id).trim();
+    if (!isUuidString(raw)) {
+      return NextResponse.json({ error: "Invalid content_post_id" }, { status: 400 });
+    }
+    contentPostId = raw;
+  }
+
   const sb = await getServerSupabaseForUser();
   if (!sb) return NextResponse.json({ error: "DB unavailable" }, { status: 503 });
+
+  if (contentPostId) {
+    const err = await validateContentPostForGuardian(sb, contentPostId, body.guardian_user_id);
+    if (err) return NextResponse.json({ error: err }, { status: 400 });
+  }
 
   // 기존 pre_booking 스레드 확인 (unique 인덱스 기반)
   const { data: existing } = await sb
@@ -36,7 +72,18 @@ export async function POST(req: Request) {
     .eq("inquiry_kind", "pre_booking")
     .maybeSingle();
 
-  if (existing) return NextResponse.json({ thread: existing, created: false });
+  if (existing) {
+    if (contentPostId) {
+      const { error: upErr } = await sb
+        .from("message_threads")
+        .update({ content_post_id: contentPostId })
+        .eq("id", existing.id);
+      if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 });
+      const { data: refreshed } = await sb.from("message_threads").select("*").eq("id", existing.id).maybeSingle();
+      return NextResponse.json({ thread: refreshed ?? { ...existing, content_post_id: contentPostId }, created: false });
+    }
+    return NextResponse.json({ thread: existing, created: false });
+  }
 
   // 신규 생성
   const { data: created, error } = await sb
@@ -45,6 +92,7 @@ export async function POST(req: Request) {
       traveler_user_id: userId,
       guardian_user_id: body.guardian_user_id,
       inquiry_kind: "pre_booking",
+      content_post_id: contentPostId,
     })
     .select()
     .single();
@@ -53,7 +101,7 @@ export async function POST(req: Request) {
   return NextResponse.json({ thread: created, created: true }, { status: 201 });
 }
 
-// ── GET: 내 스레드 목록 ──────────────────────────────────────────────────────
+// ── GET: 내 스레드 목록 (메시지 1건 이상만, 미리보기·미읽음) ─────────────────
 export async function GET() {
   const userId = await getSessionUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -61,12 +109,14 @@ export async function GET() {
   const sb = await getServerSupabaseForUser();
   if (!sb) return NextResponse.json({ error: "DB unavailable" }, { status: 503 });
 
-  const { data: threads, error } = await sb
-    .from("message_threads")
-    .select("*")
-    .or(`traveler_user_id.eq.${userId},guardian_user_id.eq.${userId}`)
-    .order("last_message_at", { ascending: false, nullsFirst: false });
+  const { data, error } = await sb.rpc("message_threads_list_for_viewer");
+  if (error) {
+    console.error("[threads GET] message_threads_list_for_viewer:", error.message);
+    return NextResponse.json(
+      { error: "thread_list_unavailable", detail: "스레드 목록 RPC를 사용할 수 없습니다. DB 마이그레이션을 확인하세요." },
+      { status: 503 },
+    );
+  }
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ threads: threads ?? [] });
+  return NextResponse.json({ threads: (data ?? []) as MessageThreadListRow[] });
 }

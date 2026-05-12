@@ -153,12 +153,26 @@ function buildBlockAttentionMaps(input: {
   return { blockAttentionCounts, blockAttentionSignatures };
 }
 
+async function fetchUnreadChatThreadCount(
+  sb: NonNullable<ReturnType<typeof createServiceRoleSupabase>>,
+  uid: string,
+): Promise<number> {
+  const { data, error } = await sb.rpc("service_count_unread_chat_threads", { p_user_id: uid });
+  if (error) {
+    console.warn("[mypage-snapshot] service_count_unread_chat_threads:", error.message);
+    return 0;
+  }
+  return typeof data === "number" && Number.isFinite(data) ? data : 0;
+}
+
 export async function getMypageHubSnapshot(
   userId: string | null,
   appRole: AppAccountRole,
   guardianStatus: GuardianProfileStatus,
 ): Promise<MypageHubSnapshot> {
   const sb = createServiceRoleSupabase();
+  const chatUnreadThreads =
+    userId && sb && !isMockGuardianId(userId) ? await fetchUnreadChatThreadCount(sb, userId) : 0;
   const useMockTrip = !userId || isMockGuardianId(userId);
   const matchRows = userId ? await getMatchRequestsForTraveler(userId) : [];
   /** 실사용: 별도 trip_requests 테이블 없이 «응답 대기 매칭」 건수를 오픈 파이프라인으로 집계 */
@@ -202,6 +216,7 @@ export async function getMypageHubSnapshot(
   /** 포인트 원장 최근 활동 */
   travelerNavBadges.navPoints = pointsRecentLedgerCount;
   travelerNavBadges.navProfile = 0;
+  travelerNavBadges.navMessages = chatUnreadThreads;
   travelerNavSignatures.navProfile = "profile:none";
   travelerNavSignatures.navJourneys = `journeys:open=${openTrip}:savedG=${savedGuardianIdsSorted.join("|")}:savedP=${savedPostIdsSorted.join("|")}`;
   travelerNavSignatures.navMatches = `matches:pending=${matchPending}:reviewDue=${matchReviewDue}:ids=${matchRows
@@ -209,6 +224,7 @@ export async function getMypageHubSnapshot(
     .join("|")}`;
   travelerNavSignatures.navPoints = `points:recent=${pointsRecentLedgerCount}`;
   travelerNavSignatures.navMyRoutes = "routes:list";
+  travelerNavSignatures.navMessages = `messages:unreadThreads=${chatUnreadThreads}`;
 
   const travelerBadgeCount = TRAVELER_NAV_BADGE_KEYS.reduce((s, k) => s + travelerNavBadges[k], 0);
 
@@ -376,6 +392,7 @@ export async function getMypageHubSnapshot(
     const poolSignal = openPoolCount > 0 ? 1 : 0;
 
     guardianWorkspaceNavBadges.guardianNavHome = 0;
+    guardianWorkspaceNavBadges.guardianNavMessages = chatUnreadThreads;
     guardianWorkspaceNavBadges.guardianNavPosts = pendingPosts + (draftPosts > 0 ? 1 : 0);
     guardianWorkspaceNavBadges.guardianNavMatches = incomingMatchRequests + reviewingBookings + poolSignal;
     guardianWorkspaceNavBadges.guardianNavProfile = 0;
@@ -383,6 +400,7 @@ export async function getMypageHubSnapshot(
     guardianWorkspaceNavBadges.guardianNavPoints = 0;
     guardianWorkspaceNavBadges.guardianNavSettings = 0;
     guardianWorkspaceNavSignatures.guardianNavHome = "guardianHome:none";
+    guardianWorkspaceNavSignatures.guardianNavMessages = `messages:unreadThreads=${chatUnreadThreads}`;
     guardianWorkspaceNavSignatures.guardianNavProfile = "guardianProfile:none";
     guardianWorkspaceNavSignatures.guardianNavNewPost = "guardianNewPost:none";
     guardianWorkspaceNavSignatures.guardianNavPoints = "guardianPoints:none";

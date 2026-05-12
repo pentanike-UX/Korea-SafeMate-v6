@@ -16,6 +16,7 @@ import { GuardianInsightPostSheetRow } from "@/components/guardians/guardian-ins
 import { GuardianPostsExplorerSheet } from "@/components/guardians/guardian-posts-explorer-sheet";
 import { GuardianRequestDefaultsPublisher } from "@/components/guardians/guardian-request-defaults-publisher";
 import { GuardianRequestOpenTrigger } from "@/components/guardians/guardian-request-sheet";
+import { GuardianInquiryOpenTrigger } from "@/components/guardians/guardian-inquiry-sheet";
 import { GuardianStickyCta } from "@/components/guardians/guardian-sticky-cta";
 import { GuardianTravelerReviewsList } from "@/components/guardians/guardian-traveler-reviews-list";
 import { clampSheetHeadline } from "@/lib/guardian-sheet-headline";
@@ -405,6 +406,17 @@ export async function GuardianDetailView({
               </li>
             </ul>
             <p className="text-muted-foreground text-xs leading-relaxed">{t("requestGuide")}</p>
+            <GuardianInquiryOpenTrigger
+              className="mb-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-emerald-500/50 bg-emerald-50 text-base font-semibold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+              detail={{
+                guardianUserId: g.user_id,
+                displayName: g.display_name,
+                headline: sheetHeadlineForPublisher,
+                avatarUrl: imgs.avatar,
+              }}
+            >
+              {tReq("inquiryQuickCta")}
+            </GuardianInquiryOpenTrigger>
             <GuardianRequestOpenTrigger size="lg" className="h-12 w-full rounded-2xl text-base font-semibold shadow-[var(--shadow-brand)]">
               {tReq("openCta")}
             </GuardianRequestOpenTrigger>
@@ -412,7 +424,14 @@ export async function GuardianDetailView({
         </aside>
       </div>
 
-      <GuardianStickyCta />
+      <GuardianStickyCta
+        inquiryDetail={{
+          guardianUserId: g.user_id,
+          displayName: g.display_name,
+          headline: sheetHeadlineForPublisher,
+          avatarUrl: imgs.avatar,
+        }}
+      />
     </div>
   );
 }

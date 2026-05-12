@@ -131,6 +131,7 @@ export function MypageHubShell({
     approved &&
     (pathname.startsWith("/mypage/guardian/posts") ||
       pathname.startsWith("/mypage/guardian/matches") ||
+      pathname.startsWith("/mypage/guardian/messages") ||
       pathname.startsWith("/mypage/guardian/profile") ||
       pathname.startsWith("/mypage/guardian/settings") ||
       pathname.startsWith("/mypage/guardian/points"));
@@ -144,6 +145,11 @@ export function MypageHubShell({
     const p = pathname;
     if (p.startsWith("/mypage/guardian")) return;
     if (p === "/mypage" || p === "/mypage/") return;
+
+    if (p === "/mypage/messages" || p.startsWith("/mypage/messages/")) {
+      router.replace("/mypage/guardian/messages");
+      return;
+    }
 
     const travelerRoots = ["/mypage/journeys", "/mypage/requests", "/mypage/saved-guardians", "/mypage/saved-posts", "/mypage/messages"];
     for (const root of travelerRoots) {

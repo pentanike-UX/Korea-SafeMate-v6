@@ -839,6 +839,7 @@
   },
   "GuardianRequest": {
     "openCta": "요청하기",
+    "inquiryQuickCta": "지금 문의하기",
     "sheetIntroLead": "이 화면에서 요청을 내면 팀이 내용을 검토한 뒤 하루이 연결을 도와드려요. 별도 페이지로 이동하지 않습니다.",
     "fieldRequestKindHelp": "반나절·하루·일정 전체·가벼운 문의 중에서 골라 주세요. 이후 일정은 조율 가능해요.",
     "asideBulletHalfFull": "반나절 또는 하루 단위 동행·안내 요청이 가능해요.",
@@ -1390,6 +1391,7 @@
     "guardianStripTitle": "가디언",
     "guardianNavHub": "허브",
     "guardianNavHome": "가디언 홈",
+    "guardianNavMessages": "메시지함",
     "guardianNavProfile": "프로필 관리",
     "guardianNavPosts": "포스트 관리",
     "guardianNavNewPost": "포스팅 작성",

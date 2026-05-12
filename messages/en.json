@@ -839,6 +839,7 @@
   },
   "GuardianRequest": {
     "openCta": "Request",
+    "inquiryQuickCta": "Chat now",
     "sheetIntroLead": "Submit from this panel—our team reviews and helps connect you. You stay on this page; no extra navigation required.",
     "fieldRequestKindHelp": "Pick half-day, full day, full trip planning, or a light inquiry. Dates can be refined later.",
     "asideBulletHalfFull": "Half-day or full-day companion-style support requests.",
@@ -1390,6 +1391,7 @@
     "guardianStripTitle": "Guardian",
     "guardianNavHub": "Hub",
     "guardianNavHome": "Guardian home",
+    "guardianNavMessages": "Messages",
     "guardianNavProfile": "Profile management",
     "guardianNavPosts": "Post management",
     "guardianNavNewPost": "Write post",

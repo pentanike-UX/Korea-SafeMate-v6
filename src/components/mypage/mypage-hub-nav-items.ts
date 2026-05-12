@@ -6,6 +6,7 @@ import {
   HeartHandshake,
   LayoutDashboard,
   MapPinned,
+  MessageCircle,
   PenSquare,
   Settings,
   UserRound,
@@ -16,8 +17,10 @@ export type HubNavLabelKey =
   | "navMyRoutes"
   | "navProfile"
   | "navPoints"
+  | "navMessages"
   | "navMatches"
   | "guardianNavHome"
+  | "guardianNavMessages"
   | "guardianNavPoints"
   | "guardianNavSettings"
   | "guardianNavProfile"
@@ -57,16 +60,21 @@ function travelerMatchesMatch(p: string) {
   return p === "/mypage/matches" || p.startsWith("/mypage/matches/");
 }
 
+function travelerMessagesMatch(p: string) {
+  return p === "/mypage/messages" || p.startsWith("/mypage/messages/");
+}
+
 function travelerMyRoutesMatch(p: string) {
   return p === "/mypage/routes" || p.startsWith("/mypage/routes/");
 }
 
-/** Traveler — 저장·요청·진행 요약(허브) / 내 루트 / 프로필 / 포인트 / 매칭 */
+/** Traveler — 저장·요청·진행 요약(허브) / 내 루트 / 프로필 / 포인트 / 메시지 / 매칭 */
 export const TRAVELER_HUB_NAV: HubNavItem[] = [
   { href: "/mypage", labelKey: "navJourneys", Icon: Compass, match: travelerHubAndJourneysMatch },
   { href: "/mypage/routes", labelKey: "navMyRoutes", Icon: MapPinned, match: travelerMyRoutesMatch },
   { href: "/mypage/profile", labelKey: "navProfile", Icon: UserRound, match: travelerProfileMatch },
   { href: "/mypage/points", labelKey: "navPoints", Icon: Coins, match: travelerPointsMatch },
+  { href: "/mypage/messages", labelKey: "navMessages", Icon: MessageCircle, match: travelerMessagesMatch },
   { href: "/mypage/matches", labelKey: "navMatches", Icon: HeartHandshake, match: travelerMatchesMatch },
 ];
 
@@ -97,9 +105,19 @@ function guardianSettingsMatch(p: string) {
   return p.startsWith("/mypage/guardian/settings");
 }
 
-/** Guardian 운영 콘솔 — 홈 → 프로필 → 포스트 목록 → 신규 작성 → 매칭 → 포인트 → 설정 */
+function guardianMessagesMatch(p: string) {
+  return p === "/mypage/guardian/messages" || p.startsWith("/mypage/guardian/messages/");
+}
+
+/** Guardian 운영 콘솔 — 홈 → 메시지 → 프로필 → … */
 export const GUARDIAN_WORKSPACE_NAV: HubNavItem[] = [
   { href: "/mypage", labelKey: "guardianNavHome", Icon: LayoutDashboard, match: travelerHomeMatch },
+  {
+    href: "/mypage/guardian/messages",
+    labelKey: "guardianNavMessages",
+    Icon: MessageCircle,
+    match: guardianMessagesMatch,
+  },
   { href: "/mypage/guardian/profile/edit", labelKey: "guardianNavProfile", Icon: UserRound, match: guardianProfileMatch },
   {
     href: "/mypage/guardian/posts",
