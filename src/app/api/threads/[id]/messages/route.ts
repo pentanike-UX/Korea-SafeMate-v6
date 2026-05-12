@@ -11,7 +11,7 @@ import { getSessionUserId, getServerSupabaseForUser } from "@/lib/supabase/serve
 type Params = { params: Promise<{ id: string }> };
 
 // ── GET: 메시지 조회 ──────────────────────────────────────────────────────────
-export async function GET(_req: Request, { params }: Params) {
+export async function GET(req: Request, { params }: Params) {
   const { id: threadId } = await params;
   const sessionId = await getSessionUserId();
   if (!sessionId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -34,15 +34,29 @@ export async function GET(_req: Request, { params }: Params) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { data: messages, error } = await sb
+  // 폴링 백업용: ?since=<ISO> 가 있으면 그 시각 이후의 신규 메시지만 반환.
+  // since 가 없으면 전체(최신 100건) 반환 — 기존 호출자 호환.
+  const url = new URL(req.url);
+  const sinceParam = url.searchParams.get("since");
+  const isPoll = sinceParam !== null && sinceParam !== "";
+
+  let query = sb
     .from("messages")
     .select("*")
     .eq("thread_id", threadId)
-    .order("created_at", { ascending: true })
-    .limit(100);
+    .order("created_at", { ascending: true });
+
+  if (isPoll) {
+    query = query.gt("created_at", sinceParam!);
+  } else {
+    query = query.limit(100);
+  }
+
+  const { data: messages, error } = await query;
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
+  // 읽음 처리는 폴링에서도 안전(idempotent)
   const { error: readErr } = await sb
     .from("messages")
     .update({ is_read: true })
