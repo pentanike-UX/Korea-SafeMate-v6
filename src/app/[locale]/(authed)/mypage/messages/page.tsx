@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { BRAND } from "@/lib/constants";
-import { getSupabaseAuthUserIdOnly } from "@/lib/supabase/server-user";
+import { getSessionUserId } from "@/lib/supabase/server-user";
 import { ThreadListClient } from "@/components/chat/thread-list-client";
 
 export async function generateMetadata() {
@@ -10,7 +10,7 @@ export async function generateMetadata() {
 
 export default async function TravelerMessagesPage() {
   const t = await getTranslations("TravelerHub");
-  const userId = await getSupabaseAuthUserIdOnly();
+  const userId = await getSessionUserId();
 
   return (
     <div className="space-y-4">

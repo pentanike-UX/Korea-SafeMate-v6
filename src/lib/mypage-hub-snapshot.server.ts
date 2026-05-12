@@ -3,7 +3,7 @@ import { getGuardianSeedBundle } from "@/data/mock/guardian-seed-bundle";
 import { mockTravelerTripRequests } from "@/data/mock/traveler-hub";
 import type { AppAccountRole } from "@/lib/auth/app-role";
 import type { GuardianProfileStatus } from "@/lib/auth/guardian-profile-status";
-import { isMockGuardianId } from "@/lib/dev/mock-guardian-auth";
+import { isMockGuardianId, resolveMockGuardianUuid } from "@/lib/dev/mock-guardian-auth";
 import { fetchBalanceSnapshot, fetchLedgerAttentionSignals } from "@/lib/points/point-ledger-service";
 import { getMatchRequestsForGuardian, getMatchRequestsForTraveler } from "@/lib/traveler-match-requests.server";
 import { getTravelerSavedGuardianIdsUnified, getTravelerSavedPostIdsUnified } from "@/lib/traveler-saved-unified.server";
@@ -171,8 +171,10 @@ export async function getMypageHubSnapshot(
   guardianStatus: GuardianProfileStatus,
 ): Promise<MypageHubSnapshot> {
   const sb = createServiceRoleSupabase();
+  const chatCountUserId =
+    userId && isMockGuardianId(userId) ? resolveMockGuardianUuid(userId) : userId;
   const chatUnreadThreads =
-    userId && sb && !isMockGuardianId(userId) ? await fetchUnreadChatThreadCount(sb, userId) : 0;
+    chatCountUserId && sb ? await fetchUnreadChatThreadCount(sb, chatCountUserId) : 0;
   const useMockTrip = !userId || isMockGuardianId(userId);
   const matchRows = userId ? await getMatchRequestsForTraveler(userId) : [];
   /** 실사용: 별도 trip_requests 테이블 없이 «응답 대기 매칭」 건수를 오픈 파이프라인으로 집계 */

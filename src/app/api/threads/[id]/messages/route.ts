@@ -4,18 +4,23 @@
  */
 import { after } from "next/server";
 import { NextResponse } from "next/server";
-import { getSessionUserId, getServerSupabaseForUser } from "@/lib/supabase/server-user";
+import { isMockGuardianId, sessionUserIdToDbParticipantId } from "@/lib/dev/mock-guardian-auth";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
+import { getSessionUserId, getServerSupabaseForUser } from "@/lib/supabase/server-user";
 
 type Params = { params: Promise<{ id: string }> };
 
 // ── GET: 메시지 조회 ──────────────────────────────────────────────────────────
 export async function GET(_req: Request, { params }: Params) {
   const { id: threadId } = await params;
-  const userId = await getSessionUserId();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const sessionId = await getSessionUserId();
+  if (!sessionId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const sb = await getServerSupabaseForUser();
+  const dbUserId = sessionUserIdToDbParticipantId(sessionId);
+  const useSvc = isMockGuardianId(sessionId);
+  const userSb = await getServerSupabaseForUser();
+  const svc = createServiceRoleSupabase();
+  const sb = useSvc ? svc : userSb;
   if (!sb) return NextResponse.json({ error: "DB unavailable" }, { status: 503 });
 
   const { data: thread } = await sb
@@ -25,7 +30,7 @@ export async function GET(_req: Request, { params }: Params) {
     .maybeSingle();
 
   if (!thread) return NextResponse.json({ error: "Thread not found" }, { status: 404 });
-  if (thread.traveler_user_id !== userId && thread.guardian_user_id !== userId) {
+  if (thread.traveler_user_id !== dbUserId && thread.guardian_user_id !== dbUserId) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -42,7 +47,7 @@ export async function GET(_req: Request, { params }: Params) {
     .from("messages")
     .update({ is_read: true })
     .eq("thread_id", threadId)
-    .neq("sender_user_id", userId)
+    .neq("sender_user_id", dbUserId)
     .eq("is_read", false);
 
   if (readErr) {
@@ -55,8 +60,11 @@ export async function GET(_req: Request, { params }: Params) {
 // ── POST: 메시지 전송 ─────────────────────────────────────────────────────────
 export async function POST(req: Request, { params }: Params) {
   const { id: threadId } = await params;
-  const userId = await getSessionUserId();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const sessionId = await getSessionUserId();
+  if (!sessionId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const dbUserId = sessionUserIdToDbParticipantId(sessionId);
+  const useSvc = isMockGuardianId(sessionId);
 
   let body: { content: string; content_type?: "text" | "image" | "route_preview" };
   try {
@@ -68,7 +76,9 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json({ error: "content required" }, { status: 400 });
   }
 
-  const sb = await getServerSupabaseForUser();
+  const userSb = await getServerSupabaseForUser();
+  const svc = createServiceRoleSupabase();
+  const sb = useSvc ? svc : userSb;
   if (!sb) return NextResponse.json({ error: "DB unavailable" }, { status: 503 });
 
   const { data: thread, error: threadErr } = await sb
@@ -80,8 +90,8 @@ export async function POST(req: Request, { params }: Params) {
   if (threadErr) return NextResponse.json({ error: threadErr.message }, { status: 500 });
   if (!thread) return NextResponse.json({ error: "Thread not found" }, { status: 404 });
 
-  const isGuardian = thread.guardian_user_id === userId;
-  const isTraveler = thread.traveler_user_id === userId;
+  const isGuardian = thread.guardian_user_id === dbUserId;
+  const isTraveler = thread.traveler_user_id === dbUserId;
   if (!isGuardian && !isTraveler) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -106,7 +116,7 @@ export async function POST(req: Request, { params }: Params) {
     .from("messages")
     .insert({
       thread_id: threadId,
-      sender_user_id: userId,
+      sender_user_id: dbUserId,
       sender_role: senderRole,
       content: body.content.trim(),
       content_type: body.content_type ?? "text",

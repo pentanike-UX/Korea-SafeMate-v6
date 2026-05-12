@@ -109,7 +109,15 @@ export function ChatView({
           return;
         }
         if (raw && "message" in raw && raw.message && typeof raw.message === "object" && "id" in raw.message) {
-          setMessages((prev) => prev.map((m) => (m.id === optimisticId ? raw.message : m)));
+          setMessages((prev) => {
+            const next = prev.map((m) => (m.id === optimisticId ? raw.message : m));
+            const seen = new Set<string>();
+            return next.filter((m) => {
+              if (seen.has(m.id)) return false;
+              seen.add(m.id);
+              return true;
+            });
+          });
           onMessageSent?.();
         }
       } catch {

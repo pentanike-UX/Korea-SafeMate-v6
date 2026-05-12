@@ -47,6 +47,14 @@ export function resolveMockGuardianUuid(id: string): string | null {
   return MOCK_GUARDIAN_UUID_MAP[id] ?? null;
 }
 
+/** 세션 ID(mgXX 또는 실제 auth UUID)를 message_threads 참가자 UUID로 정규화. */
+export function sessionUserIdToDbParticipantId(sessionId: string): string {
+  if (isMockGuardianId(sessionId)) {
+    return resolveMockGuardianUuid(sessionId) ?? sessionId;
+  }
+  return sessionId;
+}
+
 export function getGuardianSeedRow(id: string): GuardianSeedRow | undefined {
   return GUARDIAN_SEED_ROWS.find((r) => r.id === id);
 }

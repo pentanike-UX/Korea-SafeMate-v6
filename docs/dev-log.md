@@ -49,6 +49,13 @@
 
 - 스테이징/프로덕션에 마이그레이션 적용 후 메시지함·AI·배지 스모크 테스트.
 
+### 추가 (동일일) — 모의 가디언(mgXX) 메시지함·미읽음·전송 줄 중복
+
+- **원인**: (1) Realtime `INSERT`가 POST 응답보다 먼저 오면 낙관적 행을 서버 메시지로 바꿀 때 동일 `id`가 두 줄 남음. (2) 모의 가디언은 Supabase JWT가 없어 `message_threads_list_for_viewer`(auth.uid)와 메시지 RLS가 맞지 않음; 메시지 페이지가 `getSupabaseAuthUserIdOnly()`만 써서 «로그인 후…»; 스냅샷은 mock에 대해 미읽음 집계를 건너뜀.
+- **조치**: `sessionUserIdToDbParticipantId`로 DB 참가자 UUID 정규화; mock 가디언일 때 `GET /api/threads`는 `service_message_threads_list_for_user`(service_role), `GET/POST` 메시지는 서비스 롤로 스레드 검증 후 조회·삽입·읽음 처리; 메시지 페이지는 `getSessionUserId()`; 스냅샷 미읽음은 mock이면 매핑 UUID로 `service_count_unread_chat_threads` 호출; 전송 성공 후 메시지 목록에서 `id` 기준 중복 제거(`chat-view`, `guardian-inquiry-sheet`).
+- **DB**: `supabase/migrations/20260512160000_service_message_threads_list_for_user.sql`.
+- **검증**: 변경 파일 단위 `pnpm exec eslint …` 통과.
+
 ## 2026-05-07 - AI 협업 규칙 문서 및 가드 문서 연동
 
 ### 목표

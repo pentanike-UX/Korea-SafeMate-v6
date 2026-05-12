@@ -3,8 +3,10 @@
  * GET  /api/threads — 현재 로그인 사용자의 스레드 목록 (미리보기·미읽음 포함)
  */
 import { NextResponse } from "next/server";
-import { getSessionUserId, getServerSupabaseForUser } from "@/lib/supabase/server-user";
+import { isMockGuardianId, resolveMockGuardianUuid } from "@/lib/dev/mock-guardian-auth";
 import { isUuidString } from "@/lib/guardian-posts-api";
+import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
+import { getSessionUserId, getServerSupabaseForUser } from "@/lib/supabase/server-user";
 import type { MessageThreadListRow } from "@/types/domain";
 
 type PostBody = {
@@ -110,6 +112,26 @@ export async function POST(req: Request) {
 export async function GET() {
   const userId = await getSessionUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (isMockGuardianId(userId)) {
+    const realId = resolveMockGuardianUuid(userId);
+    if (!realId) {
+      return NextResponse.json({ error: "invalid_mock_session" }, { status: 400 });
+    }
+    const svc = createServiceRoleSupabase();
+    if (!svc) return NextResponse.json({ error: "DB unavailable" }, { status: 503 });
+    const { data, error } = await svc.rpc("service_message_threads_list_for_user", {
+      p_user_id: realId,
+    });
+    if (error) {
+      console.error("[threads GET] service_message_threads_list_for_user:", error.message);
+      return NextResponse.json(
+        { error: "thread_list_unavailable", detail: "스레드 목록을 불러오지 못했습니다." },
+        { status: 503 },
+      );
+    }
+    return NextResponse.json({ threads: (data ?? []) as MessageThreadListRow[] });
+  }
 
   const sb = await getServerSupabaseForUser();
   if (!sb) return NextResponse.json({ error: "DB unavailable" }, { status: 503 });
