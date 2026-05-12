@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChatMessage } from "@/types/domain";
 import { useThreadRealtime } from "@/hooks/use-thread-realtime";
+import { ChatAiToggleInline } from "@/components/chat/chat-ai-toggle-inline";
 import { GUARDIAN_AVATAR_COVER_CLASS } from "@/lib/guardian-profile-images";
 import { FALLBACK_GUARDIAN_REQUEST_AVATAR } from "@/components/guardians/guardian-request-sheet";
 import { cn } from "@/lib/utils";
@@ -224,6 +225,7 @@ export function ChatView({
 
       {/* 입력 바 */}
       <div className="shrink-0 border-t border-border/50 bg-card px-3 py-3">
+        {viewerRole === "guardian" ? <ChatAiToggleInline /> : null}
         {sendError ? (
           <p className="text-destructive mb-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs leading-relaxed">{sendError}</p>
         ) : null}
