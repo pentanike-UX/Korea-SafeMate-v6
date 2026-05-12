@@ -3,6 +3,7 @@
  * GET  /api/threads — 현재 로그인 사용자의 스레드 목록 (미리보기·미읽음 포함)
  */
 import { NextResponse } from "next/server";
+import { fetchMessageThreadListRowsForParticipant } from "@/lib/chat/thread-list-service-fallback";
 import { isMockGuardianId, resolveMockGuardianUuid } from "@/lib/dev/mock-guardian-auth";
 import { isUuidString } from "@/lib/guardian-posts-api";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
@@ -113,37 +114,39 @@ export async function GET() {
   const userId = await getSessionUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const svc = createServiceRoleSupabase();
+
   if (isMockGuardianId(userId)) {
     const realId = resolveMockGuardianUuid(userId);
     if (!realId) {
       return NextResponse.json({ error: "invalid_mock_session" }, { status: 400 });
     }
-    const svc = createServiceRoleSupabase();
     if (!svc) return NextResponse.json({ error: "DB unavailable" }, { status: 503 });
     const { data, error } = await svc.rpc("service_message_threads_list_for_user", {
       p_user_id: realId,
     });
-    if (error) {
-      console.error("[threads GET] service_message_threads_list_for_user:", error.message);
-      return NextResponse.json(
-        { error: "thread_list_unavailable", detail: "스레드 목록을 불러오지 못했습니다." },
-        { status: 503 },
-      );
+    if (!error) {
+      return NextResponse.json({ threads: (data ?? []) as MessageThreadListRow[] });
     }
-    return NextResponse.json({ threads: (data ?? []) as MessageThreadListRow[] });
+    console.warn("[threads GET] service_message_threads_list_for_user failed, using fallback:", error.message);
+    const threads = await fetchMessageThreadListRowsForParticipant(svc, realId);
+    return NextResponse.json({ threads });
   }
 
   const sb = await getServerSupabaseForUser();
   if (!sb) return NextResponse.json({ error: "DB unavailable" }, { status: 503 });
 
   const { data, error } = await sb.rpc("message_threads_list_for_viewer");
-  if (error) {
-    console.error("[threads GET] message_threads_list_for_viewer:", error.message);
+  if (!error) {
+    return NextResponse.json({ threads: (data ?? []) as MessageThreadListRow[] });
+  }
+  console.warn("[threads GET] message_threads_list_for_viewer failed, using fallback:", error.message);
+  if (!svc) {
     return NextResponse.json(
       { error: "thread_list_unavailable", detail: "스레드 목록 RPC를 사용할 수 없습니다. DB 마이그레이션을 확인하세요." },
       { status: 503 },
     );
   }
-
-  return NextResponse.json({ threads: (data ?? []) as MessageThreadListRow[] });
+  const threads = await fetchMessageThreadListRowsForParticipant(svc, userId);
+  return NextResponse.json({ threads });
 }

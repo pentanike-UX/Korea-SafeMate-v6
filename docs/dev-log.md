@@ -56,6 +56,11 @@
 - **DB**: `supabase/migrations/20260512160000_service_message_threads_list_for_user.sql`.
 - **검증**: 변경 파일 단위 `pnpm exec eslint …` 통과.
 
+### 추가 (동일일) — `GET /api/threads` RPC 부재 시 목록 폴백
+
+- **원인**: 원격 DB에 `service_message_threads_list_for_user` 등이 아직 없으면 모의 가디언·일부 환경에서 스레드 목록이 503·「스레드 목록을 불러오지 못했습니다」로 끊김.
+- **조치**: RPC 실패 시 service_role로 `message_threads`·`messages`·`guardian_profiles`를 조회해 `MessageThreadListRow`와 동일 필드를 조립하는 `thread-list-service-fallback.ts`를 두고, mock·일반 세션 모두 `GET`에서 폴백.
+
 ## 2026-05-07 - AI 협업 규칙 문서 및 가드 문서 연동
 
 ### 목표
