@@ -17,7 +17,14 @@ import { resolveOAuthRedirectBase } from "@/lib/site-url";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = safeNextPath(searchParams.get("next")) ?? "/";
+  // `next`는 우선 query에서 (legacy), 없으면 `ksm_oauth_next` 쿠키에서 읽는다.
+  // 쿠키 방식은 redirectTo의 쿼리스트링 제거를 통해 Supabase allowlist 매칭 안정성을 확보한다.
+  const cookieStoreEarly = await cookies();
+  const nextRawFromQuery = searchParams.get("next");
+  const nextRawFromCookie = cookieStoreEarly.get("ksm_oauth_next")?.value
+    ? decodeURIComponent(cookieStoreEarly.get("ksm_oauth_next")!.value)
+    : null;
+  const next = safeNextPath(nextRawFromQuery ?? nextRawFromCookie) ?? "/";
   const base = resolveOAuthRedirectBase(request);
 
   const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -31,8 +38,10 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${base}/login?error=oauth`);
   }
 
-  const cookieStore = await cookies();
+  const cookieStore = cookieStoreEarly;
   const redirectResponse = NextResponse.redirect(`${base}${next}`);
+  // OAuth 완료 후 임시 next 쿠키는 즉시 제거
+  redirectResponse.cookies.set("ksm_oauth_next", "", { path: "/", maxAge: 0 });
 
   const supabase = createServerClient(sbUrl, sbKey, {
     cookies: {

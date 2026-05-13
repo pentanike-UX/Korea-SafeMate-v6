@@ -67,13 +67,17 @@ export function GoogleSignInButton({ className, returnPath = null }: Props) {
     try {
       const next = safeNextPath(returnPath) ?? defaultPostLoginPath(locale);
       const origin = getOAuthRedirectOriginForClient();
-      const redirectTo = new URL("/auth/callback", origin);
-      redirectTo.searchParams.set("next", next);
+
+      // Supabase Redirect URLs 허용 매칭이 query string에 민감한 경우가 있어,
+      // redirectTo는 쿼리 없이 보내고 `next` 값은 짧은 수명의 쿠키로 전달한다.
+      // (콜백 라우트가 쿠키를 읽어 최종 redirect 경로로 사용)
+      const redirectTo = new URL("/auth/callback", origin).toString();
+      document.cookie = `ksm_oauth_next=${encodeURIComponent(next)}; Path=/; Max-Age=600; SameSite=Lax`;
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: redirectTo.toString(),
+          redirectTo,
         },
       });
 
