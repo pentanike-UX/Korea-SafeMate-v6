@@ -1,10 +1,17 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import path from "path";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   transpilePackages: ["maplibre-gl"],
+  turbopack: {
+    resolveAlias: {
+      // pnpm 격리 환경에서 Turbopack이 tailwindcss를 못 찾는 문제 해결
+      tailwindcss: path.resolve(__dirname, "node_modules/tailwindcss"),
+    },
+  },
   images: {
     remotePatterns: [
       {

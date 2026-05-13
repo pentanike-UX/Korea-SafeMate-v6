@@ -13,7 +13,7 @@
   },
   "homepage": "https://github.com/pentanike-UX/Korea-SafeMate-v2#readme",
   "engines": {
-    "node": "20.x"
+    "node": ">=20.x"
   },
   "scripts": {
     "posts:scan-images": "node scripts/scan-post-local-images.mjs",
