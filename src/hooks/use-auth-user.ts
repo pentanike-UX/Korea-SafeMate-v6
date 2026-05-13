@@ -8,9 +8,20 @@ import { invalidateClientPointsCache } from "@/lib/points/client-points-fetch-ca
 import { emitMypageAttentionUpdated } from "@/lib/mypage-attention-events";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 
-/** `undefined` = 아직 확인 전, `null` = 비로그인 */
+/**
+ * `undefined` = 아직 확인 전, `null` = 비로그인
+ *
+ * 초기값을 `null`로 한다(낙관적): SSR/CSR 첫 페인트에서 즉시 "비로그인" 가정 →
+ * site-header가 스켈레톤 대신 실제 로그인 버튼을 바로 렌더한다.
+ * 그 후 useEffect 안의 `getSession()` 결과에 따라 OAuth 사용자면 user 객체로 업데이트되어
+ * 로그인 버튼이 자연스럽게 아바타로 바뀐다.
+ *
+ * 기존엔 초기값을 `undefined`로 두고 useEffect 결과를 기다렸는데, HMR 실패/네트워크 격리 환경
+ * (사설 IP, 시크릿 창 등)에서 useEffect 자체가 reload 안 되면 영원히 스켈레톤이 표시되는
+ * 회복 불가 상태가 발생했음.
+ */
 export function useAuthUser(): User | null | undefined {
-  const [user, setUser] = useState<User | null | undefined>(undefined);
+  const [user, setUser] = useState<User | null | undefined>(null);
 
   useEffect(() => {
     const prevUserIdRef = { current: undefined as string | null | undefined };
