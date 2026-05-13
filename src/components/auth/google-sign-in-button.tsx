@@ -52,10 +52,19 @@ export function GoogleSignInButton({ className, returnPath = null }: Props) {
   const [message, setMessage] = useState<string | null>(null);
 
   async function handleClick() {
+    // eslint-disable-next-line no-console
+    console.log("[GoogleSignIn] handleClick fired");
     setMessage(null);
     const supabase = createSupabaseBrowserClient();
+    // eslint-disable-next-line no-console
+    console.log("[GoogleSignIn] supabase client =", supabase ? "ok" : "null", {
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    });
     if (!supabase) {
       setMessage(t("googleConfigMissing"));
+      // eslint-disable-next-line no-console
+      console.warn("[GoogleSignIn] aborting: Supabase env vars missing in client bundle");
       return;
     }
 
