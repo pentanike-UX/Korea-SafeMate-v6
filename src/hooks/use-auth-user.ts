@@ -42,12 +42,44 @@ export function useAuthUser(): User | null | undefined {
         return;
       }
       lastMockCookieRef.current = null;
-      const sb = createSupabaseBrowserClient();
+      let sb;
+      try {
+        sb = createSupabaseBrowserClient();
+      } catch (err) {
+        // Supabase client 생성이 실패해도 무한 스켈레톤 방지
+        console.warn("[useAuthUser] createSupabaseBrowserClient threw:", err);
+        applySessionUser(null);
+        return;
+      }
       if (!sb) {
         applySessionUser(null);
         return;
       }
-      void sb.auth.getSession().then(({ data }) => applySessionUser(data.session?.user ?? null));
+      // getSession이 hang 또는 reject되어도 user가 영원히 undefined로 멈추지 않도록
+      // (1) catch로 reject 흡수, (2) 3초 timeout fallback
+      let resolved = false;
+      const fallbackTimer = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          console.warn("[useAuthUser] getSession timed out (3s), defaulting to null");
+          applySessionUser(null);
+        }
+      }, 3000);
+      sb.auth
+        .getSession()
+        .then(({ data }) => {
+          if (resolved) return;
+          resolved = true;
+          clearTimeout(fallbackTimer);
+          applySessionUser(data.session?.user ?? null);
+        })
+        .catch((err) => {
+          if (resolved) return;
+          resolved = true;
+          clearTimeout(fallbackTimer);
+          console.warn("[useAuthUser] getSession failed:", err);
+          applySessionUser(null);
+        });
     };
 
     const onOtherTabAuthChange = () => {
