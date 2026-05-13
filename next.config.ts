@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
   // 안전상 차단되어 React hydration이 silently 실패한다.
   // 사설 IPv4 대역 + `.local` mDNS을 와일드카드로 명시적 허용한다.
   allowedDevOrigins: [
+    // 명시적 IP (와일드카드 호환성 차이 대비)
+    "10.0.1.9",
+    // 와일드카드 — 사설 IPv4 대역 + mDNS
     "10.*.*.*",
     "172.16.*.*",
     "172.17.*.*",
