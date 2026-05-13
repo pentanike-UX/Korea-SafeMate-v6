@@ -2,7 +2,7 @@
  * Canonical public origin for OAuth redirects and post-login navigation.
  *
  * Vercel: set `NEXT_PUBLIC_SITE_URL` on **Preview and Production** to the same production
- * hostname (e.g. https://korea-safe-mate-v3.vercel.app). If it is missing on a Preview
+ * hostname (e.g. https://korea-safe-mate-v6.vercel.app). If it is missing on a Preview
  * deploy, this module avoids using the preview `*.vercel.app` host for OAuth.
  *
  * Never put a branch preview URL in `NEXT_PUBLIC_SITE_URL` — Google would redirect there
@@ -16,7 +16,7 @@ function deployedOAuthFallbackOrigin(): string {
     const parsed = parseTrustedPublicOrigin(fromEnv);
     if (parsed) return parsed;
   }
-  return "https://korea-safe-mate-v3.vercel.app";
+  return "https://korea-safe-mate-v6.vercel.app";
 }
 
 /** Git-connected Vercel previews use `project-git-branch-….vercel.app` — unsafe for OAuth. */
