@@ -23,12 +23,18 @@ export async function getServerSupabaseForUser() {
 }
 
 export async function getSessionUserId(): Promise<string | null> {
+  // 실제 Supabase 인증 세션이 있으면 mock guardian 쿠키를 무시한다.
+  // (OAuth 로그인 후 잔존 mock 쿠키 때문에 user 식별이 "mgXX"로 잘못 잡히는 문제 방지)
+  const sb = await getServerSupabaseForUser();
+  if (sb) {
+    const { data } = await sb.auth.getUser();
+    const realUserId = data.user?.id ?? null;
+    if (realUserId) return realUserId;
+  }
+  // 실 세션이 없을 때에만 mock guardian 쿠키를 신뢰한다.
   const mockId = await getMockGuardianIdFromCookies();
   if (mockId) return mockId;
-  const sb = await getServerSupabaseForUser();
-  if (!sb) return null;
-  const { data } = await sb.auth.getUser();
-  return data.user?.id ?? null;
+  return null;
 }
 
 /** 모의 가디언 쿠키를 무시하고 Supabase 세션 사용자만 반환 (여행자 매칭 요청 등). */
