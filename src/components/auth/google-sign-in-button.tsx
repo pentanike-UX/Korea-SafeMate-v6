@@ -83,6 +83,21 @@ export function GoogleSignInButton({ className, returnPath = null }: Props) {
       const redirectTo = new URL("/auth/callback", origin).toString();
       document.cookie = `ksm_oauth_next=${encodeURIComponent(next)}; Path=/; Max-Age=600; SameSite=Lax`;
 
+      // 임시 디버그: 진짜 redirectTo 값을 사용자가 확인할 수 있도록 alert로 막음
+      const proceed = window.confirm(
+        [
+          `window.location.origin = ${window.location.origin}`,
+          `resolved origin       = ${origin}`,
+          `redirectTo (Supabase) = ${redirectTo}`,
+          "",
+          "OK 누르면 OAuth 진행. 취소 누르면 중단.",
+        ].join("\n"),
+      );
+      if (!proceed) {
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
