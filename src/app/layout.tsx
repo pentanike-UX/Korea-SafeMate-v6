@@ -16,16 +16,22 @@ const fontPretendard = localFont({
   display: "swap",
 });
 
-/** Plus Jakarta Sans — kept as fallback for existing v3 components */
+/**
+ * Plus Jakarta Sans — kept as fallback for existing v3 components.
+ * preload: false → 첫 페인트에 실제 사용되지 않는데 woff2를 preload하면서 발생하던
+ * "preloaded ... but not used within a few seconds" 콘솔 경고 제거.
+ */
 const fontSans = Plus_Jakarta_Sans({
   variable: "--font-sans-next",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  preload: false,
 });
 
 const fontMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  preload: false,
 });
 
 export const metadata: Metadata = {

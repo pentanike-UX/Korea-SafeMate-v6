@@ -21,7 +21,7 @@
     "seed:reference": "tsx scripts/seed-reference-to-supabase.ts",
     "seed:sample": "tsx scripts/seed-sample-to-supabase.ts",
     "prebuild": "node scripts/scan-post-local-images.mjs",
-    "dev": "next dev --webpack",
+    "dev": "next dev --webpack -H 0.0.0.0",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
