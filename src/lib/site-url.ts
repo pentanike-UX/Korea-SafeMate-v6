@@ -53,12 +53,22 @@ export function getCanonicalSiteOrigin(): string | undefined {
  *   2. NEXT_PUBLIC_SITE_URL / NEXT_PUBLIC_OAUTH_REDIRECT_ORIGIN env var.
  *   3. Production canonical fallback.
  */
+/**
+ * 로컬 개발용 호스트인지 판별 — localhost, 127.0.0.1, 사설 IPv4 대역
+ * (10.x.x.x, 172.16-31.x.x, 192.168.x.x), `.local` mDNS 도메인.
+ */
+function isLocalDevHost(hostname: string): boolean {
+  if (hostname === "localhost" || hostname === "127.0.0.1") return true;
+  if (hostname.endsWith(".local")) return true;
+  if (/^10\./.test(hostname)) return true;
+  if (/^192\.168\./.test(hostname)) return true;
+  if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname)) return true;
+  return false;
+}
+
 export function getOAuthRedirectOriginForClient(): string {
-  if (typeof window !== "undefined") {
-    const { hostname } = window.location;
-    if (hostname === "localhost" || hostname === "127.0.0.1") {
-      return window.location.origin;
-    }
+  if (typeof window !== "undefined" && isLocalDevHost(window.location.hostname)) {
+    return window.location.origin;
   }
   const fromEnv = getCanonicalSiteOrigin();
   if (fromEnv) return fromEnv;
