@@ -4,7 +4,11 @@
  */
 import { NextResponse } from "next/server";
 import { fetchMessageThreadListRowsForParticipant } from "@/lib/chat/thread-list-service-fallback";
-import { isMockGuardianId, resolveMockGuardianUuid } from "@/lib/dev/mock-guardian-auth";
+import {
+  isMockGuardianId,
+  resolveMockGuardianUuid,
+  sessionUserIdToDbParticipantId,
+} from "@/lib/dev/mock-guardian-auth";
 import { isUuidString } from "@/lib/guardian-posts-api";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 import { getSessionUserId, getServerSupabaseForUser } from "@/lib/supabase/server-user";
@@ -33,8 +37,15 @@ async function validateContentPostForGuardian(
 
 // ── POST: 스레드 생성 or 기존 반환 ──────────────────────────────────────────
 export async function POST(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const sessionUserId = await getSessionUserId();
+  if (!sessionUserId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // mock guardian 세션 ID(mgXX)는 실제 Supabase auth UUID로 변환해야 한다.
+  // (그렇지 않으면 PostgreSQL UUID 타입 컬럼에서 "invalid input syntax for type uuid" 에러)
+  if (isMockGuardianId(sessionUserId) && !resolveMockGuardianUuid(sessionUserId)) {
+    return NextResponse.json({ error: "invalid_mock_session" }, { status: 400 });
+  }
+  const userId = sessionUserIdToDbParticipantId(sessionUserId);
 
   let body: PostBody;
   try {
@@ -60,7 +71,9 @@ export async function POST(req: Request) {
     }
   }
 
-  const sb = await getServerSupabaseForUser();
+  // mock guardian 세션은 Supabase 인증이 없으므로 RLS 우회용 service role 사용
+  const isMockSession = isMockGuardianId(sessionUserId);
+  const sb = isMockSession ? createServiceRoleSupabase() : await getServerSupabaseForUser();
   if (!sb) return NextResponse.json({ error: "DB unavailable" }, { status: 503 });
 
   if (contentPostId) {
