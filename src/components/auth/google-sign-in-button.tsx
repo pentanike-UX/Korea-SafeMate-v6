@@ -52,19 +52,10 @@ export function GoogleSignInButton({ className, returnPath = null }: Props) {
   const [message, setMessage] = useState<string | null>(null);
 
   async function handleClick() {
-    // eslint-disable-next-line no-console
-    console.log("[GoogleSignIn] handleClick fired");
     setMessage(null);
     const supabase = createSupabaseBrowserClient();
-    // eslint-disable-next-line no-console
-    console.log("[GoogleSignIn] supabase client =", supabase ? "ok" : "null", {
-      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    });
     if (!supabase) {
       setMessage(t("googleConfigMissing"));
-      // eslint-disable-next-line no-console
-      console.warn("[GoogleSignIn] aborting: Supabase env vars missing in client bundle");
       return;
     }
 
@@ -82,21 +73,6 @@ export function GoogleSignInButton({ className, returnPath = null }: Props) {
       // (콜백 라우트가 쿠키를 읽어 최종 redirect 경로로 사용)
       const redirectTo = new URL("/auth/callback", origin).toString();
       document.cookie = `ksm_oauth_next=${encodeURIComponent(next)}; Path=/; Max-Age=600; SameSite=Lax`;
-
-      // 임시 디버그: 진짜 redirectTo 값을 사용자가 확인할 수 있도록 alert로 막음
-      const proceed = window.confirm(
-        [
-          `window.location.origin = ${window.location.origin}`,
-          `resolved origin       = ${origin}`,
-          `redirectTo (Supabase) = ${redirectTo}`,
-          "",
-          "OK 누르면 OAuth 진행. 취소 누르면 중단.",
-        ].join("\n"),
-      );
-      if (!proceed) {
-        setLoading(false);
-        return;
-      }
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
