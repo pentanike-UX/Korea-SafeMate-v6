@@ -44,19 +44,24 @@ export function getCanonicalSiteOrigin(): string | undefined {
 }
 
 /**
- * Browser — `signInWithOAuth` `redirectTo` origin. Never uses preview deployment hostname
- * when `NEXT_PUBLIC_SITE_URL` is unset (falls back to production canonical).
+ * Browser — `signInWithOAuth` `redirectTo` origin.
+ *
+ * Priority order:
+ *   1. localhost / 127.0.0.1 → always use the current window.origin
+ *      (even if NEXT_PUBLIC_SITE_URL accidentally leaks into .env.local from `vercel env pull`).
+ *      This guarantees local OAuth dev never bounces to production.
+ *   2. NEXT_PUBLIC_SITE_URL / NEXT_PUBLIC_OAUTH_REDIRECT_ORIGIN env var.
+ *   3. Production canonical fallback.
  */
 export function getOAuthRedirectOriginForClient(): string {
+  if (typeof window !== "undefined") {
+    const { hostname } = window.location;
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return window.location.origin;
+    }
+  }
   const fromEnv = getCanonicalSiteOrigin();
   if (fromEnv) return fromEnv;
-  if (typeof window === "undefined") {
-    return deployedOAuthFallbackOrigin();
-  }
-  const { hostname } = window.location;
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return window.location.origin;
-  }
   return deployedOAuthFallbackOrigin();
 }
 
