@@ -268,7 +268,7 @@ ${opts.guardianBio ? `프로필: ${opts.guardianBio}` : ""}
 
   // 로컬 AI 우선 (LOCAL_AI_BASE_URL 설정 시) — OpenAI 호환 엔드포인트
   if (localBaseUrl) {
-    const model = process.env.LOCAL_AI_MODEL ?? "Gemma-4-26B-A4B-it";
+    const model = process.env.LOCAL_AI_MODEL ?? "gemma-4-26b-a4b-it";
     try {
       const res = await fetch(`${localBaseUrl}/chat/completions`, {
         method: "POST",
