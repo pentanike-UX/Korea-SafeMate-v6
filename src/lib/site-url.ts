@@ -80,6 +80,13 @@ export function getOAuthRedirectOriginForClient(): string {
  * On Vercel Preview, avoids `x-forwarded-host` (preview URL) when env canonical is unset.
  */
 export function resolveOAuthRedirectBase(request: Request): string {
+  // 로컬 개발(`next dev`)에서는 .env.local에 production VERCEL_* env가 잔존해도
+  // 실제 호스트는 localhost이므로 요청 origin을 그대로 신뢰한다.
+  // (그렇지 않으면 콜백이 production URL로 server-side redirect되어 도메인이 바뀐다)
+  if (process.env.NODE_ENV === "development") {
+    return new URL(request.url).origin;
+  }
+
   const canonical = getCanonicalSiteOrigin();
   if (canonical) return canonical;
 
@@ -91,14 +98,9 @@ export function resolveOAuthRedirectBase(request: Request): string {
     return deployedOAuthFallbackOrigin();
   }
 
-  const { origin } = new URL(request.url);
-  if (process.env.NODE_ENV === "development") {
-    return origin;
-  }
-
   const forwardedHost = request.headers.get("x-forwarded-host");
   if (forwardedHost) {
     return `https://${forwardedHost}`;
   }
-  return origin;
+  return new URL(request.url).origin;
 }
