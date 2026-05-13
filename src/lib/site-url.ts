@@ -59,6 +59,8 @@ export function getCanonicalSiteOrigin(): string | undefined {
  */
 function isLocalDevHost(hostname: string): boolean {
   if (hostname === "localhost" || hostname === "127.0.0.1") return true;
+  // 0.0.0.0 — 일부 환경에서 dev 서버 Network 주소를 그대로 클릭한 케이스
+  if (hostname === "0.0.0.0") return true;
   if (hostname.endsWith(".local")) return true;
   if (/^10\./.test(hostname)) return true;
   if (/^192\.168\./.test(hostname)) return true;
