@@ -247,9 +247,10 @@ interface AiReplyOptions {
 }
 
 async function generateAiReply(opts: AiReplyOptions): Promise<string | null> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const localBaseUrl = process.env.LOCAL_AI_BASE_URL; // e.g. http://localhost:11434/v1
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
-  if (!apiKey) {
+  if (!localBaseUrl && !anthropicKey) {
     return buildFallbackReply(opts.userMessage, opts.guardianName);
   }
 
@@ -265,8 +266,36 @@ ${opts.guardianBio ? `프로필: ${opts.guardianBio}` : ""}
 - 한국어로 답변합니다. 이모지를 적절히 사용해 친근한 느낌을 줍니다.
 - 메시지 본문에는 "[자동]" 같은 머리말을 넣지 마세요(시스템이 접두사를 붙입니다).`.trim();
 
+  // 로컬 AI 우선 (LOCAL_AI_BASE_URL 설정 시) — OpenAI 호환 엔드포인트
+  if (localBaseUrl) {
+    const model = process.env.LOCAL_AI_MODEL ?? "Gemma-4-26B-A4B-it";
+    try {
+      const res = await fetch(`${localBaseUrl}/chat/completions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          max_tokens: 300,
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...opts.conversationHistory.slice(-4),
+            { role: "user", content: opts.userMessage },
+          ],
+        }),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!res.ok) throw new Error(`local AI ${res.status}`);
+      const data = (await res.json()) as { choices: Array<{ message: { content: string } }> };
+      return data.choices?.[0]?.message?.content?.trim() ?? null;
+    } catch (err) {
+      console.error("[AI reply] Local AI error:", err);
+      return buildFallbackReply(opts.userMessage, opts.guardianName);
+    }
+  }
+
+  // 프로덕션 — Anthropic SDK
   try {
-    const client = new Anthropic({ apiKey, timeout: 8000 });
+    const client = new Anthropic({ apiKey: anthropicKey!, timeout: 8000 });
     const msg = await client.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 300,
