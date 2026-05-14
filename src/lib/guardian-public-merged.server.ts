@@ -2,6 +2,7 @@ import { cache } from "react";
 import { mockGuardians } from "@/data/mock/guardians";
 import type { GuardianLanguage, GuardianProfile } from "@/types/domain";
 import { getPublicGuardianById, isActiveLaunchArea, mergePublicGuardian, type PublicGuardian } from "@/lib/guardian-public";
+import { isUuidString } from "@/lib/guardian-posts-api";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 
 /** `0`/`false` → DB 가디언만 + mock 보충 없음. 미설정 시 기존 병합 유지. */
@@ -134,15 +135,20 @@ export async function getPublicGuardianByIdMerged(userId: string): Promise<Publi
   const selectCols =
     "user_id, display_name, headline, bio, guardian_tier, approval_status, years_in_seoul, photo_url, avatar_image_url, list_card_image_url, detail_hero_image_url, intro_gallery_image_urls, primary_region_id, posts_approved_last_30d, posts_approved_last_7d, featured, influencer_seed, matching_enabled, avg_traveler_rating, expertise_tags, is_sample, seed_guardian_key";
 
-  const { data: byUid, error: errUid } = await sb
-    .from("guardian_profiles")
-    .select(selectCols)
-    .eq("user_id", userId)
-    .eq("approval_status", "approved")
-    .maybeSingle();
+  // mgXX 등 UUID 형식이 아니면 user_id 컬럼 조회를 건너뛴다
+  // (PostgreSQL UUID 타입 불일치 오류 → errUid = truthy → seed_guardian_key 폴백 스킵 방지)
+  let row: GpRow | null = null;
+  if (isUuidString(userId)) {
+    const { data: byUid, error: errUid } = await sb
+      .from("guardian_profiles")
+      .select(selectCols)
+      .eq("user_id", userId)
+      .eq("approval_status", "approved")
+      .maybeSingle();
+    if (!errUid) row = byUid;
+  }
 
-  let row = !errUid ? byUid : null;
-  if (!errUid && !row) {
+  if (!row) {
     const { data: bySeed, error: errSeed } = await sb
       .from("guardian_profiles")
       .select(selectCols)
@@ -152,7 +158,7 @@ export async function getPublicGuardianByIdMerged(userId: string): Promise<Publi
     if (!errSeed) row = bySeed;
   }
 
-  if (errUid || !row) return mock;
+  if (!row) return mock;
 
   const r = row as GpRow;
   let primary_region_slug = "gwanghwamun";
