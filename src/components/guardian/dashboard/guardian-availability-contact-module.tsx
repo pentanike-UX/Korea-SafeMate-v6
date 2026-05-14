@@ -38,7 +38,7 @@ export async function GuardianAvailabilityContactModule({
           {snapshot.availability_slots.length === 0 ? (
             <p className="text-muted-foreground mt-2 text-sm">No availability blocks on file (mock).</p>
           ) : (
-            <ul className="mt-2 space-y-2">
+            <ul className="mt-2 space-y-3">
               {snapshot.availability_slots.map((row) => (
                 <li
                   key={`${row.day}-${row.ranges}`}
@@ -80,7 +80,7 @@ export async function GuardianAvailabilityContactModule({
           {contacts.length === 0 ? (
             <p className="text-muted-foreground mt-2 text-sm">Add at least one verified channel for handoff.</p>
           ) : (
-            <ul className="mt-2 space-y-2">
+            <ul className="mt-2 space-y-3">
               {contacts.map((c) => (
                 <li
                   key={c.id}

@@ -312,7 +312,7 @@ export function MypageGuardianDashboard({ status }: { status: GuardianProfileSta
             {recentPosts.length === 0 ? (
               <p className="text-muted-foreground text-sm">{t("guardianDashRecentEmpty")}</p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {recentPosts.map((p) => (
                   <li
                     key={p.id}

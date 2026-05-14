@@ -178,7 +178,7 @@ function MatchSection({
         {title}
         <BlockAttentionBadge count={attentionCount} ariaLabel={attentionAria} />
       </h3>
-      <ul className="space-y-2">
+      <ul className="space-y-3">
         {rows.map((r) => (
           <li key={r.id}>
             <Card className="border-border/60 rounded-2xl py-0 shadow-[var(--shadow-sm)]">
