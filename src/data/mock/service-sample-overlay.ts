@@ -749,22 +749,21 @@ function mergeSample(base: ContentPost, def: SampleDef): ContentPost {
  * 시드 포스트(id 오름차순) 중 짝수 인덱스(0-based)만 서비스 소개용 샘플로 덮어씁니다.
  * 나머지는 `is_sample: false` 로 유지되어 실제 시드 톤과 섞입니다.
  */
+// 데모용 — 모든 시드 포스트가 route_journey를 보유하도록 withRoute:true SampleDef만 순환.
+// (withRoute:false 2개는 글 형태 다양성용이지만, 라우트 에디터에서 편집/풀콘텐츠 노출이 안 되므로 데모에선 배제)
+const ROUTE_SAMPLE_DEFINITIONS = SAMPLE_DEFINITIONS.filter((d) => d.withRoute);
+
 export function applyServiceSampleOverlay(posts: ContentPost[]): ContentPost[] {
+  // 데모 효과를 위해 모든 포스트에 SampleDef를 순환 적용한다.
+  // (이전 v1: 짝수 인덱스만 적용 → 일부 가디언(mg14/mg15)이 route_journey 0건)
+  // (이전 v2: 모든 19개 SampleDef 순환 → withRoute:false 2개가 일부 가디언에 몰려 0건)
+  // 현재: withRoute:true 17개만 순환 → 모든 포스트 100% route_journey 보유.
   const sorted = [...posts].sort((a, b) => a.id.localeCompare(b.id));
-  let defIdx = 0;
   return sorted.map((p, i) => {
-    if (i % 2 !== 0) {
-      return {
-        ...p,
-        is_sample: false,
-        has_route: postHasRouteJourney(p),
-      };
-    }
-    const def = SAMPLE_DEFINITIONS[defIdx];
+    const def = ROUTE_SAMPLE_DEFINITIONS[i % ROUTE_SAMPLE_DEFINITIONS.length];
     if (!def) {
       return { ...p, is_sample: false, has_route: postHasRouteJourney(p) };
     }
-    defIdx += 1;
     return mergeSample(p, def);
   });
 }
