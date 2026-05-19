@@ -18,6 +18,7 @@
 | [docs/dev-log.md](./docs/dev-log.md) | 날짜별 작업 로그 (**완료 후 필수**, 형식은 파일 상단 참고) |
 | [DEV_LOG.md](./DEV_LOG.md) | 과거 맥락·장문 요약(선택·참고) |
 | [README.md](./README.md) | Node 버전, 설치, 실행, 빌드 |
+| [DEMO_GUIDE.md](./DEMO_GUIDE.md) | **MVP 데모 시연 가이드** — 시나리오, 환경, 강조 포인트, 인수 참고사항 |
 
 ## 에이전트 공통 원칙 (요약)
 
