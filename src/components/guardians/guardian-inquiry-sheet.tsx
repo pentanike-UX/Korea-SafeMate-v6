@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Link } from "@/i18n/navigation";
 import {
@@ -25,13 +26,6 @@ export type GuardianInquiryOpenDetail = {
   /** 문의 진입 포스트(선택) — 스레드 메타에 저장 */
   contentPostId?: string;
 };
-
-const QUICK_REPLIES = [
-  "이 루트 동행 가능한가요?",
-  "일정 조율할 수 있나요?",
-  "비슷한 다른 루트도 있나요?",
-  "식당 선택 도움 받을 수 있나요?",
-];
 
 /** 전역 이벤트로 문의 시트를 여는 트리거 버튼 */
 export function GuardianInquiryOpenTrigger({
@@ -60,6 +54,12 @@ export function GuardianInquiryOpenTrigger({
 
 /** public-site-shell.tsx에 한 번만 마운트 — 채팅 형식 문의 시트 (실 API 연결) */
 export function GuardianInquirySheetGlobal() {
+  const t = useTranslations("GuardianInquiry");
+  const QUICK_REPLIES = useMemo(
+    () => [t("quickReply1"), t("quickReply2"), t("quickReply3"), t("quickReply4")],
+    [t],
+  );
+
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<GuardianInquiryOpenDetail>({});
   const [defaults, setDefaults] = useState<GuardianInquiryOpenDetail>({});
@@ -132,7 +132,7 @@ export function GuardianInquirySheetGlobal() {
               ? resBody.detail
               : resBody && typeof resBody.error === "string"
                 ? resBody.error
-                : `문의를 시작할 수 없어요. (${res.status})`;
+                : t("inquiryStartErrorWithStatus", { status: res.status });
           setInquiryError(msg);
           setMessages([]);
           return;
@@ -141,7 +141,7 @@ export function GuardianInquirySheetGlobal() {
         const body = resBody;
         const tid = body?.thread?.id;
         if (!tid) {
-          setInquiryError("서버 응답이 올바르지 않아요. 잠시 후 다시 시도해 주세요.");
+          setInquiryError(t("inquiryBadResponse"));
           setMessages([]);
           return;
         }
@@ -154,7 +154,7 @@ export function GuardianInquirySheetGlobal() {
           setMessages(existing ?? []);
         }
       } catch {
-        setInquiryError("네트워크 오류가 발생했어요. 연결을 확인한 뒤 다시 시도해 주세요.");
+        setInquiryError(t("networkErrorStart"));
         setMessages([]);
       } finally {
         setIsLoading(false);
@@ -191,9 +191,9 @@ export function GuardianInquirySheetGlobal() {
   }, [open, authRequired]);
 
   const resolved = {
-    displayName: detail.displayName ?? defaults.displayName ?? "하루이",
+    displayName: detail.displayName ?? defaults.displayName ?? t("defaultGuardianName"),
     avatarUrl: detail.avatarUrl ?? defaults.avatarUrl ?? FALLBACK_GUARDIAN_REQUEST_AVATAR,
-    headline: detail.headline ?? defaults.headline ?? "현지 전문 하루이",
+    headline: detail.headline ?? defaults.headline ?? t("defaultGuardianHeadline"),
     guardianUserId: detail.guardianUserId ?? defaults.guardianUserId ?? "",
   };
 
@@ -234,7 +234,7 @@ export function GuardianInquirySheetGlobal() {
           const human =
             raw && "error" in raw && raw.error === "traveler_message_limit" && typeof raw.detail === "string"
               ? raw.detail
-              : "메시지를 보내지 못했어요. 잠시 후 다시 시도해 주세요.";
+              : t("sendErrorGeneric");
           setSendError(human);
           setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
           return;
@@ -251,7 +251,7 @@ export function GuardianInquirySheetGlobal() {
           });
         }
       } catch {
-        setSendError("네트워크 오류가 발생했어요.");
+        setSendError(t("networkErrorSend"));
         setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
       } finally {
         setIsSending(false);
@@ -283,7 +283,7 @@ export function GuardianInquirySheetGlobal() {
         side="right"
         showCloseButton={false}
         className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[400px]"
-        aria-label={`${resolved.displayName}에게 문의`}
+        aria-label={t("ariaLabelChatWith", { name: resolved.displayName })}
       >
         {/* ── 헤더 ── */}
         <div className="flex shrink-0 items-center gap-3 border-b border-border/50 bg-card px-4 py-3.5">
@@ -303,14 +303,14 @@ export function GuardianInquirySheetGlobal() {
             </p>
             <p className="flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400">
               <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" aria-hidden />
-              지금 온라인 · 빠른 응답
+              {t("statusOnlineNow")}
             </p>
           </div>
           <button
             type="button"
             onClick={() => setOpen(false)}
             className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            aria-label="닫기"
+            aria-label={t("closeAria")}
           >
             <X className="size-4" />
           </button>
@@ -321,15 +321,15 @@ export function GuardianInquirySheetGlobal() {
           {/* 비인증 안내 */}
           {authRequired ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-              <p className="text-base font-semibold text-foreground">로그인이 필요해요</p>
+              <p className="text-base font-semibold text-foreground">{t("authRequiredTitle")}</p>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                하루이에게 문의하려면 먼저 로그인해 주세요.
+                {t("authRequiredBody")}
               </p>
               <Link
                 href="/login"
                 className="mt-2 rounded-xl bg-[var(--brand-primary)] px-5 py-2.5 text-sm font-semibold text-white"
               >
-                로그인하기
+                {t("authRequiredCta")}
               </Link>
             </div>
           ) : inquiryError ? (
@@ -346,7 +346,7 @@ export function GuardianInquirySheetGlobal() {
                   );
                 }}
               >
-                다시 시도
+                {t("retryCta")}
               </button>
             </div>
           ) : isLoading ? (
@@ -451,7 +451,7 @@ export function GuardianInquirySheetGlobal() {
                   e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="메시지 입력… (Enter 전송, Shift+Enter 줄바꿈)"
+                placeholder={t("inputPlaceholder")}
                 rows={1}
                 maxLength={500}
                 disabled={isSending || isLoading || !threadId}
@@ -462,15 +462,16 @@ export function GuardianInquirySheetGlobal() {
                 type="button"
                 onClick={handleSend}
                 disabled={!input.trim() || isSending || isLoading || !threadId}
-                aria-label="전송"
+                aria-label={t("sendAria")}
                 className="flex size-[42px] shrink-0 items-center justify-center rounded-xl bg-[var(--brand-primary)] text-white shadow-sm transition-opacity disabled:opacity-40"
               >
                 <Send className="size-4" aria-hidden />
               </button>
             </div>
             <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
-              시간이 필요한 맞춤 의뢰는{" "}
-              <span className="font-medium text-foreground">요청하기</span>를 이용하세요
+              {t("inquiryHintFooterPrefix")}{" "}
+              <span className="font-medium text-foreground">{t("inquiryHintFooterRequestWord")}</span>
+              {" "}{t("inquiryHintFooterSuffix")}
             </p>
           </div>
         )}

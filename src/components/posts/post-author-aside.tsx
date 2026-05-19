@@ -30,6 +30,8 @@ export async function PostAuthorAside({
 }) {
   const t = await getTranslations("Posts");
   const tTier = await getTranslations("GuardianTier");
+  const tReq = await getTranslations("GuardianRequest");
+  const tBrand = await getTranslations("Brand");
   const guardian = await getPublicGuardianByIdMerged(post.author_user_id);
   const imgs = guardian ? guardianProfileImageUrls(guardian) : null;
   const authorApprovedPosts = guardian ? await listPostsForGuardianMerged(guardian.user_id) : [];
@@ -58,7 +60,7 @@ export async function PostAuthorAside({
             <Image src={imgs.landscape} alt="" fill className={GUARDIAN_PROFILE_HERO_COVER_CLASS} sizes="400px" />
           ) : (
             <div className="flex h-full items-center justify-center bg-gradient-to-br from-[var(--brand-primary-soft)] to-[var(--accent-soft)] text-2xl font-bold text-primary/40">
-              하루
+              {tBrand("shortName")}
             </div>
           )}
         </div>
@@ -68,7 +70,7 @@ export async function PostAuthorAside({
             {/* 온라인 상태 배지 */}
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
               <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
-              지금 온라인
+              {tReq("sidebarOnline")}
             </span>
           </div>
           {post.is_sample ? (

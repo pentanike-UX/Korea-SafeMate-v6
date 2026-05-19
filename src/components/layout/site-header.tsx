@@ -122,7 +122,7 @@ export function SiteHeader() {
                 : "ring-[color-mix(in_srgb,var(--accent-ksm)_35%,transparent)] shadow-[0_1px_0_rgba(0,0,0,0.05)]",
             )}
           >
-            하루
+            {tBrand("shortName")}
           </span>
           <div className="min-w-0 leading-tight">
             <span
@@ -131,7 +131,7 @@ export function SiteHeader() {
                 onDarkSurface ? "text-white" : "text-[var(--text-strong)]",
               )}
             >
-              {BRAND.name}
+              {tBrand("shortName")}
             </span>
             <span
               className={cn(

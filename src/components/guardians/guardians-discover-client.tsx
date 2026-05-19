@@ -59,6 +59,7 @@ export function GuardiansDiscoverClient({
   const tStyles = useTranslations("CompanionStyles");
   const tTier = useTranslations("GuardianTier");
   const tReq = useTranslations("GuardianRequest");
+  const tBrand = useTranslations("Brand");
 
   const [region, setRegion] = useState<LaunchAreaSlug | "all" | "">("");
   const [language, setLanguage] = useState<string>("");
@@ -390,7 +391,7 @@ export function GuardiansDiscoverClient({
         description={t("heroBody")}
         eyebrow={
           <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.2em] uppercase text-[var(--brand-trust-blue)]">
-            하루를 여는 이들
+            {tBrand("heroEyebrow")}
           </p>
         }
       />
@@ -474,7 +475,7 @@ export function GuardiansDiscoverClient({
                         {(g.last_seen_at === "mock:online" || (g.last_seen_at && Date.now() - new Date(g.last_seen_at).getTime() < 30 * 60 * 1000)) && (
                           <span className="absolute top-2 right-2 flex items-center gap-1 rounded-full border border-white/20 bg-emerald-500/90 px-1.5 py-0.5 text-[10px] font-bold text-white shadow-sm backdrop-blur-sm">
                             <span className="size-1.5 rounded-full bg-white" aria-hidden />
-                            온라인
+                            {t("statusOnline")}
                           </span>
                         )}
                       </div>
@@ -558,7 +559,7 @@ export function GuardiansDiscoverClient({
                               disabled
                               className={cn(listCardActionButtonClass, "w-full rounded-[var(--radius-md)] opacity-60")}
                             >
-                              현재 활동 중지
+                              {t("statusPaused")}
                             </Button>
                           ) : g.guardian_tier === "contributor" ? (
                             <Button
@@ -567,7 +568,7 @@ export function GuardiansDiscoverClient({
                               variant="outline"
                               className={cn(listCardActionButtonClass, "w-full rounded-[var(--radius-md)]")}
                             >
-                              <Link href={`/guardians/${g.user_id}#guardian-posts`}>하루웨이 보기</Link>
+                              <Link href={`/guardians/${g.user_id}#guardian-posts`}>{t("viewHaruway")}</Link>
                             </Button>
                           ) : (
                             <GuardianRequestOpenTrigger

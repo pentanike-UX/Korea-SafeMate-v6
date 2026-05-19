@@ -49,9 +49,9 @@ export function PostAuthorRequestCta({
         className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-50 font-semibold text-emerald-700 text-sm transition-colors hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
       >
         <MessageCircle className="size-4" aria-hidden />
-        지금 문의하기
+        {t("sidebarCtaInquiryNow")}
       </button>
-      <p className="text-center text-[11px] text-muted-foreground">지금 바로 답변 받을 수 있어요</p>
+      <p className="text-center text-[11px] text-muted-foreground">{t("sidebarInquiryHint")}</p>
 
       {/* 요청하기 — 날짜·인원·예산 포함 맞춤 의뢰 */}
       <GuardianRequestOpenTrigger
@@ -61,7 +61,7 @@ export function PostAuthorRequestCta({
         <ClipboardList className="size-4" aria-hidden />
         {t("openCta")}
       </GuardianRequestOpenTrigger>
-      <p className="text-center text-[11px] text-muted-foreground">날짜·인원·예산을 함께 보내는 맞춤 의뢰</p>
+      <p className="text-center text-[11px] text-muted-foreground">{t("sidebarRequestHint")}</p>
     </div>
   );
 }

@@ -95,7 +95,9 @@
   },
   "Brand": {
     "tagline": "하루를 더 잘 쓰고 싶은 여행자에게.",
-    "description": "하루는 K-콘텐츠 팬과 검증된 서울 하루이를 잇습니다. 언어 맞춤, 걸을 수 있는 하루웨이, 여행자 리뷰로 신뢰를 쌓습니다."
+    "description": "하루는 K-콘텐츠 팬과 검증된 서울 하루이를 잇습니다. 언어 맞춤, 걸을 수 있는 하루웨이, 여행자 리뷰로 신뢰를 쌓습니다.",
+    "shortName": "하루",
+    "heroEyebrow": "하루를 여는 이들"
   },
   "GuardianTier": {
     "verified_guardian": "검증된 하루이",
@@ -414,7 +416,19 @@
     "summaryUnavailableHint": "새로고침했거나 다른 기기에서 연 경우, 클라이언트에 세부 정보가 남아 있지 않을 수 있습니다.",
     "exploreIntel": "로컬 정보 보기",
     "services": "서비스",
-    "home": "홈"
+    "home": "홈",
+    "matchedHeading": "{name}와 매칭됐어요!",
+    "matchedSubline": "{name}이(가) 곧 회신할 거예요. 그동안 메시지로 일정·인원·무드를 더 자세히 남겨 두시면 답이 빨라져요.",
+    "autoReplyBadge": "방금 자동 답변",
+    "autoReplyExample": "안녕하세요! 일정 확인 중이에요. 1–2시간 내에 정확한 회신 드릴게요 ☺️",
+    "chatNowCta": "{name}와 채팅 열기",
+    "nextStepsHeading": "다음 단계",
+    "nextStep1Title": "지금 — 채팅 열기",
+    "nextStep1Body": "원하는 무드와 만남 시간을 자유롭게 더 보내 주세요.",
+    "nextStep2Title": "오늘 안 — 회신",
+    "nextStep2Body": "{name}이(가) 일정 가능 여부와 짧은 안내를 보내 드려요.",
+    "nextStep3Title": "확정 후 — 출발",
+    "nextStep3Body": "출발 전날 마지막 점검 메시지를 보내요. 우천·인파 등 대안도 미리 안내."
   },
   "Login": {
     "metaTitle": "로그인",
@@ -785,7 +799,10 @@
     "saveError": "잠시 후 다시 시도해 주세요.",
     "saveViewList": "저장 목록 보기",
     "filterApply": "적용",
-    "filterClose": "닫기"
+    "filterClose": "닫기",
+    "statusOnline": "온라인",
+    "statusPaused": "현재 활동 중지",
+    "viewHaruway": "하루웨이 보기"
   },
   "GuardianDetail": {
     "metaTitle": "가디언 프로필",
@@ -877,7 +894,11 @@
     "errorEmail": "올바른 이메일 형식인지 확인해 주세요.",
     "errorAgreements": "안내 문구에 모두 동의해 주세요.",
     "errorRegion": "희망 지역을 선택해 주세요.",
-    "errorSubmit": "전송에 실패했어요. 잠시 후 다시 시도해 주세요."
+    "errorSubmit": "전송에 실패했어요. 잠시 후 다시 시도해 주세요.",
+    "sidebarOnline": "지금 온라인",
+    "sidebarCtaInquiryNow": "지금 문의하기",
+    "sidebarInquiryHint": "지금 바로 답변 받을 수 있어요",
+    "sidebarRequestHint": "날짜·인원·예산을 함께 보내는 맞춤 의뢰"
   },
   "TrustBadgeLabels": {
     "verified": "검증된 가디언",
@@ -1286,7 +1307,50 @@
       "photo": "각도와 타이밍만 정하면 전체 일정이 빨라져요.",
       "rest": "물·그늘·화장실을 한 번에 점검하는 구간이에요.",
       "destination": "입장이면 내부 동선 시간을 따로 잡으세요."
-    }
+    },
+    "paymentMethodTitle": "결제 수단 선택",
+    "paymentMethodLead": "데모 — 실제 결제는 발생하지 않습니다",
+    "paymentMethodToss": "토스페이",
+    "paymentMethodTossDesc": "Toss로 1초 만에",
+    "paymentMethodKakao": "카카오페이",
+    "paymentMethodKakaoDesc": "카카오 계정으로 간편 결제",
+    "paymentMethodBackCta": "다시 선택",
+    "paymentProcessingTitle": "결제 진행 중...",
+    "paymentProcessingTossLead": "Toss 인증을 통해 결제하고 있어요",
+    "paymentProcessingKakaoLead": "카카오 계정 인증 중",
+    "paymentSuccessTitle": "결제 완료",
+    "paymentSuccessLead": "이제 전체 코스를 확인할 수 있어요",
+    "paymentSuccessUnlockCta": "전체 코스 보기",
+    "paymentTossOrderName": "haruway 풀가이드",
+    "paymentTossButton": "결제하기",
+    "paymentKakaoButton": "카카오페이 결제",
+    "paymentDemoBadge": "DEMO",
+    "faqTitle": "자주 묻는 질문",
+    "faqQ1": "이 루트, 직접 동행해 줄 수 있나요?",
+    "faqA1": "네! 하루이에게 직접 문의하면 동행 가능 여부와 일정을 확인해 드립니다. 오른쪽 '문의하기' 버튼으로 바로 연결하세요.",
+    "faqQ2": "루트 일정이 하루치인가요? 반나절도 가능한가요?",
+    "faqA2": "포스트에 표기된 예상 소요 시간을 기준으로 하되, 체력이나 관심 스팟에 따라 코스를 줄이거나 조합하는 것도 괜찮습니다. 하루이가 현장 상황에 맞게 조율해 드릴 수 있어요.",
+    "faqQ3": "날씨가 좋지 않으면 어떡하나요?",
+    "faqA3": "우천 시 대체 실내 코스를 제안해 드립니다. 출발 전날 하루이에게 메시지를 남겨 주시면 플랜 B를 미리 준비해 드릴 수 있어요.",
+    "faqQ4": "영어로 소통 가능한가요?",
+    "faqA4": "하루이의 언어 능력은 프로필에서 확인할 수 있습니다. 언어가 걱정된다면 문의 시 함께 알려 주세요.",
+    "spotTypeReady": "준비형",
+    "spotTypePhoto": "포토형",
+    "spotTypeRest": "휴식형",
+    "spotTypeDestination": "목적지형",
+    "transitSubway": "지하철",
+    "transitBus": "버스",
+    "transitTaxi": "택시",
+    "transitWalk": "도보",
+    "moveAriaNext": "다음 스팟으로 이동",
+    "moveLabel": "이동",
+    "approxMinutes": "약 {n}분",
+    "noticeLabel": "주의",
+    "labelPhotoTips": "포토 팁",
+    "labelThisAngle": "이 각도로",
+    "labelGoodFor": "이럴 때 좋아요",
+    "labelWhyHere": "왜 여기냐면",
+    "labelWhatToDo": "여기서 할 것"
   },
   "TravelerHub": {
     "metaTitle": "내 여정",
@@ -2088,5 +2152,30 @@
     "totalDue": "최종 결제 금액",
     "payBtn": "결제 진행",
     "paying": "결제 준비 중…"
+  },
+  "GuardianInquiry": {
+    "defaultGuardianName": "하루이",
+    "defaultGuardianHeadline": "현지 전문 하루이",
+    "statusOnlineNow": "지금 온라인 · 빠른 응답",
+    "closeAria": "닫기",
+    "ariaLabelChatWith": "{name}에게 문의",
+    "authRequiredTitle": "로그인이 필요해요",
+    "authRequiredBody": "하루이에게 문의하려면 먼저 로그인해 주세요.",
+    "authRequiredCta": "로그인하기",
+    "inquiryStartErrorWithStatus": "문의를 시작할 수 없어요. ({status})",
+    "inquiryBadResponse": "서버 응답이 올바르지 않아요. 잠시 후 다시 시도해 주세요.",
+    "networkErrorStart": "네트워크 오류가 발생했어요. 연결을 확인한 뒤 다시 시도해 주세요.",
+    "retryCta": "다시 시도",
+    "inputPlaceholder": "메시지 입력… (Enter 전송, Shift+Enter 줄바꿈)",
+    "sendAria": "전송",
+    "sendErrorGeneric": "메시지를 보내지 못했어요. 잠시 후 다시 시도해 주세요.",
+    "networkErrorSend": "네트워크 오류가 발생했어요.",
+    "inquiryHintFooterPrefix": "시간이 필요한 맞춤 의뢰는",
+    "inquiryHintFooterSuffix": "를 이용하세요",
+    "inquiryHintFooterRequestWord": "요청하기",
+    "quickReply1": "이 루트 동행 가능한가요?",
+    "quickReply2": "일정 조율할 수 있나요?",
+    "quickReply3": "비슷한 다른 루트도 있나요?",
+    "quickReply4": "식당 선택 도움 받을 수 있나요?"
   }
 }

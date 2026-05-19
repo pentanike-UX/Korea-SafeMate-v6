@@ -36,37 +36,25 @@ import {
 
 // ─── FAQ Section ──────────────────────────────────────────────────────────────
 
-const ROUTE_FAQ_ITEMS = [
-  {
-    q: "이 루트, 직접 동행해 줄 수 있나요?",
-    a: "네! 하루이에게 직접 문의하면 동행 가능 여부와 일정을 확인해 드립니다. 오른쪽 '문의하기' 버튼으로 바로 연결하세요.",
-  },
-  {
-    q: "루트 일정이 하루치인가요? 반나절도 가능한가요?",
-    a: "포스트에 표기된 예상 소요 시간을 기준으로 하되, 체력이나 관심 스팟에 따라 코스를 줄이거나 조합하는 것도 괜찮습니다. 하루이가 현장 상황에 맞게 조율해 드릴 수 있어요.",
-  },
-  {
-    q: "날씨가 좋지 않으면 어떡하나요?",
-    a: "우천 시 대체 실내 코스를 제안해 드립니다. 출발 전날 하루이에게 메시지를 남겨 주시면 플랜 B를 미리 준비해 드릴 수 있어요.",
-  },
-  {
-    q: "영어로 소통 가능한가요?",
-    a: "하루이의 언어 능력은 프로필에서 확인할 수 있습니다. 언어가 걱정된다면 문의 시 함께 알려 주세요.",
-  },
-] as const;
-
 function RouteFaqSection() {
+  const t = useTranslations("RoutePosts");
   const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const items = [
+    { q: t("faqQ1"), a: t("faqA1") },
+    { q: t("faqQ2"), a: t("faqA2") },
+    { q: t("faqQ3"), a: t("faqA3") },
+    { q: t("faqQ4"), a: t("faqA4") },
+  ];
   return (
     <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-9">
       <header className="mb-5 space-y-1">
         <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
           FAQ
         </p>
-        <h2 className="text-base font-semibold tracking-tight text-[var(--text-strong)]">자주 묻는 질문</h2>
+        <h2 className="text-base font-semibold tracking-tight text-[var(--text-strong)]">{t("faqTitle")}</h2>
       </header>
       <ul className="divide-y divide-border/30">
-        {ROUTE_FAQ_ITEMS.map((item, idx) => (
+        {items.map((item, idx) => (
           <li key={idx}>
             <button
               type="button"
@@ -185,32 +173,33 @@ function nextModeEmoji(mode: RouteSpot["next_move_mode"]): string {
   }
 }
 
-function nextModeLabel(mode: RouteSpot["next_move_mode"]): string {
+function nextModeLabelKey(mode: RouteSpot["next_move_mode"]): string {
   switch (mode) {
     case "subway":
-      return "지하철";
+      return "transitSubway";
     case "bus":
-      return "버스";
+      return "transitBus";
     case "taxi":
-      return "택시";
+      return "transitTaxi";
     default:
-      return "도보";
+      return "transitWalk";
   }
 }
 
 function MoveConnector({ spot }: { spot: RouteSpot }) {
+  const t = useTranslations("RoutePosts");
   const hasData = spot.next_move_minutes != null || spot.next_move_distance_m != null;
   if (!hasData) return null;
 
   const emoji = nextModeEmoji(spot.next_move_mode);
-  const mode = nextModeLabel(spot.next_move_mode);
+  const mode = t(nextModeLabelKey(spot.next_move_mode));
   const parts = [
-    spot.next_move_minutes != null ? `약 ${spot.next_move_minutes}분` : null,
+    spot.next_move_minutes != null ? t("approxMinutes", { n: spot.next_move_minutes }) : null,
     spot.next_move_distance_m != null ? fmtDistance(spot.next_move_distance_m) : null,
   ].filter(Boolean);
 
   return (
-    <div className="mt-1.5 flex items-stretch gap-0 sm:mt-2" role="separator" aria-label="다음 스팟으로 이동">
+    <div className="mt-1.5 flex items-stretch gap-0 sm:mt-2" role="separator" aria-label={t("moveAriaNext")}>
       <div className="text-primary/40 flex w-9 shrink-0 flex-col items-center sm:w-11">
         <div className="min-h-2 w-px flex-1 bg-border/40" />
       </div>
@@ -228,10 +217,11 @@ function MoveConnector({ spot }: { spot: RouteSpot }) {
 }
 
 function LegFromPrevious({ text }: { text: string | undefined }) {
+  const t = useTranslations("RoutePosts");
   if (!text?.trim()) return null;
   return (
     <p className="text-foreground/90 mb-4 rounded-lg border border-border/35 bg-muted/20 px-3 py-2.5 text-[13px] leading-snug">
-      <span className="text-muted-foreground mr-1 font-semibold">🧭 이동</span>
+      <span className="text-muted-foreground mr-1 font-semibold">🧭 {t("moveLabel")}</span>
       {text.trim()}
     </p>
   );
@@ -297,11 +287,12 @@ function FieldHighlight({
 
 /** 주의/caution — 앰버 왼쪽 액센트 */
 function FieldCaution({ children }: { children: ReactNode }) {
+  const t = useTranslations("RoutePosts");
   return (
     <div className="border-t border-dashed border-border/25 pt-3 first:border-t-0 first:pt-0">
       <div className="rounded-r-lg border-l-2 border-amber-400/50 bg-amber-50/30 pl-3 pr-2 py-1 dark:bg-amber-950/15">
         <p className="mb-1 text-[10px] font-semibold tracking-[0.16em] text-amber-600/80 uppercase dark:text-amber-400/80">
-          ⚠️ 주의
+          ⚠️ {t("noticeLabel")}
         </p>
         {children}
       </div>
@@ -343,6 +334,7 @@ function parseActionItems(text: string): string[] | null {
 // ─── Role-differentiated field notes ─────────────────────────────────────────
 
 function PhotoSpotNotes({ spot }: { spot: RouteSpot }) {
+  const t = useTranslations("RoutePosts");
   const hasPhotoTip = !!spot.photo_tip?.trim();
   const hasWhatToDo = !!spot.what_to_do?.trim();
   const hasCaution = !!spot.caution?.trim();
@@ -357,14 +349,14 @@ function PhotoSpotNotes({ spot }: { spot: RouteSpot }) {
     <div className="mt-4 space-y-3">
       {/* 포토 팁 — 포토스팟은 이게 핵심 */}
       {hasPhotoTip ? (
-        <FieldHighlight label="📸 포토 팁">
+        <FieldHighlight label={`📸 ${t("labelPhotoTips")}`}>
           <p className="text-sm leading-relaxed text-foreground/85">{spot.photo_tip}</p>
         </FieldHighlight>
       ) : null}
 
       {/* 각도·구도 가이드 */}
       {hasWhatToDo ? (
-        <FieldSection label="이 각도로">
+        <FieldSection label={t("labelThisAngle")}>
           {angleItems ? (
             <ActionList items={angleItems} />
           ) : (
@@ -404,6 +396,7 @@ function PhotoSpotNotes({ spot }: { spot: RouteSpot }) {
 }
 
 function RestSpotNotes({ spot }: { spot: RouteSpot }) {
+  const t = useTranslations("RoutePosts");
   const hasWhatToDo = !!spot.what_to_do?.trim();
   const hasBody = !!spot.body?.trim();
   const hasCaution = !!spot.caution?.trim();
@@ -415,7 +408,7 @@ function RestSpotNotes({ spot }: { spot: RouteSpot }) {
     <div className="mt-4 space-y-3">
       {/* 경험 가이드 */}
       {hasWhatToDo ? (
-        <FieldHighlight label="이럴 때 좋아요">
+        <FieldHighlight label={t("labelGoodFor")}>
           <p className="text-sm leading-relaxed text-foreground/85">{spot.what_to_do}</p>
         </FieldHighlight>
       ) : null}
@@ -451,6 +444,7 @@ function RestSpotNotes({ spot }: { spot: RouteSpot }) {
 }
 
 function DestinationSpotNotes({ spot }: { spot: RouteSpot }) {
+  const t = useTranslations("RoutePosts");
   const hasWhatToDo = !!spot.what_to_do?.trim();
   const hasPhotoTip = !!spot.photo_tip?.trim();
   const hasCaution = !!spot.caution?.trim();
@@ -466,14 +460,14 @@ function DestinationSpotNotes({ spot }: { spot: RouteSpot }) {
     <div className="mt-4 space-y-3">
       {/* 왜 여기냐면 — 분위기·이유 */}
       {hasMood ? (
-        <FieldHighlight label="왜 여기냐면">
+        <FieldHighlight label={t("labelWhyHere")}>
           <p className="text-sm leading-relaxed text-foreground/85">{moodText}</p>
         </FieldHighlight>
       ) : null}
 
       {/* 여기서 할 것 */}
       {hasWhatToDo ? (
-        <FieldSection label="여기서 할 것">
+        <FieldSection label={t("labelWhatToDo")}>
           {actionItems ? (
             <ActionList items={actionItems} />
           ) : (
@@ -495,7 +489,7 @@ function DestinationSpotNotes({ spot }: { spot: RouteSpot }) {
 
       {/* 포토 팁 */}
       {hasPhotoTip ? (
-        <FieldSection label="📸 포토 팁">
+        <FieldSection label={`📸 ${t("labelPhotoTips")}`}>
           <p className="text-sm leading-relaxed text-foreground/85">{spot.photo_tip}</p>
         </FieldSection>
       ) : null}
@@ -554,6 +548,12 @@ function EditorialSpotRow({
   const t = useTranslations("RoutePosts");
   const role = inferSpotRole(spot);
   const roleConf = ROLE_CONFIG[role];
+  const roleLabelKey: Record<SpotRole, string> = {
+    prep: "spotTypeReady",
+    photo: "spotTypePhoto",
+    rest: "spotTypeRest",
+    destination: "spotTypeDestination",
+  };
   const collapsedTitle = freeTierMoodTitle(spot);
   const placeTitle = premiumSpotPlaceTitle(spot);
   const addressFallback = premiumSpotAddressLine(spot);
@@ -646,7 +646,7 @@ function EditorialSpotRow({
         )}
       >
         <span aria-hidden>{roleConf.emoji}</span>
-        {roleConf.label}
+        {t(roleLabelKey[role])}
       </span>
       {spot.stay_duration_minutes ? (
         <p className="text-muted-foreground text-[10px] font-medium">
