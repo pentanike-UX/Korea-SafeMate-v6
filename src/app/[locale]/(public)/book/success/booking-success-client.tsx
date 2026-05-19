@@ -8,11 +8,24 @@ import type { BookingRequestPayload, ServiceTypeCode } from "@/types/domain";
 import { mockServiceTypes } from "@/data/mock";
 import { CONTACT_CHANNEL_LABELS } from "@/lib/constants";
 import { BookingSummaryCard } from "@/components/booking/booking-summary-card";
+import { MatchedGuardianHeroCard } from "@/components/booking/matched-guardian-hero-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
 
-type Stored = { id: string; payload: BookingRequestPayload; saved: boolean };
+type StoredGuardian = {
+  user_id: string;
+  display_name: string;
+  headline?: string;
+  avatar_url?: string;
+};
+
+type Stored = {
+  id: string;
+  payload: BookingRequestPayload;
+  saved: boolean;
+  guardian?: StoredGuardian | null;
+};
 
 function isServiceCode(v: string): v is ServiceTypeCode {
   return mockServiceTypes.some((s) => s.code === v);
@@ -45,8 +58,22 @@ export function BookingSuccessClient() {
   const ch = payload?.preferred_contact_channel;
   const email = payload?.guest_email;
 
+  const matchedGuardian = stored?.guardian ?? null;
+
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16">
+    <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
+      {/* 매칭된 가디언이 있으면 임팩트 헤로 카드 노출 */}
+      {matchedGuardian ? (
+        <div className="mb-10">
+          <MatchedGuardianHeroCard
+            guardianUserId={matchedGuardian.user_id}
+            guardianDisplayName={matchedGuardian.display_name}
+            guardianHeadline={matchedGuardian.headline}
+            guardianAvatarUrl={matchedGuardian.avatar_url}
+          />
+        </div>
+      ) : null}
+
       <div className="mb-8 flex flex-col items-center text-center">
         <span className="bg-primary/10 text-primary mb-4 flex size-14 items-center justify-center rounded-2xl">
           <CheckCircle2 className="size-8" aria-hidden />

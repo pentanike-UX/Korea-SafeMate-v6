@@ -301,9 +301,23 @@ export function GuardianRequestSheetHost({
       if (!res.ok) throw new Error(data.error ?? t("errorSubmit"));
       const id = data.id ?? "unknown";
       try {
+        const host = effectiveRef.current;
         sessionStorage.setItem(
           "ksm_booking_success",
-          JSON.stringify({ id, payload, saved: Boolean(data.saved) }),
+          JSON.stringify({
+            id,
+            payload,
+            saved: Boolean(data.saved),
+            // 시연 임팩트 — 매칭 가디언 정보를 success 화면이 노출할 수 있도록 함께 저장
+            guardian: host.guardianUserId
+              ? {
+                  user_id: host.guardianUserId,
+                  display_name: host.displayName,
+                  headline: host.headline,
+                  avatar_url: host.avatarUrl,
+                }
+              : null,
+          }),
         );
       } catch {
         /* ignore */
