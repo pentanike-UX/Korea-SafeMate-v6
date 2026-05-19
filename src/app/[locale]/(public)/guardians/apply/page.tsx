@@ -1,9 +1,11 @@
+import { getLocale } from "next-intl/server";
 import { GuardianApplyForm } from "@/components/guardian/guardian-apply-form";
+import { GuardiansApplyEn } from "@/components/marketing/guardians-apply-en";
 import { ArrowRight, CheckCircle2, XCircle } from "lucide-react";
 
 export const metadata = {
-  title: "하루이로 활동하기 | 하루",
-  description: "하루이는 정해진 범위 안에서 여행자의 하루를 돕는 사람입니다. 지원 후 영업일 기준 3–5일 내 안내드립니다.",
+  title: "Become a haruee | haru",
+  description: "haruee design Seoul routes within a defined scope. Applications reviewed in 3–5 business days.",
 };
 
 // ── 하루이 등급 단계 ───────────────────────────────────────────────────────────
@@ -41,7 +43,9 @@ const EXCLUDED = [
   "확인되지 않은 정보 제공",
 ];
 
-export default function GuardianApplyPage() {
+export default async function GuardianApplyPage() {
+  const locale = await getLocale();
+  if (locale !== "ko") return <GuardiansApplyEn />;
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
 

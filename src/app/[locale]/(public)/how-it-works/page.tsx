@@ -12,12 +12,13 @@ export async function generateMetadata() {
   const t = await getTranslations("HowItWorks");
   return {
     title: `${t("hero_title")} — ${BRAND.name}`,
-    description: "Step-by-step guide for travelers and 하루이.",
+    description: "Step-by-step guide for travelers and haruee.",
   };
 }
 
 function HowItWorksContent() {
   const t = useTranslations("HowItWorks");
+  const tBrand = useTranslations("Brand");
 
   const travelerSteps = [
     { n: "01", icon: "🔍", title: t("step1_title"), desc: t("step1_desc") },
@@ -47,7 +48,7 @@ function HowItWorksContent() {
       <section className="border-b border-line bg-bg-card">
         <div className="page-container py-16 md:py-20">
           <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-soft">
-            하루
+            {tBrand("shortName")}
           </p>
           <h1 className="font-serif text-4xl font-semibold text-ink sm:text-5xl">
             {t("hero_title")}
@@ -110,7 +111,7 @@ function HowItWorksContent() {
       <section className="page-container py-16 md:py-20">
         <div className="mb-10">
           <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-bg-card px-3 py-1 text-xs font-semibold text-ink-muted">
-            🇰🇷 For 하루이
+            🇰🇷 For haruee
           </span>
           <h2 className="font-serif text-3xl font-semibold text-ink sm:text-4xl">
             {t("guardian_title")}

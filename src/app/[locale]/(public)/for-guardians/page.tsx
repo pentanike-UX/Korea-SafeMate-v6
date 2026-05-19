@@ -1,15 +1,20 @@
 /**
  * 하루이 모집 랜딩 — /for-guardians
  */
+import { getLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { ForGuardiansEn } from "@/components/marketing/for-guardians-en";
 import { BRAND } from "@/lib/constants";
 import { ArrowRight, Calendar, MapPin, TrendingUp } from "lucide-react";
 
 export async function generateMetadata() {
-  return {
-    title: `초기 하루이 모집 중 | ${BRAND.name}`,
-    description: "당신이 아는 서울이 누군가의 하루가 됩니다. 하루이로 활동해보세요.",
-  };
+  const locale = await getLocale();
+  const title = locale === "ko" ? `초기 하루이 모집 중 | ${BRAND.name}` : `Open someone's Seoul day | ${BRAND.name}`;
+  const description =
+    locale === "ko"
+      ? "당신이 아는 서울이 누군가의 하루가 됩니다. 하루이로 활동해보세요."
+      : "Become a haruee — share the Seoul you know with travelers from around the world.";
+  return { title, description };
 }
 
 // ── 예상 수익 시나리오 ──────────────────────────────────────────────────────────
@@ -213,6 +218,8 @@ function ForGuardiansContent() {
   );
 }
 
-export default function ForGuardiansPage() {
+export default async function ForGuardiansPage() {
+  const locale = await getLocale();
+  if (locale !== "ko") return <ForGuardiansEn />;
   return <ForGuardiansContent />;
 }

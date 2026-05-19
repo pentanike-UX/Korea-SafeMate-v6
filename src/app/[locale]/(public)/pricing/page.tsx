@@ -4,17 +4,21 @@
  * SCREEN_SPECS_3A §M05
  * Updated: cashflow 구조 반영 (탐색 무료 / 실행 유료)
  */
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { ArrowRight, Check } from "lucide-react";
+import { PricingEn } from "@/components/marketing/pricing-en";
 import { BRAND } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 export async function generateMetadata() {
-  return {
-    title: `요금 — ${BRAND.name}`,
-    description: "하루웨이는 먼저 둘러보고, 실행과 맞춤 요청이 필요할 때 결제합니다.",
-  };
+  const locale = await getLocale();
+  const title = locale === "ko" ? `요금 — ${BRAND.name}` : `Pricing — ${BRAND.name}`;
+  const description =
+    locale === "ko"
+      ? "하루웨이는 먼저 둘러보고, 실행과 맞춤 요청이 필요할 때 결제합니다."
+      : "Browse haruways for free. Pay when you unlock a full route or request a haruee.";
+  return { title, description };
 }
 
 const TIERS = [
@@ -105,6 +109,10 @@ const FAQS = [
 ];
 
 export default async function PricingPage() {
+  const locale = await getLocale();
+  // 외국인 시점에선 영어 압축 페이지로 분기 (사용자 데모 시나리오 보호)
+  if (locale !== "ko") return <PricingEn />;
+
   await getTranslations("Pricing"); // keep translation namespace alive
 
   return (
