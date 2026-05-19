@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { mockTravelerReviews } from "@/data/mock/traveler-reviews";
 import { GuardianDetailView } from "@/components/guardians/guardian-detail-view";
@@ -6,6 +6,7 @@ import { getIntroGalleryResolutionFromDb } from "@/lib/guardian-intro-gallery-db
 import { getPublicGuardianByIdMerged, listPublicGuardiansMerged } from "@/lib/guardian-public-merged.server";
 import { payloadToTravelerReview } from "@/lib/traveler-submitted-reviews";
 import { getSubmittedTravelerReviewsFromCookie } from "@/lib/traveler-submitted-reviews.server";
+import { applyGuardianDemoCuration } from "@/lib/guardian-demo-curation";
 import { BRAND } from "@/lib/constants";
 
 type Props = { params: Promise<{ locale: string; guardianId: string }> };
@@ -17,11 +18,13 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props) {
   const { guardianId } = await params;
-  const g = await getPublicGuardianByIdMerged(guardianId);
+  const locale = await getLocale();
+  const gRaw = await getPublicGuardianByIdMerged(guardianId);
   const t = await getTranslations("GuardianDetail");
-  if (!g) {
+  if (!gRaw) {
     return { title: `${t("notFound")} | ${BRAND.name}` };
   }
+  const g = applyGuardianDemoCuration(gRaw, locale);
   return {
     title: `${g.display_name} | ${BRAND.name}`,
     description: g.headline,
@@ -30,8 +33,12 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function GuardianDetailPage({ params }: Props) {
   const { guardianId } = await params;
-  const g = await getPublicGuardianByIdMerged(guardianId);
-  if (!g) notFound();
+  const locale = await getLocale();
+  const gRaw = await getPublicGuardianByIdMerged(guardianId);
+  if (!gRaw) notFound();
+
+  // 데모 큐레이션 — 박도윤 등 시연 종착 가디언은 영어 locale에서 영어 카피 사용
+  const g = applyGuardianDemoCuration(gRaw, locale);
 
   const introRes = await getIntroGalleryResolutionFromDb(guardianId);
   const guardian =
