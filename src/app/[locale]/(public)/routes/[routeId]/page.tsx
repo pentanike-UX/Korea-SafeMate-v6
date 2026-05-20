@@ -11,7 +11,7 @@
 import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { HaruTimeline } from "@/components/patterns/haru-timeline";
+import { RouteViewClient } from "@/components/routes/route-view-client";
 import { mockHaruRoute } from "@/data/mock/haru-route";
 import type { AppLocale, HaruRoute } from "@/types/haru";
 import { loginPathForLocale, withLocalePath } from "@/lib/auth/route-path";
@@ -73,7 +73,11 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
   if (!route) notFound();
 
   const t = await getTranslations("TravelerHub");
-  const showPreviewOverlay = wantsPreview || routeType === "sample";
+
+  // 잠금/해제 결정:
+  // - 본인 커스텀 루트(routeType=custom + DB 보유) → 즉시 unlocked
+  // - 그 외(mock, sample, preview=1) → 처음 lock 상태로 무료 영역 노출, 결제 시 해제
+  const initialUnlocked = fromDb && routeType === "custom" && !wantsPreview;
 
   const title = route.title[locale] ?? route.title.en ?? "Route";
 
@@ -86,46 +90,7 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
         <h1 className="font-serif text-2xl font-semibold text-ink sm:text-3xl">{title}</h1>
       </div>
 
-      <div className="px-4 py-6 sm:px-6 md:px-8">
-        <div className="relative">
-          <HaruTimeline route={route} locale={locale} />
-          {showPreviewOverlay ? (
-            <div className="absolute inset-0 flex items-center justify-center rounded-[var(--radius-lg)] bg-black/45">
-              <div className="rounded-[var(--radius-md)] bg-background/95 px-4 py-3 text-center shadow-[var(--shadow-md)]">
-                <p className="text-xs font-semibold uppercase tracking-wider text-ink-soft">{t("routeViewPreviewBadge")}</p>
-                <p className="mt-1 text-sm text-ink">
-                  {routeType === "sample" ? t("routeViewPreviewSampleLead") : t("routeViewPreviewPurchaseLead")}
-                </p>
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="sticky bottom-0 border-t border-line bg-bg-card px-4 py-3 sm:px-6">
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
-          <p className="text-xs text-ink-muted">
-            {route.spots.length}개 스팟 · 총 {Math.floor(route.total_duration_min / 60)}시간{" "}
-            {route.total_duration_min % 60 > 0 ? `${route.total_duration_min % 60}분` : ""}
-          </p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={showPreviewOverlay}
-              className="rounded-[var(--radius-sm)] border border-line bg-bg-card px-4 py-2 text-sm font-medium text-ink-muted hover:text-ink transition-colors"
-            >
-              수정 요청
-            </button>
-            <button
-              type="button"
-              disabled={showPreviewOverlay}
-              className="rounded-[var(--radius-sm)] bg-accent-ksm px-4 py-2 text-sm font-semibold text-white hover:bg-accent-dark transition-colors"
-            >
-              저장하기
-            </button>
-          </div>
-        </div>
-      </div>
+      <RouteViewClient route={route} locale={locale} initialUnlocked={initialUnlocked} />
     </main>
   );
 }
