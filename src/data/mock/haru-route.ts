@@ -25,7 +25,7 @@ export const mockHaruRoute: HaruRoute = {
   estimated_cost_min_krw: 0,
   estimated_cost_max_krw: 15000, // 경복궁·덕수궁 입장료 별도
   recommended_time_of_day: "morning",
-  cover_image_url: null,
+  cover_image_url: "/mock/posts/seoul/kmusic/spot1-geunjeongjeon-1.jpg",
   spots: [
     // ── 1. 경복궁 근정전 — BTS 〈IDOL〉 ───────────────────────────────────────
     {
@@ -38,7 +38,7 @@ export const mockHaruRoute: HaruRoute = {
         },
         category: "palace",
         category_emoji: "🏯",
-        image_url: null,
+        image_url: "/mock/posts/seoul/kmusic/spot1-geunjeongjeon-1.jpg",
         address: "서울 종로구 사직로 161",
         lat: 37.5786,
         lng: 126.977,
@@ -53,8 +53,10 @@ export const mockHaruRoute: HaruRoute = {
       featured: true,
       details: {
         gallery_image_urls: [
-          "/mock/posts/seoul/Gwanghwamun/gyeongbokgung_013.jpg",
-          "/mock/posts/seoul/Gwanghwamun/gyeongbokgung_014.jpg",
+          "/mock/posts/seoul/kmusic/spot1-geunjeongjeon-1.jpg",
+          "/mock/posts/seoul/kmusic/spot1-geunjeongjeon-2.jpg",
+          "/mock/posts/seoul/kmusic/spot1-geunjeongjeon-3.jpg",
+          "/mock/posts/seoul/kmusic/spot1-geunjeongjeon-4.webp",
         ],
         why_here: {
           ko: "왜 〈IDOL〉이 강하게 보였는지 알게 되는 자리. 넓게 열린 마당, 정면으로 뻗은 축, 반복되는 전각의 선이 퍼포먼스를 더 크게 만듭니다. 음악은 현대적이지만 배경은 가장 한국적인 궁궐 — 화면 속 장면은 단순한 무대가 아니라 ‘서울이 자신을 소개하는 방식’이었습니다.",
@@ -85,7 +87,7 @@ export const mockHaruRoute: HaruRoute = {
         },
         category: "palace",
         category_emoji: "🪷",
-        image_url: null,
+        image_url: "/mock/posts/seoul/kmusic/spot2-gyeonghoeru-1.webp",
         address: "경복궁 내 (서북측)",
         lat: 37.5793,
         lng: 126.9745,
@@ -99,8 +101,9 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_min: 6,
       details: {
         gallery_image_urls: [
-          "/mock/posts/seoul/Gwanghwamun/gyeongbokgung_015.jpg",
-          "/mock/posts/seoul/Gwanghwamun/gyeongbokgung_016.jpg",
+          "/mock/posts/seoul/kmusic/spot2-gyeonghoeru-1.webp",
+          "/mock/posts/seoul/kmusic/spot2-gyeonghoeru-2.webp",
+          "/mock/posts/seoul/kmusic/spot2-gyeonghoeru-3.jpeg",
         ],
         why_here: {
           ko: "물 위에 떠 있는 듯한 누각은 낮에는 단정하고 해가 기울면 더 깊어집니다. 〈소우주〉의 분위기와 잘 맞는 이유 — 공간이 음악의 여백을 만들어주기 때문입니다. 화려하게 밀어붙이지 않고, 받쳐주는 무대.",
@@ -131,7 +134,7 @@ export const mockHaruRoute: HaruRoute = {
         },
         category: "heritage",
         category_emoji: "🏛",
-        image_url: null,
+        image_url: "/mock/posts/seoul/kmusic/spot3-sogyeokdong-1.jpg",
         address: "서울 종로구 삼청로 30",
         lat: 37.5773,
         lng: 126.9803,
@@ -145,8 +148,8 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_min: 12,
       details: {
         gallery_image_urls: [
-          "/mock/posts/seoul/Gwanghwamun/gyeongbokgung_017.jpg",
-          "/mock/posts/seoul/Gwanghwamun/gyeongbokgung_018.jpg",
+          "/mock/posts/seoul/kmusic/spot3-sogyeokdong-1.jpg",
+          "/mock/posts/seoul/kmusic/spot3-sogyeokdong-2.png",
         ],
         why_here: {
           ko: "촬영지 ‘한 점’이 아니라 동네의 결로 봐야 진짜 보이는 자리. 낮은 전통 건축에 미술관·카페·골목이 붙어 있어 CL의 강한 리듬과 존재감이 오히려 더 또렷이 보입니다. 종친부를 보고 바로 떠나지 말고 5분 더 머무세요.",
@@ -177,7 +180,7 @@ export const mockHaruRoute: HaruRoute = {
         },
         category: "museum",
         category_emoji: "🖼",
-        image_url: null,
+        image_url: "/mock/posts/seoul/kmusic/spot4-mmca-1.jpg",
         address: "서울 종로구 삼청로 30",
         lat: 37.5786,
         lng: 126.9803,
@@ -191,7 +194,11 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_min: 3,
       details: {
         gallery_image_urls: [
-          "/mock/posts/seoul/Gwanghwamun/gyeongbokgung_019.jpg",
+          "/mock/posts/seoul/kmusic/spot4-mmca-1.jpg",
+          "/mock/posts/seoul/kmusic/spot4-mmca-2.webp",
+          "/mock/posts/seoul/kmusic/spot4-mmca-3.jpg",
+          "/mock/posts/seoul/kmusic/spot4-mmca-4.jpg",
+          "/mock/posts/seoul/kmusic/spot4-mmca-5.jpg",
         ],
         why_here: {
           ko: "전시 입장보다 외부 동선이 더 중요한 스팟. 경복궁·종친부·북촌·삼청동을 잇는 허브로서의 위치가 핵심입니다. 미술관 매스와 종친부 처마를 한 프레임에 잡으면 두 시대가 같이 들어옵니다.",
@@ -222,7 +229,7 @@ export const mockHaruRoute: HaruRoute = {
         },
         category: "palace",
         category_emoji: "🏯",
-        image_url: null,
+        image_url: "/mock/posts/seoul/kmusic/spot5-daehanmun-1.jpg",
         address: "서울 중구 세종대로 99",
         lat: 37.5658,
         lng: 126.975,
@@ -237,7 +244,12 @@ export const mockHaruRoute: HaruRoute = {
       featured: true,
       details: {
         gallery_image_urls: [
-          "/mock/posts/seoul/Gwanghwamun/gyeongbokgung_020.jpg",
+          "/mock/posts/seoul/kmusic/spot5-daehanmun-1.jpg",
+          "/mock/posts/seoul/kmusic/spot5-daehanmun-2.jpg",
+          "/mock/posts/seoul/kmusic/spot5-daehanmun-3.jpg",
+          "/mock/posts/seoul/kmusic/spot5-daehanmun-4.jpg",
+          "/mock/posts/seoul/kmusic/spot5-daehanmun-5.jpg",
+          "/mock/posts/seoul/kmusic/spot5-daehanmun-3.gif",
         ],
         why_here: {
           ko: "K팝 아이돌 무대와는 결이 다른 ‘힙조선’의 입구. 전통 판소리, 독특한 춤, 궁궐 앞 도시 풍경이 섞이면서 ‘서울은 이렇게도 보일 수 있구나’라는 인상을 만듭니다. 경복궁이 웅장이라면 대한문은 도심과 훨씬 가깝습니다.",
