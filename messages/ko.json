@@ -1328,6 +1328,12 @@
     "planPass5Badge": "최다 절약",
     "planFootnote": "결제 시 부가세 포함. 잔여 횟수는 발급일+90일 후 소멸합니다.",
     "planBackCta": "← 뒤로",
+    "themeRouteTeaserEyebrow": "이 테마를 발끝으로",
+    "themeRouteTeaserTitle": "테마를 느끼기 좋은 하루를 큐레이션했어요",
+    "themeRouteTeaserLead": "위에서 읽은 정서 그대로, 하루이가 직접 걸어본 순서로 묶었어요. 상세 동선·실명·사진은 하루루트에서 열어볼 수 있어요.",
+    "themeRouteTeaserCardTitle": "하루루트로 이어보기",
+    "themeRouteTeaserCardLead": "스팟별 실명·주소·현장 사진·이동 메모는 하루루트 페이지에서 확인하세요.",
+    "themeRouteTeaserStops": "{n}개 스팟",
     "freeArchetypeTeaser": {
       "prep": "방향·편의·행사 여부만 정리하고 다음 구간으로 넘어가요.",
       "photo": "각도와 타이밍만 정하면 전체 일정이 빨라져요.",

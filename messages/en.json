@@ -1328,6 +1328,12 @@
     "planPass5Badge": "Best value",
     "planFootnote": "Tax included. Remaining unlocks expire 90 days after purchase.",
     "planBackCta": "← Back",
+    "themeRouteTeaserEyebrow": "Feel this theme on foot",
+    "themeRouteTeaserTitle": "A day curated to live this theme",
+    "themeRouteTeaserLead": "We grouped the spots in the order your haruee actually walks them. Real names, addresses, and on-site photos open on the haruroute page.",
+    "themeRouteTeaserCardTitle": "Continue on haruroute",
+    "themeRouteTeaserCardLead": "Stop-by-stop venue names, addresses, on-site photos, and move notes live on the haruroute page.",
+    "themeRouteTeaserStops": "{n} stops",
     "freeArchetypeTeaser": {
       "prep": "Sort direction, facilities, and timing here—then move on.",
       "photo": "Lock angle and timing so the rest of the day stays fast.",

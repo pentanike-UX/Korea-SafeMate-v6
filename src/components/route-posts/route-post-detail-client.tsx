@@ -20,7 +20,8 @@ import {
 import { cn } from "@/lib/utils";
 import type { FreeArchetype } from "@/lib/route-free-classification";
 import { inferFreeArchetype } from "@/lib/route-free-classification";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ArrowRight, Footprints, Clock, MapPin } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
   POST_DETAIL_PROSE_P_MAIN,
@@ -1020,23 +1021,59 @@ export function RoutePostDetailClient({
           </div>
         ) : null}
 
-        {/* ③ 하루 플레이북 타임라인 */}
+        {/* ③ 테마 → 루트 전환 티저
+             하루웨이는 테마 정서를 전달하는 콘텐츠 자산.
+             스팟별 디테일(이름·주소·사진·가이드)은 /routes/[id] (하루루트) 진입 후에만 노출.
+             여기서는 "이 테마를 발끝으로 느낄 수 있도록 큐레이션된 루트가 있어요"라는 호기심 유도. */}
         <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-8">
-          <header className="mb-7 space-y-2">
+          <header className="mb-5 space-y-2">
             <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
-              {t("routeEyebrow")}
+              {t("themeRouteTeaserEyebrow")}
             </p>
             <h2 className="text-lg font-semibold tracking-tight text-[var(--text-strong)]">
-              {t("flowTitle")}
+              {t("themeRouteTeaserTitle")}
             </h2>
-            <p className="text-sm leading-relaxed text-muted-foreground">{t("flowLeadShort")}</p>
-            {!isSuperAdmin && !effectivePlaybookPremium ? (
-              <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{t("paywallConsolidatedHint")}</p>
-            ) : null}
+            <p className="text-sm leading-relaxed text-muted-foreground">{t("themeRouteTeaserLead")}</p>
           </header>
 
+          <Link
+            href={`/routes/mock?preview=1`}
+            className={cn(
+              "group relative block overflow-hidden rounded-2xl border border-border/50 bg-card p-5 shadow-sm transition-all",
+              "hover:border-primary/40 hover:shadow-md hover:scale-[1.005] active:scale-[0.995]",
+            )}
+          >
+            <div className="flex items-start gap-4">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <Footprints className="size-5" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-bold text-foreground">{t("themeRouteTeaserCardTitle")}</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+                  {t("themeRouteTeaserCardLead")}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-background/60 px-2 py-0.5 text-[11px] font-medium text-foreground/85">
+                    <MapPin className="size-3 text-primary" aria-hidden />
+                    {t("themeRouteTeaserStops", { n: spots.length })}
+                  </span>
+                  {journey.metadata.estimated_total_duration_minutes ? (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-background/60 px-2 py-0.5 text-[11px] font-medium text-foreground/85">
+                      <Clock className="size-3 text-primary" aria-hidden />
+                      {Math.round(journey.metadata.estimated_total_duration_minutes / 60 * 10) / 10}h
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+              <ArrowRight
+                className="mt-2 size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground"
+                aria-hidden
+              />
+            </div>
+          </Link>
+
           {isSuperAdmin ? (
-            <div className="mb-6">
+            <div className="mt-4">
               <button
                 type="button"
                 onClick={() => setAdminDebugOpen((v) => !v)}
@@ -1044,29 +1081,30 @@ export function RoutePostDetailClient({
               >
                 {adminDebugOpen ? t("debugPanelClose") : t("debugPanelOpen")}
               </button>
+              {adminDebugOpen ? (
+                <div className="mt-4">
+                  {spots.map((spot, index) => (
+                    <EditorialSpotRow
+                      key={spot.id}
+                      spot={spot}
+                      index={index}
+                      isLast={index === spots.length - 1}
+                      time={spotTimes[index] ?? ""}
+                      post={post}
+                      visualPlan={visualPlan}
+                      hasPlaybookPremium={effectivePlaybookPremium}
+                      expandedSpotId={expandedPlaybookSpotId}
+                      onExpandedSpotChange={setExpandedPlaybookSpotId}
+                      isSuperAdmin={isSuperAdmin}
+                      adminDebugOpen={adminDebugOpen}
+                      isFlashing={flashId === spot.id}
+                      onOpenPayDrawer={() => setPayDrawerOpen(true)}
+                    />
+                  ))}
+                </div>
+              ) : null}
             </div>
           ) : null}
-
-          <div>
-            {spots.map((spot, index) => (
-              <EditorialSpotRow
-                key={spot.id}
-                spot={spot}
-                index={index}
-                isLast={index === spots.length - 1}
-                time={spotTimes[index] ?? ""}
-                post={post}
-                visualPlan={visualPlan}
-                hasPlaybookPremium={effectivePlaybookPremium}
-                expandedSpotId={expandedPlaybookSpotId}
-                onExpandedSpotChange={setExpandedPlaybookSpotId}
-                isSuperAdmin={isSuperAdmin}
-                adminDebugOpen={adminDebugOpen}
-                isFlashing={flashId === spot.id}
-                onOpenPayDrawer={() => setPayDrawerOpen(true)}
-              />
-            ))}
-          </div>
         </section>
 
         {/* ⑦ FAQ / 문의 */}

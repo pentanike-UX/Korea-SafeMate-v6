@@ -15,7 +15,9 @@ type Props = {
   guardianOpenDetail: GuardianRequestOpenDetail;
 };
 
-type Step = "intro" | "plan" | "method" | "processing" | "success";
+// 결제 시트 단계 — 심플 흐름: plan(월구독·일회성) → method(Toss/Kakao) → processing → success
+// 'intro'는 사용하지 않으나(레거시) 타입은 보존 — 시그니처는 외부에서 참조되지 않음.
+type Step = "plan" | "method" | "processing" | "success";
 type PayMethod = "toss" | "kakao";
 type PlanCode = "monthly_9900" | "pass_1" | "pass_3" | "pass_5";
 
@@ -26,15 +28,15 @@ type PlanCode = "monthly_9900" | "pass_1" | "pass_3" | "pass_5";
  */
 export function PlaybookUnlockSheet({ open, onOpenChange, onConfirmDemoUnlock, guardianOpenDetail }: Props) {
   const t = useTranslations("RoutePosts");
-  const [step, setStep] = useState<Step>("intro");
+  const [step, setStep] = useState<Step>("plan");
   const [method, setMethod] = useState<PayMethod | null>(null);
   const [plan, setPlan] = useState<PlanCode | null>(null);
 
-  // 시트가 닫히면 단계 초기화
+  // 시트가 닫히면 단계 초기화 (열면 항상 플랜 선택부터)
   useEffect(() => {
     if (!open) {
       const id = setTimeout(() => {
-        setStep("intro");
+        setStep("plan");
         setMethod(null);
         setPlan(null);
       }, 200);
@@ -61,20 +63,14 @@ export function PlaybookUnlockSheet({ open, onOpenChange, onConfirmDemoUnlock, g
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="max-h-[min(94dvh,38rem)] p-0">
-        {step === "intro" ? (
-          <IntroStep
-            t={t}
-            onPay={() => setStep("plan")}
-            guardianOpenDetail={guardianOpenDetail}
-          />
-        ) : step === "plan" ? (
+        {step === "plan" ? (
           <PlanStep
             t={t}
+            guardianOpenDetail={guardianOpenDetail}
             onSelect={(p) => {
               setPlan(p);
               setStep("method");
             }}
-            onBack={() => setStep("intro")}
           />
         ) : step === "method" ? (
           <MethodStep
@@ -96,52 +92,7 @@ export function PlaybookUnlockSheet({ open, onOpenChange, onConfirmDemoUnlock, g
   );
 }
 
-// ── Step 1: 혜택 안내 ────────────────────────────────────────────────────────
-function IntroStep({
-  t,
-  onPay,
-  guardianOpenDetail,
-}: {
-  t: (k: string) => string;
-  onPay: () => void;
-  guardianOpenDetail: GuardianRequestOpenDetail;
-}) {
-  return (
-    <>
-      <SheetHeader className="px-5 sm:px-6">
-        <SheetTitle>{t("unlockSheetTitle")}</SheetTitle>
-        <SheetDescription className="text-left">{t("unlockSheetDescription")}</SheetDescription>
-      </SheetHeader>
-      <div className="px-5 sm:px-6 pb-2">
-        <ul className="text-muted-foreground space-y-1.5 text-sm">
-          {([t("paywallItem1"), t("paywallItem2"), t("paywallItem3"), t("paywallItem4"), t("paywallItem5")] as string[]).map(
-            (item) => (
-              <li key={item} className="flex gap-2">
-                <span className="text-primary font-bold">✓</span>
-                {item}
-              </li>
-            ),
-          )}
-        </ul>
-      </div>
-      <SheetFooter className="gap-2 sm:flex-col px-5 sm:px-6 pb-5">
-        <Button type="button" className="w-full rounded-xl" onClick={onPay}>
-          {t("unlockSheetPayCta")} · {t("paywallCtaPrimaryPrice")}
-        </Button>
-        <GuardianRequestOpenTrigger
-          variant="ghost"
-          size="sm"
-          className="text-muted-foreground w-full"
-          openDetail={guardianOpenDetail}
-        >
-          {t("paywallCtaSecondary")}
-        </GuardianRequestOpenTrigger>
-      </SheetFooter>
-    </>
-  );
-}
-
-// ── Step 1.5: 플랜 선택 (월 구독 / 일회성 1·3·5회) ───────────────────────────
+// ── Step 1: 플랜 선택 (월 구독 / 일회성 1·3·5회) — 심플 단일 화면 ──────────
 const PLAN_PRICE: Record<PlanCode, string> = {
   monthly_9900: "₩9,900",
   pass_1: "₩990",
@@ -152,11 +103,11 @@ const PLAN_PRICE: Record<PlanCode, string> = {
 function PlanStep({
   t,
   onSelect,
-  onBack,
+  guardianOpenDetail,
 }: {
   t: (k: string) => string;
   onSelect: (p: PlanCode) => void;
-  onBack: () => void;
+  guardianOpenDetail: GuardianRequestOpenDetail;
 }) {
   return (
     <>
@@ -165,70 +116,73 @@ function PlanStep({
         <SheetDescription className="text-left">{t("planSheetLead")}</SheetDescription>
       </SheetHeader>
 
-      <div className="px-5 sm:px-6 pb-4 space-y-3 overflow-y-auto">
-        {/* 월 구독 */}
+      <div className="px-5 sm:px-6 pb-3 space-y-2.5">
+        {/* 월 구독 (추천) */}
         <button
           type="button"
           onClick={() => onSelect("monthly_9900")}
-          className="group relative flex w-full items-center gap-4 rounded-2xl border-2 border-primary/50 bg-primary/5 p-4 text-left transition-all hover:border-primary hover:shadow-md"
+          className="flex w-full items-center justify-between gap-3 rounded-2xl border-2 border-primary/60 bg-primary/5 px-4 py-3.5 text-left transition-all hover:border-primary hover:shadow-md"
         >
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="text-base font-bold text-foreground">{t("planSubscriptionLabel")}</p>
-              <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold tracking-wider text-primary-foreground">
+            <div className="flex items-center gap-1.5">
+              <p className="text-[15px] font-bold text-foreground">{t("planSubscriptionLabel")}</p>
+              <span className="rounded-full bg-primary px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-primary-foreground">
                 {t("planSubscriptionBadge")}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">{t("planSubscriptionDesc")}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{t("planSubscriptionDesc")}</p>
           </div>
-          <p className="text-base font-extrabold tracking-tight text-foreground shrink-0">
+          <p className="text-[15px] font-extrabold tracking-tight text-foreground shrink-0">
             {t("planSubscriptionPrice")}
           </p>
         </button>
 
-        {/* 일회성 섹션 */}
-        <div className="pt-1">
-          <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {/* 일회성 — 3개 콤팩트 리스트 (구분선 하나로) */}
+        <div className="rounded-2xl border border-border/60 bg-card divide-y divide-border/40">
+          <p className="px-4 pt-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             {t("planOneTimeSectionLabel")}
           </p>
-          <div className="space-y-2">
-            {(
-              [
-                { code: "pass_1", label: "planPass1Label", price: "planPass1Price", unit: "planPass1Unit", badge: null },
-                { code: "pass_3", label: "planPass3Label", price: "planPass3Price", unit: "planPass3Unit", badge: null },
-                { code: "pass_5", label: "planPass5Label", price: "planPass5Price", unit: "planPass5Unit", badge: "planPass5Badge" },
-              ] as const
-            ).map((p) => (
-              <button
-                key={p.code}
-                type="button"
-                onClick={() => onSelect(p.code)}
-                className="group flex w-full items-center gap-4 rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-foreground/40 hover:bg-muted/50 hover:shadow-sm"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-bold text-foreground">{t(p.label)}</p>
-                    {p.badge ? (
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold tracking-wider text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                        {t(p.badge)}
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{t(p.unit)}</p>
+          {(
+            [
+              { code: "pass_1", label: "planPass1Label", price: "planPass1Price", unit: "planPass1Unit", badge: null },
+              { code: "pass_3", label: "planPass3Label", price: "planPass3Price", unit: "planPass3Unit", badge: null },
+              { code: "pass_5", label: "planPass5Label", price: "planPass5Price", unit: "planPass5Unit", badge: "planPass5Badge" },
+            ] as const
+          ).map((p) => (
+            <button
+              key={p.code}
+              type="button"
+              onClick={() => onSelect(p.code)}
+              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-semibold text-foreground">{t(p.label)}</p>
+                  {p.badge ? (
+                    <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                      {t(p.badge)}
+                    </span>
+                  ) : null}
                 </div>
-                <p className="text-base font-bold tracking-tight text-foreground shrink-0">{t(p.price)}</p>
-              </button>
-            ))}
-          </div>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{t(p.unit)}</p>
+              </div>
+              <p className="text-sm font-bold tracking-tight text-foreground shrink-0">{t(p.price)}</p>
+            </button>
+          ))}
         </div>
 
-        <p className="pt-1 text-[11px] text-muted-foreground">{t("planFootnote")}</p>
+        <p className="text-[10px] text-muted-foreground px-1">{t("planFootnote")}</p>
       </div>
 
       <SheetFooter className="px-5 sm:px-6 pb-5">
-        <Button type="button" variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={onBack}>
-          {t("planBackCta")}
-        </Button>
+        <GuardianRequestOpenTrigger
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground w-full"
+          openDetail={guardianOpenDetail}
+        >
+          {t("paywallCtaSecondary")}
+        </GuardianRequestOpenTrigger>
       </SheetFooter>
     </>
   );
