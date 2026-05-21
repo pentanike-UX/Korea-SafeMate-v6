@@ -105,21 +105,18 @@ export function RelatedRouteBanner({
             </div>
           )}
 
-          {/* CTA 영역 — 듀얼 가격(월구독 + 평생열람) 노출 */}
+          {/* CTA 영역 — ₩990 진입 가격을 가장 크게, 구독은 작은 보조 라벨 */}
           <div className="mt-5 flex items-center justify-between gap-3 border-t border-border/40 pt-4">
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand-primary)]">
                 {t("relatedRoutePriceEyebrow")}
               </p>
-              <div className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-                <span className="text-sm font-bold tracking-tight text-foreground">
-                  {t("relatedRoutePriceSubscription")}
+              <div className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5">
+                <span className="text-2xl font-extrabold tracking-tighter text-foreground">
+                  {t("relatedRoutePriceLead")}
                 </span>
                 <span className="text-[11px] font-medium text-muted-foreground">
-                  {t("relatedRoutePriceOr")}
-                </span>
-                <span className="text-sm font-bold tracking-tight text-foreground">
-                  {t("relatedRoutePriceLifetime")}
+                  {t("relatedRoutePriceLeadHint")}
                 </span>
               </div>
             </div>

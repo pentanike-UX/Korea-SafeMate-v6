@@ -1135,9 +1135,11 @@
     "relatedRouteFallbackTitle": "Turn this into a runnable day",
     "relatedRouteLead": "An executable route built from this haruway. Exact addresses, transit, and timing per spot.",
     "relatedRouteStopsLabel": "{n} stops",
-    "relatedRoutePriceEyebrow": "Route unlock",
+    "relatedRoutePriceEyebrow": "From ₩990",
     "relatedRoutePriceHint": "· keep forever",
     "relatedRouteCta": "Open the route",
+    "relatedRoutePriceLead": "₩990",
+    "relatedRoutePriceLeadHint": "Single unlock · or ₩9,900/mo unlimited",
     "relatedRoutePriceSubscription": "₩9,900 / mo subscription",
     "relatedRoutePriceLifetime": "₩29,000 lifetime",
     "relatedRoutePriceOr": "or"
