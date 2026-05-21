@@ -10,6 +10,30 @@ export type AppLocale = "ko" | "en" | "th" | "vi";
 /** i18n 텍스트 맵 — 언어별 nullable */
 export type LocaleMap = Partial<Record<AppLocale, string | null>>;
 
+/**
+ * 스팟에 연결된 아티스트(아이돌/그룹/창작자) 메타.
+ * K-뮤직 테마 등 콘텐츠 컨텍스트가 있는 스팟에 부착해 카드/드로어에서 노출.
+ */
+export interface SpotArtist {
+  /** 안정 키 (avatar fallback 색 hashing 등에 사용) */
+  id: string;
+  /** 표시 이름 (한국어 기본) */
+  name: string;
+  name_en?: string;
+  /** 원형 아바타 이미지 URL — 없으면 initials로 대체 */
+  avatar_url?: string | null;
+  /** 아바타 fallback 텍스트 (1~3자 권장) */
+  initials: string;
+  /** 아바타 fallback 배경 (tailwind class 또는 hex) */
+  accent_class?: string;
+  /** 소속사 / 레이블 */
+  agency?: string;
+  /** 대표곡·작품 (3개 이내 권장) */
+  rep_works?: string[];
+  /** 이 스팟과 연결된 무대·작품 한 줄 (e.g. "〈IDOL〉 — BTS Week, 더 투나잇 쇼") */
+  scene?: string;
+}
+
 /** route_spots + spot_catalog JOIN */
 export interface HaruSpot {
   id: string;
@@ -39,6 +63,9 @@ export interface HaruSpot {
 
   /** 강조 스팟 */
   featured?: boolean;
+
+  /** 연결 아티스트 (K-MUSIC 등 콘텐츠 테마). 카드 하단·드로어에 노출. */
+  artists?: SpotArtist[];
 
   /**
    * 스팟 상세 콘텐츠 — 시트로 펼쳐서 보여주는 풍부 정보.

@@ -9,7 +9,55 @@
  * 하루웨이(/posts/[id])는 테마 정서를 무료로 제공하고,
  * 정확한 위치·감상 포인트·이동 동선·소요 시간은 여기(하루루트)에서만 노출.
  */
-import type { HaruRoute } from "@/types/haru";
+import type { HaruRoute, SpotArtist } from "@/types/haru";
+
+// ── 아티스트 메타 (이 코스 5개 스팟에 부착) ───────────────────────────────
+// 비즈니스 메모: 아바타 이미지는 저작권 이슈로 데모에서는 이니셜+컬러 fallback만.
+// 실서비스 전환 시 라이선스 확인된 이미지 또는 공식 프로필을 avatar_url로 대체.
+
+const ARTIST_BTS: SpotArtist = {
+  id: "bts",
+  name: "BTS",
+  name_en: "BTS",
+  initials: "BTS",
+  accent_class: "bg-violet-600 text-white",
+  agency: "HYBE · BIG HIT MUSIC",
+  rep_works: ["Dynamite", "IDOL", "소우주 (Mikrokosmos)", "Spring Day", "Butter"],
+  scene: "BTS Week (NBC 〈더 투나잇 쇼〉)에서 〈IDOL〉·〈소우주〉를 경복궁에서 공연",
+};
+
+const ARTIST_CL: SpotArtist = {
+  id: "cl",
+  name: "CL (씨엘)",
+  name_en: "CL",
+  initials: "CL",
+  accent_class: "bg-pink-500 text-white",
+  agency: "VERY CHERRY (前 YG · 2NE1)",
+  rep_works: ["HWA (화)", "나쁜 기집애", "Lover Like Me", "I Am the Best (2NE1)"],
+  scene: "CBS 〈더 레이트 레이트 쇼 위드 제임스 코든〉에서 〈화(HWA)〉를 전통×현대 공간에서 공연",
+};
+
+const ARTIST_LEENALCHI: SpotArtist = {
+  id: "leenalchi",
+  name: "이날치 (LEENALCHI)",
+  name_en: "LEENALCHI",
+  initials: "이날",
+  accent_class: "bg-amber-600 text-white",
+  agency: "Mirrorball Music",
+  rep_works: ["범 내려온다", "어류도감", "Feel the Rhythm of Korea: Seoul"],
+  scene: "한국관광공사 'Feel the Rhythm of Korea' 서울 편 — 판소리 베이스 얼터너티브",
+};
+
+const ARTIST_AMBIGUOUS: SpotArtist = {
+  id: "ambiguous",
+  name: "앰비규어스 댄스컴퍼니",
+  name_en: "Ambiguous Dance Company",
+  initials: "AMB",
+  accent_class: "bg-teal-600 text-white",
+  agency: "독립 (김보람 안무가)",
+  rep_works: ["Feel the Rhythm of Korea", "Body Concert", "BTS·BLACKPINK 안무 협업"],
+  scene: "이날치와 함께 'Feel the Rhythm' 서울 편 안무·퍼포먼스",
+};
 
 export const mockHaruRoute: HaruRoute = {
   id: "mock-route-kmusic-palace-01",
@@ -51,6 +99,7 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_method: null,
       move_from_prev_min: null,
       featured: true,
+      artists: [ARTIST_BTS],
       details: {
         gallery_image_urls: [
           "/mock/posts/seoul/kmusic/spot1-geunjeongjeon-1.jpg",
@@ -99,6 +148,7 @@ export const mockHaruRoute: HaruRoute = {
       },
       move_from_prev_method: "walk",
       move_from_prev_min: 6,
+      artists: [ARTIST_BTS],
       details: {
         gallery_image_urls: [
           "/mock/posts/seoul/kmusic/spot2-gyeonghoeru-1.webp",
@@ -146,6 +196,7 @@ export const mockHaruRoute: HaruRoute = {
       },
       move_from_prev_method: "walk",
       move_from_prev_min: 12,
+      artists: [ARTIST_CL],
       details: {
         gallery_image_urls: [
           "/mock/posts/seoul/kmusic/spot3-sogyeokdong-1.jpg",
@@ -192,6 +243,7 @@ export const mockHaruRoute: HaruRoute = {
       },
       move_from_prev_method: "walk",
       move_from_prev_min: 3,
+      artists: [ARTIST_CL],
       details: {
         gallery_image_urls: [
           "/mock/posts/seoul/kmusic/spot4-mmca-1.jpg",
@@ -242,6 +294,7 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_method: "walk",
       move_from_prev_min: 25,
       featured: true,
+      artists: [ARTIST_LEENALCHI, ARTIST_AMBIGUOUS],
       details: {
         gallery_image_urls: [
           "/mock/posts/seoul/kmusic/spot5-daehanmun-1.jpg",

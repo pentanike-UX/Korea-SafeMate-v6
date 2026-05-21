@@ -4,6 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import type { HaruSpot, AppLocale } from "@/types/haru";
+import { SpotArtistStrip } from "@/components/routes/spot-artist-strip";
 
 /** 머무는 시간 포맷 */
 function formatStay(min: number): string {
@@ -147,6 +148,11 @@ export function SpotCard({ spot, locale, compact = false, onClick, className }: 
           <p className="mt-auto text-[10px] text-ink-soft truncate">
             📍 {spot.catalog.address}
           </p>
+        )}
+
+        {/* 관련 아티스트 (K-MUSIC 등 콘텐츠 컨텍스트) — compact 모드에서는 숨김 */}
+        {!compact && spot.artists && spot.artists.length > 0 && (
+          <SpotArtistStrip artists={spot.artists} className="mt-2" />
         )}
       </div>
     </article>

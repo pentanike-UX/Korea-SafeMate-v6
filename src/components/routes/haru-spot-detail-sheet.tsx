@@ -8,6 +8,7 @@ import { MapPin, Clock, X, ChevronLeft, ChevronRight, Camera, Lightbulb, AlertTr
 import type { HaruSpot, AppLocale } from "@/types/haru";
 import type { LocaleMap } from "@/types/haru";
 import { cn } from "@/lib/utils";
+import { SpotArtistDetailList } from "@/components/routes/spot-artist-strip";
 
 /**
  * 하루루트의 스팟 카드를 탭했을 때 슬라이드 인되는 상세 시트.
@@ -140,6 +141,11 @@ export function HaruSpotDetailSheet({
           {/* 가디언 노트 (짧은 메모) */}
           {note ? (
             <p className="text-sm leading-relaxed text-foreground/90">{note}</p>
+          ) : null}
+
+          {/* 관련 아티스트 — K-MUSIC 등 콘텐츠 컨텍스트 */}
+          {spot.artists && spot.artists.length > 0 ? (
+            <SpotArtistDetailList artists={spot.artists} />
           ) : null}
 
           {/* 왜 여기냐면 */}
