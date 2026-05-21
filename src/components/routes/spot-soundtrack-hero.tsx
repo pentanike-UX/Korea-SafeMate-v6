@@ -34,36 +34,34 @@ export function SpotSoundtrackHero({
       rel="noopener noreferrer"
       aria-label={`${track.title} — ${artist.name} (YouTube)`}
       className={cn(
-        "group relative flex items-stretch gap-3 overflow-hidden rounded-2xl border border-border/40",
-        "bg-gradient-to-br from-card to-card/40 p-3 transition-shadow hover:shadow-md",
+        "group relative flex items-start gap-3 rounded-2xl border border-border/40 shrink-0",
+        "bg-gradient-to-br from-card to-card/40 p-3 sm:p-3.5 transition-shadow hover:shadow-md",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ksm",
       )}
     >
       <TrackCover track={track} artist={artist} size="hero" />
-      <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 py-0.5">
-        <div className="space-y-0.5">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            ♪ Soundtrack of this spot
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-0.5">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          ♪ 이 스팟의 사운드트랙
+        </p>
+        <p className="text-base font-bold leading-tight text-foreground">
+          {track.title}
+        </p>
+        {track.title_ko && track.title_ko !== track.title ? (
+          <p className="-mt-0.5 text-xs text-muted-foreground leading-tight">
+            〈{track.title_ko}〉
           </p>
-          <p className="text-base font-bold leading-tight text-foreground">
-            {track.title}
-            {track.title_ko && track.title_ko !== track.title ? (
-              <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-                〈{track.title_ko}〉
-              </span>
-            ) : null}
-          </p>
-          <p className="text-xs text-foreground/70">
-            {artist.name}
-            {track.year ? <span className="ml-1.5 text-muted-foreground">· {track.year}</span> : null}
-          </p>
-        </div>
+        ) : null}
+        <p className="text-xs text-foreground/70">
+          {artist.name}
+          {track.year ? <span className="ml-1.5 text-muted-foreground">· {track.year}</span> : null}
+        </p>
         {note ? (
-          <p className="text-[11.5px] leading-snug text-foreground/75 line-clamp-3 italic">
+          <p className="mt-1 text-[11.5px] leading-snug text-foreground/75 line-clamp-4 italic">
             “{note}”
           </p>
         ) : null}
-        <span className="inline-flex w-fit items-center gap-1 rounded-full bg-foreground/90 px-2.5 py-1 text-[10.5px] font-bold text-background transition-transform group-hover:translate-x-0.5">
+        <span className="mt-1.5 inline-flex w-fit items-center gap-1 rounded-full bg-foreground/90 px-2.5 py-1 text-[10.5px] font-bold text-background transition-transform group-hover:translate-x-0.5">
           <Play className="size-3 fill-current" />
           YouTube에서 듣기
           <ExternalLink className="size-2.5 opacity-70" />
@@ -88,8 +86,12 @@ export function TrackCover({
   size?: "sm" | "md" | "hero";
 }) {
   const dim =
-    size === "hero" ? "h-32 w-32 sm:h-36 sm:w-36" : size === "md" ? "h-24 w-24" : "h-16 w-16";
-  const titleSize = size === "hero" ? "text-base" : size === "md" ? "text-xs" : "text-[10px]";
+    size === "hero"
+      ? "h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32"
+      : size === "md"
+        ? "h-24 w-24"
+        : "h-16 w-16";
+  const titleSize = size === "hero" ? "text-sm sm:text-base" : size === "md" ? "text-xs" : "text-[10px]";
 
   if (track.cover_url) {
     return (

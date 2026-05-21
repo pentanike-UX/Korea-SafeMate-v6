@@ -92,7 +92,7 @@ export function HaruSpotDetailSheet({
         <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 py-5 sm:px-5 lg:px-7 lg:py-7 lg:gap-6">
           {/* 갤러리 — 데스크탑에서는 16/10 비율로 더 시원하게 */}
           <div
-            className="relative aspect-[4/3] lg:aspect-[16/10] overflow-hidden rounded-2xl bg-muted"
+            className="relative w-full shrink-0 aspect-[4/3] lg:aspect-[16/10] overflow-hidden rounded-2xl bg-muted"
             role="img"
             aria-label={t("spotDetailGalleryAria")}
           >
