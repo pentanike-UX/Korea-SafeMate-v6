@@ -15,6 +15,12 @@ import type { HaruRoute, SpotArtist } from "@/types/haru";
 // 비즈니스 메모: 아바타 이미지는 저작권 이슈로 데모에서는 이니셜+컬러 fallback만.
 // 실서비스 전환 시 라이선스 확인된 이미지 또는 공식 프로필을 avatar_url로 대체.
 
+// 비즈니스 메모(2026-05-21): 음악 커버·영상 썸네일·외부 링크는 모두 시연용 목 데이터.
+// 트랙 cover_url은 비워두고 accent_class 그라데이션 fallback으로 렌더 → 외부 이미지 의존 0.
+// 영상 thumbnail_url은 YouTube CDN(i.ytimg.com)을 직접 참조해 실제 영상 비주얼을 살림.
+const yt = (id: string) => `https://www.youtube.com/watch?v=${id}`;
+const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+
 const ARTIST_BTS: SpotArtist = {
   id: "bts",
   name: "BTS",
@@ -22,8 +28,35 @@ const ARTIST_BTS: SpotArtist = {
   initials: "BTS",
   accent_class: "bg-violet-600 text-white",
   agency: "HYBE · BIG HIT MUSIC",
+  agency_url: "https://ibighit.com/",
+  official_site_url: "https://bts.ibighit.com/",
+  youtube_channel_url: "https://www.youtube.com/@BANGTANTV",
+  instagram_url: "https://www.instagram.com/bts.bighitofficial/",
   rep_works: ["Dynamite", "IDOL", "소우주 (Mikrokosmos)", "Spring Day", "Butter"],
   scene: "BTS Week (NBC 〈더 투나잇 쇼〉)에서 〈IDOL〉·〈소우주〉를 경복궁에서 공연",
+  tracks: [
+    { id: "bts-idol", title: "IDOL", title_ko: "아이돌", year: 2018, youtube_url: yt("pBuZEGYXA6E") },
+    { id: "bts-mikrokosmos", title: "Mikrokosmos", title_ko: "소우주", year: 2019, youtube_url: yt("Y3cV-jbeRYo") },
+    { id: "bts-dynamite", title: "Dynamite", year: 2020, youtube_url: yt("gdZLi9oWNZg") },
+    { id: "bts-butter", title: "Butter", year: 2021, youtube_url: yt("WMweEpGlu_U") },
+    { id: "bts-spring-day", title: "Spring Day", title_ko: "봄날", year: 2017, youtube_url: yt("xEeFrLSkMm8") },
+  ],
+  featured_videos: [
+    {
+      id: "bts-tonight-idol",
+      title: "IDOL @ The Tonight Show — BTS Week (경복궁)",
+      kind: "stage",
+      thumbnail_url: ytThumb("9Y3v_6E7frw"),
+      youtube_url: yt("9Y3v_6E7frw"),
+    },
+    {
+      id: "bts-tonight-mikrokosmos",
+      title: "Mikrokosmos @ The Tonight Show — BTS Week (경회루)",
+      kind: "stage",
+      thumbnail_url: ytThumb("DCYxn0SDQpI"),
+      youtube_url: yt("DCYxn0SDQpI"),
+    },
+  ],
 };
 
 const ARTIST_CL: SpotArtist = {
@@ -33,8 +66,27 @@ const ARTIST_CL: SpotArtist = {
   initials: "CL",
   accent_class: "bg-pink-500 text-white",
   agency: "VERY CHERRY (前 YG · 2NE1)",
+  agency_url: "https://www.verycherry.world/",
+  official_site_url: "https://chaelincl.com/",
+  youtube_channel_url: "https://www.youtube.com/@chaelincl",
+  instagram_url: "https://www.instagram.com/chaelincl/",
   rep_works: ["HWA (화)", "나쁜 기집애", "Lover Like Me", "I Am the Best (2NE1)"],
   scene: "CBS 〈더 레이트 레이트 쇼 위드 제임스 코든〉에서 〈화(HWA)〉를 전통×현대 공간에서 공연",
+  tracks: [
+    { id: "cl-hwa", title: "HWA", title_ko: "화 (火花)", year: 2021, youtube_url: yt("ZWjEYWLcfvE") },
+    { id: "cl-lover-like-me", title: "Lover Like Me", year: 2021, youtube_url: yt("rD-CmZRgbgs") },
+    { id: "cl-the-baddest-female", title: "나쁜 기집애", title_ko: "The Baddest Female", year: 2013, youtube_url: yt("twC8d2-72-Q") },
+    { id: "2ne1-i-am-the-best", title: "I Am the Best", title_ko: "내가 제일 잘 나가 (2NE1)", year: 2011, youtube_url: yt("vBSXSAuc8Xs") },
+  ],
+  featured_videos: [
+    {
+      id: "cl-corden-hwa",
+      title: "HWA @ The Late Late Show with James Corden (종친부·MMCA)",
+      kind: "stage",
+      thumbnail_url: ytThumb("Hj3pyDPwSrk"),
+      youtube_url: yt("Hj3pyDPwSrk"),
+    },
+  ],
 };
 
 const ARTIST_LEENALCHI: SpotArtist = {
@@ -44,8 +96,32 @@ const ARTIST_LEENALCHI: SpotArtist = {
   initials: "이날",
   accent_class: "bg-amber-600 text-white",
   agency: "Mirrorball Music",
+  agency_url: "https://mirrorballmusic.co.kr/",
+  official_site_url: "https://www.leenalchi.com/",
+  youtube_channel_url: "https://www.youtube.com/@LEENALCHI",
+  instagram_url: "https://www.instagram.com/leenalchi/",
   rep_works: ["범 내려온다", "어류도감", "Feel the Rhythm of Korea: Seoul"],
   scene: "한국관광공사 'Feel the Rhythm of Korea' 서울 편 — 판소리 베이스 얼터너티브",
+  tracks: [
+    { id: "leenalchi-tiger", title: "Tiger is Coming", title_ko: "범 내려온다", year: 2020, youtube_url: yt("YbtV0PiVEvI") },
+    { id: "leenalchi-fishing", title: "어류도감", year: 2020, youtube_url: yt("9Q4tdHmftcs") },
+  ],
+  featured_videos: [
+    {
+      id: "leenalchi-rhythm-seoul",
+      title: "Feel the Rhythm of Korea: SEOUL (대한문)",
+      kind: "mv",
+      thumbnail_url: ytThumb("3J7iWnYIjqM"),
+      youtube_url: yt("3J7iWnYIjqM"),
+    },
+    {
+      id: "leenalchi-tiger-mv",
+      title: "범 내려온다 — Official Performance Film",
+      kind: "mv",
+      thumbnail_url: ytThumb("ydGzlIvgYTQ"),
+      youtube_url: yt("ydGzlIvgYTQ"),
+    },
+  ],
 };
 
 const ARTIST_AMBIGUOUS: SpotArtist = {
@@ -55,8 +131,24 @@ const ARTIST_AMBIGUOUS: SpotArtist = {
   initials: "AMB",
   accent_class: "bg-teal-600 text-white",
   agency: "독립 (김보람 안무가)",
+  agency_url: "https://www.ambiguousdc.com/",
+  official_site_url: "https://www.ambiguousdc.com/",
+  youtube_channel_url: "https://www.youtube.com/@ambiguousdancecompany",
+  instagram_url: "https://www.instagram.com/ambiguousdc/",
   rep_works: ["Feel the Rhythm of Korea", "Body Concert", "BTS·BLACKPINK 안무 협업"],
   scene: "이날치와 함께 'Feel the Rhythm' 서울 편 안무·퍼포먼스",
+  tracks: [
+    { id: "amb-rhythm-seoul", title: "Feel the Rhythm of Korea: Seoul (안무)", year: 2020, youtube_url: yt("3J7iWnYIjqM") },
+  ],
+  featured_videos: [
+    {
+      id: "amb-body-concert",
+      title: "Body Concert — Highlight Reel",
+      kind: "stage",
+      thumbnail_url: ytThumb("kPaPdaB1QRA"),
+      youtube_url: yt("kPaPdaB1QRA"),
+    },
+  ],
 };
 
 export const mockHaruRoute: HaruRoute = {
@@ -100,6 +192,14 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_min: null,
       featured: true,
       artists: [ARTIST_BTS],
+      soundtrack: {
+        artist_id: "bts",
+        track_id: "bts-idol",
+        curator_note: {
+          ko: "근정전 마당의 축과 〈IDOL〉의 직선 비트가 정확히 겹치는 순간. 한 곡만 듣고 들어가야 한다면 이 곡.",
+          en: "The axis of the courtyard and the straight beat of 'IDOL' align here. If you listen to one song before stepping in — this one.",
+        },
+      },
       details: {
         gallery_image_urls: [
           "/mock/posts/seoul/kmusic/spot1-geunjeongjeon-1.jpg",
@@ -149,6 +249,14 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_method: "walk",
       move_from_prev_min: 6,
       artists: [ARTIST_BTS],
+      soundtrack: {
+        artist_id: "bts",
+        track_id: "bts-mikrokosmos",
+        curator_note: {
+          ko: "물 위 누각의 여백을 그대로 들이쉬는 곡. 근정전이 외향의 〈IDOL〉이라면 경회루는 내향의 〈소우주〉.",
+          en: "A song that breathes in the space of a pavilion over water. Where Geunjeongjeon was outward, Gyeonghoeru turns inward.",
+        },
+      },
       details: {
         gallery_image_urls: [
           "/mock/posts/seoul/kmusic/spot2-gyeonghoeru-1.webp",
@@ -197,6 +305,14 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_method: "walk",
       move_from_prev_min: 12,
       artists: [ARTIST_CL],
+      soundtrack: {
+        artist_id: "cl",
+        track_id: "cl-hwa",
+        curator_note: {
+          ko: "낮은 처마와 골목의 결 위로 CL의 굵은 보컬이 얹히면 동네 전체가 무대가 됩니다.",
+          en: "Lay CL's heavy vocals over these low eaves and quiet alleys — the whole block becomes a stage.",
+        },
+      },
       details: {
         gallery_image_urls: [
           "/mock/posts/seoul/kmusic/spot3-sogyeokdong-1.jpg",
@@ -244,6 +360,14 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_method: "walk",
       move_from_prev_min: 3,
       artists: [ARTIST_CL],
+      soundtrack: {
+        artist_id: "cl",
+        track_id: "cl-lover-like-me",
+        curator_note: {
+          ko: "전통→현대로 시선이 옮겨가는 동선과 어울리는 가벼운 후반곡. 〈화〉의 강도를 식히며 닫기.",
+          en: "A lighter closer that matches the traditional-to-contemporary pivot — cooling down from 'HWA's heat.",
+        },
+      },
       details: {
         gallery_image_urls: [
           "/mock/posts/seoul/kmusic/spot4-mmca-1.jpg",
@@ -295,6 +419,14 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_min: 25,
       featured: true,
       artists: [ARTIST_LEENALCHI, ARTIST_AMBIGUOUS],
+      soundtrack: {
+        artist_id: "leenalchi",
+        track_id: "leenalchi-tiger",
+        curator_note: {
+          ko: "도심·궁궐·판소리가 한 화면에서 부딪히는 자리. 마지막 스팟의 BGM은 무조건 〈범 내려온다〉.",
+          en: "Downtown, palace, pansori collide in one frame. The last stop's BGM has to be 'Tiger is Coming.'",
+        },
+      },
       details: {
         gallery_image_urls: [
           "/mock/posts/seoul/kmusic/spot5-daehanmun-1.jpg",

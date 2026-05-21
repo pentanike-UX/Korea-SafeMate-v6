@@ -41,6 +41,9 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "phinf.pstatic.net", pathname: "/**" },
       { protocol: "https", hostname: "blogfiles.pstatic.net", pathname: "/**" },
       { protocol: "https", hostname: "upload.wikimedia.org", pathname: "/**" },
+      // YouTube 공식 영상 썸네일 (목 데이터 — 하루루트 아티스트 영상 카드)
+      { protocol: "https", hostname: "i.ytimg.com", pathname: "/**" },
+      { protocol: "https", hostname: "img.youtube.com", pathname: "/**" },
       // Google Places Photo Media (New API) — photoUri CDN
       { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
       { protocol: "https", hostname: "lh4.googleusercontent.com", pathname: "/**" },

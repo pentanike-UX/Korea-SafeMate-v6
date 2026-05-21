@@ -5,6 +5,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import type { HaruSpot, AppLocale } from "@/types/haru";
 import { SpotArtistStrip } from "@/components/routes/spot-artist-strip";
+import { SpotCoverStack } from "@/components/routes/spot-cover-stack";
 
 /** 머무는 시간 포맷 */
 function formatStay(min: number): string {
@@ -110,6 +111,11 @@ export function SpotCard({ spot, locale, compact = false, onClick, className }: 
           <div className="absolute top-3 right-3 rounded-full bg-accent-ksm px-2 py-0.5 text-[10px] font-semibold text-white shadow-sm">
             ✦ Pick
           </div>
+        )}
+
+        {/* 미니 앨범커버 스택 — "이 스팟엔 음악이 있다" 시그널 */}
+        {!compact && spot.artists && spot.artists.length > 0 && (
+          <SpotCoverStack artists={spot.artists} />
         )}
       </div>
 
