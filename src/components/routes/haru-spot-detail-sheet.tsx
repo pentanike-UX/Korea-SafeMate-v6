@@ -52,7 +52,7 @@ export function HaruSpotDetailSheet({
       <SheetContent
         side="right"
         showCloseButton={false}
-        className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[480px]"
+        className="flex w-full flex-col gap-0 overflow-hidden p-0 data-[side=right]:sm:max-w-[480px] data-[side=right]:md:max-w-[600px] data-[side=right]:lg:max-w-[780px] data-[side=right]:xl:max-w-[920px] data-[side=right]:2xl:max-w-[1080px]"
         aria-label={name}
       >
         {/* ── 헤더 (sticky) ───────────────────────────────────────── */}
@@ -87,10 +87,10 @@ export function HaruSpotDetailSheet({
         </div>
 
         {/* ── 본문 (scroll) ────────────────────────────────────────── */}
-        <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 py-5 sm:px-5">
-          {/* 갤러리 */}
+        <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4 py-5 sm:px-5 lg:px-7 lg:py-7 lg:gap-6">
+          {/* 갤러리 — 데스크탑에서는 16/10 비율로 더 시원하게 */}
           <div
-            className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-muted"
+            className="relative aspect-[4/3] lg:aspect-[16/10] overflow-hidden rounded-2xl bg-muted"
             role="img"
             aria-label={t("spotDetailGalleryAria")}
           >
@@ -101,7 +101,7 @@ export function HaruSpotDetailSheet({
                   alt={`${name} ${galleryIdx + 1}/${gallery.length}`}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 640px) 100vw, 480px"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 600px, (max-width: 1280px) 780px, 1080px"
                 />
                 {gallery.length > 1 ? (
                   <>
