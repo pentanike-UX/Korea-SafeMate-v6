@@ -1130,7 +1130,14 @@
     "filterClose": "閉じる",
     "ctaRequestCourseBody": "あなただけのカスタム1日ルートを作成しませんか？",
     "ctaRequestBtn": "このHaruでリクエスト",
-    "heroEyebrow": "ハルイが作ったハルウェイ"
+    "heroEyebrow": "ハルイが作ったハルウェイ",
+    "relatedRouteEyebrow": "Related haru route",
+    "relatedRouteFallbackTitle": "Turn this into a runnable day",
+    "relatedRouteLead": "An executable route built from this haruway. Exact addresses, transit, and timing per spot.",
+    "relatedRouteStopsLabel": "{n} stops",
+    "relatedRoutePriceEyebrow": "Route unlock",
+    "relatedRoutePriceHint": "· keep forever",
+    "relatedRouteCta": "Open the route"
   },
   "RoutePosts": {
     "introFallbackNoLead": "まず概要と地図で動線をつかみ、スポットごとの説明に進んでください。",

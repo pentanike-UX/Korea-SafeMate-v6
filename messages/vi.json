@@ -1131,7 +1131,14 @@
     "filterClose": "Close",
     "ctaRequestCourseBody": "Muốn có lộ trình một ngày được thiết kế riêng cho bạn?",
     "ctaRequestBtn": "Yêu cầu Haru này",
-    "heroEyebrow": "Haruway do Harui thiết kế"
+    "heroEyebrow": "Haruway do Harui thiết kế",
+    "relatedRouteEyebrow": "Related haru route",
+    "relatedRouteFallbackTitle": "Turn this into a runnable day",
+    "relatedRouteLead": "An executable route built from this haruway. Exact addresses, transit, and timing per spot.",
+    "relatedRouteStopsLabel": "{n} stops",
+    "relatedRoutePriceEyebrow": "Route unlock",
+    "relatedRoutePriceHint": "· keep forever",
+    "relatedRouteCta": "Open the route"
   },
   "RoutePosts": {
     "introFallbackNoLead": "Skim the summary and map first, then read each stop in order.",

@@ -1131,7 +1131,14 @@
     "filterClose": "Close",
     "ctaRequestCourseBody": "ต้องการเส้นทางหนึ่งวันที่ออกแบบเฉพาะสำหรับคุณหรือไม่?",
     "ctaRequestBtn": "ขอ Haru นี้",
-    "heroEyebrow": "Haruway โดย Harui"
+    "heroEyebrow": "Haruway โดย Harui",
+    "relatedRouteEyebrow": "Related haru route",
+    "relatedRouteFallbackTitle": "Turn this into a runnable day",
+    "relatedRouteLead": "An executable route built from this haruway. Exact addresses, transit, and timing per spot.",
+    "relatedRouteStopsLabel": "{n} stops",
+    "relatedRoutePriceEyebrow": "Route unlock",
+    "relatedRoutePriceHint": "· keep forever",
+    "relatedRouteCta": "Open the route"
   },
   "RoutePosts": {
     "introFallbackNoLead": "Skim the summary and map first, then read each stop in order.",

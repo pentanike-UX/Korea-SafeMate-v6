@@ -855,7 +855,15 @@ export function RoutePostDetailClient({
   /** 유료: 동시에 하나의 스팟만 펼침 */
   const [expandedPlaybookSpotId, setExpandedPlaybookSpotId] = useState<string | null>(null);
 
-  const effectivePlaybookPremium = hasPlaybookPremium || playbookSessionUnlock;
+  // 비즈니스 모델 변경(2026-05): 하루웨이는 콘텐츠로 자유 노출.
+  // 결제는 연결된 하루루트 페이지에서만 발생. 따라서 post detail은 항상 풀콘텐츠 노출.
+  // (hasPlaybookPremium / playbookSessionUnlock 두 state는 향후 SubscriptionGate 같은 후속 기능에서 재사용 가능하도록 유지)
+  void hasPlaybookPremium;
+  void playbookSessionUnlock;
+  void setPlaybookSessionUnlock;
+  void payDrawerOpen;
+  void setPayDrawerOpen;
+  const effectivePlaybookPremium = true;
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");

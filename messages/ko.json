@@ -1130,7 +1130,14 @@
     "filterClose": "닫기",
     "ctaRequestCourseBody": "일정과 취향을 남기면 이 분위기에 맞춰 하루를 조정할 수 있습니다.",
     "ctaRequestBtn": "이 하루로 요청하기",
-    "heroEyebrow": "하루이가 만든 하루웨이"
+    "heroEyebrow": "하루이가 만든 하루웨이",
+    "relatedRouteEyebrow": "관련 하루루트",
+    "relatedRouteFallbackTitle": "같은 동선으로 하루 만들기",
+    "relatedRouteLead": "이 하루웨이를 따라 실제로 하루를 보낼 수 있는 실행용 루트입니다. 스팟별 정확한 주소·이동·시간이 정리되어 있어요.",
+    "relatedRouteStopsLabel": "{n}개 스팟",
+    "relatedRoutePriceEyebrow": "하루루트 결제",
+    "relatedRoutePriceHint": "· 평생 열람",
+    "relatedRouteCta": "하루루트 보기"
   },
   "RoutePosts": {
     "introFallbackNoLead": "아래 흐름표로 동선을 먼저 잡은 뒤, 스팟별 설명으로 이어집니다.",
