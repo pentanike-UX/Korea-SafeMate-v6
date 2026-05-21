@@ -15,8 +15,9 @@ type Props = {
   guardianOpenDetail: GuardianRequestOpenDetail;
 };
 
-type Step = "intro" | "method" | "processing" | "success";
+type Step = "intro" | "plan" | "method" | "processing" | "success";
 type PayMethod = "toss" | "kakao";
+type PlanCode = "monthly_9900" | "pass_1" | "pass_3" | "pass_5";
 
 /**
  * 데모: 스팟 상세(실명·갤러리) 잠금 해제 — 4단계 가짜 결제 시뮬레이션
@@ -27,6 +28,7 @@ export function PlaybookUnlockSheet({ open, onOpenChange, onConfirmDemoUnlock, g
   const t = useTranslations("RoutePosts");
   const [step, setStep] = useState<Step>("intro");
   const [method, setMethod] = useState<PayMethod | null>(null);
+  const [plan, setPlan] = useState<PlanCode | null>(null);
 
   // 시트가 닫히면 단계 초기화
   useEffect(() => {
@@ -34,6 +36,7 @@ export function PlaybookUnlockSheet({ open, onOpenChange, onConfirmDemoUnlock, g
       const id = setTimeout(() => {
         setStep("intro");
         setMethod(null);
+        setPlan(null);
       }, 200);
       return () => clearTimeout(id);
     }
@@ -61,22 +64,32 @@ export function PlaybookUnlockSheet({ open, onOpenChange, onConfirmDemoUnlock, g
         {step === "intro" ? (
           <IntroStep
             t={t}
-            onPay={() => setStep("method")}
+            onPay={() => setStep("plan")}
             guardianOpenDetail={guardianOpenDetail}
+          />
+        ) : step === "plan" ? (
+          <PlanStep
+            t={t}
+            onSelect={(p) => {
+              setPlan(p);
+              setStep("method");
+            }}
+            onBack={() => setStep("intro")}
           />
         ) : step === "method" ? (
           <MethodStep
             t={t}
+            plan={plan}
             onSelect={(m) => {
               setMethod(m);
               setStep("processing");
             }}
-            onBack={() => setStep("intro")}
+            onBack={() => setStep("plan")}
           />
         ) : step === "processing" ? (
-          <ProcessingStep t={t} method={method ?? "toss"} />
+          <ProcessingStep t={t} method={method ?? "toss"} plan={plan} />
         ) : (
-          <SuccessStep t={t} />
+          <SuccessStep t={t} plan={plan} />
         )}
       </SheetContent>
     </Sheet>
@@ -128,16 +141,112 @@ function IntroStep({
   );
 }
 
-// ── Step 2: 결제 수단 선택 ───────────────────────────────────────────────────
-function MethodStep({
+// ── Step 1.5: 플랜 선택 (월 구독 / 일회성 1·3·5회) ───────────────────────────
+const PLAN_PRICE: Record<PlanCode, string> = {
+  monthly_9900: "₩9,900",
+  pass_1: "₩990",
+  pass_3: "₩2,500",
+  pass_5: "₩3,600",
+};
+
+function PlanStep({
   t,
   onSelect,
   onBack,
 }: {
   t: (k: string) => string;
+  onSelect: (p: PlanCode) => void;
+  onBack: () => void;
+}) {
+  return (
+    <>
+      <SheetHeader className="px-5 sm:px-6">
+        <SheetTitle>{t("planSheetTitle")}</SheetTitle>
+        <SheetDescription className="text-left">{t("planSheetLead")}</SheetDescription>
+      </SheetHeader>
+
+      <div className="px-5 sm:px-6 pb-4 space-y-3 overflow-y-auto">
+        {/* 월 구독 */}
+        <button
+          type="button"
+          onClick={() => onSelect("monthly_9900")}
+          className="group relative flex w-full items-center gap-4 rounded-2xl border-2 border-primary/50 bg-primary/5 p-4 text-left transition-all hover:border-primary hover:shadow-md"
+        >
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-base font-bold text-foreground">{t("planSubscriptionLabel")}</p>
+              <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold tracking-wider text-primary-foreground">
+                {t("planSubscriptionBadge")}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("planSubscriptionDesc")}</p>
+          </div>
+          <p className="text-base font-extrabold tracking-tight text-foreground shrink-0">
+            {t("planSubscriptionPrice")}
+          </p>
+        </button>
+
+        {/* 일회성 섹션 */}
+        <div className="pt-1">
+          <p className="px-1 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            {t("planOneTimeSectionLabel")}
+          </p>
+          <div className="space-y-2">
+            {(
+              [
+                { code: "pass_1", label: "planPass1Label", price: "planPass1Price", unit: "planPass1Unit", badge: null },
+                { code: "pass_3", label: "planPass3Label", price: "planPass3Price", unit: "planPass3Unit", badge: null },
+                { code: "pass_5", label: "planPass5Label", price: "planPass5Price", unit: "planPass5Unit", badge: "planPass5Badge" },
+              ] as const
+            ).map((p) => (
+              <button
+                key={p.code}
+                type="button"
+                onClick={() => onSelect(p.code)}
+                className="group flex w-full items-center gap-4 rounded-2xl border border-border/60 bg-card p-4 text-left transition-all hover:border-foreground/40 hover:bg-muted/50 hover:shadow-sm"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-foreground">{t(p.label)}</p>
+                    {p.badge ? (
+                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold tracking-wider text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                        {t(p.badge)}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{t(p.unit)}</p>
+                </div>
+                <p className="text-base font-bold tracking-tight text-foreground shrink-0">{t(p.price)}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <p className="pt-1 text-[11px] text-muted-foreground">{t("planFootnote")}</p>
+      </div>
+
+      <SheetFooter className="px-5 sm:px-6 pb-5">
+        <Button type="button" variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={onBack}>
+          {t("planBackCta")}
+        </Button>
+      </SheetFooter>
+    </>
+  );
+}
+
+// ── Step 2: 결제 수단 선택 ───────────────────────────────────────────────────
+function MethodStep({
+  t,
+  plan,
+  onSelect,
+  onBack,
+}: {
+  t: (k: string) => string;
+  plan: PlanCode | null;
   onSelect: (m: PayMethod) => void;
   onBack: () => void;
 }) {
+  const priceLabel = plan ? PLAN_PRICE[plan] : t("paywallCtaPrimaryPrice");
   return (
     <>
       <SheetHeader className="px-5 sm:px-6">
@@ -147,7 +256,9 @@ function MethodStep({
             {t("paymentDemoBadge")}
           </span>
         </div>
-        <SheetDescription className="text-left">{t("paymentMethodLead")}</SheetDescription>
+        <SheetDescription className="text-left">
+          {t("paymentMethodLead")} · <span className="font-semibold text-foreground">{priceLabel}</span>
+        </SheetDescription>
       </SheetHeader>
 
       <div className="px-5 sm:px-6 pb-4 space-y-2.5">
@@ -198,8 +309,9 @@ function MethodStep({
 }
 
 // ── Step 3: 결제 진행 중 (가짜 PG 화면) ──────────────────────────────────────
-function ProcessingStep({ t, method }: { t: (k: string) => string; method: PayMethod }) {
+function ProcessingStep({ t, method, plan }: { t: (k: string) => string; method: PayMethod; plan: PlanCode | null }) {
   const isToss = method === "toss";
+  const priceLabel = plan ? PLAN_PRICE[plan] : t("paywallCtaPrimaryPrice");
   return (
     <div
       className={cn(
@@ -226,7 +338,7 @@ function ProcessingStep({ t, method }: { t: (k: string) => string; method: PayMe
       </p>
 
       <p className={cn("mt-1 text-3xl font-extrabold tracking-tighter", isToss ? "text-white" : "text-[#3C1E1E]")}>
-        {t("paywallCtaPrimaryPrice")}
+        {priceLabel}
       </p>
 
       <div className="mt-10 flex items-center gap-3">
@@ -252,7 +364,8 @@ function ProcessingStep({ t, method }: { t: (k: string) => string; method: PayMe
 }
 
 // ── Step 4: 결제 완료 ────────────────────────────────────────────────────────
-function SuccessStep({ t }: { t: (k: string) => string }) {
+function SuccessStep({ t, plan }: { t: (k: string) => string; plan: PlanCode | null }) {
+  const priceLabel = plan ? PLAN_PRICE[plan] : t("paywallCtaPrimaryPrice");
   return (
     <div className="flex flex-col items-center justify-center px-6 py-12 min-h-[26rem] text-center">
       <div className="mb-5 flex size-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300">
@@ -261,7 +374,7 @@ function SuccessStep({ t }: { t: (k: string) => string }) {
       <p className="text-xl font-bold text-foreground">{t("paymentSuccessTitle")}</p>
       <p className="mt-2 text-sm text-muted-foreground">{t("paymentSuccessLead")}</p>
       <p className="mt-4 text-2xl font-extrabold tracking-tight text-foreground">
-        {t("paywallCtaPrimaryPrice")}
+        {priceLabel}
       </p>
     </div>
   );

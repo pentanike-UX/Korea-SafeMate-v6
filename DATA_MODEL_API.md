@@ -583,6 +583,218 @@ create policy "orders_admin"
 
 ---
 
+### 2.10b one_time_passes / route_unlocks / subscriptions (2026-05-21 도입)
+
+하루루트 결제를 두 트랙(월 구독·일회성 패스)으로 분리하기 위한 entitlement 모델.
+FOUNDATION §6.6 참고.
+
+#### one_time_passes (일회성 패스: 1회/3회/5회)
+
+```sql
+-- supabase/migrations/20260521000001_create_one_time_passes.sql
+create table one_time_passes (
+  id                     uuid primary key default gen_random_uuid(),
+  user_id                uuid not null references users(id) on delete cascade,
+
+  -- 패스 종류
+  pack_code              text not null
+                         check (pack_code in ('pass_1','pass_3','pass_5')),
+  total_uses             int  not null check (total_uses > 0),
+  remaining_uses         int  not null check (remaining_uses >= 0),
+
+  -- 결제 정보 (orders와 1:1, 외부 PG 영수증 추적)
+  price_krw_cents        bigint not null,
+  payment_provider       text   not null check (payment_provider in ('toss','kakao','stripe','demo')),
+  payment_provider_ref   text,
+  paid_at                timestamptz not null default now(),
+
+  -- 만료 (발급 후 90일 — 코드에서 강제, DB는 단순 저장)
+  expires_at             timestamptz not null,
+
+  -- 환불
+  refunded_at            timestamptz,
+  refund_reason          text,
+
+  created_at             timestamptz not null default now(),
+  updated_at             timestamptz not null default now(),
+
+  constraint remaining_le_total check (remaining_uses <= total_uses)
+);
+
+create index one_time_passes_user_active_idx
+  on one_time_passes(user_id, expires_at)
+  where remaining_uses > 0 and refunded_at is null;
+
+create trigger one_time_passes_updated_at
+  before update on one_time_passes
+  for each row execute function update_updated_at_column();
+```
+
+**RLS:**
+```sql
+alter table one_time_passes enable row level security;
+
+create policy "passes_select_own"
+  on one_time_passes for select
+  using (user_id = auth.uid());
+
+-- 클라이언트 직접 insert/update 차단 — 모든 변경은 서버 RPC/service_role
+create policy "passes_no_client_write"
+  on one_time_passes for insert with check (false);
+create policy "passes_no_client_update"
+  on one_time_passes for update using (false);
+```
+
+#### subscriptions (월 구독)
+
+```sql
+-- supabase/migrations/20260521000002_create_subscriptions.sql
+create table subscriptions (
+  id                     uuid primary key default gen_random_uuid(),
+  user_id                uuid not null references users(id) on delete cascade,
+
+  plan_code              text not null check (plan_code in ('monthly_9900')),
+  price_krw_cents        bigint not null,
+
+  status                 text not null
+                         check (status in ('active','canceled','past_due','expired')),
+  current_period_start   timestamptz not null,
+  current_period_end     timestamptz not null,
+  cancel_at_period_end   boolean not null default false,
+  canceled_at            timestamptz,
+
+  payment_provider       text not null check (payment_provider in ('toss','kakao','stripe','demo')),
+  payment_provider_ref   text,
+
+  created_at             timestamptz not null default now(),
+  updated_at             timestamptz not null default now()
+);
+
+-- 사용자당 활성 구독은 최대 1개
+create unique index subscriptions_one_active_per_user
+  on subscriptions(user_id)
+  where status = 'active';
+
+create index subscriptions_period_end_idx on subscriptions(current_period_end);
+```
+
+#### route_unlocks (실제 잠금해제 영속화 — 재열람 무료)
+
+```sql
+-- supabase/migrations/20260521000003_create_route_unlocks.sql
+create table route_unlocks (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null references users(id) on delete cascade,
+  route_id        uuid not null references routes(id) on delete cascade,
+
+  -- 어느 entitlement로 unlock 했는가 (감사/리포팅용)
+  unlock_source   text not null
+                  check (unlock_source in ('subscription','one_time_pass','admin_grant','demo')),
+  pass_id         uuid references one_time_passes(id),
+  subscription_id uuid references subscriptions(id),
+
+  unlocked_at     timestamptz not null default now(),
+
+  -- 같은 사용자가 같은 루트를 두 번 차감하지 않도록
+  unique (user_id, route_id)
+);
+
+create index route_unlocks_user_idx on route_unlocks(user_id);
+```
+
+#### 잠금해제 RPC (서버 트랜잭션)
+
+클라이언트는 다음 함수만 호출. 우선순위 로직과 잔여 차감이 한 트랜잭션 안에서 안전하게 수행됨.
+
+```sql
+-- supabase/migrations/20260521000004_unlock_route_rpc.sql
+create or replace function unlock_route(p_route_id uuid)
+returns route_unlocks
+language plpgsql
+security definer
+as $$
+declare
+  v_user_id  uuid := auth.uid();
+  v_existing route_unlocks;
+  v_sub      subscriptions;
+  v_pass     one_time_passes;
+  v_result   route_unlocks;
+begin
+  if v_user_id is null then
+    raise exception 'auth_required';
+  end if;
+
+  -- 1) 이미 잠금해제 했으면 그대로 반환 (재열람 무료)
+  select * into v_existing
+    from route_unlocks
+    where user_id = v_user_id and route_id = p_route_id;
+  if found then return v_existing; end if;
+
+  -- 2) 활성 구독 우선
+  select * into v_sub
+    from subscriptions
+    where user_id = v_user_id
+      and status = 'active'
+      and current_period_end > now()
+    limit 1;
+  if found then
+    insert into route_unlocks(user_id, route_id, unlock_source, subscription_id)
+    values (v_user_id, p_route_id, 'subscription', v_sub.id)
+    returning * into v_result;
+    return v_result;
+  end if;
+
+  -- 3) 만료 임박 패스부터 차감 (FIFO by expires_at)
+  select * into v_pass
+    from one_time_passes
+    where user_id = v_user_id
+      and remaining_uses > 0
+      and refunded_at is null
+      and expires_at > now()
+    order by expires_at asc
+    for update
+    limit 1;
+  if found then
+    update one_time_passes
+       set remaining_uses = remaining_uses - 1
+     where id = v_pass.id;
+    insert into route_unlocks(user_id, route_id, unlock_source, pass_id)
+    values (v_user_id, p_route_id, 'one_time_pass', v_pass.id)
+    returning * into v_result;
+    return v_result;
+  end if;
+
+  -- 4) 사용 가능한 entitlement 없음 → 결제 유도
+  raise exception 'no_entitlement';
+end;
+$$;
+
+revoke all on function unlock_route(uuid) from public;
+grant execute on function unlock_route(uuid) to authenticated;
+```
+
+**API 라우트(요약):**
+- `POST /api/passes/checkout` — `{ pack_code, provider }` → PG 세션 생성, 콜백에서 `one_time_passes` 삽입.
+- `POST /api/subscriptions/checkout` — 월 구독 결제 시작.
+- `POST /api/routes/[id]/unlock` — 위 RPC 호출 래퍼. `no_entitlement` 응답 시 클라이언트는 결제 시트 오픈.
+- `GET  /api/me/entitlements` — 현재 활성 구독 + 잔여 패스(만료 임박순) 반환. 결제 시트가 "이미 보유 중" 배지 표시용으로 사용.
+
+**상품 가격 상수 (코드 한 곳에 고정):**
+```ts
+// src/lib/pricing/products.ts
+export const ONE_TIME_PASSES = {
+  pass_1: { totalUses: 1, priceKrwCents: 99_000,  label: '1회 열람권' },
+  pass_3: { totalUses: 3, priceKrwCents: 250_000, label: '3회 열람권' },
+  pass_5: { totalUses: 5, priceKrwCents: 360_000, label: '5회 열람권' },
+} as const;
+export const SUBSCRIPTION = {
+  monthly_9900: { priceKrwCents: 990_000, periodDays: 30 },
+} as const;
+export const PASS_EXPIRY_DAYS = 90;
+```
+
+---
+
 ### 2.11 route_generation_jobs
 비동기 루트 생성 작업 큐. Foundation 섹션 2.2d의 핵심 해결책.
 
