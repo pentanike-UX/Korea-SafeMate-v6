@@ -1137,7 +1137,10 @@
     "relatedRouteStopsLabel": "{n}개 스팟",
     "relatedRoutePriceEyebrow": "하루루트 결제",
     "relatedRoutePriceHint": "· 평생 열람",
-    "relatedRouteCta": "하루루트 보기"
+    "relatedRouteCta": "하루루트 보기",
+    "relatedRoutePriceSubscription": "월 구독 ₩9,900",
+    "relatedRoutePriceLifetime": "평생 ₩29,000",
+    "relatedRoutePriceOr": "또는"
   },
   "RoutePosts": {
     "introFallbackNoLead": "아래 흐름표로 동선을 먼저 잡은 뒤, 스팟별 설명으로 이어집니다.",

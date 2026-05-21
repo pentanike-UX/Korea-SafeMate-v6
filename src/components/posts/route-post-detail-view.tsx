@@ -11,7 +11,6 @@ import { relatedPostsForMerged } from "@/lib/posts-public-merged.server";
 import { PostAuthorAside } from "@/components/posts/post-author-aside";
 import { PostDetailHero } from "@/components/posts/post-detail-hero";
 import { PostDetailRelatedSection } from "@/components/posts/post-detail-related-section";
-import { RelatedRouteBanner } from "@/components/posts/related-route-banner";
 import { PostDetailStickyAside } from "@/components/posts/post-detail-sticky-aside";
 import { RoutePostDetailClient } from "@/components/route-posts/route-post-detail-client";
 import { GuardianRequestDefaultsPublisher } from "@/components/guardians/guardian-request-defaults-publisher";
@@ -101,19 +100,7 @@ export async function RoutePostDetailView({ post, editHref, isOwner }: { post: C
         </PostDetailStickyAside>
       </div>
 
-      {/* 관련 하루루트 배너 — 비즈니스 모델: 콘텐츠(post)는 무료 노출, 결제는 라우트에서만 발생 */}
-      <div className="border-t border-border/30 bg-[color-mix(in_srgb,var(--muted)_30%,var(--bg-page))] py-10 sm:py-12">
-        <RelatedRouteBanner
-          /* MVP: 모든 하루웨이가 데모 mock 라우트로 연결됨. 향후 1:1 매핑 컬럼 추가 시 post.related_route_id 사용 */
-          routeId="mock"
-          routeTitle={post.title}
-          totalDurationMin={
-            post.route_journey?.metadata?.estimated_total_duration_minutes ?? undefined
-          }
-          spotCount={post.route_journey?.spots?.length ?? undefined}
-          themeLabel={post.tags?.[0]}
-        />
-      </div>
+      {/* 관련 하루루트 배너는 본문(RoutePostDetailClient) 안의 테마→루트 전환 섹션으로 이동됨 (중복 제거) */}
 
       <PostDetailRelatedSection current={post} related={related} />
     </article>

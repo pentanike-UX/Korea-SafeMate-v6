@@ -20,8 +20,8 @@ import {
 import { cn } from "@/lib/utils";
 import type { FreeArchetype } from "@/lib/route-free-classification";
 import { inferFreeArchetype } from "@/lib/route-free-classification";
-import { ChevronDown, ArrowRight, Footprints, Clock, MapPin } from "lucide-react";
-import { Link } from "@/i18n/navigation";
+import { ChevronDown } from "lucide-react";
+import { RelatedRouteBanner } from "@/components/posts/related-route-banner";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
   POST_DETAIL_PROSE_P_MAIN,
@@ -1021,10 +1021,9 @@ export function RoutePostDetailClient({
           </div>
         ) : null}
 
-        {/* ③ 테마 → 루트 전환 티저
-             하루웨이는 테마 정서를 전달하는 콘텐츠 자산.
-             스팟별 디테일(이름·주소·사진·가이드)은 /routes/[id] (하루루트) 진입 후에만 노출.
-             여기서는 "이 테마를 발끝으로 느낄 수 있도록 큐레이션된 루트가 있어요"라는 호기심 유도. */}
+        {/* ③ 테마 → 루트 전환: 본문에 RelatedRouteBanner를 그대로 노출.
+             하루웨이는 테마 정서를 전달하는 콘텐츠 자산. 스팟별 디테일은 하루루트에서.
+             하단 중복 배너는 RoutePostDetailView에서 제거됨. */}
         <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-8">
           <header className="mb-5 space-y-2">
             <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
@@ -1036,41 +1035,14 @@ export function RoutePostDetailClient({
             <p className="text-sm leading-relaxed text-muted-foreground">{t("themeRouteTeaserLead")}</p>
           </header>
 
-          <Link
-            href={`/routes/mock?preview=1`}
-            className={cn(
-              "group relative block overflow-hidden rounded-2xl border border-border/50 bg-card p-5 shadow-sm transition-all",
-              "hover:border-primary/40 hover:shadow-md hover:scale-[1.005] active:scale-[0.995]",
-            )}
-          >
-            <div className="flex items-start gap-4">
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                <Footprints className="size-5" aria-hidden />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-bold text-foreground">{t("themeRouteTeaserCardTitle")}</p>
-                <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-                  {t("themeRouteTeaserCardLead")}
-                </p>
-                <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                  <span className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-background/60 px-2 py-0.5 text-[11px] font-medium text-foreground/85">
-                    <MapPin className="size-3 text-primary" aria-hidden />
-                    {t("themeRouteTeaserStops", { n: spots.length })}
-                  </span>
-                  {journey.metadata.estimated_total_duration_minutes ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-background/60 px-2 py-0.5 text-[11px] font-medium text-foreground/85">
-                      <Clock className="size-3 text-primary" aria-hidden />
-                      {Math.round(journey.metadata.estimated_total_duration_minutes / 60 * 10) / 10}h
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-              <ArrowRight
-                className="mt-2 size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground"
-                aria-hidden
-              />
-            </div>
-          </Link>
+          <RelatedRouteBanner
+            routeId="mock"
+            routeTitle={post.title}
+            totalDurationMin={journey.metadata.estimated_total_duration_minutes ?? undefined}
+            spotCount={spots.length}
+            themeLabel={post.tags?.[0]}
+            className="!px-0 !max-w-none"
+          />
 
           {isSuperAdmin ? (
             <div className="mt-4">

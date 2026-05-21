@@ -20,7 +20,6 @@ export function RelatedRouteBanner({
   routeTitle,
   totalDurationMin,
   spotCount,
-  priceLabel = "₩29,000",
   themeLabel,
   className,
 }: {
@@ -32,8 +31,6 @@ export function RelatedRouteBanner({
   totalDurationMin?: number;
   /** 스팟 수 */
   spotCount?: number;
-  /** 결제 가격 라벨 (브랜드 결정 가격 그대로) */
-  priceLabel?: string;
   /** 테마 라벨 (e.g. "K-MOVIE", "역사 산책") */
   themeLabel?: string;
   className?: string;
@@ -108,18 +105,23 @@ export function RelatedRouteBanner({
             </div>
           )}
 
-          {/* CTA 영역 */}
+          {/* CTA 영역 — 듀얼 가격(월구독 + 평생열람) 노출 */}
           <div className="mt-5 flex items-center justify-between gap-3 border-t border-border/40 pt-4">
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 {t("relatedRoutePriceEyebrow")}
               </p>
-              <p className="text-base font-extrabold tracking-tight text-foreground">
-                {priceLabel}
-                <span className="ml-1 text-xs font-normal text-muted-foreground">
-                  {t("relatedRoutePriceHint")}
+              <div className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                <span className="text-sm font-bold tracking-tight text-foreground">
+                  {t("relatedRoutePriceSubscription")}
                 </span>
-              </p>
+                <span className="text-[11px] font-medium text-muted-foreground">
+                  {t("relatedRoutePriceOr")}
+                </span>
+                <span className="text-sm font-bold tracking-tight text-foreground">
+                  {t("relatedRoutePriceLifetime")}
+                </span>
+              </div>
             </div>
             <span
               className={cn(

@@ -1137,7 +1137,10 @@
     "relatedRouteStopsLabel": "{n} stops",
     "relatedRoutePriceEyebrow": "Route unlock",
     "relatedRoutePriceHint": "· keep forever",
-    "relatedRouteCta": "Open the route"
+    "relatedRouteCta": "Open the route",
+    "relatedRoutePriceSubscription": "₩9,900 / mo subscription",
+    "relatedRoutePriceLifetime": "₩29,000 lifetime",
+    "relatedRoutePriceOr": "or"
   },
   "RoutePosts": {
     "introFallbackNoLead": "Skim the summary and map first, then read each stop in order.",
