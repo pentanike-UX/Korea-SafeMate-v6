@@ -1760,7 +1760,15 @@
     "routeNextStepsTitle": "What's next",
     "routeNextStep1": "Expand each spot for photos and the haruee's notes",
     "routeNextStep2": "Send a schedule edit request if needed (1 free)",
-    "routeNextStep3": "Final check-in chat with your haruee the night before"
+    "routeNextStep3": "Final check-in chat with your haruee the night before",
+    "spotDetailLabelWhyHere": "Why here",
+    "spotDetailLabelWhatToDo": "What to do",
+    "spotDetailLabelPhotoTip": "Photo tip",
+    "spotDetailLabelCaution": "Note",
+    "spotDetailStayLabel": "Stay {m} min",
+    "spotDetailGalleryEmpty": "Photos coming soon",
+    "spotDetailCloseAria": "Close",
+    "spotDetailGalleryAria": "Spot photo gallery"
   },
   "GuardianProfileEdit": {
     "metaTitle": "ガーディアンプロフィール編集",

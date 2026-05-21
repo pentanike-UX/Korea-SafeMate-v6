@@ -39,6 +39,24 @@ export interface HaruSpot {
 
   /** 강조 스팟 */
   featured?: boolean;
+
+  /**
+   * 스팟 상세 콘텐츠 — 시트로 펼쳐서 보여주는 풍부 정보.
+   * 하루웨이(post)의 "하루 흐름" 섹션과 동일한 콘텐츠를 하루루트에서도 재사용한다.
+   * 인수 후 데이터 모델 통합 시 spot_catalog의 정식 컬럼으로 승격 예정.
+   */
+  details?: {
+    /** 갤러리 이미지 URL (최대 9장 권장) */
+    gallery_image_urls?: string[];
+    /** "왜 여기냐면" — 가디언의 추천 이유 */
+    why_here?: LocaleMap;
+    /** "여기서 할 것" — 액션 가이드 */
+    what_to_do?: LocaleMap;
+    /** "포토 팁" */
+    photo_tip?: LocaleMap;
+    /** "주의" — 시기·날씨·통제 등 */
+    caution?: LocaleMap;
+  };
 }
 
 /** routes 테이블 + guardian 정보 */

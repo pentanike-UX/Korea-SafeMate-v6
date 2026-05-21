@@ -1760,7 +1760,15 @@
     "routeNextStepsTitle": "다음 단계",
     "routeNextStep1": "스팟별 카드를 펼쳐 사진과 메모 확인",
     "routeNextStep2": "필요 시 일정 수정 요청 (1회 무료)",
-    "routeNextStep3": "출발 전날 가디언과 마지막 점검 채팅"
+    "routeNextStep3": "출발 전날 가디언과 마지막 점검 채팅",
+    "spotDetailLabelWhyHere": "왜 여기냐면",
+    "spotDetailLabelWhatToDo": "여기서 할 것",
+    "spotDetailLabelPhotoTip": "포토 팁",
+    "spotDetailLabelCaution": "주의",
+    "spotDetailStayLabel": "체류 {m}분",
+    "spotDetailGalleryEmpty": "사진이 아직 준비되지 않았어요",
+    "spotDetailCloseAria": "닫기",
+    "spotDetailGalleryAria": "스팟 사진 갤러리"
   },
   "GuardianProfileEdit": {
     "metaTitle": "가디언 프로필 편집",

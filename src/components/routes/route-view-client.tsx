@@ -5,7 +5,8 @@ import { useTranslations } from "next-intl";
 import { Check, Sparkles } from "lucide-react";
 import { HaruTimeline } from "@/components/patterns/haru-timeline";
 import { RouteFreePreviewSection } from "@/components/routes/route-free-preview-section";
-import type { HaruRoute, AppLocale } from "@/types/haru";
+import { HaruSpotDetailSheet } from "@/components/routes/haru-spot-detail-sheet";
+import type { HaruRoute, HaruSpot, AppLocale } from "@/types/haru";
 import { cn } from "@/lib/utils";
 
 /**
@@ -25,6 +26,8 @@ export function RouteViewClient({
 }) {
   const t = useTranslations("TravelerHub");
   const [unlocked, setUnlocked] = useState(initialUnlocked);
+  // 스팟 상세 시트 — 잠금 해제 후만 활성
+  const [selectedSpot, setSelectedSpot] = useState<HaruSpot | null>(null);
 
   if (!unlocked) {
     return <RouteFreePreviewSection route={route} locale={locale} onUnlock={() => setUnlocked(true)} />;
@@ -51,10 +54,20 @@ export function RouteViewClient({
         </div>
       </div>
 
-      {/* 전체 가로 타임라인 */}
+      {/* 전체 가로 타임라인 — 스팟 탭 시 상세 시트 오픈 */}
       <div className="px-4 sm:px-6 md:px-8">
-        <HaruTimeline route={route} locale={locale} />
+        <HaruTimeline route={route} locale={locale} onSpotClick={(s) => setSelectedSpot(s)} />
       </div>
+
+      {/* 스팟 상세 시트 — 하루웨이의 "하루 흐름"과 동일한 풍부 콘텐츠 노출 */}
+      <HaruSpotDetailSheet
+        spot={selectedSpot}
+        locale={locale}
+        open={selectedSpot != null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedSpot(null);
+        }}
+      />
 
       {/* 다음 단계 미니 가이드 */}
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
