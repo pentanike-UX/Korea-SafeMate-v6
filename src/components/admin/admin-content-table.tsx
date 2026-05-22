@@ -8,6 +8,7 @@ import { regionDisplayLabelFromSlug } from "@/lib/mypage/region-label-i18n";
 import { ContentStatusBadge } from "@/components/admin/content-status-badge";
 import { AdminFilterBar, AdminFilterField, AdminSearchInput } from "@/components/admin/admin-filter-bar";
 import { Button } from "@/components/ui/button";
+import { Check, X, EyeOff, Eye, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -17,10 +18,54 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+type ModerateAction = "approve" | "reject" | "hide" | "unhide";
+type LocalState = Record<string, { status: ContentPostStatus; busy: boolean; note?: string }>;
+
 export function AdminContentTable({ posts }: { posts: ContentPost[] }) {
   const tRegion = useTranslations("TravelerHub");
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<ContentPostStatus | "all">("all");
+  const [local, setLocal] = useState<LocalState>({});
+
+  async function moderate(postId: string, action: ModerateAction) {
+    setLocal((m) => ({ ...m, [postId]: { ...(m[postId] ?? { status: "draft" }), busy: true } }));
+    try {
+      const res = await fetch(`/api/admin/content-posts/${postId}/moderate`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      const json = (await res.json()) as { ok?: boolean; mock?: boolean; next_status?: ContentPostStatus; error?: string };
+      if (!res.ok || !json.ok) {
+        setLocal((m) => ({
+          ...m,
+          [postId]: {
+            ...(m[postId] ?? { status: "draft" }),
+            busy: false,
+            note: json.error ?? "실패",
+          },
+        }));
+        return;
+      }
+      setLocal((m) => ({
+        ...m,
+        [postId]: {
+          status: json.next_status ?? "approved",
+          busy: false,
+          note: json.mock ? "mock — DB 반영 없음" : "DB 반영 완료",
+        },
+      }));
+    } catch (err) {
+      setLocal((m) => ({
+        ...m,
+        [postId]: {
+          ...(m[postId] ?? { status: "draft" }),
+          busy: false,
+          note: err instanceof Error ? err.message : "오류",
+        },
+      }));
+    }
+  }
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -103,12 +148,64 @@ export function AdminContentTable({ posts }: { posts: ContentPost[] }) {
                         : "—"}
                 </TableCell>
                 <TableCell className="px-4 py-3">
-                  <ContentStatusBadge status={p.status} />
+                  <ContentStatusBadge status={local[p.id]?.status ?? p.status} />
+                  {local[p.id]?.note ? (
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">{local[p.id]!.note}</p>
+                  ) : null}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-right">
-                  <Button size="sm" variant="outline" className="h-8 rounded-lg text-xs" disabled>
-                    Moderate
-                  </Button>
+                  <div className="inline-flex items-center gap-1">
+                    {local[p.id]?.busy ? (
+                      <Loader2 className="size-3.5 animate-spin text-muted-foreground" aria-hidden />
+                    ) : null}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 gap-1 rounded-md px-2 text-[11px]"
+                      onClick={() => moderate(p.id, "approve")}
+                      disabled={local[p.id]?.busy}
+                      title="Approve"
+                    >
+                      <Check className="size-3" />
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 gap-1 rounded-md px-2 text-[11px]"
+                      onClick={() => moderate(p.id, "reject")}
+                      disabled={local[p.id]?.busy}
+                      title="Reject"
+                    >
+                      <X className="size-3" />
+                      Reject
+                    </Button>
+                    {(local[p.id]?.status ?? p.status) === "blocked" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 gap-1 rounded-md px-2 text-[11px]"
+                        onClick={() => moderate(p.id, "unhide")}
+                        disabled={local[p.id]?.busy}
+                        title="Unhide"
+                      >
+                        <Eye className="size-3" />
+                        Unhide
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 gap-1 rounded-md px-2 text-[11px]"
+                        onClick={() => moderate(p.id, "hide")}
+                        disabled={local[p.id]?.busy}
+                        title="Hide"
+                      >
+                        <EyeOff className="size-3" />
+                        Hide
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

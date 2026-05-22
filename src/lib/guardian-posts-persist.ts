@@ -185,3 +185,41 @@ export async function updateGuardianContentPost(
 
   return { ok: true, id: postId, saved: true };
 }
+
+/**
+ * 가디언 본인 포스트 삭제 — 소유권 검증 후 row 제거.
+ * mock 시드 포스트(id가 UUID가 아니거나 DB에 없는 경우)는 mock 응답.
+ */
+export async function deleteGuardianContentPost(
+  postId: string,
+  authorUserId: string,
+): Promise<{ ok: true; deleted: boolean; mock?: boolean } | { ok: false; error: string; status: number }> {
+  const sb = createServiceRoleSupabase();
+  if (!sb) {
+    return { ok: true, deleted: false, mock: true };
+  }
+  if (!isUuidString(postId)) {
+    return { ok: true, deleted: false, mock: true };
+  }
+  const authorUuid = resolveAuthorUserId(authorUserId);
+  if (!authorUuid) {
+    return { ok: false, error: "Could not resolve author_user_id", status: 400 };
+  }
+  const { data: existing, error: fe } = await sb
+    .from("content_posts")
+    .select("id, author_user_id")
+    .eq("id", postId)
+    .maybeSingle();
+  if (fe || !existing) {
+    return { ok: true, deleted: false, mock: true };
+  }
+  if (existing.author_user_id !== authorUuid) {
+    return { ok: false, error: "Forbidden", status: 403 };
+  }
+  const { error: de } = await sb.from("content_posts").delete().eq("id", postId);
+  if (de) {
+    console.error("[guardian-posts-persist] delete", de);
+    return { ok: false, error: de.message, status: 500 };
+  }
+  return { ok: true, deleted: true };
+}
