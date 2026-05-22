@@ -15,7 +15,7 @@ import type { HaruRoute, HaruSpot, AppLocale } from "@/types/haru";
  * 하루루트 지도 뷰 — 전체 스팟을 핀으로 표시 + 순서대로 연결 폴리라인.
  * 핀 탭 시 onSpotClick 콜백으로 시트 오픈.
  *
- * env `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` 미설정 시 안내 카드 표시.
+ * env `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY` 미설정 시 안내 카드 표시.
  */
 export function HaruRouteMapView({
   route,
@@ -28,7 +28,7 @@ export function HaruRouteMapView({
   onSpotClick?: (spot: HaruSpot) => void;
   className?: string;
 }) {
-  const keyConfigured = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
+  const keyConfigured = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY);
 
   if (!keyConfigured) {
     return (
@@ -37,7 +37,7 @@ export function HaruRouteMapView({
           <AlertCircle className="mx-auto mb-2 size-6 text-amber-600" aria-hidden />
           <p className="mb-1 text-sm font-bold text-foreground">지도를 표시하려면 키 설정이 필요해요</p>
           <p className="text-[12px] leading-relaxed text-muted-foreground">
-            Vercel 환경변수 <code className="rounded bg-muted px-1 py-0.5">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code>를 추가하고 Maps JavaScript API를 활성화하세요.
+            Vercel 환경변수 <code className="rounded bg-muted px-1 py-0.5">NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY</code>를 추가하고 Maps JavaScript API를 활성화하세요.
           </p>
         </div>
       </div>

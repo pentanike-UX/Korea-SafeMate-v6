@@ -25,7 +25,7 @@ export interface MapPickResult {
  * - 지도 클릭 시 자유 핀 배치 (place 정보 없이 좌표만)
  * - "이 위치 선택" 확정 시 onConfirm으로 결과 반환
  *
- * env `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` 미설정 시 비활성 상태 안내 카드 노출.
+ * env `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY` 미설정 시 비활성 상태 안내 카드 노출.
  */
 export function GoogleMapDrawer({
   open,
@@ -42,7 +42,7 @@ export function GoogleMapDrawer({
   initial?: { lat: number; lng: number };
   onConfirm: (result: MapPickResult) => void;
 }) {
-  const keyConfigured = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
+  const keyConfigured = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -257,7 +257,7 @@ function MissingKeyNotice() {
         <AlertCircle className="mx-auto mb-2 size-6 text-amber-600" aria-hidden />
         <p className="mb-1 text-sm font-bold text-foreground">Google Maps 키가 설정되지 않았습니다</p>
         <p className="text-[12px] leading-relaxed text-muted-foreground">
-          Vercel 환경변수에 <code className="rounded bg-muted px-1 py-0.5">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code>를 추가하고 Maps JavaScript API + Places API 권한을 활성화하세요. HTTP referrer 제한 권장.
+          Vercel 환경변수에 <code className="rounded bg-muted px-1 py-0.5">NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY</code>를 추가하고 Maps JavaScript API + Places API 권한을 활성화하세요. HTTP referrer 제한 권장.
         </p>
       </div>
     </div>
