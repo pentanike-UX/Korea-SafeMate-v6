@@ -18,6 +18,8 @@ import { HARUWAY_THEME_LABELS, POST_STRUCTURED_CONTENT_VERSION } from "@/types/d
 import { GuardianHaruwayGuideBanner } from "@/components/guardian/guardian-haruway-guide-banner";
 import { GuardianSpotTypeInput } from "@/components/guardian/guardian-spot-type-input";
 import { GuardianSpotCommerceInput } from "@/components/guardian/guardian-spot-commerce-input";
+import { GoogleMapsProvider } from "@/components/maps/google-maps-provider";
+import { GoogleMapDrawer, type MapPickResult } from "@/components/maps/google-map-drawer";
 import { inferRouteStructuredDraftFromPost, routeDataToArticleParsed, serializeRoutePostToShellBody } from "@/lib/post-structured-content";
 import { formatRouteSummaryMeta } from "@/lib/post-seed-content-templates";
 import { saveGuardianRoutePostAction } from "@/app/[locale]/(authed)/guardian/posts/actions";
@@ -315,6 +317,8 @@ export function GuardianRoutePostEditor({
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(journey.spots[0]?.id ?? null);
   const [searchQ, setSearchQ] = useState("");
   const [mapPick, setMapPick] = useState(false);
+  // Google Maps 드로어 — 특정 스팟의 위치를 검색/지도 클릭으로 선택
+  const [mapDrawerSpotId, setMapDrawerSpotId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [routing, setRouting] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -597,7 +601,29 @@ export function GuardianRoutePostEditor({
 
   const format = post.post_format ?? "hybrid";
 
+  // ─── 지도 드로어 confirm 핸들러 ────────────────────────────────────
+  const mapDrawerSpot = mapDrawerSpotId
+    ? journey.spots.find((s) => s.id === mapDrawerSpotId)
+    : null;
+  const onMapDrawerConfirm = (res: MapPickResult) => {
+    if (!mapDrawerSpotId) return;
+    const patch: Partial<RouteSpot> = { lat: res.lat, lng: res.lng };
+    if (res.place) {
+      // 검색 결과로 선택된 경우: 장소명·주소·Google 바인딩까지 자동 채움
+      patch.place_name = res.place.name;
+      if (res.place.formattedAddress) patch.address_line = res.place.formattedAddress;
+      patch.google = {
+        placeId: res.place.placeId,
+        displayName: res.place.name,
+        formattedAddress: res.place.formattedAddress,
+        location: { lat: res.lat, lng: res.lng },
+      };
+    }
+    updateSpot(mapDrawerSpotId, patch);
+  };
+
   return (
+    <GoogleMapsProvider>
     <div className="mx-auto grid min-h-[calc(100vh-8rem)] w-full max-w-[min(100%,96rem)] gap-8 lg:grid-cols-2 lg:gap-10">
       <div className="space-y-10 pb-16">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -939,6 +965,20 @@ export function GuardianRoutePostEditor({
                     {s.title || s.place_name || "무제 스팟"}
                   </button>
                   {s.featured ? <Star className="size-4 fill-amber-400 text-amber-500" /> : null}
+                  <Button
+                    type="button"
+                    size="icon-sm"
+                    variant="ghost"
+                    className="text-[var(--brand-primary)]"
+                    onClick={() => {
+                      setSelectedSpotId(s.id);
+                      setMapDrawerSpotId(s.id);
+                    }}
+                    aria-label={`스팟 ${index + 1} 지도에서 위치 선택`}
+                    title="지도에서 위치 선택"
+                  >
+                    <MapPin className="size-4" />
+                  </Button>
                   <Button type="button" size="icon-sm" variant="ghost" onClick={() => moveSpot(index, -1)} aria-label="위로">
                     <ArrowUp className="size-4" />
                   </Button>
@@ -1442,6 +1482,24 @@ export function GuardianRoutePostEditor({
           </div>
         )}
       </div>
+
+      {/* Google Maps 드로어 — 스팟별 위치 검색·선택 */}
+      <GoogleMapDrawer
+        open={Boolean(mapDrawerSpotId)}
+        onOpenChange={(o) => setMapDrawerSpotId(o ? mapDrawerSpotId : null)}
+        title={
+          mapDrawerSpot
+            ? `스팟 ${mapDrawerSpot.order} 위치 선택 — ${mapDrawerSpot.title || mapDrawerSpot.place_name || "무제"}`
+            : "스팟 위치 선택"
+        }
+        initial={
+          mapDrawerSpot && mapDrawerSpot.lat != null && mapDrawerSpot.lng != null
+            ? { lat: mapDrawerSpot.lat, lng: mapDrawerSpot.lng }
+            : undefined
+        }
+        onConfirm={onMapDrawerConfirm}
+      />
     </div>
+    </GoogleMapsProvider>
   );
 }
