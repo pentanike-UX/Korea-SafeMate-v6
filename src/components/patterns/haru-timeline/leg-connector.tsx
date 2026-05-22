@@ -1,13 +1,8 @@
 import { cn } from "@/lib/utils";
+import { moveMethodMeta } from "@/lib/route-spot-formatting";
 import type { MoveMethod } from "@/types/haru";
 
 /** 스팟 사이 이동 정보 커넥터 */
-
-const METHOD_CONFIG: Record<MoveMethod, { icon: string; label: string; labelKo: string }> = {
-  walk:   { icon: "🚶", label: "walk",   labelKo: "도보" },
-  subway: { icon: "🚇", label: "subway", labelKo: "지하철" },
-  taxi:   { icon: "🚕", label: "taxi",   labelKo: "택시" },
-};
 
 interface LegConnectorProps {
   method: MoveMethod;
@@ -16,7 +11,7 @@ interface LegConnectorProps {
 }
 
 export function LegConnector({ method, durationMin, className }: LegConnectorProps) {
-  const cfg = METHOD_CONFIG[method];
+  const cfg = moveMethodMeta(method);
 
   return (
     <div

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getServerSupabaseForUser } from "@/lib/supabase/server-user";
+import { getDirectionsForCoords } from "@/lib/routing/directions-server";
 
 type MoveMethod = "walk" | "subway" | "taxi";
 type RouteStatus = "draft" | "under_review" | "public" | "private";
@@ -199,6 +200,48 @@ export async function POST(req: Request) {
   const { error: spotsErr } = await sb.from("route_spots").insert(routeSpots);
   if (spotsErr) {
     return NextResponse.json({ error: spotsErr.message }, { status: 500 });
+  }
+
+  // directions 메타를 계산해 routes.directions_meta에 저장 → 사용자 페이지가 외부 호출 없이
+  // 즉시 폴리라인·구간 정보를 사용. 좌표를 spot_catalog에서 재조회(정렬 보장).
+  try {
+    const { data: catalogCoords } = await sb
+      .from("spot_catalog")
+      .select("id, lat, lng")
+      .in("id", uniqueSpotIds);
+    const coordById = new Map<string, { lat: number; lng: number }>();
+    for (const row of catalogCoords ?? []) {
+      const lat = typeof row.lat === "number" ? row.lat : Number(row.lat);
+      const lng = typeof row.lng === "number" ? row.lng : Number(row.lng);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        coordById.set(row.id as string, { lat, lng });
+      }
+    }
+    const orderedCoords = rawSpots
+      .map((s) => coordById.get(s.spot_id))
+      .filter((c): c is { lat: number; lng: number } => c != null);
+
+    if (orderedCoords.length >= 2) {
+      const directions = await getDirectionsForCoords(orderedCoords, "foot");
+      if (directions) {
+        await sb
+          .from("routes")
+          .update({
+            directions_meta: {
+              provider: directions.provider,
+              path: directions.path,
+              legs: directions.legs,
+              distance_m: directions.distance_m,
+              duration_s: directions.duration_s,
+              computed_at: new Date().toISOString(),
+            },
+          })
+          .eq("id", routeId);
+      }
+    }
+  } catch (e) {
+    // directions 실패는 게시 자체를 막지 않음. 사용자 페이지가 fallback fetch로 보강.
+    console.warn("[guardian/routes] directions persist failed", e);
   }
 
   // 스팟·메타 갱신 후 라우트 상세 페이지(모든 locale) 재검증 → directions Runtime Cache는

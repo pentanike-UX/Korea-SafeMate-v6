@@ -284,16 +284,7 @@ export function RouteDayPreview({
               return (
                 <li key={s.id} className="space-y-1">
                   <div className="flex items-center gap-2 text-[13px] leading-tight">
-                    <span
-                      className={cn(
-                        "inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold tabular-nums",
-                        s.featured
-                          ? "bg-amber-400/20 text-amber-700 dark:text-amber-300"
-                          : "bg-primary/10 text-primary",
-                      )}
-                    >
-                      {idx + 1}
-                    </span>
+                    <SpotLeadVisual order={idx + 1} title={s.title || s.place_name || ""} imageUrl={s.image_urls?.[0]} featured={Boolean(s.featured)} />
                     <span className="text-foreground truncate font-medium">
                       {s.title || s.place_name || "무제 스팟"}
                     </span>
@@ -327,6 +318,60 @@ export function RouteDayPreview({
   );
 }
 
+
+/**
+ * 스팟 row 좌측의 작은 비주얼 — 이미지가 있으면 36×36 썸네일 + 우하단 번호 배지,
+ * 없으면 단순 번호 배지(amber=featured / primary=default).
+ */
+function SpotLeadVisual({
+  order,
+  title,
+  imageUrl,
+  featured,
+}: {
+  order: number;
+  title: string;
+  imageUrl?: string;
+  featured: boolean;
+}) {
+  if (imageUrl?.trim()) {
+    return (
+      <div className="relative size-9 shrink-0 overflow-hidden rounded-md border border-border/60 bg-muted">
+        {/* 미리보기 단계의 36px 썸네일 — next/image의 remotePatterns 설정 부담을 피해 plain img 사용 */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageUrl}
+          alt={title}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover"
+        />
+        <span
+          className={cn(
+            "absolute -bottom-1 -right-1 inline-flex size-4 items-center justify-center rounded-full text-[9px] font-bold tabular-nums shadow-sm ring-1 ring-card",
+            featured
+              ? "bg-amber-400 text-amber-950"
+              : "bg-primary text-primary-foreground",
+          )}
+        >
+          {order}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <span
+      className={cn(
+        "inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold tabular-nums",
+        featured
+          ? "bg-amber-400/20 text-amber-700 dark:text-amber-300"
+          : "bg-primary/10 text-primary",
+      )}
+    >
+      {order}
+    </span>
+  );
+}
 
 function MemoNote({ title, body }: { title: string; body: string }) {
   return (

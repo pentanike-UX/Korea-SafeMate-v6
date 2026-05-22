@@ -19,6 +19,7 @@ import { safeNextPath } from "@/lib/auth/safe-next-path";
 import {
   fetchHaruRouteFromSupabase,
   isUuidRouteId,
+  type StoredDirectionsMeta,
 } from "@/lib/routes/haru-route-from-supabase.server";
 import { getServerSupabaseForUser, getSupabaseAuthUserIdOnly } from "@/lib/supabase/server-user";
 import { getDirectionsForCoords } from "@/lib/routing/directions-server";
@@ -44,6 +45,7 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
   let route: HaruRoute | null = null;
   let routeType: "sample" | "custom" | "mock" = "mock";
   let fromDb = false;
+  let routesDirectionsMeta: StoredDirectionsMeta | null = null;
 
   if (isMockRouteId(routeId)) {
     if (!wantsPreview && !userId) {
@@ -61,6 +63,7 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
     route = bundle.haru;
     routeType = bundle.routeType;
     fromDb = true;
+    routesDirectionsMeta = bundle.directionsMeta;
     if (bundle.routeType === "custom" && !wantsPreview && !userId) {
       const loginPath = loginPathForLocale(localeParam as AppLocale);
       const nextPath =
@@ -82,13 +85,28 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
 
   const title = route.title[locale] ?? route.title.en ?? "Route";
 
-  // 서버 측에서 directions를 미리 계산 → Vercel Runtime Cache(24h)에 저장,
-  // 같은 좌표 집합이면 외부 호출 1회만 발생. 클라이언트 fetch 생략.
-  const directionsCoords = [...route.spots]
-    .sort((a, b) => a.order - b.order)
-    .map((s) => ({ lat: s.catalog.lat, lng: s.catalog.lng }));
-  const directions =
-    directionsCoords.length >= 2 ? await getDirectionsForCoords(directionsCoords, "foot") : null;
+  // directions 우선순위:
+  //   1) routes.directions_meta (delivery 시점에 저장) — 외부 호출 0회.
+  //   2) Vercel Runtime Cache 또는 라이브 컴퓨트 (24h 캐시 사용).
+  // mock 라우트는 DB 메타가 없으므로 항상 라이브 컴퓨트.
+  let directions: {
+    path: Array<{ lat: number; lng: number }>;
+    legs: Array<{ distance_m: number | null; duration_s: number | null }>;
+    provider: "google" | "osrm";
+  } | null = null;
+
+  const storedMeta = fromDb ? routesDirectionsMeta : null;
+  if (storedMeta) {
+    directions = { path: storedMeta.path, legs: storedMeta.legs, provider: storedMeta.provider };
+  } else {
+    const directionsCoords = [...route.spots]
+      .sort((a, b) => a.order - b.order)
+      .map((s) => ({ lat: s.catalog.lat, lng: s.catalog.lng }));
+    if (directionsCoords.length >= 2) {
+      const r = await getDirectionsForCoords(directionsCoords, "foot");
+      if (r) directions = { path: r.path, legs: r.legs, provider: r.provider };
+    }
+  }
 
   return (
     <main className="min-h-screen bg-bg">

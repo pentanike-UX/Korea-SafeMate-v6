@@ -9,6 +9,35 @@
 
 ---
 
+## 2026-05-22 - leg-connector 흡수 + routes.directions_meta DB 저장 + 미리보기 썸네일
+
+### 목표
+
+- `leg-connector.tsx`의 `METHOD_CONFIG`(walk/subway/taxi 아이콘·라벨)를 `route-spot-formatting`으로 흡수 → 이모지 정의 단일 소스화.
+- delivery 시점에 directions 결과를 `routes.directions_meta` JSONB에 저장 → 사용자 페이지가 외부 호출 0회로 즉시 사용.
+- 에디터 미리보기 "스팟별 흐름"의 row에 36×36 썸네일 + 우하단 번호 배지(이미지 없을 땐 기존 배지) 노출.
+
+### 변경 파일
+
+- `src/lib/route-spot-formatting.ts` — `MoveMethodMeta` + 단일 `MOVE_META`로 통합, `moveMethodMeta(mode)`/`nextMoveEmoji(mode)`가 같은 소스를 본다.
+- `src/components/patterns/haru-timeline/leg-connector.tsx` — 로컬 `METHOD_CONFIG` 제거, `moveMethodMeta` import.
+- `supabase/migrations/20260522180000_routes_directions_meta.sql` (신규) — `alter table public.routes add column directions_meta jsonb null;` + comment.
+- `src/app/api/guardian/routes/route.ts` — 스팟 인서트 직후 `spot_catalog`에서 좌표 재조회 → `getDirectionsForCoords` 호출 → `routes.directions_meta` 업데이트. 실패는 게시를 막지 않음(warn 로깅).
+- `src/lib/routes/haru-route-from-supabase.server.ts` — select에 `directions_meta` 추가, `StoredDirectionsMeta` 타입 export, `FetchedHaruBundle.directionsMeta` 노출. 최소 검증으로 안전 캐스팅.
+- `src/app/[locale]/(public)/routes/[routeId]/page.tsx` — 우선순위 1) `routes.directions_meta` 2) 라이브 컴퓨트(24h cache). mock은 항상 라이브.
+- `src/components/route-posts/route-day-preview.tsx` — `SpotLeadVisual` 컴포넌트 신설: `image_urls[0]`이 있으면 썸네일 + 우하단 번호 오버레이, 없으면 기존 번호 배지. 36px 한정이라 `<img>` 사용 + 명시적 eslint-disable 주석.
+
+### 검증 결과
+
+- `pnpm build` 통과 (693 페이지).
+- `pnpm lint` — 본 변경 파일에서 신규 경고/오류 없음 (기존 `AppLocale` 미사용 경고만 남음).
+- 마이그레이션 적용 전에는 `directions_meta`가 항상 `null`이라 페이지가 라이브 컴퓨트로 폴백 — **배포 안전 확인 필요**.
+
+### 남은 이슈
+
+- 마이그레이션 미적용 환경에서 `select(... directions_meta ...)`이 PostgREST 오류를 낼 가능성 — Supabase에 마이그레이션 먼저 적용 후 빌드 배포 권장. 실패 시에는 select 에러 → `fetchHaruRouteFromSupabase`가 null 반환 → notFound로 빠짐.
+- 미리보기 썸네일은 plain `<img>` — 향후 `<Image />` + remotePatterns 정비 시 일괄 전환.
+
 ## 2026-05-22 - 라우트 스팟 포맷 공용 유틸 + 헬스 admin 게이트 + 에디터 모드 이모지
 
 ### 목표

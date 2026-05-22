@@ -256,11 +256,22 @@ export async function listTravelerPurchasedRoutes(
   });
 }
 
+export interface StoredDirectionsMeta {
+  provider: "google" | "osrm";
+  path: Array<{ lat: number; lng: number }>;
+  legs: Array<{ distance_m: number | null; duration_s: number | null }>;
+  distance_m: number | null;
+  duration_s: number | null;
+  computed_at: string;
+}
+
 export type FetchedHaruBundle = {
   haru: HaruRoute;
   routeType: "sample" | "custom";
   /** DB `routes.status` */
   status: string;
+  /** delivery 시점에 미리 저장한 directions 결과(있다면). 페이지가 외부 호출을 건너뜀. */
+  directionsMeta: StoredDirectionsMeta | null;
 };
 
 export async function fetchHaruRouteFromSupabase(
@@ -274,7 +285,7 @@ export async function fetchHaruRouteFromSupabase(
     .select(
       `id, guardian_user_id, title_ko, title_en, title_th, title_vi,
        total_duration_min, estimated_cost_min_krw, estimated_cost_max_krw,
-       cover_image_url, status, route_type,
+       cover_image_url, status, route_type, directions_meta,
        route_spots (
          id, sort_order, stay_min,
          guardian_note_ko, guardian_note_en, guardian_note_th, guardian_note_vi,
@@ -308,9 +319,29 @@ export async function fetchHaruRouteFromSupabase(
   }
 
   const haru = mapRouteRowToHaruRoute(row, guardianName, guardianPhoto);
+
+  // directions_meta는 jsonb — 최소 검증으로 안전하게 캐스팅(필드 누락 시 null로 폴백).
+  const rawMeta = (row as unknown as { directions_meta?: unknown }).directions_meta;
+  let directionsMeta: StoredDirectionsMeta | null = null;
+  if (rawMeta && typeof rawMeta === "object") {
+    const m = rawMeta as Record<string, unknown>;
+    const path = Array.isArray(m.path) ? (m.path as Array<{ lat: number; lng: number }>) : null;
+    if (path && path.length >= 2 && (m.provider === "google" || m.provider === "osrm")) {
+      directionsMeta = {
+        provider: m.provider,
+        path,
+        legs: Array.isArray(m.legs) ? (m.legs as StoredDirectionsMeta["legs"]) : [],
+        distance_m: typeof m.distance_m === "number" ? m.distance_m : null,
+        duration_s: typeof m.duration_s === "number" ? m.duration_s : null,
+        computed_at: typeof m.computed_at === "string" ? m.computed_at : "",
+      };
+    }
+  }
+
   return {
     haru,
     routeType: row.route_type as "sample" | "custom",
     status: row.status,
+    directionsMeta,
   };
 }
