@@ -1,34 +1,30 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
 import { Globe, Youtube, Instagram, Play, ExternalLink, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SpotArtist } from "@/types/haru";
 import { TrackCover } from "@/components/routes/spot-soundtrack-hero";
 
 /**
- * 시트 본문의 "Artist Spotlight" 섹션 (B 패턴).
- * 여러 아티스트가 묶인 스팟이면 칩 탭으로 본문 교체, 1명이면 칩 숨김.
+ * 시트 본문의 아티스트 섹션 — 묶인 모든 아티스트를 한 번에 카드 리스트로 노출.
+ * (이전: 칩 탭으로 한 명씩 전환 → 변경: 카드 스택으로 한꺼번에 표시)
  *
- * 구성 (per artist):
- *  1. 헤더: 아바타 + 이름·소속사
- *  2. 외부 링크 칩 row: 공식 사이트 / YouTube / Instagram / 소속사
- *  3. scene 인용
- *  4. 트랙 라이브러리 (가로 스크롤)
- *  5. 공식 영상 (16:9 카드 2~3개)
+ * 카드 구성 (per artist):
+ *  - 헤더: 아바타 + 이름 + 소속사
+ *  - 외부 링크 칩: 공식 사이트 / YouTube / Instagram / 소속사
+ *  - scene 인용 (한 줄)
+ *  - 트랙 가로 스크롤 (앞 스팟에서 큐레이션된 음악 요약)
+ *  - 공식 영상 (16:9 두 컷, 있을 때만)
  */
 export function ArtistSpotlight({
   artists,
-  label = "Artist Spotlight",
+  label = "관련 아티스트",
 }: {
   artists: SpotArtist[] | undefined;
   label?: string;
 }) {
-  const [activeId, setActiveId] = useState<string | null>(artists?.[0]?.id ?? null);
   if (!artists || artists.length === 0) return null;
-
-  const active = artists.find((a) => a.id === activeId) ?? artists[0]!;
 
   return (
     <section
@@ -39,83 +35,59 @@ export function ArtistSpotlight({
         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           🎤 {label}
         </p>
-        {artists.length > 1 ? (
-          <p className="text-[10px] text-muted-foreground">{artists.length}명</p>
-        ) : null}
+        <p className="text-[10px] text-muted-foreground">{artists.length}명</p>
       </header>
 
-      {/* 다중 아티스트 — 칩 탭 */}
-      {artists.length > 1 ? (
-        <div className="mb-3 flex flex-wrap gap-1.5" role="tablist">
-          {artists.map((a) => {
-            const isActive = a.id === active.id;
-            return (
-              <button
-                key={a.id}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => setActiveId(a.id)}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ksm",
-                  isActive
-                    ? cn(a.accent_class ?? "bg-foreground text-background", "shadow-sm")
-                    : "bg-muted text-muted-foreground hover:bg-muted/70",
-                )}
-              >
-                <ArtistDot artist={a} active={isActive} />
-                {a.name}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
-
-      <ArtistPanel artist={active} />
+      <ul className="space-y-3">
+        {artists.map((a) => (
+          <li key={a.id}>
+            <ArtistCard artist={a} />
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
 
-function ArtistPanel({ artist }: { artist: SpotArtist }) {
+function ArtistCard({ artist }: { artist: SpotArtist }) {
   return (
-    <div className="space-y-4">
+    <article className="rounded-xl border border-border/40 bg-background/60 p-3 space-y-2.5">
       {/* 헤더 */}
-      <div className="flex gap-3">
-        <ArtistAvatar artist={artist} size={48} />
+      <div className="flex gap-2.5">
+        <ArtistAvatar artist={artist} size={40} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-1.5">
-            <p className="text-sm font-bold text-foreground">{artist.name}</p>
+            <p className="text-[13.5px] font-bold leading-tight text-foreground">{artist.name}</p>
             {artist.name_en && artist.name_en !== artist.name ? (
-              <span className="text-[11px] text-muted-foreground">· {artist.name_en}</span>
+              <span className="text-[10.5px] text-muted-foreground">· {artist.name_en}</span>
             ) : null}
           </div>
           {artist.agency ? (
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              <Building2 className="mr-1 inline size-3 -translate-y-px opacity-60" aria-hidden />
+            <p className="mt-0.5 text-[10.5px] text-muted-foreground">
+              <Building2 className="mr-1 inline size-2.5 -translate-y-px opacity-60" aria-hidden />
               {artist.agency}
             </p>
           ) : null}
         </div>
       </div>
 
-      {/* 외부 링크 칩 row */}
+      {/* 외부 링크 칩 */}
       <LinkChips artist={artist} />
 
       {/* scene 인용 */}
       {artist.scene ? (
-        <p className="text-[12px] leading-relaxed italic text-foreground/80 border-l-2 border-foreground/15 pl-3">
+        <p className="text-[11.5px] leading-snug italic text-foreground/75 border-l-2 border-foreground/15 pl-2.5">
           “{artist.scene}”
         </p>
       ) : null}
 
-      {/* 대표곡 칩 (rep_works) — 트랙이 없는 경우에도 텍스트로 노출 */}
+      {/* 대표곡 (rep_works) — 트랙이 없는 경우의 폴백 */}
       {artist.rep_works && artist.rep_works.length > 0 && !artist.tracks?.length ? (
-        <div className="flex flex-wrap gap-1.5">
-          {artist.rep_works.map((w) => (
+        <div className="flex flex-wrap gap-1">
+          {artist.rep_works.slice(0, 5).map((w) => (
             <span
               key={w}
-              className="rounded-full bg-muted px-2 py-0.5 text-[10.5px] font-medium text-foreground/75"
+              className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-foreground/70"
             >
               {w}
             </span>
@@ -123,43 +95,38 @@ function ArtistPanel({ artist }: { artist: SpotArtist }) {
         </div>
       ) : null}
 
-      {/* 트랙 라이브러리 (가로 스크롤) */}
+      {/* 트랙 가로 스크롤 */}
       {artist.tracks && artist.tracks.length > 0 ? (
         <div>
-          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground/70">
-            <Play className="size-3 fill-current" />
-            이 장소와 어울리는 곡
+          <p className="mb-1.5 flex items-center gap-1 text-[9.5px] font-bold uppercase tracking-wider text-foreground/70">
+            <Play className="size-2.5 fill-current" />
+            관련 곡
           </p>
           <ul
-            className="flex gap-2.5 overflow-x-auto pb-1.5 -mx-3.5 px-3.5 snap-x snap-mandatory"
+            className="flex gap-2 overflow-x-auto pb-1 -mx-3 px-3"
             role="list"
           >
             {artist.tracks.map((t) => (
-              <li key={t.id} className="snap-start shrink-0">
+              <li key={t.id} className="shrink-0">
                 <a
                   href={t.youtube_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`${t.title} — YouTube`}
-                  className="group block w-24 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ksm rounded-xl"
+                  className="group block w-[72px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ksm rounded-lg"
                 >
                   <div className="relative">
-                    <TrackCover track={t} artist={artist} size="md" />
+                    <TrackCover track={t} artist={artist} size="sm" />
                     <span
                       aria-hidden
                       className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/0 opacity-0 transition-all group-hover:bg-black/35 group-hover:opacity-100"
                     >
-                      <Play className="size-6 fill-white text-white drop-shadow" />
+                      <Play className="size-4 fill-white text-white drop-shadow" />
                     </span>
                   </div>
-                  <p className="mt-1.5 line-clamp-2 text-[10.5px] font-medium leading-tight text-foreground">
-                    {t.title}
+                  <p className="mt-1 line-clamp-2 text-[9.5px] font-medium leading-tight text-foreground">
+                    {t.title_ko ?? t.title}
                   </p>
-                  {t.title_ko && t.title_ko !== t.title ? (
-                    <p className="line-clamp-1 text-[9.5px] text-muted-foreground">
-                      〈{t.title_ko}〉
-                    </p>
-                  ) : null}
                 </a>
               </li>
             ))}
@@ -167,46 +134,46 @@ function ArtistPanel({ artist }: { artist: SpotArtist }) {
         </div>
       ) : null}
 
-      {/* 공식 영상 (16:9) */}
+      {/* 공식 영상 (있을 때만, 최대 2개) */}
       {artist.featured_videos && artist.featured_videos.length > 0 ? (
         <div>
-          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-foreground/70">
-            <Youtube className="size-3" />
+          <p className="mb-1.5 flex items-center gap-1 text-[9.5px] font-bold uppercase tracking-wider text-foreground/70">
+            <Youtube className="size-2.5" />
             공식 영상
           </p>
-          <div className="grid grid-cols-2 gap-2.5">
-            {artist.featured_videos.map((v) => (
+          <div className="grid grid-cols-2 gap-2">
+            {artist.featured_videos.slice(0, 2).map((v) => (
               <a
                 key={v.id}
                 href={v.youtube_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${v.title} — YouTube`}
-                className="group flex flex-col gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ksm rounded-lg"
+                className="group flex flex-col gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ksm rounded-md"
               >
-                <div className="relative aspect-video overflow-hidden rounded-lg bg-muted">
+                <div className="relative aspect-video overflow-hidden rounded-md bg-muted">
                   <Image
                     src={v.thumbnail_url}
                     alt={v.title}
                     fill
-                    sizes="(max-width: 640px) 45vw, 320px"
+                    sizes="(max-width: 640px) 40vw, 220px"
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                   <span
                     aria-hidden
                     className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/45 via-transparent to-transparent"
                   >
-                    <span className="flex size-9 items-center justify-center rounded-full bg-white/95 text-foreground shadow-md transition-transform group-hover:scale-110">
-                      <Play className="size-4 translate-x-px fill-current" />
+                    <span className="flex size-7 items-center justify-center rounded-full bg-white/95 text-foreground shadow-md transition-transform group-hover:scale-110">
+                      <Play className="size-3 translate-x-px fill-current" />
                     </span>
                   </span>
                   {v.kind ? (
-                    <span className="absolute left-1.5 top-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-white">
+                    <span className="absolute left-1 top-1 rounded bg-black/70 px-1 py-px text-[8px] font-bold uppercase tracking-wider text-white">
                       {videoKindLabel(v.kind)}
                     </span>
                   ) : null}
                 </div>
-                <p className="line-clamp-2 text-[11px] font-medium leading-tight text-foreground/85 group-hover:text-foreground">
+                <p className="line-clamp-2 text-[10px] font-medium leading-tight text-foreground/85 group-hover:text-foreground">
                   {v.title}
                 </p>
               </a>
@@ -214,7 +181,7 @@ function ArtistPanel({ artist }: { artist: SpotArtist }) {
           </div>
         </div>
       ) : null}
-    </div>
+    </article>
   );
 }
 
@@ -245,14 +212,14 @@ function LinkChips({ artist }: { artist: SpotArtist }) {
     chips.push({
       href: artist.official_site_url,
       label: "공식 사이트",
-      icon: <Globe className="size-3.5" />,
+      icon: <Globe className="size-3" />,
     });
   }
   if (artist.youtube_channel_url) {
     chips.push({
       href: artist.youtube_channel_url,
       label: "YouTube",
-      icon: <Youtube className="size-3.5" />,
+      icon: <Youtube className="size-3" />,
       accent: "text-red-600 dark:text-red-400",
     });
   }
@@ -260,7 +227,7 @@ function LinkChips({ artist }: { artist: SpotArtist }) {
     chips.push({
       href: artist.instagram_url,
       label: "Instagram",
-      icon: <Instagram className="size-3.5" />,
+      icon: <Instagram className="size-3" />,
       accent: "text-pink-600 dark:text-pink-400",
     });
   }
@@ -268,14 +235,14 @@ function LinkChips({ artist }: { artist: SpotArtist }) {
     chips.push({
       href: artist.agency_url,
       label: "소속사",
-      icon: <Building2 className="size-3.5" />,
+      icon: <Building2 className="size-3" />,
     });
   }
 
   if (chips.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-1">
       {chips.map((c) => (
         <a
           key={c.label}
@@ -283,41 +250,22 @@ function LinkChips({ artist }: { artist: SpotArtist }) {
           target="_blank"
           rel="noopener noreferrer"
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background px-2.5 py-1 text-[11px] font-medium text-foreground/85 transition-colors",
+            "inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-0.5 text-[10.5px] font-medium text-foreground/85 transition-colors",
             "hover:border-foreground/30 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ksm",
           )}
         >
           <span className={c.accent}>{c.icon}</span>
           {c.label}
-          <ExternalLink className="size-2.5 opacity-50" aria-hidden />
+          <ExternalLink className="size-2 opacity-50" aria-hidden />
         </a>
       ))}
     </div>
   );
 }
 
-function ArtistDot({ artist, active }: { artist: SpotArtist; active: boolean }) {
-  if (artist.avatar_url) {
-    return (
-      <span className="relative inline-block size-3.5 overflow-hidden rounded-full ring-1 ring-white/40">
-        <Image src={artist.avatar_url} alt="" fill sizes="14px" className="object-cover" />
-      </span>
-    );
-  }
-  return (
-    <span
-      className={cn(
-        "inline-block size-2 rounded-full",
-        active ? "bg-current opacity-60" : artist.accent_class ?? "bg-foreground",
-      )}
-      aria-hidden
-    />
-  );
-}
-
-function ArtistAvatar({ artist, size = 48 }: { artist: SpotArtist; size?: number }) {
+function ArtistAvatar({ artist, size = 40 }: { artist: SpotArtist; size?: number }) {
   const dim = `${size}px`;
-  const fontSize = size <= 32 ? 11 : size <= 44 ? 13 : 14;
+  const fontSize = size <= 32 ? 11 : size <= 44 ? 12 : 14;
 
   if (artist.avatar_url) {
     return (
