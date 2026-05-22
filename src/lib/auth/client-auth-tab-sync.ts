@@ -1,5 +1,5 @@
 /**
- * 탭 간 auth / mock 가디언 쿠키 전환 알림 (BroadcastChannel).
+ * 탭 간 auth / mock 하루이 쿠키 전환 알림 (BroadcastChannel).
  * 쿠키는 탭 간 공유되지만 JS 상태는 자동 갱신되지 않아, 다른 탭에서 로그인·로그아웃 시 이 채널로 동기화한다.
  *
  * 브로드캐스트 호출 위치:

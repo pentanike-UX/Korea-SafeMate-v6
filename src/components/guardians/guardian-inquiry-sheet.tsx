@@ -77,7 +77,7 @@ export function GuardianInquirySheetGlobal() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  /* 페이지 레벨 가디언 기본값 수신 */
+  /* 페이지 레벨 하루이 기본값 수신 */
   useEffect(() => {
     const onDefaults = (e: Event) => setDefaults((e as CustomEvent).detail ?? {});
     window.addEventListener(GUARDIAN_REQUEST_DEFAULTS_EVENT, onDefaults);
@@ -361,7 +361,7 @@ export function GuardianInquirySheetGlobal() {
             <>
               {messages.map((msg) =>
                 msg.sender_role !== "traveler" ? (
-                  /* 가디언 / AI 메시지 — 왼쪽 */
+                  /* 하루이 / AI 메시지 — 왼쪽 */
                   <div key={msg.id} className="mb-3 flex items-end gap-2">
                     <div className="relative size-7 shrink-0 overflow-hidden rounded-full border border-border/40">
                       <Image
@@ -371,7 +371,7 @@ export function GuardianInquirySheetGlobal() {
                         className={cn(GUARDIAN_AVATAR_COVER_CLASS)}
                         sizes="28px"
                       />
-                      {/* AI 답변 배지 — 가디언 뷰에서만 의미 있지만 여기선 아이콘으로 표시 */}
+                      {/* AI 답변 배지 — 하루이 뷰에서만 의미 있지만 여기선 아이콘으로 표시 */}
                       {msg.is_ai_reply && (
                         <span className="absolute -right-0.5 -top-0.5 flex size-3.5 items-center justify-center rounded-full bg-violet-500 ring-1 ring-white">
                           <Bot className="size-2 text-white" />

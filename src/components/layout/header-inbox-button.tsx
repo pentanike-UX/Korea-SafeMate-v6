@@ -5,7 +5,7 @@
  * - 30초마다 /api/notifications/unread 폴링
  * - visibility 복귀 시 즉시 갱신
  * - 실 사용자: /mypage/messages 로 이동
- * - 모의 가디언/실 가디언: /mypage/guardian/messages 로 이동
+ * - 모의 하루이/실 하루이: /mypage/guardian/messages 로 이동
  */
 
 import { useCallback, useEffect, useState } from "react";

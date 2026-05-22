@@ -62,7 +62,7 @@ export function BookingSuccessClient() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
-      {/* 매칭된 가디언이 있으면 임팩트 헤로 카드 노출 */}
+      {/* 매칭된 하루이가 있으면 임팩트 헤로 카드 노출 */}
       {matchedGuardian ? (
         <div className="mb-10">
           <MatchedGuardianHeroCard

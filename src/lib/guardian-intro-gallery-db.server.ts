@@ -1,7 +1,7 @@
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 
 /**
- * DB에 저장된 소개 갤러리(관리자·가디언 계정 저장).
+ * DB에 저장된 소개 갤러리(관리자·하루이 계정 저장).
  * 서비스 롤이 없거나 테이블/행이 없으면 `unavailable` → `mergePublicGuardian`의 파일 폴백 유지.
  */
 export async function getIntroGalleryResolutionFromDb(guardianUserId: string): Promise<

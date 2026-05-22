@@ -37,7 +37,7 @@ export default async function GuardianDetailPage({ params }: Props) {
   const gRaw = await getPublicGuardianByIdMerged(guardianId);
   if (!gRaw) notFound();
 
-  // 데모 큐레이션 — 박도윤 등 시연 종착 가디언은 영어 locale에서 영어 카피 사용
+  // 데모 큐레이션 — 박도윤 등 시연 종착 하루이는 영어 locale에서 영어 카피 사용
   const g = applyGuardianDemoCuration(gRaw, locale);
 
   const introRes = await getIntroGalleryResolutionFromDb(guardianId);

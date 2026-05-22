@@ -85,7 +85,7 @@ export function HomeQuickStartExplorer() {
 
         {!canExplore ? (
           <p className="text-muted-foreground mb-6 text-sm">
-            지역과 무드를 고르면 맞는 가디언을 바로 볼 수 있어요
+            지역과 무드를 고르면 맞는 하루이를 바로 볼 수 있어요
           </p>
         ) : (
           <div className="mb-6 flex flex-wrap items-center gap-2">

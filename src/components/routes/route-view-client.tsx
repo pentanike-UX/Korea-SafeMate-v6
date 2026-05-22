@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Check, Sparkles } from "lucide-react";
 import { HaruTimeline } from "@/components/patterns/haru-timeline";
@@ -28,6 +28,12 @@ export function RouteViewClient({
   const [unlocked, setUnlocked] = useState(initialUnlocked);
   // 스팟 상세 시트 — 잠금 해제 후만 활성
   const [selectedSpot, setSelectedSpot] = useState<HaruSpot | null>(null);
+
+  // 진입 시·잠금 해제 시 페이지 최상단으로 스크롤 — 하단에 머물러 위로 올려야 하는 문제 해결.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [unlocked]);
 
   if (!unlocked) {
     return <RouteFreePreviewSection route={route} locale={locale} onUnlock={() => setUnlocked(true)} />;

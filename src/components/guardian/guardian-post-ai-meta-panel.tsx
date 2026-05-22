@@ -18,7 +18,7 @@ import { Loader2, Sparkles, X } from "lucide-react";
 
 const COPY = {
   stepLabel: "4. AI 메타 추천",
-  stepHint: "초안이 갖춰지면 분석을 실행할 수 있어요. AI는 제안만 하며, 적용은 가디언이 결정합니다.",
+  stepHint: "초안이 갖춰지면 분석을 실행할 수 있어요. AI는 제안만 하며, 적용은 하루이가 결정합니다.",
   gatePrefix: "버튼 활성 조건: ",
   ctaFetch: "AI 추천 받기",
   ctaRefetch: "다시 분석하기",

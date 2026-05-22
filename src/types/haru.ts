@@ -110,7 +110,7 @@ export interface HaruSpot {
   /** 스팟에서 머무는 시간 (분) */
   stay_min: number;
 
-  /** 가디언이 이 스팟에 대해 쓴 짧은 메모 */
+  /** 하루이가 이 스팟에 대해 쓴 짧은 메모 */
   guardian_note: LocaleMap;
 
   /** 이전 스팟 → 이 스팟 이동 수단/시간 (첫 스팟은 null) */
@@ -161,7 +161,7 @@ export interface HaruSpot {
   details?: {
     /** 갤러리 이미지 URL (최대 9장 권장) */
     gallery_image_urls?: string[];
-    /** "왜 여기냐면" — 가디언의 추천 이유 */
+    /** "왜 여기냐면" — 하루이의 추천 이유 */
     why_here?: LocaleMap;
     /** "여기서 할 것" — 액션 가이드 */
     what_to_do?: LocaleMap;

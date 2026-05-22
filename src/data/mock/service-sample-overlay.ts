@@ -1079,8 +1079,8 @@ const ROUTE_SAMPLE_DEFINITIONS = SAMPLE_DEFINITIONS.filter((d) => d.withRoute);
 
 export function applyServiceSampleOverlay(posts: ContentPost[]): ContentPost[] {
   // 데모 효과를 위해 모든 포스트에 SampleDef를 순환 적용한다.
-  // (이전 v1: 짝수 인덱스만 적용 → 일부 가디언(mg14/mg15)이 route_journey 0건)
-  // (이전 v2: 모든 19개 SampleDef 순환 → withRoute:false 2개가 일부 가디언에 몰려 0건)
+  // (이전 v1: 짝수 인덱스만 적용 → 일부 하루이(mg14/mg15)이 route_journey 0건)
+  // (이전 v2: 모든 19개 SampleDef 순환 → withRoute:false 2개가 일부 하루이에 몰려 0건)
   // 현재: withRoute:true 17개만 순환 → 모든 포스트 100% route_journey 보유.
   const sorted = [...posts].sort((a, b) => a.id.localeCompare(b.id));
   return sorted.map((p, i) => {

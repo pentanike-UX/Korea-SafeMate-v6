@@ -64,7 +64,7 @@ export function postContextFromGuardianRepresentative(
 }
 
 /**
- * 대표 id가 승인 카탈로그에 없을 때 가디언 최신 승인 포스트로 요청 시트 맥락을 채운다.
+ * 대표 id가 승인 카탈로그에 없을 때 하루이 최신 승인 포스트로 요청 시트 맥락을 채운다.
  * `fallbackPost`는 호출측에서 `getLatestApprovedPostsForGuardiansMergedBatch` 등으로 준비.
  */
 export function postContextFromGuardianRepresentativeWithFallback(

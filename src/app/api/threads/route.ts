@@ -1,5 +1,5 @@
 /**
- * POST /api/threads — pre_booking 스레드 upsert (여행자가 가디언에게 첫 문의)
+ * POST /api/threads — pre_booking 스레드 upsert (여행자가 하루이에게 첫 문의)
  * GET  /api/threads — 현재 로그인 사용자의 스레드 목록 (미리보기·미읽음 포함)
  */
 import { NextResponse } from "next/server";

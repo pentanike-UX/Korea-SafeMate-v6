@@ -1,4 +1,4 @@
-/** MVP mock — 시드 가디언 ID·포스트 ID와 정합. */
+/** MVP mock — 시드 하루이 ID·포스트 ID와 정합. */
 
 import type { TravelerHubRegionLabelKey } from "@/lib/mypage/traveler-hub-region-key";
 

@@ -68,7 +68,7 @@ export function CustomRequestForm({ guardianId }: Props) {
         <p className="text-sm text-ink-muted">{t("formLead")}</p>
       </header>
 
-      {/* 가디언 선택 표시 */}
+      {/* 하루이 선택 표시 */}
       {guardianId && (
         <div className="flex items-center gap-2 rounded-[var(--radius-md)] border border-accent-soft bg-accent-soft/30 px-4 py-2.5">
           <span className="text-xs font-semibold text-accent-dark">{t("guardianLabel")}:</span>

@@ -5,7 +5,7 @@ import { buildGuardianSeedRecords, GUARDIAN_SEED_ROWS } from "./guardians-seed";
 let cachedBundle: GuardianSeedBundle | null = null;
 
 /**
- * 가디언 시드 번들 — 프로필·포인트·포스트가 같은 `user_id`로 연결됩니다.
+ * 하루이 시드 번들 — 프로필·포인트·포스트가 같은 `user_id`로 연결됩니다.
  * Traveler/Match 확장 시 `GuardianSeedRecord`에 `traveler_user_ids` 등을 옵션 필드로 추가하고,
  * 이 함수에서 `bookings`/`matches` 시드를 같은 ID로 합치면 됩니다.
  */

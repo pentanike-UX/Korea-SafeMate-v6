@@ -101,7 +101,7 @@ function trustItems(row: GuardianSeedRow, name: string): GuardianTrustReasonItem
   return items.slice(0, 4);
 }
 
-/** 시드 가디언 상세 카피 — 공개 상세·가디언 편집 API와 동일 필드 모델 */
+/** 시드 하루이 상세 카피 — 공개 상세·하루이 편집 API와 동일 필드 모델 */
 export function buildDetailMarketingForRow(row: GuardianSeedRow): Pick<
   GuardianMarketingProfile,
   | "short_bio"

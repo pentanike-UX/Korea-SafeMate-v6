@@ -14,7 +14,7 @@ let clientPointsFetchCache: { userId: string; at: number; data: MypagePointsApiR
  * - `google-sign-in-button` — OAuth 직전 mock 쿠키 제거 직후
  * - `client-auth-tab-sync` — 다른 탭에서 `broadcastClientAuthContextChanged` 수신 시 (`use-auth-user`)
  *
- * mock 가디언 쿠키 전환은 `use-auth-user`의 포커스/가시성·BroadcastChannel 재동기화로 보강한다.
+ * mock 하루이 쿠키 전환은 `use-auth-user`의 포커스/가시성·BroadcastChannel 재동기화로 보강한다.
  */
 export function invalidateClientPointsCache(): void {
   clientPointsFetchCache = null;

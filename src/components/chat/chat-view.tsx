@@ -183,7 +183,7 @@ export function ChatView({
                     className={cn(GUARDIAN_AVATAR_COVER_CLASS)}
                     sizes="32px"
                   />
-                  {/* AI 배지 — 가디언 뷰에서만 */}
+                  {/* AI 배지 — 하루이 뷰에서만 */}
                   {msg.is_ai_reply && viewerRole === "guardian" && (
                     <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-violet-500 ring-1 ring-white">
                       <Bot className="size-2.5 text-white" />

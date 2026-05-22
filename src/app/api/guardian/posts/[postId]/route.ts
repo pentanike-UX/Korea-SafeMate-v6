@@ -40,7 +40,7 @@ export async function PATCH(req: Request, ctx: Props) {
 }
 
 /**
- * 가디언 본인 포스트 삭제. 요청 헤더에 `x-guardian-author-id`로 작성자 식별.
+ * 하루이 본인 포스트 삭제. 요청 헤더에 `x-guardian-author-id`로 작성자 식별.
  * 미설정 또는 비밀 검증 실패 시 401.
  */
 export async function DELETE(req: Request, ctx: Props) {

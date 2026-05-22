@@ -119,13 +119,13 @@ function isConsumerAuthedPath(pathWithoutLocale: string) {
   );
 }
 
-/** `/guardians`·`/guardians/*`는 공개 — 가디언 허브만 `/guardian` 접두로 구분 */
+/** `/guardians`·`/guardians/*`는 공개 — 하루이 허브만 `/guardian` 접두로 구분 */
 function isGuardianContributorPath(pathWithoutLocale: string) {
   if (pathWithoutLocale.startsWith("/guardians")) return false;
   return pathWithoutLocale === "/guardian" || pathWithoutLocale.startsWith("/guardian/");
 }
 
-/** 여행자도 신청·온보딩·프로필 편집을 위해 접근 가능한 가디언 영역 (포스팅/매칭 제외). */
+/** 여행자도 신청·온보딩·프로필 편집을 위해 접근 가능한 하루이 영역 (포스팅/매칭 제외). */
 function isGuardianOnboardingOrHubPath(pathWithoutLocale: string) {
   if (pathWithoutLocale === "/guardian" || pathWithoutLocale === "/guardian/") return true;
   if (pathWithoutLocale.startsWith("/guardian/onboarding")) return true;

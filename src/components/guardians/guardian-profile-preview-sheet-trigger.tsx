@@ -233,7 +233,7 @@ export function GuardianProfilePreviewPanel({
  * Public + mypage: opens guardian preview in sheet; full profile / booking only after explicit choice.
  *
  * `postContext`: 프리뷰·요청 시트에 같은 포스트 맥락을 이어 줄 때만(포스트 상세·대표 포스트 해석 가능한 목록 등).
- * 생략 시 요청 CTA는 가디언 정보만으로 열린다.
+ * 생략 시 요청 CTA는 하루이 정보만으로 열린다.
  */
 export function GuardianProfilePreviewSheetTrigger({
   guardian,

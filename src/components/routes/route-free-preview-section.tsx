@@ -9,7 +9,7 @@ import type { HaruRoute, AppLocale } from "@/types/haru";
 import { cn } from "@/lib/utils";
 
 /**
- * 무료 영역 — Hero + 통계 + 가디언 + 첫 스팟 미리보기 + 잠긴 스팟 카운트 + "결제하면 풀리는 것" + Unlock CTA.
+ * 무료 영역 — Hero + 통계 + 하루이 + 첫 스팟 미리보기 + 잠긴 스팟 카운트 + "결제하면 풀리는 것" + Unlock CTA.
  * preview 모드 (= 미결제)에서 노출. 결제 시 onUnlock 콜백으로 unlock 상태 전환.
  */
 export function RouteFreePreviewSection({
@@ -59,7 +59,7 @@ export function RouteFreePreviewSection({
       <Sun className="size-3.5" />
     );
 
-  // 가짜 결제 시트와 호환되는 detail (가디언 정보 일부)
+  // 가짜 결제 시트와 호환되는 detail (하루이 정보 일부)
   const guardianOpenDetail: GuardianRequestOpenDetail = {
     displayName: route.guardian.display_name,
     avatarUrl: route.guardian.photo_url ?? undefined,
@@ -98,7 +98,7 @@ export function RouteFreePreviewSection({
         </div>
       </section>
 
-      {/* ── 가디언 카드 ──────────────────────────────────────────────── */}
+      {/* ── 하루이 카드 ──────────────────────────────────────────────── */}
       <section className="rounded-3xl border border-border/50 bg-card p-5 shadow-sm sm:p-6">
         <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           {t("routeGuardianMadeBy")}

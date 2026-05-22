@@ -41,7 +41,7 @@ export function HomeDualCtaSection() {
       <div className="mx-auto max-w-6xl px-4 py-12 pb-16 sm:px-5 sm:py-14 sm:pb-20">
         <p className="text-primary mb-6 text-center text-[11px] font-semibold tracking-[0.2em] uppercase sm:mb-8">{t("dualCtaEyebrow")}</p>
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-8">
-          {/* 가디언 찾기 */}
+          {/* 하루이 찾기 */}
           <article
             className={cn(
               "flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-border/60 bg-card shadow-[var(--shadow-sm)] sm:min-h-[272px] sm:flex-row sm:items-stretch",
@@ -109,7 +109,7 @@ export function HomeDualCtaSection() {
             </div>
           </article>
 
-          {/* 가디언 지원 */}
+          {/* 하루이 지원 */}
           <article
             className={cn(
               "flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-zinc-800 bg-zinc-950 text-white shadow-[var(--shadow-md)] sm:min-h-[272px] sm:flex-row sm:items-stretch",

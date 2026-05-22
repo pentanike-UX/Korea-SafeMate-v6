@@ -7,8 +7,8 @@ import { GUARDIAN_INQUIRY_OPEN_EVENT, type GuardianInquiryOpenDetail } from "@/c
 import { cn } from "@/lib/utils";
 
 /**
- * 매칭 성공 직후 — 가디언 매칭 임팩트 카드.
- * 데모: 박도윤(또는 다른 큐레이션된 가디언)이 자동 답변을 보낸 것처럼 노출하고,
+ * 매칭 성공 직후 — 하루이 매칭 임팩트 카드.
+ * 데모: 박도윤(또는 다른 큐레이션된 하루이)이 자동 답변을 보낸 것처럼 노출하고,
  *       채팅 직행 CTA + 다음 단계 미니 타임라인을 함께 제공.
  */
 export function MatchedGuardianHeroCard({
@@ -45,7 +45,7 @@ export function MatchedGuardianHeroCard({
         <div className="pointer-events-none absolute -top-12 -right-12 size-40 rounded-full bg-emerald-400/20 blur-3xl" aria-hidden />
 
         <div className="relative flex items-start gap-4">
-          {/* 가디언 아바타 */}
+          {/* 하루이 아바타 */}
           <div className="relative size-16 shrink-0 overflow-hidden rounded-2xl border-2 border-white shadow-md sm:size-20">
             {guardianAvatarUrl ? (
               <Image src={guardianAvatarUrl} alt={guardianDisplayName} fill className="object-cover" sizes="80px" />

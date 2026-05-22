@@ -5,7 +5,7 @@ import { getPublicGuardianById, isActiveLaunchArea, mergePublicGuardian, type Pu
 import { isUuidString } from "@/lib/guardian-posts-api";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 
-/** `0`/`false` → DB 가디언만 + mock 보충 없음. 미설정 시 기존 병합 유지. */
+/** `0`/`false` → DB 하루이만 + mock 보충 없음. 미설정 시 기존 병합 유지. */
 function mergeSeedMockGuardiansEnabled(): boolean {
   const v = process.env.SAFE_MERGE_SEED_MOCK;
   return v !== "0" && v !== "false";
@@ -84,7 +84,7 @@ async function loadApprovedGuardiansFromDb(): Promise<GpRow[]> {
   return (data ?? []) as GpRow[];
 }
 
-/** 공개 가디언 목록 — 승인된 DB 프로필 + 시드 mock 병합(동일 user_id는 DB 우선) */
+/** 공개 하루이 목록 — 승인된 DB 프로필 + 시드 mock 병합(동일 user_id는 DB 우선) */
 export const listPublicGuardiansMerged = cache(async (): Promise<PublicGuardian[]> => {
   const rows = await loadApprovedGuardiansFromDb();
   const sb = createServiceRoleSupabase();

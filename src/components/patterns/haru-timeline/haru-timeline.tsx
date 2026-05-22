@@ -197,7 +197,7 @@ function TimelineHeader({
 
         {/* 메타 칩 행 */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* 가디언 */}
+          {/* 하루이 */}
           <MetaChip icon="👤" label={route.guardian.display_name} />
 
           {/* 총 시간 */}

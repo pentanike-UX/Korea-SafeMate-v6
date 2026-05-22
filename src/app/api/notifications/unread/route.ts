@@ -2,7 +2,7 @@
  * GET /api/notifications/unread
  * 현재 사용자에게 도착한 미확인 메시지 카운트.
  * - 실 사용자: Supabase RLS 기반 SELECT
- * - 모의 가디언(mgXX): 서비스롤 RPC `service_count_unread_chat_threads(uuid)` 사용
+ * - 모의 하루이(mgXX): 서비스롤 RPC `service_count_unread_chat_threads(uuid)` 사용
  *
  * 응답: { messages_unread_total: number, threads_unread_total: number }
  */
@@ -17,7 +17,7 @@ export async function GET() {
 
   const svc = createServiceRoleSupabase();
 
-  // 모의 가디언: service_role + 실 UUID 매핑으로 RPC 호출
+  // 모의 하루이: service_role + 실 UUID 매핑으로 RPC 호출
   if (isMockGuardianId(userId)) {
     const realId = resolveMockGuardianUuid(userId);
     if (!realId || !svc) return NextResponse.json({ messages_unread_total: 0, threads_unread_total: 0 });

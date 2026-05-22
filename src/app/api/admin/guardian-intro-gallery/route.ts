@@ -9,7 +9,7 @@ const ADMIN_ROLES = new Set(["admin", "super_admin"]);
 const JSON_PATH = ["src", "data", "mock", "guardian-intro-galleries.json"];
 
 /**
- * 관리자만: 공개 가디언 상세에 쓰이는 소개 갤러리 URL 맵을 저장합니다.
+ * 관리자만: 공개 하루이 상세에 쓰이는 소개 갤러리 URL 맵을 저장합니다.
  * 로컬/자체 호스팅에서 `src/data/mock/guardian-intro-galleries.json`에 기록됩니다.
  */
 export async function POST(req: Request) {

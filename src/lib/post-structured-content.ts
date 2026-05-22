@@ -6,7 +6,7 @@
  * 2. **파싱 폴백**: JSON 없거나 비어 있으면 레거시 `body`의 한글 섹션 헤더(`parsePracticalTipDocument` / `parseRouteArticleDocument`).
  * 3. **평문 폴백**: 파싱도 실패하면 `body`를 문단 나열로만 표시.
  *
- * 가디언 루트 에디터 저장 시 `structured_content` + `serializeRoutePostToShellBody`로 `body`를 함께 채운다.
+ * 하루이 루트 에디터 저장 시 `structured_content` + `serializeRoutePostToShellBody`로 `body`를 함께 채운다.
  */
 
 import type {
@@ -185,7 +185,7 @@ export function stripRouteIntroLead(lead: string): string {
   return t;
 }
 
-/** 가디언 루트 에디터 초안 — JSON 없으면 레거시 `body`에서 추론 */
+/** 하루이 루트 에디터 초안 — JSON 없으면 레거시 `body`에서 추론 */
 export function inferRouteStructuredDraftFromPost(p: ContentPost): RoutePostStructuredContentV1 {
   if (p.structured_content?.template === "route_post") {
     const d = p.structured_content.data;

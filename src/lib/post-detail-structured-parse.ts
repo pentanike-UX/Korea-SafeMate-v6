@@ -34,14 +34,14 @@ const PRACTICAL_HEADERS: { key: keyof PracticalTipParsed; labels: string[] }[] =
   { key: "fieldTips", labels: ["실전 팁"] },
   { key: "mistakes", labels: ["자주 하는 실수·주의", "자주 하는 실수", "주의"] },
   { key: "summary", labels: ["실패 줄이는 요약"] },
-  { key: "guardianLine", labels: ["가디언 한 줄 제안"] },
+  { key: "guardianLine", labels: ["하루이 한 줄 제안"] },
 ];
 
 const ROUTE_HEADERS: { key: keyof RouteArticleParsed; labels: string[] }[] = [
   { key: "routeSummary", labels: ["루트 요약"] },
   { key: "beforeYouGo", labels: ["먼저 알고 가면 좋은 점"] },
   { key: "routeClosing", labels: ["루트 마무리"] },
-  { key: "guardianLine", labels: ["가디언 한 줄 제안"] },
+  { key: "guardianLine", labels: ["하루이 한 줄 제안"] },
 ];
 
 function headerKeyForLine(

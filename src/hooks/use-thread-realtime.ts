@@ -8,7 +8,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
  * 메시지 실시간 수신.
  *
  * 1) Supabase Realtime postgres_changes — 실 사용자(JWT 보유) 케이스.
- * 2) 폴링 백업 — 모의 가디언(JWT 미보유) 또는 Realtime 실패 케이스.
+ * 2) 폴링 백업 — 모의 하루이(JWT 미보유) 또는 Realtime 실패 케이스.
  *    `lastSeenIso`를 기준으로 created_at > lastSeenIso 메시지만 fetch.
  *    Realtime 채널이 열려도 폴링은 백업으로 유지(저빈도).
  *

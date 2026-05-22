@@ -275,7 +275,7 @@ function fallbackFromGuardian(g: PublicGuardian | undefined): Pick<
 /**
  * 매칭 행 + 연결 예약(`booking_id`)·서비스 타입으로 요청 카드용 메타를 채운다.
  * 레거시(schema.sql) / 프로덕션(schema_production) 컬럼 차이에 대응한다.
- * 예약이 없거나 조회 실패 시 맵에 해당 키가 없고, 호출측에서 가디언 폴백을 쓴다.
+ * 예약이 없거나 조회 실패 시 맵에 해당 키가 없고, 호출측에서 하루이 폴백을 쓴다.
  */
 export async function enrichMatchRowsForRequestsPage(
   rows: StoredMatchRequest[],

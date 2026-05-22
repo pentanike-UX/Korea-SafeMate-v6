@@ -6,7 +6,7 @@ import { MypageBlockSeenBoundary } from "@/components/mypage/mypage-block-seen-b
 import { cn } from "@/lib/utils";
 
 /**
- * 포인트 전용 페이지 본문 — 여행자/가디언 경로에 맞는 points 블록으로 뷰포트 seen.
+ * 포인트 전용 페이지 본문 — 여행자/하루이 경로에 맞는 points 블록으로 뷰포트 seen.
  */
 export function MypagePointsPageSeenBoundary({
   children,

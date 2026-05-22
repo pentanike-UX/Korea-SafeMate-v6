@@ -50,7 +50,7 @@ export function AiReplyToggle() {
         <p className="text-[12px] text-muted-foreground leading-relaxed">
           켜두면 여행자 메시지에 AI가 즉시 초안 답변을 보냅니다.
           <br />
-          AI 답변은 가디언 로그인 시{" "}
+          AI 답변은 하루이 로그인 시{" "}
           <span className="inline-flex items-center gap-0.5 rounded bg-violet-100 px-1 py-0.5 text-[10px] font-bold text-violet-600 dark:bg-violet-950/40 dark:text-violet-400">
             <Bot className="size-2.5" />
             AI

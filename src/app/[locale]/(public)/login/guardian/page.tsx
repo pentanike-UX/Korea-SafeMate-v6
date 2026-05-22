@@ -6,7 +6,7 @@ type Props = {
   searchParams: Promise<{ error?: string | string[]; next?: string | string[] }>;
 };
 
-/** 가디언 전용 로그인은 제거 — 통합 로그인으로 안내합니다. */
+/** 하루이 전용 로그인은 제거 — 통합 로그인으로 안내합니다. */
 export default async function GuardianLoginRedirect({ params, searchParams }: Props) {
   const { locale: localeParam } = await params;
   const locale = routing.locales.includes(localeParam as AppLocale) ? (localeParam as AppLocale) : routing.defaultLocale;

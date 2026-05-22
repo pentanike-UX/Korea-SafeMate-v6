@@ -2,7 +2,7 @@
  * GET   /api/guardian/ai-reply-settings — AI 자동답변 설정 조회
  * PATCH /api/guardian/ai-reply-settings — AI 자동답변 켜기/끄기
  *
- * 모의 가디언(mgXX)은 Supabase JWT 가 없으므로 service_role + 실 UUID 매핑 사용.
+ * 모의 하루이(mgXX)은 Supabase JWT 가 없으므로 service_role + 실 UUID 매핑 사용.
  */
 import { NextResponse } from "next/server";
 import { getSessionUserId, getServerSupabaseForUser } from "@/lib/supabase/server-user";

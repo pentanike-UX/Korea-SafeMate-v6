@@ -295,7 +295,7 @@ export function GuardianRouteDeliveryForm({
                     value={row.guardian_note_ko}
                     onChange={(e) => patchSpot(i, { guardian_note_ko: e.target.value })}
                     className="h-20 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                    placeholder="가디언 메모(ko)"
+                    placeholder="하루이 메모(ko)"
                   />
                 </li>
               );

@@ -13,7 +13,7 @@ export function GuardianMatchRequestButton({
 }: {
   guardianUserId: string;
   guardianDisplayName: string;
-  /** Supabase 여행자 세션이 있을 때만 true (모의 가디언 전용 세션에서는 false) */
+  /** Supabase 여행자 세션이 있을 때만 true (모의 하루이 전용 세션에서는 false) */
   canRequest: boolean;
 }) {
   const t = useTranslations("TravelerHub");

@@ -117,7 +117,7 @@ async function mapRowsToPosts(rows: RawPost[]): Promise<ContentPost[]> {
 }
 
 /**
- * 전체 승인 포스트 병합(최대 400행) — 탐색·가디언 목록 등 넓은 목록에 적합.
+ * 전체 승인 포스트 병합(최대 400행) — 탐색·하루이 목록 등 넓은 목록에 적합.
  * 카드/시트처럼 소수 id만 필요하면 `listApprovedPostsByIdsMerged`·배치 최신글 조회를 우선 검토.
  *
  * 단계적 경량화 후보: `/guardians`, `/posts`, explore, home-recommended(목업), discover-client 등.
@@ -230,7 +230,7 @@ export async function listApprovedPostsByIdsMerged(ids: string[]): Promise<Conte
   return out;
 }
 
-/** 대표 id가 비었거나 승인 목록에 없을 때 — 해당 가디언의 최신 승인 포스트 1건 */
+/** 대표 id가 비었거나 승인 목록에 없을 때 — 해당 하루이의 최신 승인 포스트 1건 */
 export async function getLatestApprovedPostForGuardianMerged(authorUserId: string): Promise<ContentPost | null> {
   if (!authorUserId.trim()) return null;
   const mockApproved = mockContentPosts.filter((p) => p.status === "approved" && p.author_user_id === authorUserId);
@@ -270,7 +270,7 @@ function upsertLatestByAuthor(m: Map<string, ContentPost>, p: ContentPost) {
 }
 
 /**
- * 폴백용 — 가디언별 최신 승인 글 1건을 한 번의(또는 소수의) 조회에 가깝게 채운다.
+ * 폴백용 — 하루이별 최신 승인 글 1건을 한 번의(또는 소수의) 조회에 가깝게 채운다.
  * DB는 `created_at` 내림차순 상한 행만 가져온 뒤 작성자당 첫 행을 채택하므로,
  * 한도에 걸려 누락된 작성자는 `getLatestApprovedPostForGuardianMerged`로 보충한다.
  */

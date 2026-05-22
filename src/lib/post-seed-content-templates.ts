@@ -35,7 +35,7 @@ export function routeArticleShell(parts: {
     "루트 마무리",
     parts.closing,
     "",
-    "가디언 한 줄 제안",
+    "하루이 한 줄 제안",
     parts.guardianLine,
   ].join("\n");
 }
@@ -74,7 +74,7 @@ export function practicalArticleShell(parts: {
     "실패 줄이는 요약",
     parts.summary,
     "",
-    "가디언 한 줄 제안",
+    "하루이 한 줄 제안",
     parts.guardianLine,
   ].join("\n");
 }

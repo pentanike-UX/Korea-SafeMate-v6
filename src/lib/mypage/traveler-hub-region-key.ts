@@ -13,7 +13,7 @@ export const TRAVELER_HUB_REGION_LABEL_KEYS = [
 export type TravelerHubRegionLabelKey = (typeof TRAVELER_HUB_REGION_LABEL_KEYS)[number];
 
 /**
- * DB·예약 payload·가디언 `primary_region_slug` 등에서 오는 문자열을 라벨 키로 정규화.
+ * DB·예약 payload·하루이 `primary_region_slug` 등에서 오는 문자열을 라벨 키로 정규화.
  * 더 구체적인 서울 권역(gwanghwamun/gangnam)을 먼저 매칭한 뒤 도시 단위(busan/jeju/seoul)로 넓힌다.
  */
 export function regionKeyFromSlug(slug: string): TravelerHubRegionLabelKey | null {

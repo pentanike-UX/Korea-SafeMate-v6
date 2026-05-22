@@ -142,7 +142,7 @@ export function SpotCard({ spot, locale, compact = false, onClick, className }: 
           {name}
         </h3>
 
-        {/* 가디언 메모 — compact 모드에서는 숨김 */}
+        {/* 하루이 메모 — compact 모드에서는 숨김 */}
         {!compact && note && (
           <p className="text-xs text-ink-muted leading-relaxed line-clamp-3 flex-1">
             {note}

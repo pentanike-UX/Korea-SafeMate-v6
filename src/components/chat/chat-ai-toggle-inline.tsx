@@ -2,11 +2,11 @@
 
 /**
  * 인박스 채팅 뷰 안에 노출되는 작은 AI 자동답변 토글.
- * 가디언이 별도 설정 페이지 가지 않아도 바로 ON/OFF.
+ * 하루이가 별도 설정 페이지 가지 않아도 바로 ON/OFF.
  *
  * - mount 시 GET /api/guardian/ai-reply-settings → 현재 상태 로드
  * - 클릭 시 PATCH → 즉시 토글, 실패하면 롤백
- * - 모의 가디언(mgXX)도 정상 작동 (API에서 service_role + UUID 매핑 처리)
+ * - 모의 하루이(mgXX)도 정상 작동 (API에서 service_role + UUID 매핑 처리)
  */
 
 import { useCallback, useEffect, useState } from "react";

@@ -1,9 +1,9 @@
 /**
- * 데모 큐레이션 — 시연 시나리오 종착 가디언(박도윤 mg10)의 영어 본을 매핑.
+ * 데모 큐레이션 — 시연 시나리오 종착 하루이(박도윤 mg10)의 영어 본을 매핑.
  * 시드/DB의 한국어 원본은 그대로 두고, 영어 locale에서만 풍부한 영어 카피로 교체.
  *
  * 향후: 다국어 컬럼(`display_name_en`, `headline_en`, `bio_en`)을 DB에 추가하면
- * 이 헬퍼를 제거하고 가디언별 영어 본을 시드/DB에서 직접 관리하면 됩니다.
+ * 이 헬퍼를 제거하고 하루이별 영어 본을 시드/DB에서 직접 관리하면 됩니다.
  */
 
 import type { GuardianProfile } from "@/types/domain";
@@ -14,7 +14,7 @@ type GuardianI18nOverlay = {
   display_name?: string;
   headline?: string;
   bio?: string;
-  /** 가디언 상세 long_bio 영어 본 (3 문단) */
+  /** 하루이 상세 long_bio 영어 본 (3 문단) */
   long_bio_en?: string;
   /** 시그니처 스타일 영어 본 */
   signature_style_en?: string;
@@ -26,7 +26,7 @@ type GuardianI18nOverlay = {
 const MG10_UUID = "325e8a02-9683-5a53-8e26-42aca7a8f431";
 
 const DEMO_GUARDIAN_OVERLAYS: Record<string, Partial<Record<AppLocale, GuardianI18nOverlay>>> = {
-  // 박도윤 — 데모 시나리오의 종착 가디언
+  // 박도윤 — 데모 시나리오의 종착 하루이
   [MG10_UUID]: {
     en: {
       display_name: "Dohyun Park",
@@ -45,7 +45,7 @@ const DEMO_GUARDIAN_OVERLAYS: Record<string, Partial<Record<AppLocale, GuardianI
       bio: "光化門広場から景福宮までの徒歩ルートを、トイレ・待ち列・撮影スポットまで事前に整理してご案内します。",
     },
   },
-  // 향후 큐레이션 추가 시 이 객체에 가디언별 항목 추가
+  // 향후 큐레이션 추가 시 이 객체에 하루이별 항목 추가
 };
 
 /** mg10 짧은 식별자도 함께 지원 (URL이 shorthand로 들어왔을 때 fallback) */
@@ -54,8 +54,8 @@ const DEMO_GUARDIAN_OVERLAYS_BY_SHORTHAND: Record<string, Partial<Record<AppLoca
 };
 
 /**
- * 가디언 프로필을 locale에 맞춰 영어 본으로 덮어쓰기 (큐레이션된 가디언만).
- * 큐레이션되지 않은 가디언이나 한국어 locale은 그대로 반환.
+ * 하루이 프로필을 locale에 맞춰 영어 본으로 덮어쓰기 (큐레이션된 하루이만).
+ * 큐레이션되지 않은 하루이가나 한국어 locale은 그대로 반환.
  *
  * 가능하면 마케팅 카피(long_bio / signature_style / response_note)의 `en` 본도 같이 덮어쓴다.
  */

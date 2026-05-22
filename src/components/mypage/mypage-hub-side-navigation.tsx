@@ -171,7 +171,7 @@ export function MypageHubSideNavigation({
         </Sheet>
       </div>
 
-      {/* 데스크톱 + 모바일에서 가디언 비승인 카드 */}
+      {/* 데스크톱 + 모바일에서 하루이 비승인 카드 */}
       {hubMode === "guardian" && !approved ? (
         <nav
           className="border-border/60 mt-2 hidden rounded-xl border border-border/70 bg-card/70 p-4 shadow-[var(--shadow-sm)] lg:block"

@@ -150,7 +150,7 @@ export function HaruSpotDetailSheet({
           {/* 사운드트랙 영웅 — 이 스팟의 메인 곡 한 곡 큐레이션 (C 패턴) */}
           {spot.soundtrack ? <SpotSoundtrackHero spot={spot} locale={locale} /> : null}
 
-          {/* 가디언 노트 (짧은 메모) */}
+          {/* 하루이 노트 (짧은 메모) */}
           {note ? (
             <p className="text-sm leading-relaxed text-foreground/90">{note}</p>
           ) : null}

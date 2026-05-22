@@ -19,7 +19,7 @@ export default async function MypageGuardianSettingsPage() {
       <div>
         <h1 className="text-text-strong text-2xl font-semibold tracking-tight">{t("guardianNavSettings")}</h1>
         <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-          계정/알림/운영 기본값을 관리합니다. 이 화면은 가디언 운영 워크스페이스 전용 설정 영역입니다.
+          계정/알림/운영 기본값을 관리합니다. 이 화면은 하루이 운영 워크스페이스 전용 설정 영역입니다.
         </p>
       </div>
 
@@ -81,7 +81,7 @@ export default async function MypageGuardianSettingsPage() {
         <CardContent className="space-y-4 text-sm">
           <p className="text-muted-foreground leading-relaxed">
             여행자가 문의를 보내면 AI가 즉시 초안 답변을 전송합니다.
-            가디언이 직접 답변할 시간을 확보하거나 바쁠 때 활성화하세요.
+            하루이가 직접 답변할 시간을 확보하거나 바쁠 때 활성화하세요.
           </p>
           <div className="rounded-xl border border-border/60 bg-card p-4">
             <AiReplyToggle />
@@ -89,7 +89,7 @@ export default async function MypageGuardianSettingsPage() {
           <ul className="space-y-1 text-[12px] text-muted-foreground">
             <li className="flex items-start gap-1.5">
               <span className="mt-0.5 text-violet-500">•</span>
-              AI 답변은 채팅창에서 가디언 로그인 시에만{" "}
+              AI 답변은 채팅창에서 하루이 로그인 시에만{" "}
               <span className="inline-flex items-center gap-0.5 rounded bg-violet-100 px-1 py-0.5 text-[10px] font-bold text-violet-600 dark:bg-violet-950/40 dark:text-violet-400">
                 AI
               </span>{" "}

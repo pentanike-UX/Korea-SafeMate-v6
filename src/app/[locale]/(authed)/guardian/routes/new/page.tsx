@@ -51,7 +51,7 @@ export default async function GuardianRouteNewPage({ searchParams }: Props) {
   return (
     <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">가디언 루트 전달</h1>
+        <h1 className="text-2xl font-semibold">하루이 루트 전달</h1>
         <p className="text-sm text-muted-foreground">
           예약(booking_id)에 연결된 커스텀 루트를 생성하고 `route_spots`를 순서대로 저장합니다.
         </p>

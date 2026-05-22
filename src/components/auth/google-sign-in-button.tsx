@@ -11,7 +11,7 @@ import { invalidateClientPointsCache } from "@/lib/points/client-points-fetch-ca
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-/** 로그인 직후 기본 목적지 — traveler 허브(마이페이지). 가디언 전환은 마이페이지에서 처리합니다. */
+/** 로그인 직후 기본 목적지 — traveler 허브(마이페이지). 하루이 전환은 마이페이지에서 처리합니다. */
 function defaultPostLoginPath(locale: string): string {
   return locale === routing.defaultLocale ? "/mypage" : `/${locale}/mypage`;
 }

@@ -1,4 +1,4 @@
-/** 가디언 운영 화면 — 마이페이지 허브 LNB와 동일한 베이스 경로 */
+/** 하루이 운영 화면 — 마이페이지 허브 LNB와 동일한 베이스 경로 */
 export const GUARDIAN_WORKSPACE = {
   posts: "/mypage/guardian/posts",
   postsNew: "/mypage/guardian/posts/new",

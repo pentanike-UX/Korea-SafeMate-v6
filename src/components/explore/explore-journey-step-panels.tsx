@@ -997,7 +997,7 @@ export function ExploreResultsDashboard(props: {
             </>
           )}
 
-          {/* 포스트는 보조 증거 — 가디언 아래 소형 카드 + 시트 */}
+          {/* 포스트는 보조 증거 — 하루이 아래 소형 카드 + 시트 */}
           {results.posts.length > 0 ? (
             <section className="border-border/40 space-y-3 rounded-[1.15rem] border border-dashed bg-muted/5 px-4 py-5 sm:px-5 opacity-[0.96]">
               <div>

@@ -187,7 +187,7 @@ export async function updateGuardianContentPost(
 }
 
 /**
- * 가디언 본인 포스트 삭제 — 소유권 검증 후 row 제거.
+ * 하루이 본인 포스트 삭제 — 소유권 검증 후 row 제거.
  * mock 시드 포스트(id가 UUID가 아니거나 DB에 없는 경우)는 mock 응답.
  */
 export async function deleteGuardianContentPost(

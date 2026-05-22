@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { MessageCircle, ClipboardList } from "lucide-react";
 
-/** 포스트 작성 가디언에게 두 가지 CTA를 함께 표시:
+/** 포스트 작성 하루이에게 두 가지 CTA를 함께 표시:
  *  - 문의하기: 즉각 간단 문의 (문의 시트)
  *  - 요청하기: 시간이 필요한 맞춤 의뢰 (기존 요청 시트)
  */

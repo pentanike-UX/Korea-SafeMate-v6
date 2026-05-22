@@ -183,7 +183,7 @@ function RoutePreviewCard() {
         ))}
       </div>
 
-      {/* 카드 푸터 — 동선 요약 + 가디언 미니 프로필 */}
+      {/* 카드 푸터 — 동선 요약 + 하루이 미니 프로필 */}
       <div className="border-t border-line-whisper px-4 py-3 space-y-2.5">
         <p className="text-[10px] text-ink-soft">{t("route_movement_summary")}</p>
         {/* Guardian mini-profile: Route ↔ Guardian 연결 */}

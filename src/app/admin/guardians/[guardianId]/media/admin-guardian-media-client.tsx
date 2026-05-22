@@ -86,7 +86,7 @@ export function AdminGuardianMediaClient({
         <h2 className="text-foreground text-base font-semibold">이미지 용도 (현재 해석)</h2>
         <p className="text-muted-foreground text-xs leading-relaxed">{t("sectionCropExplain")}</p>
         <p className="text-muted-foreground text-sm leading-relaxed">
-          아래는 시드·오버라이드가 합쳐진 <strong>실제 공개 URL</strong>입니다. 아바타·목록·히어로 오버라이드는 가디언 계정의 프로필 이미지 설정 또는 DB 필드에서
+          아래는 시드·오버라이드가 합쳐진 <strong>실제 공개 URL</strong>입니다. 아바타·목록·히어로 오버라이드는 하루이 계정의 프로필 이미지 설정 또는 DB 필드에서
           바꿉니다.
         </p>
         <dl className="grid gap-4 text-sm">
@@ -114,7 +114,7 @@ export function AdminGuardianMediaClient({
         <div>
           <h2 className="text-foreground text-base font-semibold">소개 사진 갤러리 (공개 상세 본문)</h2>
           <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
-            「이 가디언을 소개합니다」 바로 아래에 표시됩니다. 히어로와 같은 URL은 상세에서 자동으로 빼고 보여 줍니다. `/public` 기준 경로(예:{" "}
+            「이 하루이를 소개합니다」 바로 아래에 표시됩니다. 히어로와 같은 URL은 상세에서 자동으로 빼고 보여 줍니다. `/public` 기준 경로(예:{" "}
             <code className="text-xs">/mock/posts/…</code>)를 넣으세요.
           </p>
           <p className="text-muted-foreground mt-2 text-sm leading-relaxed">{t("introGalleryHelp")}</p>
