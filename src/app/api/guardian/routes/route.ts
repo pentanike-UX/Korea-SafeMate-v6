@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getServerSupabaseForUser } from "@/lib/supabase/server-user";
 
 type MoveMethod = "walk" | "subway" | "taxi";
@@ -199,6 +200,11 @@ export async function POST(req: Request) {
   if (spotsErr) {
     return NextResponse.json({ error: spotsErr.message }, { status: 500 });
   }
+
+  // 스팟·메타 갱신 후 라우트 상세 페이지(모든 locale) 재검증 → directions Runtime Cache는
+  // 좌표가 바뀌면 URL이 달라져 자동으로 새 컴퓨트가 일어나지만, 페이지의 SSR 데이터는
+  // ISR 캐시에 남아 있을 수 있으므로 명시 재검증.
+  revalidatePath("/[locale]/routes/[routeId]", "page");
 
   const now = new Date().toISOString();
   const { error: bookingUpdateErr } = await sb

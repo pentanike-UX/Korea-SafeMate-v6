@@ -83,8 +83,8 @@ TODO: Vercel 프로젝트 이름, 프로덕션 도메인, Preview 배포 정책�
 - 사이트·OAuth 출처: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_OAUTH_*` 등
 - Supabase: `NEXT_PUBLIC_SUPABASE_*`, `SUPABASE_SERVICE_ROLE_KEY`(서버·스크립트 전용)
 - 가디언 포스트·미리보기: `GUARDIAN_*`
-- 지도: `NEXT_PUBLIC_MAP_PROVIDER`, `NEXT_PUBLIC_MAP_STYLE_URL`
-- 라우팅: `OSRM_BASE_URL`
+- 지도: `NEXT_PUBLIC_MAP_PROVIDER`, `NEXT_PUBLIC_MAP_STYLE_URL`, `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY`(브라우저 지도 JS + Places Autocomplete)
+- 라우팅(도보·차량 시간/거리·폴리라인): **Google Directions 우선** — 서버 `GOOGLE_MAPS_API_KEY` 사용, `src/lib/routing/directions-server.ts` + `/api/routing/google`. 실패 시 **OSRM 폴백** — `OSRM_BASE_URL`(미설정 시 `https://router.project-osrm.org` 공개 데모 서버이며 운영 금지, 자체 호스팅 권장: `docker run -p 5000:5000 -v $(pwd):/data osrm/osrm-backend`). 응답은 24h Vercel Runtime Cache에 보관(`fetch({ next: { revalidate: 86400 } })`).
 - 네이버 검색(서버 전용): `NAVER_SEARCH_CLIENT_ID`, `NAVER_SEARCH_CLIENT_SECRET` — `src/app/api/naver/*` 및 관리자 스팟 API에서만 사용. 브라우저 번들에 넣지 않는다.
 - 기타: `SAFE_MERGE_SEED_MOCK` 등(코드 grep 결과 기준)
 

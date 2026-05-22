@@ -232,8 +232,11 @@ export function RouteDayPreview({
     t(paceKey),
   ].join(" · ");
 
+  const sortedSpots = [...journey.spots].sort((a, b) => a.order - b.order);
+  const hasAnyLeg = sortedSpots.some((s) => s.next_move_minutes != null || s.next_move_distance_m != null);
+
   return (
-    <section className={cn("max-w-[42rem]", className)} aria-label={t("dayPreviewAria")}>
+    <section className={cn("max-w-[42rem] space-y-4", className)} aria-label={t("dayPreviewAria")}>
       <div className="rounded-2xl border border-border/60 bg-card px-4 py-4 sm:px-5 sm:py-5">
         <header className="space-y-2 border-b border-border/40 pb-4">
           <h2 className="text-[var(--text-strong)] text-base font-semibold tracking-tight sm:text-lg">
@@ -260,8 +263,59 @@ export function RouteDayPreview({
           </blockquote>
         ) : null}
       </div>
+
+      {sortedSpots.length > 0 ? (
+        <div className="rounded-2xl border border-border/60 bg-card px-4 py-4 sm:px-5 sm:py-5">
+          <header className="mb-3 flex items-center justify-between gap-2 border-b border-border/40 pb-2.5">
+            <h3 className="text-[var(--text-strong)] text-[13px] font-semibold tracking-tight sm:text-sm">
+              스팟별 흐름 (예고)
+            </h3>
+            {hasAnyLeg ? null : (
+              <span className="text-[10px] font-medium text-muted-foreground">
+                경로 계산 후 「N분 · Nm」 표시
+              </span>
+            )}
+          </header>
+          <ol className="space-y-1.5">
+            {sortedSpots.map((s, idx) => {
+              const isLast = idx === sortedSpots.length - 1;
+              const hasLeg = !isLast && (s.next_move_minutes != null || s.next_move_distance_m != null);
+              return (
+                <li key={s.id} className="space-y-1">
+                  <div className="flex items-center gap-2 text-[13px] leading-tight">
+                    <span className="text-primary inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold tabular-nums">
+                      {idx + 1}
+                    </span>
+                    <span className="text-foreground truncate font-medium">
+                      {s.title || s.place_name || "무제 스팟"}
+                    </span>
+                    {s.place_name && s.title && s.place_name !== s.title ? (
+                      <span className="text-muted-foreground truncate text-[11px]">{s.place_name}</span>
+                    ) : null}
+                  </div>
+                  {hasLeg ? (
+                    <div className="ml-7 flex items-center gap-1.5 text-muted-foreground text-[11px] leading-tight">
+                      <span aria-hidden className="text-primary/50">↓</span>
+                      <span className="tabular-nums">
+                        {s.next_move_minutes != null ? `${s.next_move_minutes}분` : ""}
+                        {s.next_move_minutes != null && s.next_move_distance_m != null ? " · " : ""}
+                        {s.next_move_distance_m != null ? fmtSpotDistance(s.next_move_distance_m) : ""}
+                      </span>
+                      <span className="text-muted-foreground/60">다음 스팟까지</span>
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      ) : null}
     </section>
   );
+}
+
+function fmtSpotDistance(m: number): string {
+  return m >= 1000 ? `${(m / 1000).toFixed(1)}km` : `${m}m`;
 }
 
 function MemoNote({ title, body }: { title: string; body: string }) {

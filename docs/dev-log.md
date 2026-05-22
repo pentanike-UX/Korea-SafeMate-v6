@@ -9,6 +9,32 @@
 
 ---
 
+## 2026-05-22 - 게시 시 라우트 페이지 재검증 + 에디터 미리보기 스팟 흐름 + OSRM 운영 가이드
+
+### 목표
+
+- 가디언이 라우트를 게시·재게시한 직후 사용자 페이지가 최신 상태로 갱신되도록 `revalidatePath` 추가.
+- 에디터 우측 미리보기 카드(`RouteDayPreview`)에 "스팟별 흐름 (예고)" 섹션 신설 — 좌측 목록과 동일한 "다음 스팟까지 N분/Nm" 라벨 노출.
+- `OSRM_BASE_URL`을 자체 인스턴스로 운영하기 위한 가이드를 `env.example`과 `ARCHITECTURE.md`에 명시.
+
+### 변경 파일
+
+- `src/app/api/guardian/routes/route.ts` — 스팟·메타 갱신 직후 `revalidatePath("/[locale]/routes/[routeId]", "page")` 호출. directions Runtime Cache는 좌표가 바뀌면 URL이 달라져 자동 새 컴퓨트, ISR 페이지 자체는 명시 재검증.
+- `src/components/route-posts/route-day-preview.tsx` — 메모 카드 하단에 "스팟별 흐름 (예고)" 카드 추가. `sortedSpots.map`으로 번호·제목·place_name + 그 아래 `next_move_minutes`/`next_move_distance_m` 보조 라벨. `legs[]`가 없을 때는 "경로 계산 후 표시" 안내.
+- `env.example` — Google Directions를 `GOOGLE_MAPS_API_KEY`의 추가 권한으로 명시(Maps JS · Places · Directions 세 API 활성화 안내). `OSRM_BASE_URL`은 운영 시 자체 호스팅(`docker run osrm/osrm-backend`)/호스팅 서비스 권장 코멘트 추가.
+- `ARCHITECTURE.md` §6 — 라우팅 줄을 "Google Directions 우선 + OSRM 폴백, 24h Runtime Cache" 사실로 갱신.
+
+### 검증 결과
+
+- `pnpm build` 통과 (692 페이지).
+- `pnpm lint` — 본 변경 파일에서 신규 경고/오류 없음.
+- 실제 `revalidatePath` 동작·OSRM 자체 인스턴스 연결은 **미검증** — 배포 후 가디언 게시·페이지 재진입 스모크 필요.
+
+### 남은 이슈
+
+- `[locale]` 다이내믹 세그먼트 매치가 Next 15의 `revalidatePath` 의도와 정확히 일치하는지 운영 환경에서 한 번 확인 필요(필요 시 ko/en/th/vi 4개 경로 명시 호출로 전환).
+- 미리보기 카드의 "스팟별 흐름"은 디자인 토큰 그대로지만, 향후 사용자 페이지의 풍부한 spot 카드와 한 단계 더 통일성 작업 여지 있음.
+
 ## 2026-05-22 - directions 서버사이드 캐싱 + 에디터 스팟별 다음 이동 라벨 + 근사 경로 안내
 
 ### 목표
