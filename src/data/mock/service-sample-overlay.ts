@@ -529,6 +529,7 @@ function journeyKMusicPalace(postId: string): RouteJourney {
       next_move_minutes: 6,
       next_move_distance_m: 280,
       next_move_mode: "walk",
+      spot_types: ["start", "scene", "photo"],
     }),
     spot(postId, 2, {
       lat: 37.5793, lng: 126.9745,
@@ -560,6 +561,7 @@ function journeyKMusicPalace(postId: string): RouteJourney {
       next_move_minutes: 12,
       next_move_distance_m: 700,
       next_move_mode: "walk",
+      spot_types: ["scene", "rest", "photo"],
     }),
     spot(postId, 3, {
       lat: 37.5773, lng: 126.9803,
@@ -591,6 +593,7 @@ function journeyKMusicPalace(postId: string): RouteJourney {
       next_move_minutes: 3,
       next_move_distance_m: 180,
       next_move_mode: "walk",
+      spot_types: ["scene", "story", "photo"],
     }),
     spot(postId, 4, {
       lat: 37.5786, lng: 126.9803,
@@ -622,6 +625,7 @@ function journeyKMusicPalace(postId: string): RouteJourney {
       next_move_minutes: 25,
       next_move_distance_m: 1600,
       next_move_mode: "walk",
+      spot_types: ["rest", "photo", "transport"],
     }),
     spot(postId, 5, {
       lat: 37.5658, lng: 126.9750,
@@ -651,10 +655,63 @@ function journeyKMusicPalace(postId: string): RouteJourney {
       theme_reason: "K-MUSIC × 힙조선 — 전통이 ‘지금 서울의 배경’으로 작동하는 순간.",
       what_to_do: "정면 한 컷 → 뒤로 돌아 도심 대비 컷 → 정동길로 마무리 산책.",
       image_alt: "덕수궁 대한문과 시청 방향 도심",
+      next_move_minutes: 5,
+      next_move_distance_m: 220,
+      next_move_mode: "walk",
+      spot_types: ["scene", "photo"],
+    }),
+    // ── 6. 정동길 K-MUSIC 굿즈·서점 — 결제 가능 스팟 (mock) ────────────────────
+    // 비즈니스 메모: 실제 PG/재고 연동 없이 commerce 데이터 구조와 UI 노출만 시연.
+    // 가상 브랜드명("Soundtrack Books × 정동")으로 실 매장 혼동 방지.
+    spot(postId, 6, {
+      lat: 37.5670, lng: 126.9737,
+      title: "마무리 — K-뮤직 앨범과 음악 서적이 함께 있는 공식 굿즈 코너",
+      place_name: "Soundtrack Books × 정동 (mock)",
+      spot_name: "Soundtrack Books × 정동",
+      display_name: "Soundtrack Books × 정동",
+      real_place_name: "Soundtrack Books × 정동 (mock store)",
+      category: "굿즈·서점",
+      district: "중구",
+      address: "서울특별시 중구 정동길 일대 (mock)",
+      road_address: "정동길 (mock)",
+      address_line: "서울 중구 정동길 일대 (mock store)",
+      image_query: "K-POP 앨범 굿즈 서점 인테리어",
+      images: { hero: IMG_GWANGHWAMUN_SQUARE },
+      source_status: "mock",
+      leg_from_previous: "대한문에서 정동길 방향 5분. 길 끝 코너의 작은 매장.",
+      short_description: "BTS·CL 등 코스에 등장한 아티스트의 공식 앨범과 음악 서적을 한 자리에서 정리하는 마지막 스팟.",
+      body: "코스의 마지막은 손에 무언가 남기는 자리입니다. 코스에 등장한 아티스트들의 공식 앨범, 작사·작곡가 인터뷰가 실린 음악 서적, 〈Feel the Rhythm of Korea〉 관련 굿즈가 같이 진열되어 있는 mock 매장입니다.\n\n공식 MD와 한정판 포토카드가 함께 있고, 매장 안쪽에는 음악·디자인 관련 도서 코너가 있습니다. 상품 구성과 재고는 방문 시점에 따라 달라질 수 있으니 방문 전 확인을 권장합니다.",
+      image_urls: localPair(postId, "gwanghwamun", 119),
+      recommend_reason: "걷고 본 장면을 ‘앨범 한 장 / 책 한 권’으로 정리하기 좋은 위치.",
+      stay_duration_minutes: 25,
+      photo_tip: "매장 내부 촬영은 직원 확인 후. 굿즈는 구매 후 외부에서 컷을 남기는 편이 매너입니다.",
+      caution: "이 매장은 시연용 mock 데이터입니다. 실제 운영 매장이 아닙니다.",
+      theme_reason: "코스의 종합 — 들은 곡과 본 장면을 손에 남기는 결제 가능 스팟.",
+      what_to_do: "관심 아티스트 앨범·포토카드 확인 → 음악 서적 코너 한 바퀴 → 구매 후 정동길에서 마무리.",
+      image_alt: "K-POP 앨범과 음악 서적이 함께 진열된 굿즈샵 인테리어 (mock)",
+      spot_types: ["buy", "end"],
+      commerce: {
+        is_commerce_spot: true,
+        commerce_types: ["album", "goods", "photo_card", "souvenir"],
+        payment_mode: "onsite",
+        price_range_label: "₩8,000 ~ ₩45,000",
+        purchasable_items: [
+          { name: "BTS 정규/미니 앨범", related_artist: "BTS", item_type: "album", is_official: true },
+          { name: "CL 〈ALPHA〉 앨범", related_artist: "CL", related_work: "ALPHA", item_type: "album", is_official: true },
+          { name: "BTS Week 한정 포토카드", related_artist: "BTS", item_type: "photo_card", is_official: true, is_limited: true, note: "방문 시점에 따라 재고 변동" },
+          { name: "Feel the Rhythm of Korea 굿즈", related_artist: "이날치", item_type: "goods", is_official: true },
+          { name: "K-MUSIC 인터뷰집·작곡가 도서", item_type: "souvenir", is_official: false, note: "음악·디자인 도서 코너" },
+        ],
+        reservation_required: false,
+        partner_enabled: true,
+        partner_name: "Soundtrack Books (mock partner)",
+        disclaimer: "이 매장은 시연용 mock 데이터입니다. 실제 결제·재고 연동은 추후 단계에서 진행됩니다. 상품 구성과 재고는 방문 시점에 따라 달라질 수 있어 방문 전 확인을 권장합니다.",
+      },
     }),
   ];
+  pts.push({ lat: 37.5670, lng: 126.9737 });
   return {
-    metadata: { ...metaEasy, estimated_total_duration_minutes: 180, estimated_total_distance_km: 8.5 },
+    metadata: { ...metaEasy, estimated_total_duration_minutes: 205, estimated_total_distance_km: 8.7 },
     spots,
     path: densifyPath(pts),
   };
@@ -673,6 +730,8 @@ type SampleDef = {
   route_highlights?: string[];
   recommended_boost?: number;
   hero_subject?: ContentPostHeroSubject | null;
+  /** 하루웨이 테마 — 명시 시 ContentPost.theme로 전파. */
+  theme?: ContentPost["theme"];
 };
 
 function visualBucketForSample(def: SampleDef): PostVisualBucket {
@@ -869,6 +928,7 @@ const SAMPLE_DEFINITIONS: SampleDef[] = [
     ],
     hero_subject: "mixed",
     recommended_boost: 5,
+    theme: "K_MOVIE",
   },
   // ── K-DRAMA 테마 (강남 동선을 드라마 시점으로 재해석) ─────────────────────
   {
@@ -890,6 +950,7 @@ const SAMPLE_DEFINITIONS: SampleDef[] = [
     ],
     hero_subject: "place",
     recommended_boost: 4,
+    theme: "K_DRAMA",
   },
   // ── K-POP 테마 (광화문 단축 동선을 K-POP 뮤직비디오 / 팬투어 관점으로) ────
   {
@@ -911,6 +972,7 @@ const SAMPLE_DEFINITIONS: SampleDef[] = [
     ],
     hero_subject: "place",
     recommended_boost: 4,
+    theme: "K_POP",
   },
   { withRoute: true, journey: journeyGwanghwamunClassic, title: "광화문 반나절 — 광장에서 경복궁까지 천천히", summary: "광장에서 방향·화장실만 정리하고 이순신·세종·광화문까지 도보. 입장은 줄 보고.", body: "만남은 광장이 제일 설명 쉬움.\n사진은 동상 옆·담장 대각선만 짧게. 경복궁은 매표 줄 길면 담장만 보고 빠지는 것도 현실적 선택.", tags: ["광화문권", "도보", "첫방문", "경복궁"], category_slug: "hot-places", kind: "hot_place", post_format: "route", route_highlights: ["광장 중앙에서 멈추지 마세요. 옆 보행로로 빠지면 훨씬 덜 막힙니다.", "행사 날 펜스는 표지 먼저 보세요.", "입장 줄이 길면 담장만 걸어도 됩니다."], hero_subject: "mixed" },
   { withRoute: true, journey: journeyGangnamWalk, title: "강남 — 카페·테헤란로·골목 도보", summary: "11번 출구→카페→큰 길→골목→야간 테헤란로. 웨이팅 길면 테이크아웃만 해도 됨.", body: "테헤란로는 퇴근 시간 인파 많음—큰 길 붙어 걷기.\n골목 카페는 노키즈·노노트북 표지 확인. 야간은 킥보드 차로만 조심.", tags: ["강남역권", "K-무드", "카페", "도보", "오후"], category_slug: "food", kind: "food", post_format: "hybrid", route_highlights: ["퇴근 시간엔 인도가 확 좁아집니다. 큰 길 안쪽으로 붙어 걷세요.", "야간 킥보드 차로 침범 구역이 많습니다. 횡단할 때만 주의하면 됩니다.", "야경은 건물 입구 홈에서 짧게 찍고 빠지세요."] },
@@ -944,6 +1006,7 @@ const SAMPLE_DEFINITIONS: SampleDef[] = [
     ],
     hero_subject: "place",
     recommended_boost: 8,
+    theme: "K_POP",
   },
   { withRoute: true, journey: journeyGwangShort, title: "반나절 산책 — 광장·담장", summary: "언덕 거의 없음—운동화만 확실히.", body: "햇빛 강한 날 모자 없으면 광장 중앙에서 지침.", tags: ["광화문권", "산책", "가벼운코스"], category_slug: "hot-places", kind: "hot_place", post_format: "route" },
   { withRoute: true, journey: journeyGangnamWalk, title: "강남 야간 — 네온·카페 실내", summary: "밤엔 노출 흔들림 많음—연속 촬영이 장노출보다 낫.", body: "이어폰 줄이고 횡단만 집중—킥보드 차로 침범 금지 페인트 확인.", tags: ["강남역권", "야경", "카페"], category_slug: "hot-places", kind: "hot_place", post_format: "hybrid" },
@@ -1002,6 +1065,7 @@ function mergeSample(base: ContentPost, def: SampleDef): ContentPost {
     popular_score: Math.min(99, base.popular_score + 4),
     is_sample: true,
     has_route: Boolean(route_journey),
+    theme: def.theme ?? base.theme,
   };
 }
 

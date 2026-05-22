@@ -370,7 +370,170 @@ export interface RouteSpot {
 
   // Naver Maps 좌표 (spot_catalog 없이 직접 저장할 때)
   // lat / lng 는 이미 존재 (위 필드)
+
+  /**
+   * 스팟이 수행하는 역할(복수). 카드에 칩으로 노출되고, "결제 가능"인지(`buy`/`experience`)
+   * 한눈에 보이게 한다. AI_CONTENT_HARUWAY_RULES §5 참조.
+   */
+  spot_types?: HaruRouteSpotType[];
+
+  /**
+   * 결제·예약 가능한 스팟 정보. 존재하면 상세 패널에서 commerce 카드를 노출한다.
+   * 실제 PG 연동은 하지 않으며 UI/데이터 구조만 제공 (mock 단계).
+   */
+  commerce?: HaruRouteSpotCommerce;
 }
+
+// ─── Haruway Theme & Spot Type Taxonomy ─────────────────────────────────────
+//
+// 하루웨이/하루루트 콘텐츠 분류 (AI_CONTENT_HARUWAY_RULES.md §3 참조).
+// `ContentPost.kind`는 콘텐츠 유형(post format)이고, `theme`은 콘텐츠 주제다.
+// 둘은 직교 — 같은 K-POP 테마 안에 hot_place, food, shopping 등이 섞일 수 있다.
+
+export type HaruwayTheme =
+  | "K_POP"
+  | "K_DRAMA"
+  | "K_MOVIE"
+  | "K_FOOD"
+  | "K_BEAUTY"
+  | "K_FASHION"
+  | "K_HERITAGE"
+  | "K_LOCAL"
+  | "K_CAFE"
+  | "K_NIGHT"
+  | "K_WALK"
+  | "K_FAMILY"
+  | "K_DESIGN"
+  | "K_SEASON";
+
+export const HARUWAY_THEME_LABELS: Record<HaruwayTheme, string> = {
+  K_POP: "K-POP",
+  K_DRAMA: "K-DRAMA",
+  K_MOVIE: "K-MOVIE",
+  K_FOOD: "K-FOOD",
+  K_BEAUTY: "K-BEAUTY",
+  K_FASHION: "K-FASHION",
+  K_HERITAGE: "K-HERITAGE",
+  K_LOCAL: "K-LOCAL",
+  K_CAFE: "K-CAFE",
+  K_NIGHT: "K-NIGHT",
+  K_WALK: "K-WALK",
+  K_FAMILY: "K-FAMILY",
+  K_DESIGN: "K-DESIGN",
+  K_SEASON: "K-SEASON",
+};
+
+export type HaruRouteSpotType =
+  | "scene"
+  | "story"
+  | "buy"
+  | "rest"
+  | "photo"
+  | "local"
+  | "experience"
+  | "transport"
+  | "start"
+  | "end";
+
+export const HARU_ROUTE_SPOT_TYPE_LABELS: Record<HaruRouteSpotType, string> = {
+  scene: "영상 장면",
+  story: "스토리",
+  buy: "구매 가능",
+  rest: "휴식",
+  photo: "사진 포인트",
+  local: "현지 경험",
+  experience: "체험/예약",
+  transport: "이동 지점",
+  start: "시작",
+  end: "종착",
+};
+
+// ─── Commerce (결제 가능 스팟) ───────────────────────────────────────────────
+//
+// 실제 PG 결제·재고 연동 없이 데이터 구조와 UI 노출만 제공한다.
+// 실제 결제는 향후 별도 phase에서 연결 — 본 단계는 mock.
+
+export type CommerceType =
+  | "goods"
+  | "album"
+  | "photo_card"
+  | "light_stick"
+  | "popup_store"
+  | "fan_cafe"
+  | "photo_booth"
+  | "food"
+  | "drink"
+  | "ticket"
+  | "rental"
+  | "class"
+  | "beauty"
+  | "fashion"
+  | "souvenir"
+  | "exhibition"
+  | "other";
+
+export const COMMERCE_TYPE_LABELS: Record<CommerceType, string> = {
+  goods: "굿즈",
+  album: "앨범",
+  photo_card: "포토카드",
+  light_stick: "응원봉",
+  popup_store: "팝업스토어",
+  fan_cafe: "팬카페",
+  photo_booth: "포토부스",
+  food: "음식",
+  drink: "음료",
+  ticket: "입장권",
+  rental: "대여",
+  class: "클래스",
+  beauty: "뷰티",
+  fashion: "패션",
+  souvenir: "기념품",
+  exhibition: "전시",
+  other: "기타",
+};
+
+export type CommercePaymentMode = "onsite" | "online" | "reservation" | "partner" | "none";
+
+export const COMMERCE_PAYMENT_MODE_LABELS: Record<CommercePaymentMode, string> = {
+  onsite: "현장 결제",
+  online: "온라인 결제",
+  reservation: "예약 필요",
+  partner: "제휴 가능",
+  none: "결제 없음",
+};
+
+export interface CommerceItem {
+  name: string;
+  related_artist?: string;
+  related_work?: string;
+  item_type?: CommerceType;
+  is_official?: boolean;
+  is_limited?: boolean;
+  note?: string;
+}
+
+export interface HaruRouteSpotCommerce {
+  /** false면 commerce 패널을 렌더하지 않음 (필드 보존용). */
+  is_commerce_spot: boolean;
+  commerce_types: CommerceType[];
+  payment_mode?: CommercePaymentMode;
+  /** "₩10,000 ~ ₩30,000" 같은 자유 텍스트 가격대. */
+  price_range_label?: string;
+  purchasable_items?: CommerceItem[];
+  reservation_required?: boolean;
+  reservation_url?: string;
+  partner_enabled?: boolean;
+  partner_name?: string;
+  /** 운영·재고 안내. 기본 안내 문구는 UI 컴포넌트가 폴백 제공. */
+  disclaimer?: string;
+}
+
+// ─── Route Access Status (mock 결제 상태) ───────────────────────────────────
+//
+// 실제 결제 연동 전 단계의 결제 상태 형식화. 기존 `hasPlaybookPremium` boolean과
+// 호환되며, UI는 본 enum을 우선 참조하고 boolean으로 폴백한다.
+
+export type RouteAccessStatus = "free" | "requires_payment" | "paid" | "preview";
 
 // ─── Spot Catalog ─────────────────────────────────────────────────────────────
 
@@ -592,6 +755,11 @@ export interface ContentPost {
   is_sample?: boolean;
   /** Denormalized flag for filtering (true when `route_journey` is present). */
   has_route?: boolean;
+  /**
+   * 하루웨이 테마 (K-POP / K-DRAMA / ...). 미설정 시 `tags`로 폴백.
+   * AI_CONTENT_HARUWAY_RULES.md §3 참조.
+   */
+  theme?: HaruwayTheme;
 }
 
 export interface ServiceType {
