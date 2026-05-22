@@ -13,6 +13,7 @@
  * 부담스러울 수 있다. CI/관리자 수동 디버그 용도로 한정.
  */
 import { getDirectionsForCoords } from "@/lib/routing/directions-server";
+import { getServerSupabaseForUser } from "@/lib/supabase/server-user";
 
 // 서울 시청·광화문·인사동 — 워크 가능한 짧은 거리
 const DEBUG_COORDS = [
@@ -21,7 +22,22 @@ const DEBUG_COORDS = [
   { lat: 37.5733, lng: 126.9853 }, // 인사동
 ];
 
+async function isAdmin(): Promise<boolean> {
+  const sb = await getServerSupabaseForUser();
+  if (!sb) return false;
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  if (!user) return false;
+  const { data } = await sb.from("users").select("app_role").eq("id", user.id).maybeSingle();
+  return data?.app_role === "admin" || data?.app_role === "super_admin";
+}
+
 export async function GET() {
+  if (!(await isAdmin())) {
+    return Response.json({ error: "Forbidden — admin only" }, { status: 403, headers: { "Cache-Control": "no-store" } });
+  }
+
   const apiKeyConfigured = Boolean(process.env.GOOGLE_MAPS_API_KEY?.trim());
   const osrmBase = process.env.OSRM_BASE_URL?.trim() || "(default public demo)";
 

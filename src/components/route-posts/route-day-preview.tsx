@@ -5,6 +5,7 @@ import type { ContentPost } from "@/types/domain";
 import type { RouteArticleParsed } from "@/lib/post-detail-structured-parse";
 import { splitPostBodyParagraphs } from "@/lib/post-detail-body-split";
 import { routeCardAreaLabel, routeCardSpotPreviewLine } from "@/lib/route-post-card-meta";
+import { fmtSpotDistance, nextMoveEmoji } from "@/lib/route-spot-formatting";
 import { cn } from "@/lib/utils";
 
 function normCompact(s: string): string {
@@ -326,23 +327,6 @@ export function RouteDayPreview({
   );
 }
 
-function fmtSpotDistance(m: number): string {
-  return m >= 1000 ? `${(m / 1000).toFixed(1)}km` : `${m}m`;
-}
-
-function nextMoveEmoji(mode: "walk" | "subway" | "bus" | "taxi" | undefined): string {
-  switch (mode) {
-    case "subway":
-      return "🚇";
-    case "bus":
-      return "🚌";
-    case "taxi":
-      return "🚖";
-    case "walk":
-    default:
-      return "🚶";
-  }
-}
 
 function MemoNote({ title, body }: { title: string; body: string }) {
   return (

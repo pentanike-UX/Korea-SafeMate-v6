@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { FreeArchetype } from "@/lib/route-free-classification";
 import { inferFreeArchetype } from "@/lib/route-free-classification";
+import { fmtSpotDistance, nextMoveEmoji } from "@/lib/route-spot-formatting";
 import { ChevronDown } from "lucide-react";
 import { RelatedRouteBanner } from "@/components/posts/related-route-banner";
 import {
@@ -116,10 +117,6 @@ function computeSpotTimes(spots: RouteSpot[], startHour: number): string[] {
   });
 }
 
-function fmtDistance(m: number): string {
-  return m >= 1000 ? `${(m / 1000).toFixed(1)}km` : `${m}m`;
-}
-
 // ─── Spot role system ─────────────────────────────────────────────────────────
 
 type SpotRole = FreeArchetype;
@@ -163,19 +160,6 @@ function inferSpotRole(spot: RouteSpot): SpotRole {
 
 // ─── Move connector (field note separator) ────────────────────────────────────
 
-function nextModeEmoji(mode: RouteSpot["next_move_mode"]): string {
-  switch (mode) {
-    case "subway":
-      return "🚇";
-    case "bus":
-      return "🚌";
-    case "taxi":
-      return "🚕";
-    default:
-      return "🚶";
-  }
-}
-
 function nextModeLabelKey(mode: RouteSpot["next_move_mode"]): string {
   switch (mode) {
     case "subway":
@@ -194,11 +178,11 @@ function MoveConnector({ spot }: { spot: RouteSpot }) {
   const hasData = spot.next_move_minutes != null || spot.next_move_distance_m != null;
   if (!hasData) return null;
 
-  const emoji = nextModeEmoji(spot.next_move_mode);
+  const emoji = nextMoveEmoji(spot.next_move_mode);
   const mode = t(nextModeLabelKey(spot.next_move_mode));
   const parts = [
     spot.next_move_minutes != null ? t("approxMinutes", { n: spot.next_move_minutes }) : null,
-    spot.next_move_distance_m != null ? fmtDistance(spot.next_move_distance_m) : null,
+    spot.next_move_distance_m != null ? fmtSpotDistance(spot.next_move_distance_m) : null,
   ].filter(Boolean);
 
   return (

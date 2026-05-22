@@ -9,6 +9,33 @@
 
 ---
 
+## 2026-05-22 - 라우트 스팟 포맷 공용 유틸 + 헬스 admin 게이트 + 에디터 모드 이모지
+
+### 목표
+
+- 거리 포맷·이동 모드 이모지가 editor·preview·detail-client에 3중 중복돼 있던 것을 공용 모듈로 추출.
+- `/api/health/routing`을 관리자 세션만 호출 가능하도록 게이트.
+- 에디터 좌측 스팟 목록의 leg 라벨에도 미리보기·detail과 동일한 모드 이모지 노출.
+
+### 변경 파일
+
+- `src/lib/route-spot-formatting.ts` (신규) — `fmtSpotDistance(m)`, `nextMoveEmoji(mode)`. taxi는 `leg-connector.tsx` 컨벤션에 맞춰 🚕로 통일(미리보기에 들어가 있던 🚖 → 🚕).
+- `src/components/route-posts/route-day-preview.tsx`, `src/components/route-posts/route-post-detail-client.tsx`, `src/components/guardian/guardian-route-post-editor.tsx` — 각자의 로컬 함수 제거, 공용 import.
+- `src/components/route-posts/route-post-detail-client.tsx` — `fmtDistance`/`nextModeEmoji` 호출도 공용 이름(`fmtSpotDistance`/`nextMoveEmoji`)으로 교체.
+- `src/app/api/health/routing/route.ts` — `getServerSupabaseForUser`로 세션 조회 후 `users.app_role`이 admin/super_admin인 경우만 통과(403). admin/spots 라우트와 동일 패턴.
+- `src/components/guardian/guardian-route-post-editor.tsx` — leg 라벨의 ↓ 화살표를 `nextMoveEmoji(s.next_move_mode)`로 교체.
+
+### 검증 결과
+
+- `pnpm build` 통과 (693 페이지).
+- `pnpm lint` — 본 변경 파일에서 신규 경고/오류 없음.
+- admin 게이트 실제 동작은 **미검증** — 배포 후 비-admin 세션 403 / admin 세션 200 확인 필요.
+
+### 남은 이슈
+
+- `leg-connector.tsx`의 `METHOD_CONFIG`도 동일 이모지를 갖고 있어 공용 모듈로 흡수 가능 — 다만 다국어 라벨까지 들어가 있어 후속 라운드 검토.
+- `/api/health/routing`은 첫 호출이 외부 API 비용을 발생시키므로 정기 ping 대상 아님.
+
 ## 2026-05-22 - 4-locale revalidate 명시 + 미리보기 아이콘 보강 + directions 헬스 엔드포인트
 
 ### 목표

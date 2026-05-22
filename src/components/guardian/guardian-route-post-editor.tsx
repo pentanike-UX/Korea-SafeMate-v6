@@ -36,6 +36,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { mockSeoulSearchPlaces } from "@/data/mock/guardian-mock-places";
 import { GuardianPostAiMetaPanel } from "@/components/guardian/guardian-post-ai-meta-panel";
+import { fmtSpotDistance, nextMoveEmoji } from "@/lib/route-spot-formatting";
 import { cn } from "@/lib/utils";
 import { AlertTriangle, ArrowDown, ArrowUp, ChevronDown, ChevronUp, Copy, Loader2, Map, MapPin, StickyNote, Star, Trash2, Wand2 } from "lucide-react";
 
@@ -49,10 +50,6 @@ const BANNED_PHRASES = [
   /체크하세요/,
   /\b동선\b/,
 ];
-
-function fmtSpotDistance(m: number): string {
-  return m >= 1000 ? `${(m / 1000).toFixed(1)}km` : `${m}m`;
-}
 
 function detectBanned(text: string): string[] {
   return BANNED_PHRASES.filter((re) => re.test(text)).map((re) => re.source.replace(/\\b/g, ""));
@@ -1063,7 +1060,7 @@ export function GuardianRoutePostEditor({
                     </div>
                     {hasLeg ? (
                       <div className="text-muted-foreground flex items-center gap-2 pl-3 text-[11px] leading-tight">
-                        <span aria-hidden className="text-primary/50">↓</span>
+                        <span aria-hidden>{nextMoveEmoji(s.next_move_mode)}</span>
                         <span>
                           {s.next_move_minutes != null ? `${s.next_move_minutes}분` : ""}
                           {s.next_move_minutes != null && s.next_move_distance_m != null ? " · " : ""}
