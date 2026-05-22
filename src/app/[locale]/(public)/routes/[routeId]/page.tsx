@@ -21,6 +21,7 @@ import {
   isUuidRouteId,
 } from "@/lib/routes/haru-route-from-supabase.server";
 import { getServerSupabaseForUser, getSupabaseAuthUserIdOnly } from "@/lib/supabase/server-user";
+import { getDirectionsForCoords } from "@/lib/routing/directions-server";
 
 interface Props {
   params: Promise<{ routeId: string; locale: string }>;
@@ -81,6 +82,14 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
 
   const title = route.title[locale] ?? route.title.en ?? "Route";
 
+  // 서버 측에서 directions를 미리 계산 → Vercel Runtime Cache(24h)에 저장,
+  // 같은 좌표 집합이면 외부 호출 1회만 발생. 클라이언트 fetch 생략.
+  const directionsCoords = [...route.spots]
+    .sort((a, b) => a.order - b.order)
+    .map((s) => ({ lat: s.catalog.lat, lng: s.catalog.lng }));
+  const directions =
+    directionsCoords.length >= 2 ? await getDirectionsForCoords(directionsCoords, "foot") : null;
+
   return (
     <main className="min-h-screen bg-bg">
       <div className="border-b border-line-soft bg-bg-card px-4 py-4 sm:px-6">
@@ -90,7 +99,14 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
         <h1 className="font-serif text-2xl font-semibold text-ink sm:text-3xl">{title}</h1>
       </div>
 
-      <RouteViewClient route={route} locale={locale} initialUnlocked={initialUnlocked} />
+      <RouteViewClient
+        route={route}
+        locale={locale}
+        initialUnlocked={initialUnlocked}
+        precomputedDirections={
+          directions ? { path: directions.path, legs: directions.legs, provider: directions.provider } : null
+        }
+      />
     </main>
   );
 }

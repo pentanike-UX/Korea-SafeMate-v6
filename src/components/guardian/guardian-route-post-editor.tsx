@@ -50,6 +50,10 @@ const BANNED_PHRASES = [
   /\b동선\b/,
 ];
 
+function fmtSpotDistance(m: number): string {
+  return m >= 1000 ? `${(m / 1000).toFixed(1)}km` : `${m}m`;
+}
+
 function detectBanned(text: string): string[] {
   return BANNED_PHRASES.filter((re) => re.test(text)).map((re) => re.source.replace(/\\b/g, ""));
 }
@@ -1009,52 +1013,69 @@ export function GuardianRoutePostEditor({
           </div>
 
           <ul className="space-y-2">
-            {[...journey.spots]
-              .sort((a, b) => a.order - b.order)
-              .map((s, index) => (
-                <li
-                  key={s.id}
-                  className={cn(
-                    "border-border/60 flex flex-wrap items-center gap-2 rounded-xl border bg-white/90 p-3",
-                    selectedSpotId === s.id && "ring-primary ring-2",
-                  )}
-                >
-                  <button type="button" className="min-w-0 flex-1 text-left font-medium" onClick={() => setSelectedSpotId(s.id)}>
-                    <span className="text-primary mr-2 font-mono text-xs">{index + 1}</span>
-                    {s.title || s.place_name || "무제 스팟"}
-                  </button>
-                  {s.featured ? <Star className="size-4 fill-amber-400 text-amber-500" /> : null}
-                  <Button
-                    type="button"
-                    size="icon-sm"
-                    variant="ghost"
-                    className="text-[var(--brand-primary)]"
-                    onClick={() => {
-                      setSelectedSpotId(s.id);
-                      setMapDrawerSpotId(s.id);
-                    }}
-                    aria-label={`스팟 ${index + 1} 지도에서 위치 선택`}
-                    title="지도에서 위치 선택"
-                  >
-                    <MapPin className="size-4" />
-                  </Button>
-                  <Button type="button" size="icon-sm" variant="ghost" onClick={() => moveSpot(index, -1)} aria-label="위로">
-                    <ArrowUp className="size-4" />
-                  </Button>
-                  <Button type="button" size="icon-sm" variant="ghost" onClick={() => moveSpot(index, 1)} aria-label="아래로">
-                    <ArrowDown className="size-4" />
-                  </Button>
-                  <Button type="button" size="icon-sm" variant="ghost" onClick={() => duplicateSpot(s.id)} aria-label="복제">
-                    <Copy className="size-4" />
-                  </Button>
-                  <Button type="button" size="icon-sm" variant="ghost" onClick={() => toggleFeatured(s.id)} aria-label="피처드">
-                    <Star className="size-4" />
-                  </Button>
-                  <Button type="button" size="icon-sm" variant="ghost" className="text-destructive" onClick={() => removeSpot(s.id)}>
-                    <Trash2 className="size-4" />
-                  </Button>
-                </li>
-              ))}
+            {(() => {
+              const sortedSpots = [...journey.spots].sort((a, b) => a.order - b.order);
+              return sortedSpots.map((s, index) => {
+                const isLast = index === sortedSpots.length - 1;
+                const hasLeg = !isLast && (s.next_move_minutes != null || s.next_move_distance_m != null);
+                return (
+                  <li key={s.id} className="space-y-1.5">
+                    <div
+                      className={cn(
+                        "border-border/60 flex flex-wrap items-center gap-2 rounded-xl border bg-white/90 p-3",
+                        selectedSpotId === s.id && "ring-primary ring-2",
+                      )}
+                    >
+                      <button type="button" className="min-w-0 flex-1 text-left font-medium" onClick={() => setSelectedSpotId(s.id)}>
+                        <span className="text-primary mr-2 font-mono text-xs">{index + 1}</span>
+                        {s.title || s.place_name || "무제 스팟"}
+                      </button>
+                      {s.featured ? <Star className="size-4 fill-amber-400 text-amber-500" /> : null}
+                      <Button
+                        type="button"
+                        size="icon-sm"
+                        variant="ghost"
+                        className="text-[var(--brand-primary)]"
+                        onClick={() => {
+                          setSelectedSpotId(s.id);
+                          setMapDrawerSpotId(s.id);
+                        }}
+                        aria-label={`스팟 ${index + 1} 지도에서 위치 선택`}
+                        title="지도에서 위치 선택"
+                      >
+                        <MapPin className="size-4" />
+                      </Button>
+                      <Button type="button" size="icon-sm" variant="ghost" onClick={() => moveSpot(index, -1)} aria-label="위로">
+                        <ArrowUp className="size-4" />
+                      </Button>
+                      <Button type="button" size="icon-sm" variant="ghost" onClick={() => moveSpot(index, 1)} aria-label="아래로">
+                        <ArrowDown className="size-4" />
+                      </Button>
+                      <Button type="button" size="icon-sm" variant="ghost" onClick={() => duplicateSpot(s.id)} aria-label="복제">
+                        <Copy className="size-4" />
+                      </Button>
+                      <Button type="button" size="icon-sm" variant="ghost" onClick={() => toggleFeatured(s.id)} aria-label="피처드">
+                        <Star className="size-4" />
+                      </Button>
+                      <Button type="button" size="icon-sm" variant="ghost" className="text-destructive" onClick={() => removeSpot(s.id)}>
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                    {hasLeg ? (
+                      <div className="text-muted-foreground flex items-center gap-2 pl-3 text-[11px] leading-tight">
+                        <span aria-hidden className="text-primary/50">↓</span>
+                        <span>
+                          {s.next_move_minutes != null ? `${s.next_move_minutes}분` : ""}
+                          {s.next_move_minutes != null && s.next_move_distance_m != null ? " · " : ""}
+                          {s.next_move_distance_m != null ? fmtSpotDistance(s.next_move_distance_m) : ""}
+                          <span className="text-muted-foreground/60"> 다음 스팟까지</span>
+                        </span>
+                      </div>
+                    ) : null}
+                  </li>
+                );
+              });
+            })()}
           </ul>
 
           {selectedSpot ? (

@@ -25,11 +25,16 @@ export function HaruRouteMapView({
   locale,
   onSpotClick,
   className,
+  precomputedPath = null,
+  precomputedProvider = null,
 }: {
   route: HaruRoute;
   locale: AppLocale;
   onSpotClick?: (spot: HaruSpot) => void;
   className?: string;
+  /** 서버에서 미리 계산해둔 폴리라인 — 있으면 자체 fetch 생략. */
+  precomputedPath?: LatLng[] | null;
+  precomputedProvider?: "google" | "osrm" | null;
 }) {
   const keyConfigured = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY);
 
@@ -47,20 +52,39 @@ export function HaruRouteMapView({
     );
   }
 
-  return <HaruRouteMapInner route={route} locale={locale} onSpotClick={onSpotClick} className={className} />;
+  return (
+    <HaruRouteMapInner
+      route={route}
+      locale={locale}
+      onSpotClick={onSpotClick}
+      className={className}
+      precomputedPath={precomputedPath}
+      precomputedProvider={precomputedProvider}
+    />
+  );
 }
+
+type PolylineStatus = "loading" | "routed" | "straight";
 
 function HaruRouteMapInner({
   route,
   locale,
   onSpotClick,
   className,
+  precomputedPath,
+  precomputedProvider,
 }: {
   route: HaruRoute;
   locale: AppLocale;
   onSpotClick?: (spot: HaruSpot) => void;
   className?: string;
+  precomputedPath: LatLng[] | null;
+  precomputedProvider: "google" | "osrm" | null;
 }) {
+  const hasPrecomputed = precomputedPath != null && precomputedPath.length >= 2;
+  const [polylineStatus, setPolylineStatus] = useState<PolylineStatus>(
+    hasPrecomputed ? "routed" : "loading",
+  );
   const isLoaded = useApiIsLoaded();
   const spots = useMemo(() => [...route.spots].sort((a, b) => a.order - b.order), [route.spots]);
   const center = useMemo(() => {
@@ -108,8 +132,39 @@ function HaruRouteMapInner({
             </Pin>
           </AdvancedMarker>
         ))}
-        <RoutePolyline spots={spots} />
+        <RoutePolyline
+          spots={spots}
+          precomputedPath={precomputedPath}
+          precomputedProvider={precomputedProvider}
+          onStatusChange={setPolylineStatus}
+        />
       </Map>
+
+      {/* 우측 상단 안내 배지 — 직선 폴백 시 사용자에게 "근사 경로"임을 알림 */}
+      {polylineStatus !== "routed" ? (
+        <div
+          className={cn(
+            "pointer-events-none absolute right-3 top-3 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium shadow-sm backdrop-blur",
+            polylineStatus === "loading"
+              ? "border-border/40 bg-card/85 text-muted-foreground"
+              : "border-amber-300/40 bg-amber-50/90 text-amber-800 dark:bg-amber-950/70 dark:text-amber-200",
+          )}
+          role="status"
+          aria-live="polite"
+        >
+          {polylineStatus === "loading" ? (
+            <>
+              <Loader2 className="size-3 animate-spin" aria-hidden />
+              <span>도보 경로 계산 중…</span>
+            </>
+          ) : (
+            <>
+              <AlertCircle className="size-3" aria-hidden />
+              <span>근사 경로 표시 중</span>
+            </>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -128,7 +183,17 @@ function spotPinColor(spot: HaruSpot): string {
  * Directions API로 도보 경로를 받아오고, 실패하면 스팟간 직선으로 폴백.
  * 한 번에 11개 미만 waypoints까지만 보내며(Directions API 제약), 초과 시 직선 폴백.
  */
-function RoutePolyline({ spots }: { spots: HaruSpot[] }) {
+function RoutePolyline({
+  spots,
+  precomputedPath,
+  precomputedProvider,
+  onStatusChange,
+}: {
+  spots: HaruSpot[];
+  precomputedPath: LatLng[] | null;
+  precomputedProvider: "google" | "osrm" | null;
+  onStatusChange: (s: PolylineStatus) => void;
+}) {
   const spotsKey = useMemo(() => spots.map((s) => s.id).join("|"), [spots]);
   const straightPath = useMemo<LatLng[]>(
     () => spots.map((s) => ({ lat: s.catalog.lat, lng: s.catalog.lng })),
@@ -136,11 +201,16 @@ function RoutePolyline({ spots }: { spots: HaruSpot[] }) {
   );
 
   // 결과를 spotsKey와 함께 보관 → spots가 바뀌면 displayPath가 자동으로 직선으로 폴백.
-  // (effect에서 동기 setState로 reset할 필요 없음)
   const [routedFor, setRoutedFor] = useState<{ key: string; path: LatLng[] } | null>(null);
+  // 시도 완료 여부 — fetch 끝났는데 결과 없음 → "straight"
+  const [fetchSettledFor, setFetchSettledFor] = useState<string | null>(null);
+
+  const hasPrecomputed = precomputedPath != null && precomputedPath.length >= 2;
+  // 라우팅 부적합 좌표 — 즉시 "straight" 상태로 유도(setState 없이 derive)
+  const isInvalidForRouting = spots.length < 2 || spots.length > 25;
 
   useEffect(() => {
-    if (spots.length < 2 || spots.length > 25) return;
+    if (hasPrecomputed || isInvalidForRouting) return;
     let cancelled = false;
     const coordinates = spots.map((s) => ({ lat: s.catalog.lat, lng: s.catalog.lng }));
 
@@ -164,19 +234,40 @@ function RoutePolyline({ spots }: { spots: HaruSpot[] }) {
       if (cancelled) return;
       if (google) {
         setRoutedFor({ key: spotsKey, path: google });
+        setFetchSettledFor(spotsKey);
         return;
       }
       const osrm = await tryFetch("/api/routing/osrm");
-      if (cancelled || !osrm) return;
-      setRoutedFor({ key: spotsKey, path: osrm });
+      if (cancelled) return;
+      if (osrm) {
+        setRoutedFor({ key: spotsKey, path: osrm });
+      }
+      setFetchSettledFor(spotsKey);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [spots, spotsKey]);
+  }, [spots, spotsKey, hasPrecomputed, isInvalidForRouting]);
 
+  // 상태를 props·state에서 유도해서 부모로 알림 (effect 안의 setState 폭주 회피)
   const matched = routedFor?.key === spotsKey ? routedFor.path : null;
+  let status: PolylineStatus;
+  if (hasPrecomputed) status = "routed";
+  else if (matched) status = "routed";
+  else if (isInvalidForRouting) status = "straight";
+  else if (fetchSettledFor === spotsKey) status = "straight";
+  else status = "loading";
+
+  useEffect(() => {
+    onStatusChange(status);
+  }, [status, onStatusChange]);
+
+  if (hasPrecomputed) {
+    void precomputedProvider; // 표시는 안 하지만 시그니처 유지 (디버그·향후 배지용)
+    return <PolylineOverlay path={precomputedPath!} dashed={false} />;
+  }
+
   return <PolylineOverlay path={matched ?? straightPath} dashed={matched == null} />;
 }
 

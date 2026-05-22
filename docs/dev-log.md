@@ -9,6 +9,33 @@
 
 ---
 
+## 2026-05-22 - directions 서버사이드 캐싱 + 에디터 스팟별 다음 이동 라벨 + 근사 경로 안내
+
+### 목표
+
+- `/routes/[id]` 진입마다 directions 외부 호출이 일어나는 문제 해결 — 서버 컴포넌트에서 미리 컴퓨트해 Vercel Runtime Cache(24h)에 저장.
+- 에디터 좌측 스팟 목록에 "다음 스팟까지 N분 · Nm" 보조 라벨 노출.
+- 지도 뷰에 directions 실패(직선 폴백) / 계산 중 상태를 사용자에게 작은 배지로 알림.
+
+### 변경 파일
+
+- `src/lib/routing/directions-server.ts` (신규) — `getDirectionsForCoords(coords, profile)` 서버 전용 헬퍼. Google → OSRM 순서로 시도, `fetch({ next: { revalidate: 86400 } })`로 24시간 캐시.
+- `src/app/[locale]/(public)/routes/[routeId]/page.tsx` — 페이지에서 헬퍼 호출, `precomputedDirections` prop으로 `RouteViewClient`에 전달.
+- `src/components/routes/route-view-client.tsx` — `RouteViewPrecomputedDirections` 타입 + prop 패스스루.
+- `src/components/routes/haru-route-map-view.tsx` — `precomputedPath`·`precomputedProvider` prop을 받아 자체 fetch 생략. 상태(`loading`/`routed`/`straight`)를 derive해 우측 상단 배지로 노출(로딩=스피너+회색, 직선 폴백=주의 배지). spots 부적합·effect setState in body 패턴 정리.
+- `src/components/guardian/guardian-route-post-editor.tsx` — 좌측 스팟 목록 row 아래에 "↓ N분 · Nm 다음 스팟까지" 보조 라벨(마지막 스팟 제외). `fmtSpotDistance` 유틸 신설.
+
+### 검증 결과
+
+- `pnpm build` 통과 (692 페이지).
+- `pnpm lint` — 본 변경 파일에서 신규 경고/오류 없음 (기존 `routeDataToArticleParsed` 미사용은 사전 존재).
+- Vercel Runtime Cache가 fetch URL 단위로 캐시하므로 같은 스팟 좌표·프로파일은 24h 동안 외부 호출 1회 — 부하/비용 모두 감소. **실제 캐시 적중 측정은 미검증**, 키 적용 후 Vercel 대시보드의 cache hit 로그 확인 필요.
+
+### 남은 이슈
+
+- 스팟 좌표가 변경되면 (편집 후 재게시 등) `fetch` 캐시 키가 달라져 자동 재계산 — 다만 24h 캐시 만료 전 동일 URL 재방문 시까지는 stale path 가능성. Critical 좌표 변경 시 `revalidatePath('/routes/[routeId]')` 호출 검토 필요.
+- 에디터 미리보기 카드(`RouteDayPreview`) 자체는 스팟 카드를 iterate하지 않아 라벨 추가는 좌측 목록 한정. 미리보기에 라벨도 필요하면 후속 라운드.
+
 ## 2026-05-22 - 스팟별 다음 이동 시간/거리 자동 채움 + 하루루트 지도뷰 도로 폴리라인
 
 ### 목표

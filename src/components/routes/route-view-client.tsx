@@ -16,15 +16,24 @@ import { cn } from "@/lib/utils";
  * 초기 상태: locked (무료 영역만 노출 + Unlock CTA).
  * 가짜 결제 완료 시 → unlocked (전체 타임라인 + 저장/수정 활성).
  */
+export interface RouteViewPrecomputedDirections {
+  path: Array<{ lat: number; lng: number }>;
+  legs: Array<{ distance_m: number | null; duration_s: number | null }>;
+  provider: "google" | "osrm";
+}
+
 export function RouteViewClient({
   route,
   locale,
   initialUnlocked,
+  precomputedDirections = null,
 }: {
   route: HaruRoute;
   locale: AppLocale;
   /** server 시점에 이미 unlocked로 결정된 경우(예: 본인 커스텀 루트) */
   initialUnlocked: boolean;
+  /** 서버에서 미리 계산해둔 directions 결과 — 지도 뷰가 자체 fetch 생략. */
+  precomputedDirections?: RouteViewPrecomputedDirections | null;
 }) {
   const t = useTranslations("TravelerHub");
   const [unlocked, setUnlocked] = useState(initialUnlocked);
@@ -111,6 +120,8 @@ export function RouteViewClient({
             locale={locale}
             onSpotClick={(s) => setSelectedSpot(s)}
             className="h-[min(70vh,640px)]"
+            precomputedPath={precomputedDirections?.path ?? null}
+            precomputedProvider={precomputedDirections?.provider ?? null}
           />
         </div>
       )}
