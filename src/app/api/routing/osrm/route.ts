@@ -29,7 +29,12 @@ export async function POST(req: Request) {
     const data = (await res.json()) as {
       code?: string;
       message?: string;
-      routes?: { geometry?: { coordinates?: [number, number][] }; distance?: number; duration?: number }[];
+      routes?: {
+        geometry?: { coordinates?: [number, number][] };
+        distance?: number;
+        duration?: number;
+        legs?: { distance?: number; duration?: number }[];
+      }[];
     };
     if (data.code !== "Ok" || !data.routes?.[0]) {
       return Response.json({ error: data.message ?? "No route returned", code: data.code }, { status: 422 });
@@ -40,10 +45,15 @@ export async function POST(req: Request) {
       return Response.json({ error: "Empty geometry" }, { status: 422 });
     }
     const path = coords.map(([lng, lat]) => ({ lat, lng }));
+    const legs = (route.legs ?? []).map((leg) => ({
+      distance_m: typeof leg.distance === "number" ? leg.distance : null,
+      duration_s: typeof leg.duration === "number" ? leg.duration : null,
+    }));
     return Response.json({
       path,
       distance_m: route.distance ?? null,
       duration_s: route.duration ?? null,
+      legs,
       provider: "osrm",
       profile: osrmProfile,
     });

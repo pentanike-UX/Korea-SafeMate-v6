@@ -562,6 +562,7 @@ export function GuardianRoutePostEditor({
         path?: { lat: number; lng: number }[];
         distance_m?: number | null;
         duration_s?: number | null;
+        legs?: { distance_m: number | null; duration_s: number | null }[];
         provider?: string;
       };
 
@@ -596,6 +597,10 @@ export function GuardianRoutePostEditor({
         setSaveError("경로 좌표가 비어 있습니다.");
         return;
       }
+
+      const moveMode: RouteSpot["next_move_mode"] =
+        journey.metadata.transport_mode === "car" ? "taxi" : "walk";
+
       setPost((p) => {
         const j = p.route_journey!;
         const nextMeta = { ...j.metadata };
@@ -605,16 +610,49 @@ export function GuardianRoutePostEditor({
         if (typeof data.distance_m === "number") {
           nextMeta.estimated_total_distance_km = Math.round((data.distance_m / 1000) * 10) / 10;
         }
+
+        // legs[i] = sorted[i] → sorted[i+1] 구간. 스팟 id 기준으로 매핑해 정렬 변동에도 안전.
+        // (lucide-react의 `Map` 아이콘이 글로벌 Map을 가려서 plain 객체 사용)
+        const legByFromId: Record<string, { duration_s: number | null; distance_m: number | null }> = {};
+        if (Array.isArray(data.legs)) {
+          for (let i = 0; i < data.legs.length && i < sorted.length - 1; i += 1) {
+            legByFromId[sorted[i].id] = data.legs[i];
+          }
+        }
+
+        const nextSpots = j.spots.map((s) => {
+          const leg = legByFromId[s.id];
+          if (!leg) return s;
+          const minutes =
+            typeof leg.duration_s === "number" ? Math.max(1, Math.round(leg.duration_s / 60)) : undefined;
+          const meters =
+            typeof leg.distance_m === "number" ? Math.max(0, Math.round(leg.distance_m)) : undefined;
+          if (minutes == null && meters == null) return s;
+          return {
+            ...s,
+            ...(minutes != null ? { next_move_minutes: minutes } : {}),
+            ...(meters != null ? { next_move_distance_m: meters } : {}),
+            next_move_mode: s.next_move_mode ?? moveMode,
+          };
+        });
+
         return {
           ...p,
           route_journey: {
             ...j,
             path: data.path!,
+            spots: nextSpots,
             metadata: nextMeta,
           },
         };
       });
-      setSaveNotice(`${providerLabel} 응답으로 폴리라인·거리·시간을 갱신했습니다.`);
+
+      const legCount = Array.isArray(data.legs) ? data.legs.length : 0;
+      setSaveNotice(
+        legCount > 0
+          ? `${providerLabel} 응답으로 폴리라인·거리·시간 + 스팟별 다음 이동(${legCount}구간) 갱신.`
+          : `${providerLabel} 응답으로 폴리라인·거리·시간을 갱신했습니다.`,
+      );
     } finally {
       setRouting(false);
     }

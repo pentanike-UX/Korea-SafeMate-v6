@@ -9,6 +9,30 @@
 
 ---
 
+## 2026-05-22 - 스팟별 다음 이동 시간/거리 자동 채움 + 하루루트 지도뷰 도로 폴리라인
+
+### 목표
+
+- 에디터에서 Directions/OSRM 응답의 `legs[]`로 스팟별 `next_move_minutes`·`next_move_distance_m`·`next_move_mode`를 자동 채움 → 사용자 페이지의 "다음 스팟까지 N분/Nm" 라벨이 자동 표시.
+- `/routes/[id]` 지도 뷰의 폴리라인을 직선 → 실제 도로 형상으로 업그레이드, 실패 시 점선 직선 폴백.
+
+### 변경 파일
+
+- `src/components/guardian/guardian-route-post-editor.tsx` — Directions 결과 적용 시 `j.spots`를 순회해 `legs[i]`를 `sorted[i].id` 기준으로 매핑하여 spot에 머지. `Map`은 lucide-react import와 이름 충돌 → plain object(`Record<string, ...>`) 사용. 토스트에 "스팟별 다음 이동(N구간) 갱신" 명시.
+- `src/app/api/routing/osrm/route.ts` — 응답에 `legs[]`(구간별 `distance_m`·`duration_s`) 추가.
+- `src/components/routes/haru-route-map-view.tsx` — `/api/routing/google` → 실패 시 `/api/routing/osrm` 직렬 폴백으로 도로 형상 폴리라인을 받아 그림. 둘 다 실패하면 직선 + 점선 스타일. spots 변경 → spotsKey gate로 cascading render 회피.
+
+### 검증 결과
+
+- `pnpm build` 통과 (692 페이지).
+- `pnpm lint` — 본 변경 파일에서 신규 오류/경고 없음.
+- 실제 Directions 응답의 도로 형상·구간 시간 정확성은 **미검증** — `GOOGLE_MAPS_API_KEY` 적용 후 실키 스모크 필요.
+
+### 남은 이슈
+
+- 페이지 진입 시마다 `/api/routing/google` 호출 — 6스팟 기준 1회/페이지. 추후 `routes.directions_cache_json` 컬럼이나 서버 컴포넌트 캐시로 1회 컴퓨트 후 재사용 권장.
+- `move_from_prev_method` 등 `HaruSpot` 측 필드는 별도(딜리버리 폼 입력) — 향후 통합 모델로 합치는 작업 필요.
+
 ## 2026-05-22 - 환경변수 규약 정리 + 에디터 우측 패널 정리 + Google Directions 라우팅
 
 ### 목표

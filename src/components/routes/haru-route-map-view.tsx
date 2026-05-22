@@ -1,15 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Map,
   AdvancedMarker,
   Pin,
   useApiIsLoaded,
+  useMap,
 } from "@vis.gl/react-google-maps";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { HaruRoute, HaruSpot, AppLocale } from "@/types/haru";
+
+type LatLng = { lat: number; lng: number };
 
 /**
  * 하루루트 지도 뷰 — 전체 스팟을 핀으로 표시 + 순서대로 연결 폴리라인.
@@ -122,61 +125,115 @@ function spotPinColor(spot: HaruSpot): string {
 }
 
 /**
- * 스팟 순서대로 잇는 단순 폴리라인.
- * Maps JS의 google.maps.Polyline을 직접 사용 (vis.gl이 polyline 컴포넌트를 미제공).
+ * Directions API로 도보 경로를 받아오고, 실패하면 스팟간 직선으로 폴백.
+ * 한 번에 11개 미만 waypoints까지만 보내며(Directions API 제약), 초과 시 직선 폴백.
  */
 function RoutePolyline({ spots }: { spots: HaruSpot[] }) {
-  const path = useMemo(
+  const spotsKey = useMemo(() => spots.map((s) => s.id).join("|"), [spots]);
+  const straightPath = useMemo<LatLng[]>(
     () => spots.map((s) => ({ lat: s.catalog.lat, lng: s.catalog.lng })),
     [spots],
   );
 
-  return <PolylineOverlay path={path} />;
+  // 결과를 spotsKey와 함께 보관 → spots가 바뀌면 displayPath가 자동으로 직선으로 폴백.
+  // (effect에서 동기 setState로 reset할 필요 없음)
+  const [routedFor, setRoutedFor] = useState<{ key: string; path: LatLng[] } | null>(null);
+
+  useEffect(() => {
+    if (spots.length < 2 || spots.length > 25) return;
+    let cancelled = false;
+    const coordinates = spots.map((s) => ({ lat: s.catalog.lat, lng: s.catalog.lng }));
+
+    async function tryFetch(endpoint: string): Promise<LatLng[] | null> {
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ coordinates, profile: "foot" }),
+        });
+        if (!res.ok) return null;
+        const data = (await res.json()) as { path?: LatLng[] };
+        return data.path?.length ? data.path : null;
+      } catch {
+        return null;
+      }
+    }
+
+    (async () => {
+      const google = await tryFetch("/api/routing/google");
+      if (cancelled) return;
+      if (google) {
+        setRoutedFor({ key: spotsKey, path: google });
+        return;
+      }
+      const osrm = await tryFetch("/api/routing/osrm");
+      if (cancelled || !osrm) return;
+      setRoutedFor({ key: spotsKey, path: osrm });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [spots, spotsKey]);
+
+  const matched = routedFor?.key === spotsKey ? routedFor.path : null;
+  return <PolylineOverlay path={matched ?? straightPath} dashed={matched == null} />;
 }
 
-function PolylineOverlay({ path }: { path: Array<{ lat: number; lng: number }> }) {
-  const map = useMapForPolyline();
-  // useEffect inside helper to attach polyline to map
+function PolylineOverlay({ path, dashed }: { path: LatLng[]; dashed: boolean }) {
+  const map = useMap();
   if (typeof window === "undefined") return null;
   if (!map) return null;
-
-  // Render side-effectfully
-  return <PolylineAttacher map={map} path={path} />;
-}
-
-import { useEffect } from "react";
-import { useMap } from "@vis.gl/react-google-maps";
-
-function useMapForPolyline() {
-  return useMap();
+  return <PolylineAttacher map={map} path={path} dashed={dashed} />;
 }
 
 function PolylineAttacher({
   map,
   path,
+  dashed,
 }: {
   map: google.maps.Map;
-  path: Array<{ lat: number; lng: number }>;
+  path: LatLng[];
+  dashed: boolean;
 }) {
   useEffect(() => {
     if (!map || path.length < 2) return;
     const polyline = new google.maps.Polyline({
       path,
       strokeColor: "#7c3aed",
-      strokeOpacity: 0.85,
+      // dashed(직선 폴백)은 stroke를 투명으로 두고 점선 심볼로만 표현
+      strokeOpacity: dashed ? 0 : 0.85,
       strokeWeight: 3,
       map,
-      icons: [
-        {
-          icon: { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 2.5, fillOpacity: 1, strokeOpacity: 0 },
-          offset: "100%",
-        },
-      ],
+      icons: dashed
+        ? [
+            {
+              icon: {
+                path: "M 0,-1 0,1",
+                strokeOpacity: 0.7,
+                strokeColor: "#7c3aed",
+                scale: 3,
+              },
+              offset: "0",
+              repeat: "10px",
+            },
+          ]
+        : [
+            {
+              icon: {
+                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                scale: 2.5,
+                fillOpacity: 1,
+                strokeOpacity: 0,
+              },
+              offset: "100%",
+            },
+          ],
     });
     return () => {
       polyline.setMap(null);
     };
-  }, [map, path]);
+  }, [map, path, dashed]);
 
   return null;
 }
