@@ -11,6 +11,8 @@ import { PlaybookUnlockSheet } from "@/components/route-posts/playbook-unlock-sh
 import { useSpotGallery } from "@/hooks/use-spot-gallery";
 import { buildLocalPostVisualPlan, type LocalPostVisualPlan } from "@/lib/post-local-images";
 import { SpotImageCarousel } from "@/components/route-posts/spot-image-carousel";
+import { SpotTypeChips } from "@/components/route-posts/spot-type-chips";
+import { SpotCommercePanel } from "@/components/route-posts/spot-commerce-panel";
 import { SpotImageAdminDiagnostics } from "@/components/route-posts/spot-image-admin-diagnostics";
 import { SpotVerificationStrip } from "@/components/route-posts/spot-verification-strip";
 import {
@@ -756,11 +758,15 @@ function EditorialSpotRow({
                     <GooglePlacesSpotInspectRow spot={spot} className="mt-3" postId={post.id} canBindPlaceId />
                   ) : null}
                 </div>
+                {/* 스팟 역할 칩 (scene/photo/buy/rest/...) — 복수 가능 */}
+                <SpotTypeChips spotTypes={spot.spot_types} />
                 <SpotImageCarousel key={`full-${carouselKey}`} slides={gallerySlides} className="sm:max-w-none" />
                 {spot.short_description ? (
                   <p className="text-foreground/85 text-[15px] leading-relaxed">{spot.short_description}</p>
                 ) : null}
                 <SpotFieldNotes spot={spot} />
+                {/* 결제 가능 스팟 패널 (commerce.is_commerce_spot=true 일 때만 노출) */}
+                <SpotCommercePanel commerce={spot.commerce} />
               </div>
             </div>
           )}
