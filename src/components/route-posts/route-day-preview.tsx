@@ -283,19 +283,31 @@ export function RouteDayPreview({
               return (
                 <li key={s.id} className="space-y-1">
                   <div className="flex items-center gap-2 text-[13px] leading-tight">
-                    <span className="text-primary inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold tabular-nums">
+                    <span
+                      className={cn(
+                        "inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold tabular-nums",
+                        s.featured
+                          ? "bg-amber-400/20 text-amber-700 dark:text-amber-300"
+                          : "bg-primary/10 text-primary",
+                      )}
+                    >
                       {idx + 1}
                     </span>
                     <span className="text-foreground truncate font-medium">
                       {s.title || s.place_name || "무제 스팟"}
                     </span>
+                    {s.featured ? (
+                      <span aria-label="피처드 스팟" title="피처드 스팟" className="shrink-0 text-amber-500">
+                        ★
+                      </span>
+                    ) : null}
                     {s.place_name && s.title && s.place_name !== s.title ? (
                       <span className="text-muted-foreground truncate text-[11px]">{s.place_name}</span>
                     ) : null}
                   </div>
                   {hasLeg ? (
                     <div className="ml-7 flex items-center gap-1.5 text-muted-foreground text-[11px] leading-tight">
-                      <span aria-hidden className="text-primary/50">↓</span>
+                      <span aria-hidden>{nextMoveEmoji(s.next_move_mode)}</span>
                       <span className="tabular-nums">
                         {s.next_move_minutes != null ? `${s.next_move_minutes}분` : ""}
                         {s.next_move_minutes != null && s.next_move_distance_m != null ? " · " : ""}
@@ -316,6 +328,20 @@ export function RouteDayPreview({
 
 function fmtSpotDistance(m: number): string {
   return m >= 1000 ? `${(m / 1000).toFixed(1)}km` : `${m}m`;
+}
+
+function nextMoveEmoji(mode: "walk" | "subway" | "bus" | "taxi" | undefined): string {
+  switch (mode) {
+    case "subway":
+      return "🚇";
+    case "bus":
+      return "🚌";
+    case "taxi":
+      return "🚖";
+    case "walk":
+    default:
+      return "🚶";
+  }
 }
 
 function MemoNote({ title, body }: { title: string; body: string }) {

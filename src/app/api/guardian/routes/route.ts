@@ -203,8 +203,11 @@ export async function POST(req: Request) {
 
   // 스팟·메타 갱신 후 라우트 상세 페이지(모든 locale) 재검증 → directions Runtime Cache는
   // 좌표가 바뀌면 URL이 달라져 자동으로 새 컴퓨트가 일어나지만, 페이지의 SSR 데이터는
-  // ISR 캐시에 남아 있을 수 있으므로 명시 재검증.
-  revalidatePath("/[locale]/routes/[routeId]", "page");
+  // ISR 캐시에 남아 있을 수 있으므로 명시 재검증. 다이내믹 세그먼트 매치가 운영 환경에
+  // 따라 다를 수 있어 4개 locale URL을 모두 명시 호출(안전 사이드).
+  for (const loc of ["ko", "en", "th", "vi"] as const) {
+    revalidatePath(`/${loc}/routes/${routeId}`);
+  }
 
   const now = new Date().toISOString();
   const { error: bookingUpdateErr } = await sb

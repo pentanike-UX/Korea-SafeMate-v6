@@ -9,6 +9,31 @@
 
 ---
 
+## 2026-05-22 - 4-locale revalidate 명시 + 미리보기 아이콘 보강 + directions 헬스 엔드포인트
+
+### 목표
+
+- `revalidatePath` 다이내믹 세그먼트 매치가 운영 환경에서 일치하지 않을 가능성에 대비해 ko/en/th/vi 4개 URL을 명시 호출.
+- 에디터 미리보기 "스팟별 흐름" 카드에 featured 아이콘 + next_move_mode 이모지(🚶/🚇/🚌/🚖) 추가.
+- 운영자가 Vercel 대시보드 없이도 directions 캐시 적중 여부를 빠르게 확인할 수 있는 `/api/health/routing` 엔드포인트 신설.
+
+### 변경 파일
+
+- `src/app/api/guardian/routes/route.ts` — `revalidatePath("/[locale]/routes/[routeId]", "page")` 한 번 호출 → ko/en/th/vi 4번 명시 호출(`/${loc}/routes/${routeId}`)로 전환.
+- `src/components/route-posts/route-day-preview.tsx` — 스팟별 흐름 row에 featured 강조(번호 배지 amber + ★) + 이동 라벨 앞 모드 이모지. `nextMoveEmoji` 헬퍼 신설.
+- `src/app/api/health/routing/route.ts` (신규) — 고정 디버그 좌표(시청→광화문→인사동)에 directions-server를 두 번 연속 호출 → `first_call_ms`/`second_call_ms`/`cache_likely_hot` 반환. `Cache-Control: no-store`로 응답 자체는 캐시 금지.
+
+### 검증 결과
+
+- `pnpm build` 통과 (693 페이지, `/api/health/routing` 추가로 +1).
+- `pnpm lint` — 본 변경 파일에서 신규 경고/오류 없음.
+- 실제 헬스 엔드포인트의 `cache_likely_hot` 정확성은 **미검증** — Vercel 배포 환경에서 두 번째 호출이 외부 fetch 대비 충분히 빠른지 실측 필요.
+
+### 남은 이슈
+
+- `/api/health/routing` 호출 자체가 Google Directions API 요청을 발생시키므로(첫 호출), 정기 ping 대상으로 삼지 말 것. 관리자 수동 디버그용으로만 사용.
+- `nextMoveEmoji`는 `route-post-detail-client.tsx`의 `nextModeEmoji`와 기능 중복 — 후속 라운드에서 공용 유틸로 추출 검토.
+
 ## 2026-05-22 - 게시 시 라우트 페이지 재검증 + 에디터 미리보기 스팟 흐름 + OSRM 운영 가이드
 
 ### 목표
