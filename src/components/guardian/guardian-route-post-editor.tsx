@@ -1126,6 +1126,27 @@ export function GuardianRoutePostEditor({
                   />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="rt-spot-related-artists">관련 아티스트 (쉼표로 구분)</Label>
+                  <Input
+                    id="rt-spot-related-artists"
+                    value={(selectedSpot.related_artists ?? []).join(", ")}
+                    onChange={(e) => {
+                      const next = e.target.value
+                        .split(",")
+                        .map((x) => x.trim())
+                        .filter(Boolean);
+                      updateSpot(selectedSpot.id, {
+                        related_artists: next.length ? next : undefined,
+                      });
+                    }}
+                    placeholder="예: BTS, CL, 이날치"
+                    className="rounded-xl"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    K-POP·K-DRAMA·K-MOVIE 등 테마 포스트에서 이 스팟과 연결된 아티스트·작품 인물을 적습니다. 사용자 시트의 아티스트 카드와 연결됩니다.
+                  </p>
+                </div>
+                <div className="space-y-2 sm:col-span-2">
                   <Label>스팟 유형 (복수 선택)</Label>
                   <GuardianSpotTypeInput
                     value={selectedSpot.spot_types}

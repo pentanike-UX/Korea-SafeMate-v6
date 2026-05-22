@@ -35,7 +35,7 @@ const ARTIST_BTS: SpotArtist = {
   name_en: "BTS",
   initials: "BTS",
   accent_class: "bg-violet-600 text-white",
-  // avatar_url: 사용자가 직접 교체 예정 (이니셜 fallback로 노출)
+  avatar_url: "/mock/artists/bts.png",
   agency: "HYBE · BIG HIT MUSIC",
   agency_url: "https://hybecorp.com/",
   official_site_url: "https://bts.ibighit.com/",
@@ -74,7 +74,7 @@ const ARTIST_CL: SpotArtist = {
   name_en: "CL",
   initials: "CL",
   accent_class: "bg-pink-500 text-white",
-  avatar_url: "/mock/profiles/profile_03_avatar.jpg",
+  avatar_url: "/mock/artists/cl.png",
   agency: "前 YG · 2NE1",
   // agency_url 제거: www.verycherry.world 도메인 응답 없음
   // official_site_url 제거: chaelincl.com 검증 불가, 보수적으로 숨김
@@ -105,7 +105,7 @@ const ARTIST_LEENALCHI: SpotArtist = {
   name_en: "LEENALCHI",
   initials: "이날",
   accent_class: "bg-amber-600 text-white",
-  avatar_url: "/mock/profiles/profile_07_avatar.jpg",
+  avatar_url: "/mock/artists/leenalchi.png",
   agency: "Mirrorball Music",
   agency_url: "https://mirrorballmusic.co.kr/",
   official_site_url: "https://www.leenalchi.com/",
@@ -141,7 +141,7 @@ const ARTIST_AMBIGUOUS: SpotArtist = {
   name_en: "Ambiguous Dance Company",
   initials: "AMB",
   accent_class: "bg-teal-600 text-white",
-  avatar_url: "/mock/profiles/profile_10_avatar.jpg",
+  avatar_url: "/mock/artists/ambiguous.png",
   agency: "독립 (김보람 안무가)",
   // agency_url / official_site_url 제거: www.ambiguousdc.com 응답 없음
   youtube_channel_url: ytChannelSearch("Ambiguous Dance Company 앰비규어스"),

@@ -372,6 +372,13 @@ export interface RouteSpot {
   // lat / lng 는 이미 존재 (위 필드)
 
   /**
+   * 스팟별 관련 아티스트 이름 목록 (K-POP·K-DRAMA·K-MOVIE 등 테마 포스트에서 사용).
+   * 본 단계는 자유 문자열(예: "BTS", "CL", "이날치"). 추후 artist 마스터 테이블과
+   * ID 매핑으로 승격 예정. 카드/시트에서 칩으로 노출.
+   */
+  related_artists?: string[];
+
+  /**
    * 스팟이 수행하는 역할(복수). 카드에 칩으로 노출되고, "결제 가능"인지(`buy`/`experience`)
    * 한눈에 보이게 한다. AI_CONTENT_HARUWAY_RULES §5 참조.
    */

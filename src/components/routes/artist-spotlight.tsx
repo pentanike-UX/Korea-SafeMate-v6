@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { Globe, Youtube, Instagram, ExternalLink, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SpotArtist } from "@/types/haru";
@@ -149,15 +150,24 @@ function LinkChips({ artist }: { artist: SpotArtist }) {
 function ArtistAvatar({ artist, size = 40 }: { artist: SpotArtist; size?: number }) {
   const dim = `${size}px`;
   const fontSize = size <= 32 ? 11 : size <= 44 ? 12 : 14;
+  // 이미지 로드 실패(파일 미배치 등) 시 자동으로 이니셜 fallback으로 전환
+  const [imgFailed, setImgFailed] = useState(false);
 
-  if (artist.avatar_url) {
+  if (artist.avatar_url && !imgFailed) {
     return (
       <span
-        className="relative inline-flex shrink-0 overflow-hidden rounded-full ring-2 ring-bg-card"
+        className="relative inline-flex shrink-0 overflow-hidden rounded-full ring-2 ring-bg-card bg-white dark:bg-neutral-900"
         style={{ width: dim, height: dim }}
         aria-label={artist.name}
       >
-        <Image src={artist.avatar_url} alt={artist.name} fill sizes={`${size}px`} className="object-cover" />
+        <Image
+          src={artist.avatar_url}
+          alt={artist.name}
+          fill
+          sizes={`${size}px`}
+          className="object-cover"
+          onError={() => setImgFailed(true)}
+        />
       </span>
     );
   }
