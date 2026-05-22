@@ -9,6 +9,34 @@
 
 ---
 
+## 2026-05-22 - Supabase 마이그레이션 프로덕션 적용 + 트리거 함수 RPC 노출 차단
+
+### 목표
+
+- 그동안 누적된 두 마이그레이션(`20260522180000_routes_directions_meta`, `20260522190000_routes_invalidate_directions_trigger`)을 프로덕션 Supabase에 적용.
+- Supabase 보안 lint(`anon_security_definer_function_executable`, `authenticated_security_definer_function_executable`)가 새 트리거 함수에 대해 경고 → public/anon/authenticated에서 EXECUTE 회수.
+
+### 변경 / 적용
+
+- 프로덕션 Supabase(`twxlokedllghbpztoiej`)에 두 마이그레이션 적용 완료. `information_schema`로 컬럼·트리거 존재 확인.
+- `supabase/migrations/20260522190000_routes_invalidate_directions_trigger.sql` — 트리거 생성 직후 `revoke execute ... from public/anon/authenticated` 3줄 추가. 트리거는 DB 시스템이 직접 호출하므로 EXECUTE 권한과 무관하게 동작.
+- 같은 SQL을 운영 DB에도 적용해 `get_advisors`에서 해당 경고 해소 확인.
+
+### 미적용 마이그레이션 (의도적 보류)
+
+- `supabase/migrations/20260430000001_spot_images_and_catalog_enhance.sql` (149줄, spot_catalog 보강 + spot_images 테이블 신규) — 이번 세션 범위 밖. `spot_images`·`spot_catalog.district`·`spot_catalog.naver_data`를 참조하는 code path가 작동하지 않을 수 있음. 별도 라운드에서 검토·적용 권장.
+
+### 검증 결과
+
+- `pnpm build` 통과 (693 페이지, 변경 없음 — SQL만).
+- `get_advisors` — `routes_invalidate_directions_meta_from_route_spots`는 더 이상 노출되지 않음.
+- 트리거 동작 자체는 **미검증** — 다음 가디언 게시 시 routes.directions_meta 갱신 흐름 실측 필요.
+
+### 남은 이슈 (보안 lint 잔여, 모두 사전 존재)
+
+- `points_apply_ledger`·`rls_auto_enable`·`service_count_unread_chat_threads`·`service_message_threads_list_for_user`·`wayly_record_usage`가 동일 패턴(SECURITY DEFINER + anon/authenticated EXECUTE)으로 노출. 별도 라운드에서 일괄 정리 검토.
+- 14개 테이블에 RLS는 켜져 있으나 정책 부재(`rls_enabled_no_policy`) — INFO 수준이지만 의도된 차단이 아니면 정책 추가 필요.
+
 ## 2026-05-22 - directions 저장 토스트 + route_spots 트리거 자동 무효화
 
 ### 목표

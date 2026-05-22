@@ -49,3 +49,9 @@ create trigger trg_route_spots_invalidate_directions
 
 comment on function public.routes_invalidate_directions_meta_from_route_spots() is
   'route_spots 변경 시 부모 routes.directions_meta를 NULL로 자동 무효화 (delivery API가 같은 트랜잭션에서 재계산).';
+
+-- PostgREST가 public.* 함수를 RPC로 노출하므로, 트리거 전용 함수는 EXECUTE 회수.
+-- 트리거는 DB 시스템이 직접 호출하므로 EXECUTE 권한과 무관하게 동작한다.
+revoke execute on function public.routes_invalidate_directions_meta_from_route_spots() from public;
+revoke execute on function public.routes_invalidate_directions_meta_from_route_spots() from anon;
+revoke execute on function public.routes_invalidate_directions_meta_from_route_spots() from authenticated;
