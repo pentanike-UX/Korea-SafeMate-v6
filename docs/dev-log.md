@@ -9,6 +9,30 @@
 
 ---
 
+## 2026-05-22 - directions 저장 토스트 + route_spots 트리거 자동 무효화
+
+### 목표
+
+- 가디언이 게시 직후 directions가 함께 저장됐는지 즉시 알 수 있도록 토스트/안내 라벨 추가.
+- 좌표·순서가 바뀌었는데 admin이 리프레시를 안 했을 때 stale 폴리라인이 남는 걸 방지 — `route_spots` 변경 시 부모 `routes.directions_meta`를 PG 트리거로 자동 무효화.
+
+### 변경 파일
+
+- `src/app/api/guardian/routes/route.ts` — directions 저장 성공 시 `directionsSaved` 객체 보관, 응답 JSON에 `directions_saved` 필드 추가(provider/points/distance_m/duration_s).
+- `src/components/guardian/guardian-route-delivery-form.tsx` — `setDirectionsSavedInfo` 상태 + 응답 파싱. 저장 완료 영역에 "✓ 도보 경로도 함께 저장됨 (Google Directions · 87점 · 1.4km · 18분)" 또는 실패 시 "ⓘ 도보 경로는 저장되지 못했지만 라우트는 게시됐습니다." 안내.
+- `supabase/migrations/20260522190000_routes_invalidate_directions_trigger.sql` (신규) — `route_spots` AFTER INSERT/UPDATE/DELETE 트리거. UPDATE는 `spot_id` 또는 `sort_order`가 실제로 바뀐 경우에만 무효화. 같은 트랜잭션에서 delivery API가 다시 채우므로 순서 안전. `security definer` + `set search_path = public`.
+
+### 검증 결과
+
+- `pnpm build` 통과 (693 페이지).
+- `pnpm lint` — 본 변경 파일에서 신규 경고/오류 없음.
+- 트리거 실제 동작·동일 트랜잭션 내 재채움은 **미검증** — 배포 후 가디언 게시 → DB 인스펙션으로 확인 필요.
+
+### 남은 이슈
+
+- 트리거가 `security definer`인 이유: `route_spots` 작성 권한자가 `routes` UPDATE 권한이 없을 수도 있어 권한 승격 필요. 다만 함수 내에서 단일 컬럼(`directions_meta`)만 NULL로 만들므로 보안 면적 최소.
+- `spot_catalog.lat/lng`가 admin에 의해 변경되는 경우는 트리거 범위 밖 — admin refresh-directions 엔드포인트로 수동 갱신.
+
 ## 2026-05-22 - 프로덕션 페이지 깨짐 수정 + Google Maps 인증 실패 진단 + admin refresh-directions
 
 ### 목표 / 배경

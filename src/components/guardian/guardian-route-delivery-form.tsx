@@ -57,6 +57,12 @@ export function GuardianRouteDeliveryForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedRouteId, setSavedRouteId] = useState<string | null>(null);
+  const [directionsSavedInfo, setDirectionsSavedInfo] = useState<{
+    provider: "google" | "osrm";
+    points: number;
+    distance_m: number | null;
+    duration_s: number | null;
+  } | null>(null);
 
   const spotById = useMemo(() => new Map(spots.map((s) => [s.id, s])), [spots]);
   const selectedIdSet = useMemo(() => new Set(selected.map((s) => s.spot_id)), [selected]);
@@ -104,6 +110,7 @@ export function GuardianRouteDeliveryForm({
   async function submit() {
     setError(null);
     setSavedRouteId(null);
+    setDirectionsSavedInfo(null);
     if (!bookingId) {
       setError("예약(booking)을 선택해 주세요.");
       return;
@@ -140,12 +147,19 @@ export function GuardianRouteDeliveryForm({
       const json = (await res.json().catch(() => ({}))) as {
         error?: string;
         route_id?: string;
+        directions_saved?: {
+          provider: "google" | "osrm";
+          points: number;
+          distance_m: number | null;
+          duration_s: number | null;
+        } | null;
       };
       if (!res.ok) {
         setError(json.error ?? "루트 저장에 실패했습니다.");
         return;
       }
       setSavedRouteId(json.route_id ?? null);
+      setDirectionsSavedInfo(json.directions_saved ?? null);
       router.refresh();
     } finally {
       setSaving(false);
@@ -308,12 +322,29 @@ export function GuardianRouteDeliveryForm({
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       {savedRouteId ? (
-        <p className="text-sm text-emerald-700">
-          저장 완료: <span className="font-mono">{savedRouteId}</span>{" "}
-          <Link href={`/routes/${savedRouteId}`} className="underline underline-offset-2">
-            루트 보기
-          </Link>
-        </p>
+        <div className="space-y-1.5">
+          <p className="text-sm text-emerald-700">
+            저장 완료: <span className="font-mono">{savedRouteId}</span>{" "}
+            <Link href={`/routes/${savedRouteId}`} className="underline underline-offset-2">
+              루트 보기
+            </Link>
+          </p>
+          {directionsSavedInfo ? (
+            <p className="text-xs text-emerald-700/80">
+              ✓ 도보 경로도 함께 저장됨 ({directionsSavedInfo.provider === "google" ? "Google Directions" : "OSRM"} · {directionsSavedInfo.points}점
+              {directionsSavedInfo.distance_m != null
+                ? ` · ${(directionsSavedInfo.distance_m / 1000).toFixed(1)}km`
+                : ""}
+              {directionsSavedInfo.duration_s != null
+                ? ` · ${Math.max(1, Math.round(directionsSavedInfo.duration_s / 60))}분`
+                : ""})
+            </p>
+          ) : (
+            <p className="text-xs text-amber-700/80">
+              ⓘ 도보 경로는 저장되지 못했지만 라우트는 게시됐습니다. 사용자 페이지가 실시간 계산으로 보강.
+            </p>
+          )}
+        </div>
       ) : null}
 
       <div className="flex items-center gap-2">

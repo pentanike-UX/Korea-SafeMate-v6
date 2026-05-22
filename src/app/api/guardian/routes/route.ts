@@ -205,6 +205,14 @@ export async function POST(req: Request) {
 
   // directions 메타를 계산해 routes.directions_meta에 저장 → 사용자 페이지가 외부 호출 없이
   // 즉시 폴리라인·구간 정보를 사용. 좌표를 spot_catalog에서 재조회(정렬 보장).
+  let directionsSaved:
+    | {
+        provider: "google" | "osrm";
+        points: number;
+        distance_m: number | null;
+        duration_s: number | null;
+      }
+    | null = null;
   try {
     const { data: catalogCoords } = await sb
       .from("spot_catalog")
@@ -227,7 +235,7 @@ export async function POST(req: Request) {
       if (directions) {
         // row 크기 가드: 폴리라인이 길어도 도보 5m 변위 허용으로 단순화(상한 500점).
         const simplifiedPath = simplifyPath(directions.path);
-        await sb
+        const { error: updErr } = await sb
           .from("routes")
           .update({
             directions_meta: {
@@ -241,6 +249,14 @@ export async function POST(req: Request) {
             },
           })
           .eq("id", routeId);
+        if (!updErr) {
+          directionsSaved = {
+            provider: directions.provider,
+            points: simplifiedPath.length,
+            distance_m: directions.distance_m,
+            duration_s: directions.duration_s,
+          };
+        }
       }
     }
   } catch (e) {
@@ -283,5 +299,6 @@ export async function POST(req: Request) {
     max_revisions: maxRevisions,
     revision_policy_state: revisionCount >= maxRevisions ? "limit_reached" : "open",
     delivery_mode: bookingStatus === "revision_requested" ? "revision_delivery" : "initial_delivery",
+    directions_saved: directionsSaved,
   });
 }
