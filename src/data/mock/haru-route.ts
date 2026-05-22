@@ -21,14 +21,23 @@ import type { HaruRoute, SpotArtist } from "@/types/haru";
 const yt = (id: string) => `https://www.youtube.com/watch?v=${id}`;
 const ytThumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 
+// 비즈니스 메모: 본 mock은 내부 시연 전용. YouTube 채널 핸들의 정합성 보장 어렵기에
+// BTS는 검증된 공식 핸들(@BANGTANTV) 직접 사용, 나머지는 YouTube 검색 결과 URL로 폴백
+// (어떤 채널이라도 첫 결과로 노출돼 깨짐 없음). 죽은 사이트(www.verycherry.world,
+// www.ambiguousdc.com)는 해당 필드 제거. 프로필 이미지는 사용자가 BTS는 직접 교체 예정,
+// 나머지는 프로젝트 내 기존 mock 프로필 이미지를 임시 대표 이미지로 활용.
+const ytChannelSearch = (q: string) =>
+  `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+
 const ARTIST_BTS: SpotArtist = {
   id: "bts",
   name: "BTS",
   name_en: "BTS",
   initials: "BTS",
   accent_class: "bg-violet-600 text-white",
+  // avatar_url: 사용자가 직접 교체 예정 (이니셜 fallback로 노출)
   agency: "HYBE · BIG HIT MUSIC",
-  agency_url: "https://ibighit.com/",
+  agency_url: "https://hybecorp.com/",
   official_site_url: "https://bts.ibighit.com/",
   youtube_channel_url: "https://www.youtube.com/@BANGTANTV",
   instagram_url: "https://www.instagram.com/bts.bighitofficial/",
@@ -65,10 +74,11 @@ const ARTIST_CL: SpotArtist = {
   name_en: "CL",
   initials: "CL",
   accent_class: "bg-pink-500 text-white",
-  agency: "VERY CHERRY (前 YG · 2NE1)",
-  agency_url: "https://www.verycherry.world/",
-  official_site_url: "https://chaelincl.com/",
-  youtube_channel_url: "https://www.youtube.com/@chaelincl",
+  avatar_url: "/mock/profiles/profile_03_avatar.jpg",
+  agency: "前 YG · 2NE1",
+  // agency_url 제거: www.verycherry.world 도메인 응답 없음
+  // official_site_url 제거: chaelincl.com 검증 불가, 보수적으로 숨김
+  youtube_channel_url: ytChannelSearch("CL 씨엘 official"),
   instagram_url: "https://www.instagram.com/chaelincl/",
   rep_works: ["HWA (화)", "나쁜 기집애", "Lover Like Me", "I Am the Best (2NE1)"],
   scene: "CBS 〈더 레이트 레이트 쇼 위드 제임스 코든〉에서 〈화(HWA)〉를 전통×현대 공간에서 공연",
@@ -95,10 +105,11 @@ const ARTIST_LEENALCHI: SpotArtist = {
   name_en: "LEENALCHI",
   initials: "이날",
   accent_class: "bg-amber-600 text-white",
+  avatar_url: "/mock/profiles/profile_07_avatar.jpg",
   agency: "Mirrorball Music",
   agency_url: "https://mirrorballmusic.co.kr/",
   official_site_url: "https://www.leenalchi.com/",
-  youtube_channel_url: "https://www.youtube.com/@LEENALCHI",
+  youtube_channel_url: ytChannelSearch("이날치 LEENALCHI"),
   instagram_url: "https://www.instagram.com/leenalchi/",
   rep_works: ["범 내려온다", "어류도감", "Feel the Rhythm of Korea: Seoul"],
   scene: "한국관광공사 'Feel the Rhythm of Korea' 서울 편 — 판소리 베이스 얼터너티브",
@@ -130,10 +141,10 @@ const ARTIST_AMBIGUOUS: SpotArtist = {
   name_en: "Ambiguous Dance Company",
   initials: "AMB",
   accent_class: "bg-teal-600 text-white",
+  avatar_url: "/mock/profiles/profile_10_avatar.jpg",
   agency: "독립 (김보람 안무가)",
-  agency_url: "https://www.ambiguousdc.com/",
-  official_site_url: "https://www.ambiguousdc.com/",
-  youtube_channel_url: "https://www.youtube.com/@ambiguousdancecompany",
+  // agency_url / official_site_url 제거: www.ambiguousdc.com 응답 없음
+  youtube_channel_url: ytChannelSearch("Ambiguous Dance Company 앰비규어스"),
   instagram_url: "https://www.instagram.com/ambiguousdc/",
   rep_works: ["Feel the Rhythm of Korea", "Body Concert", "BTS·BLACKPINK 안무 협업"],
   scene: "이날치와 함께 'Feel the Rhythm' 서울 편 안무·퍼포먼스",
