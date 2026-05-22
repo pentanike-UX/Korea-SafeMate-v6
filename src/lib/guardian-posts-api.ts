@@ -3,9 +3,11 @@ import type {
   ContentPostHeroSubject,
   ContentPostKind,
   ContentPostStatus,
+  HaruwayTheme,
   PostStructuredContentV1,
   RouteJourney,
 } from "@/types/domain";
+import { HARUWAY_THEME_LABELS } from "@/types/domain";
 import { parsePostStructuredContent } from "@/lib/post-structured-content";
 
 /** Payload accepted by POST/PATCH `/api/guardian/posts` — mirrors `ContentPost` write shape. */
@@ -26,7 +28,15 @@ export type GuardianPostSavePayload = {
   route_journey: RouteJourney;
   route_highlights?: string[];
   structured_content?: PostStructuredContentV1 | null;
+  /** 하루웨이 테마. K_POP / K_DRAMA / ... — AI_CONTENT_HARUWAY_RULES §3 참조. */
+  theme?: HaruwayTheme;
 };
+
+function parseOptionalTheme(v: unknown): HaruwayTheme | undefined {
+  if (typeof v !== "string") return undefined;
+  if (v in HARUWAY_THEME_LABELS) return v as HaruwayTheme;
+  return undefined;
+}
 
 function parseOptionalHeroSubject(v: unknown): ContentPostHeroSubject | null | undefined {
   if (v === undefined) return undefined;
@@ -106,5 +116,6 @@ export function parseGuardianPostPayload(body: unknown): GuardianPostSavePayload
       o.structured_content === null
         ? null
         : parsePostStructuredContent(o.structured_content) ?? undefined,
+    theme: parseOptionalTheme(o.theme),
   };
 }

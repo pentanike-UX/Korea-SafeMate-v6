@@ -8,12 +8,16 @@ import type {
   ContentPostFormat,
   ContentPostHeroSubject,
   ContentPostKind,
+  HaruwayTheme,
   PostStructuredContentV1,
   RouteJourney,
   RoutePostStructuredContentV1,
   RouteSpot,
 } from "@/types/domain";
-import { POST_STRUCTURED_CONTENT_VERSION } from "@/types/domain";
+import { HARUWAY_THEME_LABELS, POST_STRUCTURED_CONTENT_VERSION } from "@/types/domain";
+import { GuardianHaruwayGuideBanner } from "@/components/guardian/guardian-haruway-guide-banner";
+import { GuardianSpotTypeInput } from "@/components/guardian/guardian-spot-type-input";
+import { GuardianSpotCommerceInput } from "@/components/guardian/guardian-spot-commerce-input";
 import { inferRouteStructuredDraftFromPost, routeDataToArticleParsed, serializeRoutePostToShellBody } from "@/lib/post-structured-content";
 import { formatRouteSummaryMeta } from "@/lib/post-seed-content-templates";
 import { saveGuardianRoutePostAction } from "@/app/[locale]/(authed)/guardian/posts/actions";
@@ -167,6 +171,7 @@ function buildSavePayload(
     route_journey: p.route_journey,
     route_highlights: p.route_highlights ?? [],
     structured_content,
+    theme: p.theme,
   };
 }
 
@@ -605,6 +610,8 @@ export function GuardianRoutePostEditor({
           </p>
         </div>
 
+        <GuardianHaruwayGuideBanner />
+
         {saveError ? (
           <p className="border-destructive/30 bg-destructive/10 text-destructive rounded-xl border px-4 py-3 text-sm">{saveError}</p>
         ) : null}
@@ -712,6 +719,28 @@ export function GuardianRoutePostEditor({
               ))}
             </select>
             <p className="text-muted-foreground text-xs leading-relaxed">{COPY.kindHint}</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rt-theme">하루웨이 테마</Label>
+            <select
+              id="rt-theme"
+              className="border-input bg-background h-9 w-full rounded-lg border px-2 text-sm"
+              value={post.theme ?? ""}
+              onChange={(e) => {
+                const v = e.target.value;
+                setPost((p) => ({ ...p, theme: v ? (v as HaruwayTheme) : undefined }));
+              }}
+            >
+              <option value="">(미설정 — 태그로 폴백)</option>
+              {(Object.keys(HARUWAY_THEME_LABELS) as HaruwayTheme[]).map((t) => (
+                <option key={t} value={t}>
+                  {HARUWAY_THEME_LABELS[t]}
+                </option>
+              ))}
+            </select>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              포스트의 큰 주제 (K-POP / K-DRAMA / K-FOOD ...). 추천·검색에 사용됩니다.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="rt-hero-subject">{COPY.heroSubjectLabel}</Label>
@@ -1094,6 +1123,21 @@ export function GuardianRoutePostEditor({
                     value={selectedSpot.caution}
                     onChange={(e) => updateSpot(selectedSpot.id, { caution: e.target.value })}
                     className="rounded-xl"
+                  />
+                </div>
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>스팟 유형 (복수 선택)</Label>
+                  <GuardianSpotTypeInput
+                    value={selectedSpot.spot_types}
+                    onChange={(next) =>
+                      updateSpot(selectedSpot.id, { spot_types: next.length ? next : undefined })
+                    }
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <GuardianSpotCommerceInput
+                    value={selectedSpot.commerce}
+                    onChange={(next) => updateSpot(selectedSpot.id, { commerce: next })}
                   />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
