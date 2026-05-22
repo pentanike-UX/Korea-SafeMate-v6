@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getServerSupabaseForUser } from "@/lib/supabase/server-user";
 import { getDirectionsForCoords } from "@/lib/routing/directions-server";
+import { simplifyPath } from "@/lib/routing/simplify-path";
 
 type MoveMethod = "walk" | "subway" | "taxi";
 type RouteStatus = "draft" | "under_review" | "public" | "private";
@@ -224,12 +225,15 @@ export async function POST(req: Request) {
     if (orderedCoords.length >= 2) {
       const directions = await getDirectionsForCoords(orderedCoords, "foot");
       if (directions) {
+        // row 크기 가드: 폴리라인이 길어도 도보 5m 변위 허용으로 단순화(상한 500점).
+        const simplifiedPath = simplifyPath(directions.path);
         await sb
           .from("routes")
           .update({
             directions_meta: {
               provider: directions.provider,
-              path: directions.path,
+              path: simplifiedPath,
+              path_simplified_from: directions.path.length !== simplifiedPath.length ? directions.path.length : undefined,
               legs: directions.legs,
               distance_m: directions.distance_m,
               duration_s: directions.duration_s,
@@ -244,12 +248,16 @@ export async function POST(req: Request) {
     console.warn("[guardian/routes] directions persist failed", e);
   }
 
-  // 스팟·메타 갱신 후 라우트 상세 페이지(모든 locale) 재검증 → directions Runtime Cache는
-  // 좌표가 바뀌면 URL이 달라져 자동으로 새 컴퓨트가 일어나지만, 페이지의 SSR 데이터는
-  // ISR 캐시에 남아 있을 수 있으므로 명시 재검증. 다이내믹 세그먼트 매치가 운영 환경에
-  // 따라 다를 수 있어 4개 locale URL을 모두 명시 호출(안전 사이드).
+  // 스팟·메타 갱신 후 영향받는 페이지를 명시 재검증.
+  // - /routes/[routeId]: 새로 게시된/수정된 디테일 페이지
+  // - /mypage/routes, /guardian/routes: 본인 목록
+  // - /explore/routes: 공개 목록 (sample/public 상태 라우트가 노출되는 경우)
+  // 4개 locale × 4개 경로 = 16회 호출. revalidatePath는 가벼우므로 부담 없음.
   for (const loc of ["ko", "en", "th", "vi"] as const) {
     revalidatePath(`/${loc}/routes/${routeId}`);
+    revalidatePath(`/${loc}/mypage/routes`);
+    revalidatePath(`/${loc}/guardian/routes`);
+    revalidatePath(`/${loc}/explore/routes`);
   }
 
   const now = new Date().toISOString();

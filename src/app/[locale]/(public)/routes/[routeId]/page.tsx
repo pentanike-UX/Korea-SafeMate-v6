@@ -23,6 +23,7 @@ import {
 } from "@/lib/routes/haru-route-from-supabase.server";
 import { getServerSupabaseForUser, getSupabaseAuthUserIdOnly } from "@/lib/supabase/server-user";
 import { getDirectionsForCoords } from "@/lib/routing/directions-server";
+import mockDirections from "@/data/mock/haru-route-directions.json";
 
 interface Props {
   params: Promise<{ routeId: string; locale: string }>;
@@ -98,7 +99,22 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
   const storedMeta = fromDb ? routesDirectionsMeta : null;
   if (storedMeta) {
     directions = { path: storedMeta.path, legs: storedMeta.legs, provider: storedMeta.provider };
-  } else {
+  } else if (!fromDb) {
+    // mock 라우트 — 빌드 타임에 캐싱된 정적 JSON 우선 사용 (외부 호출 0회).
+    const cached = (mockDirections as Record<string, { provider?: string; path?: Array<{ lat: number; lng: number }>; legs?: Array<{ distance_m: number | null; duration_s: number | null }> }>)[route.id];
+    if (
+      cached?.path && cached.path.length >= 2 &&
+      (cached.provider === "google" || cached.provider === "osrm")
+    ) {
+      directions = {
+        path: cached.path,
+        legs: Array.isArray(cached.legs) ? cached.legs : [],
+        provider: cached.provider,
+      };
+    }
+  }
+
+  if (!directions) {
     const directionsCoords = [...route.spots]
       .sort((a, b) => a.order - b.order)
       .map((s) => ({ lat: s.catalog.lat, lng: s.catalog.lng }));

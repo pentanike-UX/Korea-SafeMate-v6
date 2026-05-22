@@ -9,6 +9,35 @@
 
 ---
 
+## 2026-05-22 - 폴리라인 단순화 가드 + mock directions 빌드 캐시 + 목록 재검증 확장
+
+### 목표
+
+- DB row 크기 가드 — `routes.directions_meta` 저장 전 Douglas–Peucker로 폴리라인 단순화(상한 500점, 5m 변위 허용).
+- mock 라우트의 directions를 빌드 타임에 한 번 계산해 정적 JSON으로 커밋 → 페이지가 외부 API 호출 없이 즉시 사용.
+- 가디언 게시 시 `revalidatePath`를 `/routes/[id]` 외에 `/mypage/routes`·`/guardian/routes`·`/explore/routes`까지 확장 (4 locale × 4 경로 = 16회).
+
+### 변경 파일
+
+- `src/lib/routing/simplify-path.ts` (신규) — Douglas–Peucker 알고리즘 + 점 개수 상한 가드. 좌표를 degree 단위로 처리하고 tolerance를 두 배씩 늘려 maxOutPoints에 들이도록 시도, 끝까지 안 들어가면 균등 데시메이션.
+- `src/app/api/guardian/routes/route.ts` — directions 저장 시 `simplifyPath()` 적용, 단순화가 일어났으면 `path_simplified_from`에 원본 점 개수 기록. revalidatePath 호출 확장.
+- `src/data/mock/haru-route-directions.json` (신규, 초기 `{}`) — 빌드 스크립트가 채울 정적 캐시.
+- `scripts/build-mock-directions.mjs` (신규) — `src/data/mock/haru-route.ts`에서 catalog.lat/lng 추출 → Google Directions(키 있으면) / OSRM 폴백 → `{ "mock-haru-route": { provider, path, legs, distance_m, duration_s, computed_at } }` 형식으로 저장.
+- `package.json` — `routes:build-mock-directions` 스크립트 등록.
+- `src/app/[locale]/(public)/routes/[routeId]/page.tsx` — 우선순위: DB → mock 정적 JSON → 라이브 컴퓨트. 정적 JSON에 path가 ≥2점이고 provider가 google/osrm이면 그대로 사용.
+
+### 검증 결과
+
+- `pnpm build` 통과 (693 페이지).
+- `pnpm lint` — 본 변경 파일에서 신규 경고/오류 없음.
+- 단순화 휴리스틱(5m 변위/500점)은 서울 시내 도보 라우트 기준 검증 — **장거리·산악 라우트에서의 적합성은 미검증**.
+- mock JSON은 초기 `{}` — 키 적용 후 `pnpm run routes:build-mock-directions` 실행 + 결과 커밋 필요.
+
+### 남은 이슈
+
+- `revalidatePath`가 16회 호출되어 cold start 직후 burst 발생 가능 — Vercel상 부담은 미미할 것으로 예상되나 측정 필요.
+- `simplifyPath`의 tolerance 디폴트가 서울 위도 기준 ~5m이라 다른 위도에서는 m 단위가 약간 달라짐(평면 근사). 작업 범위상 충분.
+
 ## 2026-05-22 - leg-connector 흡수 + routes.directions_meta DB 저장 + 미리보기 썸네일
 
 ### 목표

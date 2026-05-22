@@ -17,6 +17,7 @@
   },
   "scripts": {
     "posts:scan-images": "node scripts/scan-post-local-images.mjs",
+    "routes:build-mock-directions": "node scripts/build-mock-directions.mjs",
     "seed:users": "tsx scripts/seed-users-to-supabase.ts",
     "seed:reference": "tsx scripts/seed-reference-to-supabase.ts",
     "seed:sample": "tsx scripts/seed-sample-to-supabase.ts",
