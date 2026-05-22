@@ -9,6 +9,33 @@
 
 ---
 
+## 2026-05-22 - 환경변수 규약 정리 + 에디터 우측 패널 정리 + Google Directions 라우팅
+
+### 목표
+
+- 브라우저 지도 키 이름을 `env.example` 규약(`NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY`)에 맞춤.
+- 하루이 루트 에디터 우측 패널(지도/카드 미리보기)의 시각·접근성 다듬기.
+- OSRM 단독 대신 Google Directions(도보·차량) 우선 + OSRM 폴백으로 거리·시간 추정 품질 개선.
+
+### 변경 파일
+
+- `src/components/maps/google-maps-provider.tsx`, `google-map-drawer.tsx`, `src/components/routes/haru-route-map-view.tsx` — 키 이름 `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY`로 통일, 안내 카드 문구도 갱신.
+- `env.example`, `README.md` — 서버/브라우저 키 역할 분리와 Places(브라우저 Autocomplete 포함) 활성 가이드.
+- `src/components/guardian/guardian-route-post-editor.tsx` — 우측 패널 `<aside>` + `role="tablist"`/`role="tabpanel"`로 의미부여, 인라인 height → tailwind 아빗러리 (`h-[min(500px,65vh)]`, `max-h-[min(72vh,640px)]`), 모드 배지를 활성 패널 안으로 이동, 루트 요약/태그 섹션 라벨 분리, OSRM 컨트롤 라인을 버튼 + 그 아래 힌트 형식으로 정리.
+- `src/app/api/routing/google/route.ts` (신규) — `GOOGLE_MAPS_API_KEY` 서버 키로 Directions 호출, 인코딩 폴리라인 디코드, `legs[]`(구간별 m·s) 포함 응답. 키 미설정 시 503 + `retry_with: "osrm"`.
+- `src/components/guardian/guardian-route-post-editor.tsx` — `refreshRouteFromOsrm` 내부에서 Google → OSRM 폴백 직렬 호출, 성공 토스트에 사용 프로바이더 명시. 버튼 라벨을 "경로·도보 시간 계산"으로 일반화.
+
+### 검증 결과
+
+- `pnpm build` 통과 (`Compiled successfully`, 692 페이지 SSG — `/api/routing/google` 추가로 +1).
+- `pnpm lint` — 본 변경 파일에서 신규 경고 없음 (기존 `routeDataToArticleParsed` 미사용은 사전 존재).
+- 실제 Google Directions 응답 품질·HTTP referrer/원본 제한은 **미검증** — 키 적용 후 스모크 필요.
+
+### 남은 이슈
+
+- `legs[]`(구간별 m·s)는 현재 응답에 포함되지만 UI에 노출되지 않음 — 차후 라운드에서 스팟 카드의 "다음 스팟까지 N분" 보조 라벨로 사용 예정.
+- `OSRM_BASE_URL` 자체 인스턴스 운영 도입 시 폴백 신뢰성 ↑ — 데모 서버 의존 제거 필요.
+
 ## 2026-05-22 - 하루루트 지도 뷰 추가 (Google Maps · 타임라인↔지도 토글)
 
 ### 목표

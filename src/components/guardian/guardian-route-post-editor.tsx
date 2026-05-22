@@ -249,8 +249,8 @@ const COPY = {
   back: "목록으로",
   mapPanelTitle: "이 하루이의 추천 여행경로",
   mapPanelHint: "핀을 눌러 스팟 선택 · 보조 「지도에서 직접 선택」 켠 뒤 빈 곳을 탭하면 스팟이 추가됩니다.",
-  routeOsrm: "OSRM으로 경로 계산",
-  routeOsrmHint: "도보/차량 기준 실제 도로 형상(데모 서버). 운영 시 OSRM_BASE_URL을 자체 인스턴스로 교체하세요.",
+  routeOsrm: "경로·도보 시간 계산",
+  routeOsrmHint: "Google Directions(도보·차량) 우선, 키 미설정 시 OSRM 공개 서버로 폴백.",
   saving: "저장 중…",
   savedPending: "검토 대기(pending)로 저장됨",
   flowStep1: "유형",
@@ -556,17 +556,38 @@ export function GuardianRoutePostEditor({
     setSaveError(null);
     try {
       const profile = journey.metadata.transport_mode === "car" ? "car" : "foot";
-      const res = await fetch("/api/routing/osrm", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ coordinates, profile }),
-      });
-      const data = (await res.json()) as {
+
+      type RoutingResult = {
         error?: string;
         path?: { lat: number; lng: number }[];
-        distance_m?: number;
-        duration_s?: number;
+        distance_m?: number | null;
+        duration_s?: number | null;
+        provider?: string;
       };
+
+      async function call(endpoint: string) {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ coordinates, profile }),
+        });
+        const data = (await res.json()) as RoutingResult & { retry_with?: string };
+        return { res, data };
+      }
+
+      // 1) Google Directions 우선 — 키 없거나 5xx면 OSRM 폴백.
+      let result = await call("/api/routing/google");
+      let providerLabel = "Google Directions";
+      if (!result.res.ok) {
+        const shouldFallback =
+          result.res.status === 503 || result.data.retry_with === "osrm" || result.res.status >= 500;
+        if (shouldFallback) {
+          result = await call("/api/routing/osrm");
+          providerLabel = "OSRM";
+        }
+      }
+
+      const { res, data } = result;
       if (!res.ok) {
         setSaveError(data.error ?? "경로 계산 실패");
         return;
@@ -593,7 +614,7 @@ export function GuardianRoutePostEditor({
           },
         };
       });
-      setSaveNotice("OSRM 응답으로 폴리라인과 거리·시간 추정을 갱신했습니다.");
+      setSaveNotice(`${providerLabel} 응답으로 폴리라인·거리·시간을 갱신했습니다.`);
     } finally {
       setRouting(false);
     }
@@ -1375,59 +1396,65 @@ export function GuardianRoutePostEditor({
         </div>
       </div>
 
-      <div className="lg:sticky lg:top-24 flex flex-col gap-3 self-start">
+      <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-24" aria-label="작성 보조 패널">
         {/* ── 탭 헤더 ─────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1 rounded-xl border border-border/60 bg-muted/30 p-1">
-            <button
-              type="button"
-              onClick={() => setRightPanel("map")}
-              className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
-                rightPanel === "map"
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Map className="size-3.5" />
-              지도
-            </button>
-            <button
-              type="button"
-              onClick={() => setRightPanel("preview")}
-              className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
-                rightPanel === "preview"
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <StickyNote className="size-3.5" />
-              카드 미리보기
-            </button>
-          </div>
-          {mapPick && rightPanel === "map" ? <Badge className="rounded-full">지도 선택 모드</Badge> : null}
+        <div role="tablist" aria-label="우측 패널 선택" className="inline-flex w-fit items-center gap-1 rounded-xl border border-border/60 bg-muted/30 p-1">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={rightPanel === "map"}
+            onClick={() => setRightPanel("map")}
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+              rightPanel === "map"
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Map className="size-3.5" aria-hidden />
+            지도
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={rightPanel === "preview"}
+            onClick={() => setRightPanel("preview")}
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+              rightPanel === "preview"
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <StickyNote className="size-3.5" aria-hidden />
+            카드 미리보기
+          </button>
         </div>
 
         {/* ── 지도 패널 ────────────────────────────────────────────── */}
         {rightPanel === "map" && (
-          <>
-            <p className="text-muted-foreground text-xs">{COPY.mapPanelHint}</p>
-            <div className="flex flex-wrap items-center gap-2">
+          <section role="tabpanel" aria-label="지도 패널" className="flex flex-col gap-3">
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-muted-foreground text-xs leading-snug">{COPY.mapPanelHint}</p>
+              {mapPick ? <Badge className="shrink-0 rounded-full">지도 선택 모드</Badge> : null}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
               <Button
                 type="button"
                 size="sm"
                 variant="secondary"
-                className="gap-2 rounded-xl"
+                className="w-fit gap-2 rounded-xl"
                 disabled={routing || journey.spots.length < 2}
                 onClick={() => void refreshRouteFromOsrm()}
               >
-                {routing ? <Loader2 className="size-4 animate-spin" /> : null}
+                {routing ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
                 {COPY.routeOsrm}
               </Button>
-              <p className="text-muted-foreground max-w-md text-[11px] leading-snug">{COPY.routeOsrmHint}</p>
+              <p className="text-muted-foreground text-[11px] leading-snug">{COPY.routeOsrmHint}</p>
             </div>
-            <div className="border-border/60 relative overflow-hidden rounded-2xl border bg-white shadow-[var(--shadow-md)]" style={{ height: "min(500px,65vh)" }}>
+
+            <div className="border-border/60 relative h-[min(500px,65vh)] overflow-hidden rounded-2xl border bg-white shadow-[var(--shadow-md)]">
               <RouteMapPreview
                 spots={journey.spots}
                 path={journey.path}
@@ -1438,34 +1465,44 @@ export function GuardianRoutePostEditor({
                 className="h-full min-h-[280px]"
               />
             </div>
-            <div className="border-border/60 flex flex-wrap gap-2 rounded-2xl border bg-white/90 p-4 text-xs">
-              <Badge variant="secondary" className="rounded-full font-medium">{journey.metadata.estimated_total_distance_km} km</Badge>
-              <Badge variant="secondary" className="rounded-full font-medium">{journey.metadata.estimated_total_duration_minutes}분</Badge>
-              <Badge variant="secondary" className="rounded-full font-medium">스팟 {journey.spots.length}</Badge>
-              <Badge variant="outline" className="rounded-full">{journey.metadata.transport_mode}</Badge>
-              {post.tags.slice(0, 3).map((tag) => (
-                <Badge key={tag} variant="outline" className="rounded-full">{tag}</Badge>
-              ))}
+
+            <div className="border-border/60 rounded-2xl border bg-white/90 p-4 text-xs">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">루트 요약</p>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary" className="rounded-full font-medium">{journey.metadata.estimated_total_distance_km} km</Badge>
+                <Badge variant="secondary" className="rounded-full font-medium">{journey.metadata.estimated_total_duration_minutes}분</Badge>
+                <Badge variant="secondary" className="rounded-full font-medium">스팟 {journey.spots.length}</Badge>
+                <Badge variant="outline" className="rounded-full">{journey.metadata.transport_mode}</Badge>
+              </div>
+              {post.tags.length > 0 ? (
+                <>
+                  <p className="mt-3 mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">태그</p>
+                  <div className="flex flex-wrap gap-2">
+                    {post.tags.slice(0, 3).map((tag) => (
+                      <Badge key={tag} variant="outline" className="rounded-full">#{tag}</Badge>
+                    ))}
+                  </div>
+                </>
+              ) : null}
             </div>
-          </>
+          </section>
         )}
 
         {/* ── 카드 미리보기 패널 ────────────────────────────────────── */}
         {rightPanel === "preview" && (
-          <div className="space-y-3">
+          <section role="tabpanel" aria-label="카드 미리보기 패널" className="flex flex-col gap-3">
             <p className="text-muted-foreground text-[11px] leading-relaxed">
               입력값이 실제 사용자 카드로 실시간 반영됩니다. 저장 전 최종 확인에 활용하세요.
             </p>
-            {/* 금지어 전체 요약 */}
             {(["orientation", "prep", "crowd", "vibe", "quote"] as const).some((k) => hasBanned(fieldMemo[k])) && (
-              <div className="flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2.5 dark:bg-amber-950/30">
-                <AlertTriangle className="size-4 shrink-0 text-amber-500" />
+              <div className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 dark:bg-amber-950/30">
+                <AlertTriangle className="size-4 shrink-0 text-amber-500" aria-hidden />
                 <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
                   금지 표현이 남아 있습니다. 좌측 입력에서 AI 보정을 실행하세요.
                 </p>
               </div>
             )}
-            <div className="overflow-y-auto rounded-2xl border border-border/60 bg-muted/10 p-4" style={{ maxHeight: "min(72vh,640px)" }}>
+            <div className="max-h-[min(72vh,640px)] overflow-y-auto rounded-2xl border border-border/60 bg-muted/10 p-4">
               <RouteDayPreview
                 post={post}
                 introLead={post.summary}
@@ -1479,9 +1516,9 @@ export function GuardianRoutePostEditor({
                 }}
               />
             </div>
-          </div>
+          </section>
         )}
-      </div>
+      </aside>
 
       {/* Google Maps 드로어 — 스팟별 위치 검색·선택 */}
       <GoogleMapDrawer
