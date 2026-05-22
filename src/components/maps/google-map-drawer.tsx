@@ -6,6 +6,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, MapPin, Search, X, AlertCircle } from "lucide-react";
+import { useGoogleMapsState } from "@/components/maps/google-maps-provider";
 
 /** GoogleMapDrawer가 반환하는 핀 선택 결과. */
 export interface MapPickResult {
@@ -43,6 +44,7 @@ export function GoogleMapDrawer({
   onConfirm: (result: MapPickResult) => void;
 }) {
   const keyConfigured = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY);
+  const mapsState = useGoogleMapsState();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -65,10 +67,12 @@ export function GoogleMapDrawer({
           </button>
         </header>
 
-        {keyConfigured ? (
-          <MapDrawerBody initial={initial} onConfirm={onConfirm} onClose={() => onOpenChange(false)} />
-        ) : (
+        {!keyConfigured ? (
           <MissingKeyNotice />
+        ) : mapsState.authFailed ? (
+          <AuthFailedNotice />
+        ) : (
+          <MapDrawerBody initial={initial} onConfirm={onConfirm} onClose={() => onOpenChange(false)} />
         )}
       </SheetContent>
     </Sheet>
@@ -259,6 +263,25 @@ function MissingKeyNotice() {
         <p className="text-[12px] leading-relaxed text-muted-foreground">
           Vercel 환경변수에 <code className="rounded bg-muted px-1 py-0.5">NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY</code>를 추가하고 Maps JavaScript API + Places API 권한을 활성화하세요. HTTP referrer 제한 권장.
         </p>
+      </div>
+    </div>
+  );
+}
+
+function AuthFailedNotice() {
+  return (
+    <div className="flex flex-1 items-center justify-center p-8">
+      <div className="max-w-md rounded-2xl border border-destructive/40 bg-destructive/5 p-5 text-center">
+        <AlertCircle className="mx-auto mb-2 size-6 text-destructive" aria-hidden />
+        <p className="mb-1 text-sm font-bold text-foreground">Google Maps 인증에 실패했습니다</p>
+        <p className="mb-3 text-[12px] leading-relaxed text-muted-foreground">
+          키 자체는 설정되어 있지만 Google이 호출을 거부했습니다. 일반적으로 다음 중 하나가 원인입니다.
+        </p>
+        <ul className="space-y-1 text-left text-[12px] leading-relaxed text-muted-foreground">
+          <li>• GCP 콘솔 → <strong>Maps JavaScript API</strong> · <strong>Places API</strong> 활성화 확인</li>
+          <li>• 키의 <strong>HTTP referrer 제한</strong>에 <code className="rounded bg-muted px-1">{`*.vercel.app/*`}</code>·운영 도메인 추가</li>
+          <li>• 빌링 계정 연결·예산 한도 초과 여부 확인</li>
+        </ul>
       </div>
     </div>
   );

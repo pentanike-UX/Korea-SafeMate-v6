@@ -274,18 +274,16 @@ export type FetchedHaruBundle = {
   directionsMeta: StoredDirectionsMeta | null;
 };
 
-export async function fetchHaruRouteFromSupabase(
-  supabase: SupabaseClient,
-  routeId: string,
-): Promise<FetchedHaruBundle | null> {
-  if (!isUuidRouteId(routeId)) return null;
+/** PostgREST 미존재 컬럼 오류 코드(undefined_column = 42703). */
+function isUnknownColumnError(err: { code?: string; message?: string } | null): boolean {
+  if (!err) return false;
+  if (err.code === "42703") return true;
+  return /directions_meta/.test(err.message ?? "") && /column|does not exist/i.test(err.message ?? "");
+}
 
-  const { data, error } = await supabase
-    .from("routes")
-    .select(
-      `id, guardian_user_id, title_ko, title_en, title_th, title_vi,
+const ROUTE_SELECT_BASE = `id, guardian_user_id, title_ko, title_en, title_th, title_vi,
        total_duration_min, estimated_cost_min_krw, estimated_cost_max_krw,
-       cover_image_url, status, route_type, directions_meta,
+       cover_image_url, status, route_type,
        route_spots (
          id, sort_order, stay_min,
          guardian_note_ko, guardian_note_en, guardian_note_th, guardian_note_vi,
@@ -294,11 +292,40 @@ export async function fetchHaruRouteFromSupabase(
            id, name_ko, name_en, name_th, name_vi,
            address_ko, address_en, lat, lng, category, images
          )
-       )`,
-    )
+       )`;
+
+const ROUTE_SELECT_WITH_DIRECTIONS = ROUTE_SELECT_BASE.replace(
+  "route_type,",
+  "route_type, directions_meta,",
+);
+
+export async function fetchHaruRouteFromSupabase(
+  supabase: SupabaseClient,
+  routeId: string,
+): Promise<FetchedHaruBundle | null> {
+  if (!isUuidRouteId(routeId)) return null;
+
+  // 1차: directions_meta 포함. 마이그레이션 미적용 환경에서 PostgREST는 42703으로 실패하므로 폴백.
+  const first = await supabase
+    .from("routes")
+    .select(ROUTE_SELECT_WITH_DIRECTIONS)
     .eq("id", routeId)
     .is("deleted_at", null)
     .maybeSingle();
+
+  let data: unknown = first.data;
+  let error = first.error as { code?: string; message?: string } | null;
+
+  if (error && isUnknownColumnError(error)) {
+    const retry = await supabase
+      .from("routes")
+      .select(ROUTE_SELECT_BASE)
+      .eq("id", routeId)
+      .is("deleted_at", null)
+      .maybeSingle();
+    data = retry.data;
+    error = retry.error as { code?: string; message?: string } | null;
+  }
 
   if (error || !data) return null;
 

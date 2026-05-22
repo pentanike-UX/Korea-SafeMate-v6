@@ -10,6 +10,7 @@ import {
 } from "@vis.gl/react-google-maps";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useGoogleMapsState } from "@/components/maps/google-maps-provider";
 import type { HaruRoute, HaruSpot, AppLocale } from "@/types/haru";
 
 type LatLng = { lat: number; lng: number };
@@ -37,6 +38,7 @@ export function HaruRouteMapView({
   precomputedProvider?: "google" | "osrm" | null;
 }) {
   const keyConfigured = Boolean(process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY);
+  const mapsState = useGoogleMapsState();
 
   if (!keyConfigured) {
     return (
@@ -47,6 +49,25 @@ export function HaruRouteMapView({
           <p className="text-[12px] leading-relaxed text-muted-foreground">
             Vercel 환경변수 <code className="rounded bg-muted px-1 py-0.5">NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY</code>를 추가하고 Maps JavaScript API를 활성화하세요.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (mapsState.authFailed) {
+    return (
+      <div className={cn("flex items-center justify-center rounded-2xl border border-destructive/40 bg-destructive/5 p-6", className)}>
+        <div className="max-w-md text-left">
+          <AlertCircle className="mx-auto mb-2 size-6 text-destructive" aria-hidden />
+          <p className="mb-1 text-center text-sm font-bold text-foreground">Google Maps 인증 실패</p>
+          <p className="mb-3 text-center text-[12px] leading-relaxed text-muted-foreground">
+            키는 설정되어 있지만 Google이 호출을 거부했습니다.
+          </p>
+          <ul className="space-y-1 text-[12px] leading-relaxed text-muted-foreground">
+            <li>• GCP에서 <strong>Maps JavaScript API</strong> 활성화 확인</li>
+            <li>• 키의 <strong>HTTP referrer 제한</strong>에 <code className="rounded bg-muted px-1">{`*.vercel.app/*`}</code>·운영 도메인 추가</li>
+            <li>• 빌링·예산 한도 확인</li>
+          </ul>
         </div>
       </div>
     );

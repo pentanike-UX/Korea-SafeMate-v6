@@ -9,6 +9,35 @@
 
 ---
 
+## 2026-05-22 - 프로덕션 페이지 깨짐 수정 + Google Maps 인증 실패 진단 + admin refresh-directions
+
+### 목표 / 배경
+
+스크린샷 보고:
+1) 에디터 지도 드로어가 Google 표준 "Sorry, something went wrong" 오버레이를 표시 — 키 인증 실패(referrer 제한·API 미활성·빌링) 시 우리 진단 카드로 가이드를 띄울 필요.
+2) `/routes/[id]` 페이지가 "This page couldn't load"로 실패 — 직전 라운드에서 추가한 `routes.directions_meta` 컬럼 SELECT가 마이그레이션 미적용 프로덕션 DB에서 PostgREST 42703 에러를 일으켜 `fetchHaruRouteFromSupabase`가 null 반환 → notFound로 빠짐. **그래도 페이지 자체가 깨지는 건 별도 원인일 수 있으나, SELECT 폴백을 추가해 양쪽 다 대응.**
+
+추가로 원래 라운드의 (1) admin refresh-directions를 진행.
+
+### 변경 파일
+
+- `src/lib/routes/haru-route-from-supabase.server.ts` — SELECT를 두 단으로 분리. 1차에 `directions_meta` 포함하고 PostgREST 42703(`undefined_column`)이면 2차로 컬럼 없이 재시도. 타입은 `unknown`으로 받아 좁힘.
+- `src/components/maps/google-maps-provider.tsx` — `window.gm_authFailure` 글로벌 콜백을 잡아 `authFailed` 상태로 보관, React Context로 자식에 노출. `useGoogleMapsState()` hook 신설.
+- `src/components/maps/google-map-drawer.tsx` — `mapsState.authFailed`면 `AuthFailedNotice`(빨강 톤, "API 활성화 / referrer / 빌링" 체크리스트) 표시.
+- `src/components/routes/haru-route-map-view.tsx` — 같은 패턴으로 인증 실패 진단 카드.
+- `src/app/api/admin/routes/[routeId]/refresh-directions/route.ts` (신규) — admin 세션 전용 POST. `route_spots` 정렬 → `spot_catalog` 좌표 조회 → `getDirectionsForCoords` → `simplifyPath` → `routes.directions_meta` 업데이트 → 4-locale `revalidatePath`. 응답에 provider·points·points_original·distance/duration·legs_count 노출.
+
+### 검증 결과
+
+- `pnpm build` 통과 (693 페이지).
+- `pnpm lint` — 본 변경 파일에서 신규 경고/오류 없음.
+- 실제 `gm_authFailure` 콜백 동작·SELECT 폴백 동작은 **미검증** — 프로덕션 스크린샷의 재현 환경에서 확인 필요.
+
+### 남은 이슈
+
+- 스크린샷의 "This page couldn't load"가 SELECT 실패 외에 다른 원인일 가능성: Supabase RLS · `route_type` mismatch · cover_image_url 누락 등. SELECT 폴백이 들어가도 재현되면 Vercel function 로그 확인 필요.
+- 미리보기 페이지가 인증된 사용자 세션 없이 진입 가능한 경우 `redirect → 로그인`이 발생하며 iOS Safari가 redirect 체인을 "page couldn't load"로 표시할 가능성도 있음(검증 필요).
+
 ## 2026-05-22 - 폴리라인 단순화 가드 + mock directions 빌드 캐시 + 목록 재검증 확장
 
 ### 목표
