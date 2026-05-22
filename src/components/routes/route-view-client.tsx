@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, List, Map as MapIcon } from "lucide-react";
 import { HaruTimeline } from "@/components/patterns/haru-timeline";
 import { RouteFreePreviewSection } from "@/components/routes/route-free-preview-section";
 import { HaruSpotDetailSheet } from "@/components/routes/haru-spot-detail-sheet";
+import { HaruRouteMapView } from "@/components/routes/haru-route-map-view";
+import { GoogleMapsProvider } from "@/components/maps/google-maps-provider";
 import type { HaruRoute, HaruSpot, AppLocale } from "@/types/haru";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +28,7 @@ export function RouteViewClient({
 }) {
   const t = useTranslations("TravelerHub");
   const [unlocked, setUnlocked] = useState(initialUnlocked);
+  const [viewMode, setViewMode] = useState<"timeline" | "map">("timeline");
   // 스팟 상세 시트 — 잠금 해제 후만 활성
   const [selectedSpot, setSelectedSpot] = useState<HaruSpot | null>(null);
 
@@ -41,6 +44,7 @@ export function RouteViewClient({
 
   // 유료 영역
   return (
+    <GoogleMapsProvider>
     <div className="space-y-6 pb-24">
       {/* 결제 완료 배너 */}
       <div className="mx-auto mt-4 max-w-3xl px-4 sm:px-6">
@@ -60,10 +64,56 @@ export function RouteViewClient({
         </div>
       </div>
 
-      {/* 전체 가로 타임라인 — 스팟 탭 시 상세 시트 오픈 */}
-      <div className="px-4 sm:px-6 md:px-8">
-        <HaruTimeline route={route} locale={locale} onSpotClick={(s) => setSelectedSpot(s)} />
+      {/* 타임라인 / 지도 탭 전환 */}
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
+        <div className="inline-flex rounded-xl border border-border/50 bg-muted/50 p-1 gap-1">
+          <button
+            type="button"
+            onClick={() => setViewMode("timeline")}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors",
+              viewMode === "timeline"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <List className="size-3.5" aria-hidden />
+            타임라인
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("map")}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors",
+              viewMode === "map"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <MapIcon className="size-3.5" aria-hidden />
+            지도
+          </button>
+        </div>
       </div>
+
+      {/* 타임라인 뷰 */}
+      {viewMode === "timeline" && (
+        <div className="px-4 sm:px-6 md:px-8">
+          <HaruTimeline route={route} locale={locale} onSpotClick={(s) => setSelectedSpot(s)} />
+        </div>
+      )}
+
+      {/* 지도 뷰 */}
+      {viewMode === "map" && (
+        <div className="px-4 sm:px-6 md:px-8">
+          <HaruRouteMapView
+            route={route}
+            locale={locale}
+            onSpotClick={(s) => setSelectedSpot(s)}
+            className="h-[min(70vh,640px)]"
+          />
+        </div>
+      )}
 
       {/* 스팟 상세 시트 — 하루웨이의 "하루 흐름"과 동일한 풍부 콘텐츠 노출 */}
       <HaruSpotDetailSheet
@@ -129,5 +179,6 @@ export function RouteViewClient({
         </div>
       </div>
     </div>
+    </GoogleMapsProvider>
   );
 }

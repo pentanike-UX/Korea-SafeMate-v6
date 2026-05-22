@@ -9,6 +9,37 @@
 
 ---
 
+## 2026-05-22 - 하루루트 지도 뷰 추가 (Google Maps · 타임라인↔지도 토글)
+
+### 목표
+
+- `/routes/[id]` 잠금 해제 영역에서 6스팟을 지도로 확인할 수 있는 "지도" 토글 추가.
+- 사용자가 핀을 탭하면 기존 스팟 상세 시트를 그대로 재사용.
+
+### 변경 파일
+
+- `src/components/routes/route-view-client.tsx` — `viewMode: "timeline" | "map"` 상태·탭 스위처(List/Map 아이콘), `HaruRouteMapView`/`GoogleMapsProvider` 연결.
+- `src/components/routes/haru-route-map-view.tsx` — 폴리라인 `useEffect`에서 불필요한 `useState` 제거(cascading render 경고 해소).
+- `src/components/maps/google-map-drawer.tsx` — 미사용 `cn` 제거, `MapPanWhenPinChanges` effect 의존성에 lat/lng 명시.
+- `src/data/post-local-images-manifest.gen.ts` — 빌드 산출 트레일링 개행만 반영.
+
+### 변경 내용
+
+- 결제 완료 배너 아래에 둥근 인라인 토글(`타임라인` / `지도`) 추가, 선택 상태만 `bg-background shadow-sm`.
+- `viewMode === "map"`일 때 `HaruRouteMapView`가 노출되며, 스팟 핀 탭 → 동일 `HaruSpotDetailSheet` 오픈.
+- 전체 영역을 `GoogleMapsProvider`로 감싸 `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` 미설정 시 컴포넌트 자체 안내 카드 노출.
+
+### 검증 결과
+
+- `pnpm build` 통과 (`Compiled successfully in 15.3s`, 691 페이지 SSG).
+- `pnpm lint` — 본 변경 파일에서 신규 경고/오류 없음 (기존 저장소 전반의 lint 이슈는 별도).
+- 실제 키로 지도 표시 확인은 **미검증** — Vercel 환경변수 `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` 추가 후 스모크 필요.
+
+### 남은 이슈
+
+- A5: Vercel에 `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`(Maps JS API + Places API 활성, HTTP referrer 제한 권장) 설정 안내 문서화 필요.
+- 다음 라운드: 에디터 레이아웃 우측 패널 정리, Google Directions API 기반 도보 시간/거리 산정.
+
 ## 2026-05-12 - 채팅·문의 비즈니스 로직 정비 (DB·API·마이페이지·진입 UX)
 
 ### 목표

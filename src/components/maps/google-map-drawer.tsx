@@ -6,7 +6,6 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, MapPin, Search, X, AlertCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 /** GoogleMapDrawer가 반환하는 핀 선택 결과. */
 export interface MapPickResult {
@@ -176,10 +175,12 @@ function MapDrawerBody({
 /** 핀이 검색·클릭으로 갱신될 때 지도 중앙을 부드럽게 이동. */
 function MapPanWhenPinChanges({ pin }: { pin: MapPickResult | null }) {
   const map = useMap();
+  const lat = pin?.lat;
+  const lng = pin?.lng;
   useEffect(() => {
-    if (!map || !pin) return;
-    map.panTo({ lat: pin.lat, lng: pin.lng });
-  }, [map, pin?.lat, pin?.lng]);
+    if (!map || lat == null || lng == null) return;
+    map.panTo({ lat, lng });
+  }, [map, lat, lng]);
   return null;
 }
 
