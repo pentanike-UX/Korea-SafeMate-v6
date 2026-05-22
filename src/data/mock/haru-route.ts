@@ -172,9 +172,9 @@ export const mockHaruRoute: HaruRoute = {
     display_name: "Seoho · Seoul Palace Tribe",
     photo_url: null,
   },
-  total_duration_min: 210, // 3시간 30분 (5스팟 + commerce 마무리)
+  total_duration_min: 240, // 4시간 (5스팟 + 인사동 케타포 마무리)
   estimated_cost_min_krw: 0,
-  estimated_cost_max_krw: 60000, // 경복궁·덕수궁 입장료 + 굿즈샵 구매 (선택)
+  estimated_cost_max_krw: 60000, // 경복궁·덕수궁 입장료 + 인사동 굿즈·음료 (선택)
   recommended_time_of_day: "morning",
   cover_image_url: "/mock/posts/seoul/kmusic/spot1-geunjeongjeon-1.jpg",
   spots: [
@@ -470,67 +470,66 @@ export const mockHaruRoute: HaruRoute = {
         },
       },
     },
-    // ── 6. 정동길 K-MUSIC 굿즈·서점 — 결제 가능 스팟 (mock) ──────────────────
-    // 비즈니스 메모: 실제 PG/재고 연동 없이 commerce 데이터 구조와 UI 노출만 시연.
-    // 가상 브랜드명("Soundtrack Books × 정동")으로 실 매장 혼동 방지.
+    // ── 6. 케타포 인사 (Ktown4u 인사) — K-POP 굿즈·앨범·카페 결제 가능 스팟 ──────
+    // 인사동 안녕인사동 3층 오프라인 스토어. 다양한 K-POP 앨범·문구류와
+    // 시기에 따라 아티스트 테마 음료·디저트를 제공. 소격동·MMCA 동선에서 자연스러운 마무리.
     {
       id: "spot-06",
       order: 6,
       catalog: {
         name: {
-          ko: "Soundtrack Books × 정동 (mock)",
-          en: "Soundtrack Books × Jeongdong (mock)",
+          ko: "케타포 인사 (Ktown4u 인사)",
+          en: "Ktown4u Insadong",
         },
         category: "shopping",
         category_emoji: "🛍",
         image_url: "/mock/posts/seoul/kmusic/spot5-daehanmun-1.jpg",
-        address: "서울 중구 정동길 일대 (mock)",
-        lat: 37.567,
-        lng: 126.9737,
+        address: "서울 종로구 인사동길 49 안녕인사동 3층",
+        lat: 37.5742,
+        lng: 126.9847,
       },
-      stay_min: 25,
+      stay_min: 30,
       guardian_note: {
-        ko: "BTS·CL 등 코스에 등장한 아티스트의 공식 앨범과 음악 서적이 같이 진열된 mock 매장. 코스를 손에 남기는 마지막 자리.",
-        en: "Mock store stocking official albums and music books for the artists featured along this route — a place to carry the day home.",
+        ko: "K-뮤직 영상의 장면을 따라 걷던 흐름에서, 실제 팬 경험으로 전환되는 스팟. K-POP 앨범과 문구류, 시기별 아티스트 테마 음료·디저트를 한 자리에서.",
+        en: "Pivot from K-music scene-watching into hands-on fan experience — K-POP albums, stationery, and rotating artist-themed drinks and desserts under one roof.",
       },
       move_from_prev_method: "walk",
-      move_from_prev_min: 5,
+      move_from_prev_min: 18,
       artists: [ARTIST_BTS, ARTIST_CL, ARTIST_LEENALCHI],
-      spot_types: ["buy", "end"],
+      spot_types: ["buy", "rest", "end"],
       commerce: {
         is_commerce_spot: true,
-        commerce_types: ["album", "goods", "photo_card", "souvenir"],
+        commerce_types: ["album", "goods", "photo_card", "fan_cafe", "drink"],
         payment_mode: "onsite",
-        price_range_label: "₩8,000 ~ ₩45,000",
+        price_range_label: "₩5,000 ~ ₩50,000",
         purchasable_items: [
-          { name: "BTS 정규/미니 앨범", related_artist: "BTS", item_type: "album", is_official: true },
-          { name: "CL 〈ALPHA〉 앨범", related_artist: "CL", related_work: "ALPHA", item_type: "album", is_official: true },
-          { name: "BTS Week 한정 포토카드", related_artist: "BTS", item_type: "photo_card", is_official: true, is_limited: true, note: "방문 시점에 따라 재고 변동" },
-          { name: "Feel the Rhythm of Korea 굿즈", related_artist: "이날치", item_type: "goods", is_official: true },
-          { name: "K-MUSIC 인터뷰집·작곡가 도서", item_type: "souvenir", is_official: false, note: "음악·디자인 도서 코너" },
+          { name: "K-POP 정규/미니 앨범", item_type: "album", is_official: true, note: "주요 아티스트 라인업 상시 진열" },
+          { name: "아티스트 문구류·MD", item_type: "goods", is_official: true },
+          { name: "포토카드 (시즌·앨범별)", item_type: "photo_card", is_official: true, note: "특전·재고는 방문 시점에 따라 변동" },
+          { name: "아티스트 테마 음료", item_type: "drink", is_official: true, is_limited: true, note: "시기별 한정 메뉴" },
+          { name: "테마 디저트", item_type: "drink", is_official: true, is_limited: true },
         ],
         reservation_required: false,
-        partner_enabled: true,
-        partner_name: "Soundtrack Books (mock partner)",
-        disclaimer: "이 매장은 시연용 mock 데이터입니다. 실제 결제·재고 연동은 추후 단계에서 진행됩니다. 상품 구성과 재고는 방문 시점에 따라 달라질 수 있어 방문 전 확인을 권장합니다.",
+        partner_enabled: false,
+        disclaimer: "취급 아티스트, 상품 구성, 특전, 음료 운영 여부는 방문 시점에 따라 달라질 수 있습니다. 방문 전 공식 채널 확인을 권장합니다.",
       },
       details: {
         gallery_image_urls: ["/mock/posts/seoul/kmusic/spot5-daehanmun-1.jpg"],
         why_here: {
-          ko: "코스의 마무리는 손에 무언가 남기는 자리입니다. 들은 곡을 앨범으로, 본 장면을 책 한 권으로. 공식 MD와 한정 포토카드, 음악·디자인 서적이 같이 진열된 작은 매장입니다.",
-          en: "The route closes with something you can carry home — albums for the songs you heard, books for the scenes you walked. A small store mixing official MD, limited photo cards, and music/design books.",
+          ko: "이 구간은 K-뮤직 영상의 장면을 따라 걷던 흐름에서, 실제 팬 경험으로 전환되는 스팟입니다. K-POP 앨범과 문구류를 확인할 수 있고, 시기에 따라 아티스트 테마 음료나 디저트도 만날 수 있습니다. 촬영지 감상 후 팬 굿즈를 둘러보고 잠시 쉬어가기 좋은 중간 지점입니다.",
+          en: "Where K-music scene-watching becomes fan experience. Browse K-POP albums and stationery, and depending on the season catch artist-themed drinks or desserts — a natural pause between filming-location reflection and the last leg of the day.",
         },
         what_to_do: {
-          ko: "① 관심 아티스트 앨범·포토카드 코너 확인 ② 음악 서적 코너 한 바퀴 ③ 구매 후 정동길에서 마무리.",
-          en: "① Browse the album & photo-card corner for your artists ② Loop the music-book section ③ Close the day along Jeongdong-gil after checkout.",
+          ko: "① 관심 아티스트 앨범·포토카드 코너 확인 ② 문구류·MD 한 바퀴 ③ 시즌 음료 한 잔 곁들여 잠시 휴식 ④ 안국역 6번 출구 또는 인사동길로 마무리.",
+          en: "① Browse the album & photo-card corner ② Walk the stationery / MD aisles ③ Pause with a seasonal drink ④ Exit toward Anguk Sta. Exit 6 or down Insadong-gil.",
         },
         photo_tip: {
-          ko: "매장 내부 촬영은 직원 확인 후. 굿즈는 구매 후 외부에서 컷을 남기는 편이 매너입니다.",
-          en: "Ask staff before shooting inside. Photograph purchased goods outside the store.",
+          ko: "매장 내부 촬영은 직원·안내 표지 확인 후. 굿즈 자체 컷은 구매 후 외부에서 남기는 편이 매너입니다.",
+          en: "Check signage / staff before shooting inside. Goods-only photos read best outside the store.",
         },
         caution: {
-          ko: "이 매장은 시연용 mock 데이터입니다. 실제 운영 매장이 아닙니다.",
-          en: "This store is mock data for demo purposes — not an operating venue.",
+          ko: "취급 아티스트, 상품 구성, 특전, 음료 운영 여부는 방문 시점에 따라 달라질 수 있습니다. 방문 전 공식 채널 확인을 권장합니다. 운영시간 12:00~20:00, 안국역 6번 출구에서 인사동길 방향 약 120m.",
+          en: "Lineup, items, perks, and beverage rotation change over time — check the official channels before visiting. Hours 12:00–20:00. ~120 m from Anguk Sta. Exit 6 toward Insadong-gil.",
         },
       },
     },
