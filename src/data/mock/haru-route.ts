@@ -161,9 +161,9 @@ export const mockHaruRoute: HaruRoute = {
     display_name: "Seoho · Seoul Palace Tribe",
     photo_url: null,
   },
-  total_duration_min: 180, // 3시간
+  total_duration_min: 210, // 3시간 30분 (5스팟 + commerce 마무리)
   estimated_cost_min_krw: 0,
-  estimated_cost_max_krw: 15000, // 경복궁·덕수궁 입장료 별도
+  estimated_cost_max_krw: 60000, // 경복궁·덕수궁 입장료 + 굿즈샵 구매 (선택)
   recommended_time_of_day: "morning",
   cover_image_url: "/mock/posts/seoul/kmusic/spot1-geunjeongjeon-1.jpg",
   spots: [
@@ -192,6 +192,7 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_min: null,
       featured: true,
       artists: [ARTIST_BTS],
+      spot_types: ["start", "scene", "photo"],
       soundtrack: {
         artist_id: "bts",
         track_id: "bts-idol",
@@ -249,6 +250,7 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_method: "walk",
       move_from_prev_min: 6,
       artists: [ARTIST_BTS],
+      spot_types: ["scene", "rest", "photo"],
       soundtrack: {
         artist_id: "bts",
         track_id: "bts-mikrokosmos",
@@ -305,6 +307,7 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_method: "walk",
       move_from_prev_min: 12,
       artists: [ARTIST_CL],
+      spot_types: ["scene", "story", "photo"],
       soundtrack: {
         artist_id: "cl",
         track_id: "cl-hwa",
@@ -360,6 +363,7 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_method: "walk",
       move_from_prev_min: 3,
       artists: [ARTIST_CL],
+      spot_types: ["rest", "photo", "transport"],
       soundtrack: {
         artist_id: "cl",
         track_id: "cl-lover-like-me",
@@ -419,6 +423,7 @@ export const mockHaruRoute: HaruRoute = {
       move_from_prev_min: 25,
       featured: true,
       artists: [ARTIST_LEENALCHI, ARTIST_AMBIGUOUS],
+      spot_types: ["scene", "photo"],
       soundtrack: {
         artist_id: "leenalchi",
         track_id: "leenalchi-tiger",
@@ -451,6 +456,70 @@ export const mockHaruRoute: HaruRoute = {
         caution: {
           ko: "왕궁수문장 교대식은 11:00·14:00·15:30. 시간대 잡으면 풍부, 놓치면 정문 인파만 — 일정은 당일 공지 우선.",
           en: "Royal Guard Changing: 11 AM · 2 PM · 3:30 PM. Catching it adds depth; missing it = just crowds. Confirm day-of.",
+        },
+      },
+    },
+    // ── 6. 정동길 K-MUSIC 굿즈·서점 — 결제 가능 스팟 (mock) ──────────────────
+    // 비즈니스 메모: 실제 PG/재고 연동 없이 commerce 데이터 구조와 UI 노출만 시연.
+    // 가상 브랜드명("Soundtrack Books × 정동")으로 실 매장 혼동 방지.
+    {
+      id: "spot-06",
+      order: 6,
+      catalog: {
+        name: {
+          ko: "Soundtrack Books × 정동 (mock)",
+          en: "Soundtrack Books × Jeongdong (mock)",
+        },
+        category: "shopping",
+        category_emoji: "🛍",
+        image_url: "/mock/posts/seoul/kmusic/spot5-daehanmun-1.jpg",
+        address: "서울 중구 정동길 일대 (mock)",
+        lat: 37.567,
+        lng: 126.9737,
+      },
+      stay_min: 25,
+      guardian_note: {
+        ko: "BTS·CL 등 코스에 등장한 아티스트의 공식 앨범과 음악 서적이 같이 진열된 mock 매장. 코스를 손에 남기는 마지막 자리.",
+        en: "Mock store stocking official albums and music books for the artists featured along this route — a place to carry the day home.",
+      },
+      move_from_prev_method: "walk",
+      move_from_prev_min: 5,
+      artists: [ARTIST_BTS, ARTIST_CL, ARTIST_LEENALCHI],
+      spot_types: ["buy", "end"],
+      commerce: {
+        is_commerce_spot: true,
+        commerce_types: ["album", "goods", "photo_card", "souvenir"],
+        payment_mode: "onsite",
+        price_range_label: "₩8,000 ~ ₩45,000",
+        purchasable_items: [
+          { name: "BTS 정규/미니 앨범", related_artist: "BTS", item_type: "album", is_official: true },
+          { name: "CL 〈ALPHA〉 앨범", related_artist: "CL", related_work: "ALPHA", item_type: "album", is_official: true },
+          { name: "BTS Week 한정 포토카드", related_artist: "BTS", item_type: "photo_card", is_official: true, is_limited: true, note: "방문 시점에 따라 재고 변동" },
+          { name: "Feel the Rhythm of Korea 굿즈", related_artist: "이날치", item_type: "goods", is_official: true },
+          { name: "K-MUSIC 인터뷰집·작곡가 도서", item_type: "souvenir", is_official: false, note: "음악·디자인 도서 코너" },
+        ],
+        reservation_required: false,
+        partner_enabled: true,
+        partner_name: "Soundtrack Books (mock partner)",
+        disclaimer: "이 매장은 시연용 mock 데이터입니다. 실제 결제·재고 연동은 추후 단계에서 진행됩니다. 상품 구성과 재고는 방문 시점에 따라 달라질 수 있어 방문 전 확인을 권장합니다.",
+      },
+      details: {
+        gallery_image_urls: ["/mock/posts/seoul/kmusic/spot5-daehanmun-1.jpg"],
+        why_here: {
+          ko: "코스의 마무리는 손에 무언가 남기는 자리입니다. 들은 곡을 앨범으로, 본 장면을 책 한 권으로. 공식 MD와 한정 포토카드, 음악·디자인 서적이 같이 진열된 작은 매장입니다.",
+          en: "The route closes with something you can carry home — albums for the songs you heard, books for the scenes you walked. A small store mixing official MD, limited photo cards, and music/design books.",
+        },
+        what_to_do: {
+          ko: "① 관심 아티스트 앨범·포토카드 코너 확인 ② 음악 서적 코너 한 바퀴 ③ 구매 후 정동길에서 마무리.",
+          en: "① Browse the album & photo-card corner for your artists ② Loop the music-book section ③ Close the day along Jeongdong-gil after checkout.",
+        },
+        photo_tip: {
+          ko: "매장 내부 촬영은 직원 확인 후. 굿즈는 구매 후 외부에서 컷을 남기는 편이 매너입니다.",
+          en: "Ask staff before shooting inside. Photograph purchased goods outside the store.",
+        },
+        caution: {
+          ko: "이 매장은 시연용 mock 데이터입니다. 실제 운영 매장이 아닙니다.",
+          en: "This store is mock data for demo purposes — not an operating venue.",
         },
       },
     },

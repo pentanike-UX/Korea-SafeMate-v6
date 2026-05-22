@@ -10,6 +10,9 @@ import type { LocaleMap } from "@/types/haru";
 import { cn } from "@/lib/utils";
 import { SpotSoundtrackHero } from "@/components/routes/spot-soundtrack-hero";
 import { ArtistSpotlight } from "@/components/routes/artist-spotlight";
+import { SpotTypeChips } from "@/components/route-posts/spot-type-chips";
+import { SpotCommercePanel } from "@/components/route-posts/spot-commerce-panel";
+import type { HaruRouteSpotType } from "@/types/domain";
 
 /**
  * 하루루트의 스팟 카드를 탭했을 때 슬라이드 인되는 상세 시트.
@@ -139,6 +142,11 @@ export function HaruSpotDetailSheet({
             )}
           </div>
 
+          {/* 스팟 역할 칩 (scene/photo/buy/rest/...) — 복수 가능 */}
+          {spot.spot_types && spot.spot_types.length > 0 ? (
+            <SpotTypeChips spotTypes={spot.spot_types as HaruRouteSpotType[]} />
+          ) : null}
+
           {/* 사운드트랙 영웅 — 이 스팟의 메인 곡 한 곡 큐레이션 (C 패턴) */}
           {spot.soundtrack ? <SpotSoundtrackHero spot={spot} locale={locale} /> : null}
 
@@ -146,6 +154,9 @@ export function HaruSpotDetailSheet({
           {note ? (
             <p className="text-sm leading-relaxed text-foreground/90">{note}</p>
           ) : null}
+
+          {/* 결제 가능 스팟 패널 (commerce.is_commerce_spot=true 일 때만 노출) */}
+          {spot.commerce ? <SpotCommercePanel commerce={spot.commerce} /> : null}
 
           {/* Artist Spotlight — 트랙 라이브러리 + 공식 영상 + 외부 링크 (B 패턴) */}
           {spot.artists && spot.artists.length > 0 ? (

@@ -130,6 +130,30 @@ export interface HaruSpot {
   soundtrack?: SpotSoundtrack;
 
   /**
+   * 스팟 역할(scene/photo/buy/rest/...) — 복수 가능.
+   * `buy`/`experience`는 결제 가능 스팟임을 시각적으로 강조.
+   * (domain.ts의 HaruRouteSpotType과 동일 enum, 순환 의존 회피용 로컬 재선언)
+   */
+  spot_types?: Array<
+    | "scene"
+    | "story"
+    | "buy"
+    | "rest"
+    | "photo"
+    | "local"
+    | "experience"
+    | "transport"
+    | "start"
+    | "end"
+  >;
+
+  /**
+   * 결제 가능 스팟 정보 — 존재하면 시트에서 commerce 패널 노출.
+   * 실제 PG 연동은 추후 phase. 본 단계는 mock.
+   */
+  commerce?: import("@/types/domain").HaruRouteSpotCommerce;
+
+  /**
    * 스팟 상세 콘텐츠 — 시트로 펼쳐서 보여주는 풍부 정보.
    * 하루웨이(post)의 "하루 흐름" 섹션과 동일한 콘텐츠를 하루루트에서도 재사용한다.
    * 인수 후 데이터 모델 통합 시 spot_catalog의 정식 컬럼으로 승격 예정.
