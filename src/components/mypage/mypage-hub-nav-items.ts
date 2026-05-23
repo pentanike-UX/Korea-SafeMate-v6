@@ -19,6 +19,7 @@ export type HubNavLabelKey =
   | "navPoints"
   | "navMessages"
   | "navMatches"
+  | "navSettings"
   | "guardianNavHome"
   | "guardianNavMessages"
   | "guardianNavPoints"
@@ -68,7 +69,11 @@ function travelerMyRoutesMatch(p: string) {
   return p === "/mypage/routes" || p.startsWith("/mypage/routes/");
 }
 
-/** Traveler — 저장·요청·진행 요약(허브) / 내 루트 / 프로필 / 포인트 / 메시지 / 매칭 */
+function travelerSettingsMatch(p: string) {
+  return p === "/mypage/settings" || p.startsWith("/mypage/settings/");
+}
+
+/** Traveler — 저장·요청·진행 요약(허브) / 내 루트 / 프로필 / 포인트 / 메시지 / 매칭 / 설정 */
 export const TRAVELER_HUB_NAV: HubNavItem[] = [
   { href: "/mypage", labelKey: "navJourneys", Icon: Compass, match: travelerHubAndJourneysMatch },
   { href: "/mypage/routes", labelKey: "navMyRoutes", Icon: MapPinned, match: travelerMyRoutesMatch },
@@ -76,6 +81,7 @@ export const TRAVELER_HUB_NAV: HubNavItem[] = [
   { href: "/mypage/points", labelKey: "navPoints", Icon: Coins, match: travelerPointsMatch },
   { href: "/mypage/messages", labelKey: "navMessages", Icon: MessageCircle, match: travelerMessagesMatch },
   { href: "/mypage/matches", labelKey: "navMatches", Icon: HeartHandshake, match: travelerMatchesMatch },
+  { href: "/mypage/settings", labelKey: "navSettings", Icon: Settings, match: travelerSettingsMatch },
 ];
 
 function guardianProfileMatch(p: string) {

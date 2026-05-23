@@ -9,6 +9,29 @@
 
 ---
 
+## 2026-05-23 - T17 여행자 설정 화면 (섹션 2 미구현 화면 완료)
+
+### 목표
+
+TODO 섹션 2 마지막 — T17 Traveler Settings. 기존 guardian settings 카드 패턴 차용.
+
+### 변경 파일
+
+- `src/app/[locale]/(authed)/mypage/settings/page.tsx` (신규) — 계정·언어·알림·저장항목·약관 5개 카드 허브. `LanguageSwitcher` 인라인 노출. 로그아웃은 헤더 계정 메뉴가 전역 처리하므로 재구현하지 않음.
+- `src/components/mypage/mypage-hub-nav-items.ts` — `navSettings` 라벨키 + 트래블러 nav에 설정 항목(`travelerSettingsMatch`).
+- `messages/{ko,en,ja,th,vi}.json` — `TravelerHub.navSettings` 추가.
+
+### 검증 결과
+
+- `pnpm build` 통과 (708→713).
+- `pnpm lint` — 신규 파일 경고 없음.
+- **섹션 2(확실한 미구현 4건) 전부 완료**: M06 FAQ, M07 Legal, T15 Review Write, T17 Settings.
+
+### 남은 이슈
+
+- 알림은 현재 헤더 배지 안내로 대체 — 푸시/이메일 설정 토글은 후속(인프라 필요).
+- 설정 항목 다수가 기존 페이지로의 링크 허브 형태 — 단계적으로 인라인 편집 확장 가능.
+
 ## 2026-05-23 - T15 여행자 리뷰 작성 폼
 
 ### 목표
