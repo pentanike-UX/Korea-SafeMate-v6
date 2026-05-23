@@ -89,8 +89,8 @@
 
 ## 2. 미구현 화면 (신규 개발 필요)
 
-- [ ] **M06 FAQ** `/faq` — 정적 콘텐츠 페이지. i18n 4개 언어.
-- [ ] **M07 Legal** `/legal/terms`, `/legal/privacy` — 약관·개인정보처리방침. 법무 검토 콘텐츠 필요.
+- [x] **M06 FAQ** `/faq` — ✅ 2026-05-23 완성. ko/en 데이터셋 아코디언 + footer 링크. (`faq-content.tsx`)
+- [x] **M07 Legal** `/legal/terms`, `/legal/privacy` — ✅ 2026-05-23 완성. 구조화 초안 + "법무 검토 전 초안" 배너. **법무 확정본으로 교체 필요(콘텐츠만).**
 - [ ] **T15 Review Write** — 여행자 리뷰 작성 폼. `traveler_reviews` 테이블은 존재. 작성 UI + 제출 액션 필요.
 - [ ] **T17 Traveler Settings** — 알림·언어·계정 설정. (guardian settings 패턴 재사용 가능)
 

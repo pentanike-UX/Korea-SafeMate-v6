@@ -18,8 +18,9 @@ export async function SiteFooter() {
     { href: "/guardians", label: tNav("guardians") },
     { href: "/about", label: tNav("about") },
     { href: "/guardians/apply", label: tFooter("apply") },
-    { href: "/about#terms" as AppHref, label: tFooter("termsLink") },
-    { href: "/about#privacy" as AppHref, label: tFooter("privacyLink") },
+    { href: "/faq", label: tFooter("faq") },
+    { href: "/legal/terms" as AppHref, label: tFooter("termsLink") },
+    { href: "/legal/privacy" as AppHref, label: tFooter("privacyLink") },
   ];
 
   const linkQuiet =

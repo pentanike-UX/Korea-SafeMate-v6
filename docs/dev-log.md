@@ -9,6 +9,33 @@
 
 ---
 
+## 2026-05-23 - 미구현 화면 신규: FAQ(M06) + Legal(M07 terms/privacy)
+
+### 목표
+
+TODO 섹션 2(신규 미구현) 순차 진행 — 확실한 미구현이던 M06 FAQ, M07 Legal 두 화면 신규 생성.
+
+### 변경 파일
+
+- `src/components/faq/faq-content.tsx` (신규) — ko/en 데이터셋 + 카테고리별 아코디언. 서비스 기본·이용 방법·결제/환불·하루이 활동 4개 섹션.
+- `src/app/[locale]/(public)/faq/page.tsx` (신규) — locale 분기, metadata.
+- `src/components/legal/legal-document.tsx` (신규) — 약관/방침 공용 렌더러. "법무 검토 전 초안" 배너 + 섹션 렌더.
+- `src/app/[locale]/(public)/legal/terms/page.tsx` (신규) — 이용약관 ko/en 구조화 초안 7개 섹션.
+- `src/app/[locale]/(public)/legal/privacy/page.tsx` (신규) — 개인정보처리방침 ko/en 7개 섹션.
+- `messages/{ko,en,ja,th,vi}.json` — Footer에 `faq` 키 추가.
+- `src/components/layout/site-footer.tsx` — terms/privacy를 `/about#...` 앵커 → `/legal/terms`·`/legal/privacy` 실제 페이지로 교체, `/faq` 링크 추가.
+
+### 검증 결과
+
+- `pnpm build` 통과 (693→708, 3 페이지 × 5 locale = 15개 정적 생성).
+- `pnpm lint` — 신규 파일 경고 없음.
+- About 페이지의 ko/en 분기 패턴(AboutLanding/AboutLandingEn) 차용 — 5개 i18n 전체 번역 부담 회피, ko 외 로케일은 영어 노출.
+
+### 남은 이슈
+
+- Legal 본문은 **법무 검토 전 초안** — 정식 출시 전 변호사 확정본으로 교체 필요. 라우트·구조·배너는 완성.
+- FAQ는 제품 사실 기반이라 바로 사용 가능하나, 결제/환불 항목은 정책 확정 시 동기화 필요.
+
 ## 2026-05-23 - spot_images 마이그레이션 + 보안 lint 일괄 정리 + RLS 정책 12개 추가
 
 ### 목표
