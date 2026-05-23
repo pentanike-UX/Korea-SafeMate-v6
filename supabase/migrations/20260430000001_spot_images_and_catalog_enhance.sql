@@ -118,8 +118,13 @@ create policy "spot_images_admin"
 -- ── 캐시 자동 갱신 함수 ────────────────────────────────────────────────────────
 
 -- spot_images 변경 시 spot_catalog.primary_image_url 자동 갱신
+-- search_path 고정 + RPC 노출 차단(트리거 전용)
 create or replace function public.sync_spot_primary_image_url()
-returns trigger language plpgsql security definer as $$
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
 begin
   update public.spot_catalog
   set primary_image_url = (
@@ -133,6 +138,10 @@ begin
   return coalesce(new, old);
 end;
 $$;
+
+revoke execute on function public.sync_spot_primary_image_url() from public;
+revoke execute on function public.sync_spot_primary_image_url() from anon;
+revoke execute on function public.sync_spot_primary_image_url() from authenticated;
 
 drop trigger if exists spot_images_sync_primary on public.spot_images;
 create trigger spot_images_sync_primary

@@ -9,6 +9,44 @@
 
 ---
 
+## 2026-05-23 - spot_images 마이그레이션 + 보안 lint 일괄 정리 + RLS 정책 12개 추가
+
+### 목표
+
+세션 누적 잔여 작업 4개 모두 진행:
+1) `spot_images` 마이그레이션 운영 적용 (운영 admin 스팟 관리 작동)
+2) mock directions JSON 빌드 스크립트의 regex 수정 (catalog 객체 내부 lat/lng 추출)
+3) 사전 존재 SECURITY DEFINER 함수 5종의 anon/authenticated RPC 노출 차단 + `update_updated_at*`의 search_path 고정
+4) RLS enable됐지만 정책 부재인 12개 테이블에 의도 정책 추가
+
+### 변경 파일
+
+- `supabase/migrations/20260430000001_spot_images_and_catalog_enhance.sql` — `sync_spot_primary_image_url`에 `set search_path = public` 추가, EXECUTE revoke 3줄 추가(public/anon/authenticated).
+- `scripts/build-mock-directions.mjs` — regex를 `lat: X, lng: Y` 인접 페어 매칭으로 단순화. `catalog: { name: { ... }, ... }`처럼 중첩 객체가 있어 기존 `[^}]` 기반 매칭은 깨졌었음.
+- `supabase/migrations/20260523000001_security_hardening_revoke_definer_rpc_exposure.sql` (신규) — `points_apply_ledger`/`rls_auto_enable`/`service_count_unread_chat_threads`/`service_message_threads_list_for_user`/`wayly_record_usage` EXECUTE revoke. `update_updated_at`/`update_updated_at_column` 재정의(set search_path + EXECUTE revoke).
+- `supabase/migrations/20260523000002_rls_policies_for_no_policy_tables.sql` (신규) — 12개 테이블에 정책 추가:
+  - **본인 전용**: `mypage_menu_attention_seen`/`mypage_block_attention_seen` (text user_id → cast), `contact_methods`.
+  - **공개 읽기**: `service_types`, `featured_guardians`, `guardian_languages`, `content_posts`(approved/blocked + author 본인).
+  - **Admin 전용**: `admin_accounts`, `admin_notes`, `booking_status_history`, `guardian_activity_logs`, `incidents`.
+
+### 운영 적용
+
+- `spot_images` 테이블 + `spot_catalog.primary_image_url` 등 5개 컬럼 + 트리거 적용 완료.
+- 보안 하든닝 + RLS 정책 적용 완료.
+- `get_advisors`: 직전 22개 경고 → **1개**(`auth_leaked_password_protection`, Auth 대시보드에서만 변경 가능, SQL 불가).
+
+### 검증 결과
+
+- `pnpm build` 통과 (693 페이지).
+- `get_advisors` 거의 클린.
+- service role 호출 경로는 RLS·EXECUTE GRANT 우회하므로 운영 동작 영향 없음.
+- 실제 사용자 클라이언트 직접 접근 케이스(있다면)는 정책에 맞게 동작 — **사용자 측 실측 권장**.
+
+### 남은 이슈
+
+- `auth_leaked_password_protection` — Supabase Auth Settings → Password Security에서 HaveIBeenPwned 통합 활성화 (대시보드 클릭). 운영 보안 강도 한 단계 더 올라감.
+- mock JSON은 OSRM 공개 서버 미접속·로컬 GOOGLE_MAPS_API_KEY 미설정으로 빈 채로 남음. 향후 CI에 key 주입 후 `pnpm run routes:build-mock-directions` 실행 → 결과 커밋 권장.
+
 ## 2026-05-22 - Supabase 마이그레이션 프로덕션 적용 + 트리거 함수 RPC 노출 차단
 
 ### 목표

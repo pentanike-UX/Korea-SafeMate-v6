@@ -16,11 +16,14 @@ const ROOT = process.cwd();
 const OUT = path.join(ROOT, "src/data/mock/haru-route-directions.json");
 const SOURCE = path.join(ROOT, "src/data/mock/haru-route.ts");
 
-// ── mock 파일에서 catalog.lat/lng를 추출 (mockHaruRoute.spots[].catalog.{lat,lng}) ──
+// ── mock 파일에서 lat/lng 페어를 추출 ──
+// catalog 객체 안에는 name(LocaleMap 등) 중첩 객체가 있어 `[^}]` 기반 매칭은 안 됨.
+// 대신 "lat: X, ...(아주 짧게)..., lng: Y" 인접 페어를 직접 매칭.
 function extractMockCoords() {
   const src = fs.readFileSync(SOURCE, "utf8");
   const coords = [];
-  const re = /catalog:\s*\{[^}]*?lat:\s*([0-9.]+)[^}]*?lng:\s*([0-9.]+)/gs;
+  // 같은 catalog block 안의 lat 다음 줄에 lng가 오는 패턴 — 사이에 다른 좌표가 없음을 가정
+  const re = /lat:\s*([0-9.]+)\s*,\s*\n?\s*lng:\s*([0-9.]+)/g;
   let m;
   while ((m = re.exec(src)) !== null) {
     coords.push({ lat: Number(m[1]), lng: Number(m[2]) });
