@@ -16,6 +16,7 @@
 | [PRODUCT_SPEC.md](./PRODUCT_SPEC.md) | 제품·화면·기능 초안 |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | 디렉터리 구조, 스택, 배포·환경 개요 |
 | [docs/dev-log.md](./docs/dev-log.md) | 날짜별 작업 로그 (**완료 후 필수**, 형식은 파일 상단 참고) |
+| [docs/TODO.md](./docs/TODO.md) | **개발 TODO / 화면 진척 현황** — 릴리즈 매트릭스 audit·미구현·검증 항목·기술 부채 |
 | [DEV_LOG.md](./DEV_LOG.md) | 과거 맥락·장문 요약(선택·참고) |
 | [README.md](./README.md) | Node 버전, 설치, 실행, 빌드 |
 | [DEMO_GUIDE.md](./DEMO_GUIDE.md) | **MVP 데모 시연 가이드** — 시나리오, 환경, 강조 포인트, 인수 참고사항 |
