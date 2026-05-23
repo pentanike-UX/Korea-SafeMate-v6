@@ -109,13 +109,22 @@
 
 ---
 
-## 4. 이번 세션(2026-05-22~23) 잔여 검증 (코드는 배포됨)
+## 4. 이번 세션(2026-05-22~23) 잔여 검증 — 2026-05-23 audit
 
-- [ ] 가디언 게시 → `routes.directions_meta` 자동 채움 + "✓ 도보 경로도 함께 저장됨" 토스트 노출 실측
-- [ ] `route_spots` 변경 → `directions_meta=null` 트리거 작동 실측
-- [ ] `/api/health/routing` (admin 세션) 호출 → `cache_likely_hot` 측정
-- [ ] `spot_images` 적용 후 `/admin/spots/*` 페이지 정상 작동
-- [ ] 신규 RLS 정책 12개 — 사용자 클라이언트 직접 접근 경로(있다면) 정상 동작
+> **핵심 발견:** 운영 DB에 `routes`·`route_spots` **데이터 0건**. 모든 루트 표시가 현재 mock 기반.
+> 아래 런타임 항목들은 스키마·코드·트리거 정의까지 검증 완료됐으나, **가디언이 실제로 루트를 게시하기 전까지는 실행되지 않음**. 첫 실데이터 게시 시점에 함께 스모크 필요.
+
+- [x] **`spot_images` admin 경로** — ✅ admin/spots GET이 쓰는 컬럼 셋(`district`/`naver_data`/`image_strategy`/`primary_image_url` + `spot_images` 테이블) 운영 존재 확인, SELECT 에러 없음. images API insert 컬럼도 전부 존재.
+- [x] **신규 RLS 정책** — ✅ `get_advisors` 클린(경고는 `auth_leaked_password_protection` 1건만). 모든 운영 호출은 service role 경유.
+- [x] **트리거/컬럼/함수 설치** — ✅ `directions_meta` 컬럼, `trg_route_spots_invalidate_directions` 트리거, 함수 정의 모두 운영 확인.
+- [ ] **🔸 실데이터 스모크 (route 0건이라 미실행)** — 가디언이 첫 루트 게시 시 한 번에 확인:
+  - `routes.directions_meta` 자동 채움 + "✓ 도보 경로도 함께 저장됨" 토스트
+  - `route_spots` 변경 → `directions_meta=null` 트리거 작동
+  - 저장(북마크) 토글 + `/mypage/routes` 저장 섹션 표시
+- [ ] **`/api/health/routing`** — admin 세션 HTTP 호출 필요(코드·키 검증됨, cache_likely_hot 실측만 남음).
+
+### ⚠️ 별도 발견: 운영 데이터 시딩
+- [ ] 운영 DB `routes`/`route_spots`/`spot_catalog` 데이터 0건 — 데모/실서비스 전 시드 전략 필요. (`pnpm seed:sample` 등 스크립트 존재, 운영 적용 여부 결정 필요)
 
 ---
 

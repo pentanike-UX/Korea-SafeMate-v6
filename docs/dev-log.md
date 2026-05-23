@@ -9,6 +9,28 @@
 
 ---
 
+## 2026-05-23 - 섹션 4 검증 라운드 (정적 검증 완료 + 운영 데이터 0건 발견)
+
+### 목표
+
+TODO 섹션 4 — 이번 세션 배포분 검증. 정적으로 가능한 것 모두 확인.
+
+### 검증 결과
+
+- **spot_images admin 경로**: ✅ admin/spots GET 컬럼 셋(`district`/`naver_data`/`image_strategy`/`primary_image_url` + `spot_images`) 운영 존재, SELECT 에러 없음. images API insert 컬럼 전부 존재.
+- **RLS 정책**: ✅ `get_advisors` 클린(`auth_leaked_password_protection` 1건만).
+- **트리거/컬럼/함수**: ✅ 운영 설치 확인.
+- **🔑 핵심 발견**: 운영 DB `routes`·`route_spots` **데이터 0건**. 모든 루트 표시가 mock 기반. directions 토스트·트리거 무효화·저장 토글 등 런타임 흐름은 **가디언 첫 게시 전까지 실행 안 됨** — 스키마·코드는 검증됐으나 실데이터 스모크는 게시 시점으로 이연.
+
+### 변경 파일
+
+- `docs/TODO.md` — 섹션 4 audit 결과 반영 + 운영 데이터 시딩 항목 신규 추가.
+
+### 남은 이슈
+
+- 운영 DB 시드 전략 필요(`pnpm seed:sample` 등 스크립트는 존재). 데모/실서비스 전 결정 사항.
+- `/api/health/routing`은 admin 세션 HTTP 호출로만 cache_likely_hot 실측 가능.
+
 ## 2026-05-23 - 섹션 3 완성도 audit + T11 dead 버튼 처리 (저장=북마크)
 
 ### 목표
