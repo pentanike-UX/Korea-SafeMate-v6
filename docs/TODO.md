@@ -101,8 +101,9 @@
 - [x] **A03 Verify OTP** — ✅ 매직링크 OTP(`signInWithOtp` + `/auth/callback`) + Google OAuth. 코드 입력 화면 불필요(링크 방식). 완결.
 - [x] **T07 My Orders** — ✅ `/mypage/requests`로 통합(bookings + match requests). 별도 orders 화면 없음 = 의도된 통합.
 - [x] **T11 Traveler Revision Request** — ✅ 2026-05-23 처리. dead 버튼이던 "수정 요청"은 **숨김**(revision 전체 기능은 별도 라운드), "저장"은 **내 루트 북마크**로 배선(`traveler_saved_routes` 신규 테이블 + 토글 액션 + `/mypage/routes` 저장 섹션). UUID 루트만 저장 가능.
-- [ ] **G02 Guardian Pending** — 🟡 onboarding은 다단계 위저드(`guardian-onboarding-client`). 승인 대기 전용 대기화면은 미발견 — 가드/리다이렉트로 처리되는지 추가 확인 필요. (낮은 우선순위)
-- [ ] **AD03/AD05 Admin** — 🟡 콘텐츠 모더레이션(AD04/05)은 `admin-content-table`에 approve/reject/hide 액션 배선됨(작동). 가디언 신청 디렉토리(AD02/03)는 일부 mock — 신청 승인 플로 완성도 확인 필요.
+- [ ] **G01 Guardian Application** — 🔴 2026-05-23 발견: `guardian-apply-form.tsx`의 `onSubmit`이 **가짜 제출**(DB 미기록, 성공 다이얼로그만 + `TODO(prod)`). 게다가 폼 필드(실명/활동명)가 `guardian_applications` 테이블(motivation/languages NOT NULL, user_id NOT NULL)과 **불일치**. 제품 결정 필요: ①지원에 로그인 필수 여부 ②폼↔테이블 필드 매핑 ③residence_proof 문서 업로드(Storage) MVP 포함 여부. **speculative 빌드 보류 — 결정 후 진행.**
+- [ ] **G02 Guardian Pending** — 🟡 onboarding은 다단계 위저드. 승인 대기 전용 화면 미발견. G01이 실제 기록되지 않으니 pending 상태도 표현 불가 — G01과 함께 처리.
+- [ ] **AD03/AD05 Admin** — 🟡 콘텐츠 모더레이션(AD04/05)은 `admin-content-table` approve/reject/hide 배선됨(작동). 가디언 신청 디렉토리(AD02/03)는 mock — G01이 실데이터를 안 만들어 승인 대상도 없음. G01 선행 필요.
 
 ### T11 후속 (별도 라운드)
 - [ ] 여행자 수정 요청(revision) 전체 기능 — booking.status=revision_requested 전환 + 메모 + 횟수 제한 UX. (가디언측 `/guardian/orders/[id]/revision`은 존재)
@@ -135,8 +136,14 @@
 - [ ] `spot_catalog.lat/lng` admin 변경 시 directions 무효화 — 현재 `route_spots` 트리거 범위 밖. `/api/admin/routes/[id]/refresh-directions`로 수동 갱신만 가능
 - [ ] 미리보기 카드(`RouteDayPreview`)와 사용자 페이지 spot 카드 디자인 통일성 한 단계 더
 - [ ] `<img>` → `next/image` 전환 (미리보기 썸네일 등) + `remotePatterns` 정비
-- [ ] Performance advisors 점검 (이번 세션은 security advisors만 정리)
-- [ ] 사전 존재 lint 잔여: 없음 (security 22→1, 남은 1건은 대시보드 설정)
+- [x] **이번 세션 정책 perf 최적화** — ✅ 2026-05-23. 세션 추가 RLS 정책의 `auth.uid()` → `(select auth.uid())` (auth_rls_initplan), content_posts 중복 SELECT 1개 통합, traveler_saved_routes FK 인덱스.
+- [ ] **사전 존재 performance 부채 (대량, 별도 라운드)** — `get_advisors(performance)` 기준 245 WARN + 69 INFO. 대부분 세션 외 사전 존재:
+  - `auth_rls_initplan` (77): 기존 정책 다수가 `auth.uid()` bare 사용 — 테이블별 정책 재작성 필요.
+  - `multiple_permissive_policies` (168): 같은 테이블·액션에 permissive 정책 다중 — 통합 검토.
+  - `unindexed_foreign_keys` (25): FK 커버 인덱스 추가.
+  - `unused_index` (44, INFO): DB 데이터 0건이라 현재 무의미 — 트래픽 생긴 뒤 재평가.
+  - ⚠️ 대량이고 데이터/트래픽 없을 땐 영향 미미 — 실데이터 투입 후 우선순위화 권장.
+- [ ] 보안 lint 잔여: `auth_leaked_password_protection` 1건(대시보드 토글).
 
 ---
 

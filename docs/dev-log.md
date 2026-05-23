@@ -9,6 +9,31 @@
 
 ---
 
+## 2026-05-23 - 섹션 5 일부: G01 가짜 제출 발견 + 세션 RLS 정책 perf 최적화
+
+### 목표
+
+TODO 섹션 3 잔여(G01/G02/AD03) audit 마무리 + 섹션 5 기술 부채 중 안전·고가치 항목 처리.
+
+### audit 결과 (기록만)
+
+- **G01 Guardian Application**: 🔴 `guardian-apply-form.tsx onSubmit`이 가짜 제출(DB 미기록 + `TODO(prod)`). 폼 필드(실명/활동명) ↔ `guardian_applications`(motivation/languages/user_id NOT NULL) 불일치. 로그인 필수 여부·문서 업로드 등 제품 결정 필요 → speculative 빌드 보류.
+- **G02/AD03**: G01이 실데이터를 안 만들어 pending·승인 대상이 없음 → G01 선행 필요.
+
+### 변경 (perf 최적화 — 운영 적용 + 로컬 파일)
+
+- `supabase/migrations/20260523000004_perf_rls_initplan_session_policies.sql` (신규) + 운영 적용 — 이번 세션 추가 정책의 `auth.uid()` → `(select auth.uid())` (auth_rls_initplan 권고). content_posts 중복 SELECT 2개 → 1개 OR 통합. traveler_saved_routes FK(route_id) 인덱스.
+
+### 검증 결과
+
+- 운영 적용 성공.
+- Performance advisors 전체: 245 WARN + 69 INFO — 대부분 세션 외 사전 존재(기존 정책의 auth_rls_initplan 77, multiple_permissive 168 등). 데이터/트래픽 0인 현 시점 영향 미미 → 실데이터 후 별도 라운드 권장(TODO 기록).
+
+### 남은 이슈
+
+- 사전 존재 perf 부채 대량 — 별도 전담 라운드.
+- G01 funnel은 제품 결정 후 구현.
+
 ## 2026-05-23 - 섹션 4 검증 라운드 (정적 검증 완료 + 운영 데이터 0건 발견)
 
 ### 목표
