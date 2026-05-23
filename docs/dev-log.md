@@ -9,6 +9,30 @@
 
 ---
 
+## 2026-05-23 - G01 가디언 지원 funnel 구현 (가짜 제출 제거 + G02 상태 화면)
+
+### 목표
+
+가짜 제출이던 가디언 지원서를 실제 `guardian_applications` 영속화로 전환. 사용자 결정: 로그인 필수 / 문서 Phase 2 / 전용 상태 화면.
+
+### 변경 파일
+
+- `supabase/migrations/20260523000005_guardian_applications_applicant_fields.sql` (신규) + 운영 적용 — real_name/display_name/contact_email 컬럼(리뷰 자족성).
+- `src/components/guardian/guardian-apply-actions.ts` (신규) — `submitGuardianApplicationAction`. 로그인 필수(needsLogin), zod 검증, user_id unique 중복 방지(23505 처리), RLS insert own.
+- `src/components/guardian/guardian-apply-form.tsx` — 가짜 onSubmit 제거. 제어 폼 + useTransition + 서버액션 호출. 미로그인 시 `/login?next=/guardians/apply` 유도. 성공 다이얼로그 → "지원 현황 보기"(router.refresh).
+- `src/components/guardian/guardian-application-status.tsx` (신규, G02) — pending/approved/rejected/needs_revision 상태·언어·제출일·검토 의견 표시.
+- `src/app/[locale]/(public)/guardians/apply/page.tsx` — 로그인 사용자의 기존 신청 조회 → 있으면 상태 화면, 없으면 폼(isAuthed 전달). ko 로케일 전용(영문은 마케팅 컴포넌트).
+
+### 검증 결과
+
+- `pnpm build` 통과. `pnpm lint` 신규 파일 경고 없음.
+- 타입: 클라이언트가 Database 제네릭 미적용이라 select 결과 `never` → 명시 인터페이스 + `as unknown as` 캐스팅으로 해결.
+
+### 남은 이슈 (중요)
+
+- **AD03 admin 신청 리뷰 = G01 나머지 반쪽 미구현**. `guardian_applications`를 읽는 admin 코드 전무, `/admin/guardians`는 mock 디렉토리. 승인/반려 액션 + 펜딩 큐 UI 필요 → 현재 신청은 pending 고정(DB 직접 승인만). admin UX·승인 정책 결정 후 별도 구현.
+- G01 Phase 2: residence_proof 문서 업로드(Storage), sample_route 첨부.
+
 ## 2026-05-23 - 섹션 5 일부: G01 가짜 제출 발견 + 세션 RLS 정책 perf 최적화
 
 ### 목표

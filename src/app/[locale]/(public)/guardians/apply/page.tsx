@@ -1,12 +1,25 @@
 import { getLocale } from "next-intl/server";
 import { GuardianApplyForm } from "@/components/guardian/guardian-apply-form";
+import {
+  GuardianApplicationStatus,
+  type GuardianApplicationStatusValue,
+} from "@/components/guardian/guardian-application-status";
 import { GuardiansApplyEn } from "@/components/marketing/guardians-apply-en";
-import { ArrowRight, CheckCircle2, XCircle } from "lucide-react";
+import { getServerSupabaseForUser, getSupabaseAuthUserIdOnly } from "@/lib/supabase/server-user";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 export const metadata = {
   title: "Become a haruee | haru",
   description: "haruee design Seoul routes within a defined scope. Applications reviewed in 3–5 business days.",
 };
+
+interface GuardianApplicationRow {
+  status: GuardianApplicationStatusValue;
+  display_name: string | null;
+  languages: string[] | null;
+  review_note: string | null;
+  created_at: string | null;
+}
 
 // ── 하루이 등급 단계 ───────────────────────────────────────────────────────────
 const TIERS = [
@@ -46,6 +59,21 @@ const EXCLUDED = [
 export default async function GuardianApplyPage() {
   const locale = await getLocale();
   if (locale !== "ko") return <GuardiansApplyEn />;
+
+  const userId = await getSupabaseAuthUserIdOnly();
+  let application: GuardianApplicationRow | null = null;
+  if (userId) {
+    const sb = await getServerSupabaseForUser();
+    if (sb) {
+      const { data } = await sb
+        .from("guardian_applications")
+        .select("status, display_name, languages, review_note, created_at")
+        .eq("user_id", userId)
+        .maybeSingle();
+      application = (data as unknown as GuardianApplicationRow | null) ?? null;
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
 
@@ -159,7 +187,17 @@ export default async function GuardianApplyPage() {
         <div className="w-full lg:w-[420px] lg:shrink-0">
           <div className="lg:sticky lg:top-6">
             <section aria-label="하루이 지원 폼">
-              <GuardianApplyForm />
+              {application ? (
+                <GuardianApplicationStatus
+                  status={application.status}
+                  displayName={application.display_name}
+                  languages={application.languages}
+                  reviewNote={application.review_note}
+                  createdAt={application.created_at}
+                />
+              ) : (
+                <GuardianApplyForm isAuthed={Boolean(userId)} />
+              )}
             </section>
           </div>
         </div>

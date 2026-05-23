@@ -101,9 +101,11 @@
 - [x] **A03 Verify OTP** — ✅ 매직링크 OTP(`signInWithOtp` + `/auth/callback`) + Google OAuth. 코드 입력 화면 불필요(링크 방식). 완결.
 - [x] **T07 My Orders** — ✅ `/mypage/requests`로 통합(bookings + match requests). 별도 orders 화면 없음 = 의도된 통합.
 - [x] **T11 Traveler Revision Request** — ✅ 2026-05-23 처리. dead 버튼이던 "수정 요청"은 **숨김**(revision 전체 기능은 별도 라운드), "저장"은 **내 루트 북마크**로 배선(`traveler_saved_routes` 신규 테이블 + 토글 액션 + `/mypage/routes` 저장 섹션). UUID 루트만 저장 가능.
-- [ ] **G01 Guardian Application** — 🔴 2026-05-23 발견: `guardian-apply-form.tsx`의 `onSubmit`이 **가짜 제출**(DB 미기록, 성공 다이얼로그만 + `TODO(prod)`). 게다가 폼 필드(실명/활동명)가 `guardian_applications` 테이블(motivation/languages NOT NULL, user_id NOT NULL)과 **불일치**. 제품 결정 필요: ①지원에 로그인 필수 여부 ②폼↔테이블 필드 매핑 ③residence_proof 문서 업로드(Storage) MVP 포함 여부. **speculative 빌드 보류 — 결정 후 진행.**
-- [ ] **G02 Guardian Pending** — 🟡 onboarding은 다단계 위저드. 승인 대기 전용 화면 미발견. G01이 실제 기록되지 않으니 pending 상태도 표현 불가 — G01과 함께 처리.
-- [ ] **AD03/AD05 Admin** — 🟡 콘텐츠 모더레이션(AD04/05)은 `admin-content-table` approve/reject/hide 배선됨(작동). 가디언 신청 디렉토리(AD02/03)는 mock — G01이 실데이터를 안 만들어 승인 대상도 없음. G01 선행 필요.
+- [x] **G01 Guardian Application** — ✅ 2026-05-23 구현. 가짜 제출 제거 → 실제 `guardian_applications` 영속화. 결정 반영: 로그인 필수(미로그인 시 `/login?next=/guardians/apply` 유도), 문서 업로드는 Phase 2(텍스트 필드만), 전용 상태 화면 추가. 신청자 식별 컬럼(real_name/display_name/contact_email) 추가. zod 검증 + user_id unique 중복 방지.
+- [x] **G02 Guardian Pending** — ✅ `GuardianApplicationStatus` 컴포넌트. apply 재방문 시 pending/approved/rejected/needs_revision 상태·검토 의견 표시.
+- [ ] **AD03 Admin 신청 리뷰 (G01 나머지 반쪽)** — 🔴 `guardian_applications`를 읽는 admin 코드 **전무**. `/admin/guardians`는 `mockGuardians` 디렉토리뿐. 승인/반려 액션(status/reviewer_id/review_note/reviewed_at 설정) + 펜딩 큐 UI 필요. **현재 신청은 pending 고정**(DB 직접 승인만 가능). admin UX·승인 정책 결정 후 구현 권장.
+- [ ] **G01 Phase 2** — residence_proof 문서 업로드(Storage 버킷 + UI), sample_route 첨부.
+- [ ] **AD05 콘텐츠 모더레이션** — ✅ 작동(`admin-content-table` approve/reject/hide 배선).
 
 ### T11 후속 (별도 라운드)
 - [ ] 여행자 수정 요청(revision) 전체 기능 — booking.status=revision_requested 전환 + 메모 + 횟수 제한 UX. (가디언측 `/guardian/orders/[id]/revision`은 존재)
