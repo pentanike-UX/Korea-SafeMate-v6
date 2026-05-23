@@ -103,7 +103,7 @@
 - [x] **T11 Traveler Revision Request** — ✅ 2026-05-23 처리. dead 버튼이던 "수정 요청"은 **숨김**(revision 전체 기능은 별도 라운드), "저장"은 **내 루트 북마크**로 배선(`traveler_saved_routes` 신규 테이블 + 토글 액션 + `/mypage/routes` 저장 섹션). UUID 루트만 저장 가능.
 - [x] **G01 Guardian Application** — ✅ 2026-05-23 구현. 가짜 제출 제거 → 실제 `guardian_applications` 영속화. 결정 반영: 로그인 필수(미로그인 시 `/login?next=/guardians/apply` 유도), 문서 업로드는 Phase 2(텍스트 필드만), 전용 상태 화면 추가. 신청자 식별 컬럼(real_name/display_name/contact_email) 추가. zod 검증 + user_id unique 중복 방지.
 - [x] **G02 Guardian Pending** — ✅ `GuardianApplicationStatus` 컴포넌트. apply 재방문 시 pending/approved/rejected/needs_revision 상태·검토 의견 표시.
-- [ ] **AD03 Admin 신청 리뷰 (G01 나머지 반쪽)** — 🔴 `guardian_applications`를 읽는 admin 코드 **전무**. `/admin/guardians`는 `mockGuardians` 디렉토리뿐. 승인/반려 액션(status/reviewer_id/review_note/reviewed_at 설정) + 펜딩 큐 UI 필요. **현재 신청은 pending 고정**(DB 직접 승인만 가능). admin UX·승인 정책 결정 후 구현 권장.
+- [x] **AD03 Admin 신청 리뷰** — ✅ 2026-05-23 구현. `/admin/guardians`에 검토 큐 추가(real-session admin 게이트 + service-role 조회). 승인/반려/보완요청 액션(`/api/admin/guardian-applications/[id]/review`, status·reviewer_id·review_note·reviewed_at). **승인 시 guardian_profiles 브리지**(user_id+display_name+approval_status=approved) + users.app_role=guardian 즉시 승격(admin/super_admin 강등 방지) → OAuth sync 로직과 정합. funnel 이제 end-to-end 작동.
 - [ ] **G01 Phase 2** — residence_proof 문서 업로드(Storage 버킷 + UI), sample_route 첨부.
 - [ ] **AD05 콘텐츠 모더레이션** — ✅ 작동(`admin-content-table` approve/reject/hide 배선).
 

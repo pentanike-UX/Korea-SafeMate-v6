@@ -9,6 +9,34 @@
 
 ---
 
+## 2026-05-23 - AD03 admin 신청 리뷰 + 승인→guardian 승격 (funnel end-to-end 완성)
+
+### 목표
+
+G01의 나머지 반쪽 — admin이 지원서를 승인/반려하고, 승인 시 실제로 guardian이 활성화되도록.
+
+### 핵심 구조 발견
+
+- guardian `app_role`은 `guardian_profiles.approval_status='approved'`(또는 profile_status)에서 OAuth sync(`sync-oauth-user.ts`) 시 파생. 따라서 "승인=enable"은 application 상태만으로 부족 → guardian_profiles 브리지 필요.
+- `guardian_profiles` NOT NULL은 user_id + display_name뿐 → 최소 브리지 가능.
+- enum `guardian_approval_status`에 `approved` 포함 확인.
+
+### 변경 파일
+
+- `src/app/api/admin/guardian-applications/[applicationId]/review/route.ts` (신규) — real-session + app_role∈{admin,super_admin} 게이트, service-role 쓰기(admin RLS가 'admin'만 매칭하므로 우회 + reviewer_id 기록). approve/reject/request_revision. **승인 시 guardian_profiles upsert(approval_status=approved) + users.app_role=guardian 즉시 승격**(admin/super_admin은 강등 금지: `.not(app_role,in,(admin,super_admin))`).
+- `src/components/admin/admin-guardian-applications.tsx` (신규) — 검토 큐 UI(승인/보완/반려 + 사유 textarea, 반려·보완 시 사유 필수). mock 응답·에러 피드백, 성공 시 router.refresh.
+- `src/app/admin/guardians/page.tsx` — async + real-session admin 게이트(미인증→/login, 비admin→/admin/dashboard). service-role로 지원서 조회, pending/needs_revision만 큐 노출. PII 노출 전 게이트 보강.
+
+### 검증 결과
+
+- `pnpm build`·`pnpm lint` 통과.
+- 로컬엔 service-role 키 없어 svc=null → 큐는 "service-role 미설정" 안내, mock 응답. 운영(키 존재)에서 실제 작동.
+
+### 남은 이슈
+
+- G01 Phase 2: residence_proof 문서 업로드, sample_route.
+- 승인 시 생성되는 guardian_profiles는 최소 필드(display_name)만 — 가디언이 온보딩에서 나머지 프로필 보강 필요.
+
 ## 2026-05-23 - G01 가디언 지원 funnel 구현 (가짜 제출 제거 + G02 상태 화면)
 
 ### 목표
