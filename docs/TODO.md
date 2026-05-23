@@ -91,7 +91,7 @@
 
 - [x] **M06 FAQ** `/faq` — ✅ 2026-05-23 완성. ko/en 데이터셋 아코디언 + footer 링크. (`faq-content.tsx`)
 - [x] **M07 Legal** `/legal/terms`, `/legal/privacy` — ✅ 2026-05-23 완성. 구조화 초안 + "법무 검토 전 초안" 배너. **법무 확정본으로 교체 필요(콘텐츠만).**
-- [ ] **T15 Review Write** — 여행자 리뷰 작성 폼. `traveler_reviews` 테이블은 존재. 작성 UI + 제출 액션 필요.
+- [x] **T15 Review Write** — ✅ 2026-05-23 완성. `/mypage/requests/[id]`에 별점+코멘트+익명 폼, delivered/completed 예약에서만 노출. 서버 액션 + 중복 작성 방지. RLS 정책이 booking 소유/상태 강제.
 - [ ] **T17 Traveler Settings** — 알림·언어·계정 설정. (guardian settings 패턴 재사용 가능)
 
 ## 3. 검증 필요 (🟡 — 코드 존재하나 완성도 미확인)

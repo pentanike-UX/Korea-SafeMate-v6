@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { getServerSupabaseForUser, getSupabaseAuthUserIdOnly } from "@/lib/supabase/server-user";
 import { mockTravelerTripRequests } from "@/data/mock";
 import { Button } from "@/components/ui/button";
+import { TravelerReviewForm } from "@/components/reviews/traveler-review-form";
 import { BRAND } from "@/lib/constants";
 
 type Props = {
@@ -64,17 +65,29 @@ export default async function TravelerRequestDetailPage({ params }: Props) {
     requested_start: string | null;
     delivered_at: string | null;
     revision_count: number | null;
+    guardian_user_id: string | null;
     routes: { id: string }[] | null;
   } | null = null;
+  let alreadyReviewed = false;
 
   if (travelerId && sb) {
     const { data } = await sb
       .from("bookings")
-      .select("id, status, tier, notes, requested_start, delivered_at, revision_count, routes(id)")
+      .select("id, status, tier, notes, requested_start, delivered_at, revision_count, guardian_user_id, routes(id)")
       .eq("id", id)
       .eq("traveler_user_id", travelerId)
       .maybeSingle();
     booking = data ?? null;
+
+    if (booking && ["delivered", "completed"].includes(booking.status)) {
+      const { data: review } = await sb
+        .from("traveler_reviews")
+        .select("id")
+        .eq("booking_id", id)
+        .eq("traveler_user_id", travelerId)
+        .maybeSingle();
+      alreadyReviewed = Boolean(review);
+    }
   }
 
   // ── Fallback: mock 데이터 (Supabase 미연결 or 미매칭) ──────────────────
@@ -90,9 +103,15 @@ export default async function TravelerRequestDetailPage({ params }: Props) {
       requested_start: null,
       delivered_at: null,
       revision_count: 0,
+      guardian_user_id: null,
       routes: null,
     };
   }
+
+  const canReview =
+    travelerId != null &&
+    booking.guardian_user_id != null &&
+    ["delivered", "completed"].includes(booking.status);
 
   const currentIndex = statusIndex(booking.status);
   const routeId = Array.isArray(booking.routes) && booking.routes.length > 0
@@ -165,6 +184,11 @@ export default async function TravelerRequestDetailPage({ params }: Props) {
           })}
         </ol>
       </div>
+
+      {/* 리뷰 작성 — 납품 완료 후 */}
+      {canReview ? (
+        <TravelerReviewForm bookingId={booking.id} isKo={locale === "ko"} alreadyReviewed={alreadyReviewed} />
+      ) : null}
 
       {/* 액션 */}
       <div className="flex flex-wrap gap-2">

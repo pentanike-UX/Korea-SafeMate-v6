@@ -9,6 +9,29 @@
 
 ---
 
+## 2026-05-23 - T15 여행자 리뷰 작성 폼
+
+### 목표
+
+TODO 섹션 2 순차 진행 — T15 Review Write. `traveler_reviews` 테이블·RLS는 이미 존재, 작성 UI + 제출 액션만 신규.
+
+### 변경 파일
+
+- `src/components/reviews/traveler-review-form.tsx` (신규) — 별점(1~5 hover) + 코멘트(2000자) + 익명 토글 + 제출. 성공/중복 시 완료 상태 카드.
+- `src/app/[locale]/(authed)/mypage/requests/[id]/review-actions.ts` (신규) — `submitTravelerReviewAction`. booking 소유·상태(delivered/completed)·중복 검증 후 insert. RLS가 2차 강제.
+- `src/app/[locale]/(authed)/mypage/requests/[id]/page.tsx` — booking select에 `guardian_user_id` 추가, 기존 리뷰 존재 조회, delivered/completed + 매칭됨일 때 폼 노출.
+
+### 검증 결과
+
+- `pnpm build` 통과 (708 페이지).
+- `pnpm lint` — 신규 파일 경고 없음 (`BookingStatus` 미사용은 사전 존재).
+- RLS 정책(`traveler_reviews_insert_traveler`)이 booking 소유 + delivered/completed를 강제하므로, 액션 검증을 우회해도 DB가 차단.
+
+### 남은 이슈
+
+- 리뷰 수정(작성 후 30일 내 update RLS 존재) UI는 미구현 — 현재는 1회 작성만. 필요 시 후속.
+- 리뷰가 guardian 프로필·신뢰 모듈에 반영되는 집계는 기존 표시 컴포넌트 확인 필요(별도).
+
 ## 2026-05-23 - 미구현 화면 신규: FAQ(M06) + Legal(M07 terms/privacy)
 
 ### 목표
