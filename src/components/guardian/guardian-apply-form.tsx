@@ -6,7 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Link, useRouter } from "@/i18n/navigation";
-import { submitGuardianApplicationAction } from "@/components/guardian/guardian-apply-actions";
+import {
+  submitGuardianApplicationAction,
+  uploadResidenceProofAction,
+} from "@/components/guardian/guardian-apply-actions";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +40,7 @@ export function GuardianApplyForm({ isAuthed = false }: { isAuthed?: boolean }) 
   const [contactEmail, setContactEmail] = useState("");
   const [languagesRaw, setLanguagesRaw] = useState("");
   const [motivation, setMotivation] = useState("");
+  const [residenceFile, setResidenceFile] = useState<File | null>(null);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,12 +62,29 @@ export function GuardianApplyForm({ isAuthed = false }: { isAuthed?: boolean }) 
     }
 
     startTransition(async () => {
+      let residenceProofPath: string | undefined;
+      if (residenceFile) {
+        const fd = new FormData();
+        fd.append("file", residenceFile);
+        const up = await uploadResidenceProofAction(fd);
+        if (!up.ok) {
+          if (up.needsLogin) {
+            router.push({ pathname: "/login", query: { next: "/guardians/apply" } });
+            return;
+          }
+          setError(up.error ?? "문서 업로드에 실패했습니다.");
+          return;
+        }
+        residenceProofPath = up.path;
+      }
+
       const res = await submitGuardianApplicationAction({
         realName: realName.trim(),
         displayName: displayName.trim(),
         contactEmail: contactEmail.trim(),
         languages,
         motivation: motivation.trim(),
+        residenceProofPath,
       });
       if (res.ok) {
         setOpen(true);
@@ -147,6 +168,21 @@ export function GuardianApplyForm({ isAuthed = false }: { isAuthed?: boolean }) 
             onChange={(e) => setMotivation(e.target.value)}
             placeholder="서울에서의 경험, 잘 아는 지역, 동행 스타일을 간략히 적어주세요"
           />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="g-doc">
+            거주 증빙 문서 <span className="text-muted-foreground font-normal">(선택)</span>
+          </Label>
+          <Input
+            id="g-doc"
+            type="file"
+            accept="application/pdf,image/jpeg,image/png,image/webp"
+            onChange={(e) => setResidenceFile(e.target.files?.[0] ?? null)}
+            className="file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-1 file:text-sm"
+          />
+          <p className="text-muted-foreground text-xs leading-relaxed">
+            PDF·JPG·PNG·WEBP, 최대 10MB. 지금 없으면 승인 검토 중 별도 안내드립니다.
+          </p>
         </div>
         <label className="text-muted-foreground flex cursor-pointer items-start gap-3 text-sm leading-relaxed">
           <input type="checkbox" required className="border-input text-primary mt-1 size-4 rounded" />

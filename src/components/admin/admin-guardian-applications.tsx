@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Check, X, RotateCcw, Loader2 } from "lucide-react";
+import { Check, X, RotateCcw, Loader2, FileText } from "lucide-react";
 
 export interface AdminGuardianApplication {
   id: string;
@@ -14,6 +14,7 @@ export interface AdminGuardianApplication {
   languages: string[] | null;
   motivation: string;
   review_note: string | null;
+  residence_proof: string | null;
   created_at: string | null;
 }
 
@@ -111,6 +112,19 @@ export function AdminGuardianApplications({ applications }: { applications: Admi
                 이전 검토 의견: {a.review_note}
               </p>
             ) : null}
+
+            {a.residence_proof ? (
+              <a
+                href={`/api/admin/guardian-applications/${a.id}/document`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary mt-3 inline-flex items-center gap-1.5 text-sm font-medium hover:underline"
+              >
+                <FileText className="size-4" /> 거주 증빙 문서 보기
+              </a>
+            ) : (
+              <p className="text-muted-foreground mt-3 text-xs">거주 증빙 문서 미제출</p>
+            )}
 
             <textarea
               value={notes[a.id] ?? ""}

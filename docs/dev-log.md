@@ -9,6 +9,37 @@
 
 ---
 
+## 2026-05-23 - G01 Phase 2: 거주 증빙 문서 업로드(비공개 버킷 + 서명 URL)
+
+### 목표
+
+지원서에 거주 증빙 문서(민감 PII) 첨부. 보안 우선 설계.
+
+### 설계 (보안)
+
+- 비공개 버킷 `guardian-docs`(public=false, 10MB, pdf/jpg/png/webp). 클라이언트 직접 접근 0.
+- 업로드·열람 모두 **service-role 경유** → storage RLS 정책 불필요(버킷 자체가 비공개).
+- 지원자: 서버액션이 service-role로 업로드, 경로(`{userId}/residence-*.ext`)만 application에 저장.
+- 관리자: 단기(60s) 서명 URL로만 열람.
+
+### 변경 파일
+
+- `supabase/migrations/20260523000006_guardian_docs_bucket.sql` (신규) + 운영 적용 — 비공개 버킷.
+- `src/components/guardian/guardian-apply-actions.ts` — `uploadResidenceProofAction`(FormData, 크기/타입 검증, service-role 업로드). submit 액션에 residenceProofPath 추가 → residence_proof 저장.
+- `src/components/guardian/guardian-apply-form.tsx` — 선택 파일 입력(accept 제한). 업로드 성공 후 submit.
+- `src/app/api/admin/guardian-applications/[applicationId]/document/route.ts` (신규) — admin 게이트 + 서명 URL 302.
+- `src/components/admin/admin-guardian-applications.tsx` — "거주 증빙 문서 보기" 링크(미제출 표시).
+- `src/app/admin/guardians/page.tsx` — 쿼리에 residence_proof 추가.
+
+### 검증 결과
+
+- `pnpm build`·`pnpm lint`(신규 파일) 통과.
+- 로컬 service-role 미설정 → 업로드 액션이 친절한 에러 반환. 운영에서 실제 작동.
+
+### 남은 이슈
+
+- sample_route 첨부(루트 빌더 연계) 미구현.
+
 ## 2026-05-23 - AD03 admin 신청 리뷰 + 승인→guardian 승격 (funnel end-to-end 완성)
 
 ### 목표
