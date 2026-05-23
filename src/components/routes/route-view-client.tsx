@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Check, Sparkles, List, Map as MapIcon } from "lucide-react";
+import { Check, Sparkles, List, Map as MapIcon, Bookmark, BookmarkCheck, Loader2 } from "lucide-react";
 import { HaruTimeline } from "@/components/patterns/haru-timeline";
 import { RouteFreePreviewSection } from "@/components/routes/route-free-preview-section";
 import { HaruSpotDetailSheet } from "@/components/routes/haru-spot-detail-sheet";
 import { HaruRouteMapView } from "@/components/routes/haru-route-map-view";
 import { GoogleMapsProvider } from "@/components/maps/google-maps-provider";
+import { toggleSavedRouteAction } from "@/app/[locale]/(public)/routes/[routeId]/saved-route-actions";
 import type { HaruRoute, HaruSpot, AppLocale } from "@/types/haru";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +28,8 @@ export function RouteViewClient({
   locale,
   initialUnlocked,
   precomputedDirections = null,
+  canSave = false,
+  initialSaved = false,
 }: {
   route: HaruRoute;
   locale: AppLocale;
@@ -34,12 +37,25 @@ export function RouteViewClient({
   initialUnlocked: boolean;
   /** 서버에서 미리 계산해둔 directions 결과 — 지도 뷰가 자체 fetch 생략. */
   precomputedDirections?: RouteViewPrecomputedDirections | null;
+  /** UUID 루트(DB)만 저장 가능 — mock/preview 제외. */
+  canSave?: boolean;
+  /** 진입 시 이미 저장돼 있는지. */
+  initialSaved?: boolean;
 }) {
   const t = useTranslations("TravelerHub");
   const [unlocked, setUnlocked] = useState(initialUnlocked);
   const [viewMode, setViewMode] = useState<"timeline" | "map">("timeline");
   // 스팟 상세 시트 — 잠금 해제 후만 활성
   const [selectedSpot, setSelectedSpot] = useState<HaruSpot | null>(null);
+  const [saved, setSaved] = useState(initialSaved);
+  const [savePending, startSaveTransition] = useTransition();
+
+  function onToggleSave() {
+    startSaveTransition(async () => {
+      const res = await toggleSavedRouteAction(route.id);
+      if (res.ok) setSaved(Boolean(res.saved));
+    });
+  }
 
   // 진입 시·잠금 해제 시 페이지 최상단으로 스크롤 — 하단에 머물러 위로 올려야 하는 문제 해결.
   useEffect(() => {
@@ -157,38 +173,44 @@ export function RouteViewClient({
         </div>
       </div>
 
-      {/* 하단 sticky 액션 바 (저장 / 수정 요청) */}
-      <div className="fixed bottom-0 inset-x-0 z-30 border-t border-border/60 bg-background/95 backdrop-blur-lg">
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <p className="text-xs text-muted-foreground">
-            {route.spots.length} {t("routeStatsStops").toLowerCase()}
-            {" · "}
-            {Math.floor(route.total_duration_min / 60) > 0
-              ? t("routeHoursOnly", { h: Math.floor(route.total_duration_min / 60) })
-              : ""}
-            {route.total_duration_min % 60 > 0
-              ? ` ${t("routeMinutesOnly", { m: route.total_duration_min % 60 })}`
-              : ""}
-          </p>
-          <div className="flex gap-2">
+      {/* 하단 sticky 액션 바 — UUID 루트만 저장 버튼 노출 */}
+      {canSave ? (
+        <div className="fixed bottom-0 inset-x-0 z-30 border-t border-border/60 bg-background/95 backdrop-blur-lg">
+          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+            <p className="text-xs text-muted-foreground">
+              {route.spots.length} {t("routeStatsStops").toLowerCase()}
+              {" · "}
+              {Math.floor(route.total_duration_min / 60) > 0
+                ? t("routeHoursOnly", { h: Math.floor(route.total_duration_min / 60) })
+                : ""}
+              {route.total_duration_min % 60 > 0
+                ? ` ${t("routeMinutesOnly", { m: route.total_duration_min % 60 })}`
+                : ""}
+            </p>
             <button
               type="button"
+              onClick={onToggleSave}
+              disabled={savePending}
+              aria-pressed={saved}
               className={cn(
-                "rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground",
-                "transition-colors hover:bg-muted/50",
+                "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold shadow-sm transition-all disabled:opacity-60",
+                saved
+                  ? "border border-border bg-card text-foreground hover:bg-muted/50"
+                  : "bg-[var(--brand-primary)] text-[var(--text-on-brand)] hover:opacity-95",
               )}
             >
-              {t("routeRequestEditCta")}
-            </button>
-            <button
-              type="button"
-              className="rounded-xl bg-[var(--brand-primary)] px-4 py-2 text-sm font-semibold text-[var(--text-on-brand)] shadow-sm transition-all hover:opacity-95"
-            >
-              {t("routeSaveCta")}
+              {savePending ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+              ) : saved ? (
+                <BookmarkCheck className="size-4" aria-hidden />
+              ) : (
+                <Bookmark className="size-4" aria-hidden />
+              )}
+              {saved ? t("routeSavedCta") : t("routeSaveCta")}
             </button>
           </div>
         </div>
-      </div>
+      ) : null}
     </div>
     </GoogleMapsProvider>
   );

@@ -124,6 +124,22 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
     }
   }
 
+  // 저장(북마크) 상태 — UUID(DB) 루트 + 로그인 사용자일 때만.
+  const canSave = fromDb && isUuidRouteId(routeId);
+  let initialSaved = false;
+  if (canSave && userId) {
+    const sb = await getServerSupabaseForUser();
+    if (sb) {
+      const { data: savedRow } = await sb
+        .from("traveler_saved_routes")
+        .select("route_id")
+        .eq("traveler_user_id", userId)
+        .eq("route_id", routeId)
+        .maybeSingle();
+      initialSaved = Boolean(savedRow);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-bg">
       <div className="border-b border-line-soft bg-bg-card px-4 py-4 sm:px-6">
@@ -140,6 +156,8 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
         precomputedDirections={
           directions ? { path: directions.path, legs: directions.legs, provider: directions.provider } : null
         }
+        canSave={canSave && Boolean(userId)}
+        initialSaved={initialSaved}
       />
     </main>
   );

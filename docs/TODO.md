@@ -96,13 +96,16 @@
 
 > **섹션 2 완료 (2026-05-23):** 확실한 미구현 4건(FAQ·Legal·Review Write·Traveler Settings) 모두 구현. 다음은 섹션 4(검증) 또는 섹션 3(🟡 완성도 점검).
 
-## 3. 검증 필요 (🟡 — 코드 존재하나 완성도 미확인)
+## 3. 검증 필요 (🟡) — 2026-05-23 audit 완료
 
-- [ ] A03 Verify OTP — OAuth/매직링크로 대체됐는지, OTP 흐름이 실제 필요한지 확인
-- [ ] T07 My Orders vs T05/T08 requests — orders/requests 개념 통합 상태 정리
-- [ ] T11 Traveler Revision Request — 여행자가 수정 요청 발의하는 진입점 존재 여부
-- [ ] G02 Guardian Pending — 승인 대기 상태 전용 화면 필요 여부
-- [ ] AD03/AD05 Admin 상세·워크스페이스 — 리뷰 워크플로 완성도
+- [x] **A03 Verify OTP** — ✅ 매직링크 OTP(`signInWithOtp` + `/auth/callback`) + Google OAuth. 코드 입력 화면 불필요(링크 방식). 완결.
+- [x] **T07 My Orders** — ✅ `/mypage/requests`로 통합(bookings + match requests). 별도 orders 화면 없음 = 의도된 통합.
+- [x] **T11 Traveler Revision Request** — ✅ 2026-05-23 처리. dead 버튼이던 "수정 요청"은 **숨김**(revision 전체 기능은 별도 라운드), "저장"은 **내 루트 북마크**로 배선(`traveler_saved_routes` 신규 테이블 + 토글 액션 + `/mypage/routes` 저장 섹션). UUID 루트만 저장 가능.
+- [ ] **G02 Guardian Pending** — 🟡 onboarding은 다단계 위저드(`guardian-onboarding-client`). 승인 대기 전용 대기화면은 미발견 — 가드/리다이렉트로 처리되는지 추가 확인 필요. (낮은 우선순위)
+- [ ] **AD03/AD05 Admin** — 🟡 콘텐츠 모더레이션(AD04/05)은 `admin-content-table`에 approve/reject/hide 액션 배선됨(작동). 가디언 신청 디렉토리(AD02/03)는 일부 mock — 신청 승인 플로 완성도 확인 필요.
+
+### T11 후속 (별도 라운드)
+- [ ] 여행자 수정 요청(revision) 전체 기능 — booking.status=revision_requested 전환 + 메모 + 횟수 제한 UX. (가디언측 `/guardian/orders/[id]/revision`은 존재)
 
 ---
 

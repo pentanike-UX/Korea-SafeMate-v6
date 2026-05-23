@@ -9,6 +9,40 @@
 
 ---
 
+## 2026-05-23 - 섹션 3 완성도 audit + T11 dead 버튼 처리 (저장=북마크)
+
+### 목표
+
+TODO 섹션 3(🟡 완성도 점검) audit + 발견된 실질 갭 처리.
+
+### audit 결과
+
+- **A03 OTP**: 매직링크(`signInWithOtp`+`/auth/callback`)+Google OAuth → 코드 입력 화면 불필요. 완결.
+- **T07 Orders**: `/mypage/requests`로 통합. 별도 화면 없음 = 의도.
+- **T11 Revision/저장 버튼**: route-view-client의 "수정 요청"·"저장" 버튼이 **dead(핸들러 없음)** — AGENTS.md 금지 항목. 처리(아래).
+- **G02 Pending**: onboarding 위저드만 존재, 대기 전용 화면 미발견(낮은 우선순위 잔여).
+- **AD03/05**: 콘텐츠 모더레이션 액션 배선됨(작동), 가디언 신청 디렉토리 일부 mock(잔여).
+
+### 변경 파일 (T11 처리 — 사용자 결정: 수정요청=숨김, 저장=북마크)
+
+- `supabase/migrations/20260523000003_traveler_saved_routes.sql` (신규) + 운영 적용 — `traveler_saved_posts` 패턴 미러. RLS select/insert/delete own.
+- `src/app/[locale]/(public)/routes/[routeId]/saved-route-actions.ts` (신규) — `toggleSavedRouteAction`. UUID 루트만, RLS가 본인 강제.
+- `src/components/routes/route-view-client.tsx` — dead "수정 요청" 버튼 제거. "저장" → 북마크 토글(Bookmark/BookmarkCheck + pending). `canSave`(UUID+로그인) 때만 sticky 바 노출.
+- `src/app/[locale]/(public)/routes/[routeId]/page.tsx` — `canSave`·`initialSaved` 조회·전달.
+- `src/app/[locale]/(authed)/mypage/routes/page.tsx` — "저장한 루트" 섹션 추가.
+- `messages/{5}.json` — `routeSavedCta` 추가.
+
+### 검증 결과
+
+- `pnpm build` 통과 (713 페이지).
+- `pnpm lint` — 신규 파일 경고 없음.
+- `get_advisors` — 신규 테이블 RLS 정상, 경고는 여전히 `auth_leaked_password_protection` 1건뿐.
+
+### 남은 이슈
+
+- 여행자 revision 전체 기능은 별도 라운드(TODO 섹션 3 후속).
+- mock/preview 루트는 저장 불가(UUID 아님) — 의도. 저장 버튼 자체가 안 보임.
+
 ## 2026-05-23 - T17 여행자 설정 화면 (섹션 2 미구현 화면 완료)
 
 ### 목표

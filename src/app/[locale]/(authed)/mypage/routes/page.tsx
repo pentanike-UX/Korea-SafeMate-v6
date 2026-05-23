@@ -46,6 +46,27 @@ export default async function TravelerMyRoutesPage({ params }: { params: Promise
   const sb = await getServerSupabaseForUser();
   const rows = travelerId && sb ? await listTravelerPurchasedRoutes(sb) : [];
 
+  // 저장(북마크)한 루트
+  type SavedRouteRow = {
+    id: string;
+    title_ko: string | null;
+    title_en: string | null;
+    title_th: string | null;
+    title_vi: string | null;
+    status: string;
+  };
+  let savedRows: SavedRouteRow[] = [];
+  if (travelerId && sb) {
+    const { data } = await sb
+      .from("traveler_saved_routes")
+      .select("route_id, created_at, routes(id, title_ko, title_en, title_th, title_vi, status)")
+      .eq("traveler_user_id", travelerId)
+      .order("created_at", { ascending: false });
+    savedRows = (data ?? [])
+      .map((r) => (Array.isArray(r.routes) ? r.routes[0] : r.routes) as SavedRouteRow | null)
+      .filter((r): r is SavedRouteRow => Boolean(r));
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -100,6 +121,32 @@ export default async function TravelerMyRoutesPage({ params }: { params: Promise
           })}
         </ul>
       )}
+
+      {savedRows.length > 0 ? (
+        <div className="space-y-3">
+          <h3 className="text-text-strong text-base font-semibold tracking-tight">
+            {locale === "ko" ? "저장한 루트" : "Saved routes"}
+          </h3>
+          <ul className="space-y-3">
+            {savedRows.map((r) => (
+              <li key={r.id}>
+                <Link
+                  href={`/routes/${r.id}`}
+                  className="block rounded-2xl border border-border/60 bg-card p-4 shadow-[var(--shadow-sm)] transition-colors hover:bg-muted/40"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-foreground">{pickTitle(r, locale)}</p>
+                      <p className="text-muted-foreground mt-1 text-xs capitalize">{r.status}</p>
+                    </div>
+                    <span className="text-primary shrink-0 text-sm font-medium">{t("myRoutesOpen")}</span>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }
