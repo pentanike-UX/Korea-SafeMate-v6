@@ -105,7 +105,8 @@
 - [x] **G02 Guardian Pending** — ✅ `GuardianApplicationStatus` 컴포넌트. apply 재방문 시 pending/approved/rejected/needs_revision 상태·검토 의견 표시.
 - [x] **AD03 Admin 신청 리뷰** — ✅ 2026-05-23 구현. `/admin/guardians`에 검토 큐 추가(real-session admin 게이트 + service-role 조회). 승인/반려/보완요청 액션(`/api/admin/guardian-applications/[id]/review`, status·reviewer_id·review_note·reviewed_at). **승인 시 guardian_profiles 브리지**(user_id+display_name+approval_status=approved) + users.app_role=guardian 즉시 승격(admin/super_admin 강등 방지) → OAuth sync 로직과 정합. funnel 이제 end-to-end 작동.
 - [x] **G01 Phase 2 (문서 업로드)** — ✅ 2026-05-23. 비공개 버킷 `guardian-docs`(10MB, pdf/jpg/png/webp) + service-role 업로드(클라 직접 접근 0). 폼에 선택 파일 입력, residence_proof 경로 저장. admin은 단기 서명 URL(`/api/admin/guardian-applications/[id]/document`)로 열람.
-- [ ] **G01 Phase 2 잔여** — sample_route(샘플 루트) 첨부는 미구현(루트 빌더 연계 필요). 승인 시 생성되는 guardian_profiles는 최소 필드(display_name)만 — 가디언 온보딩에서 나머지 보강.
+- [x] **G01 Phase 2 (sample_route)** — ✅ 2026-05-23. 지원자는 가디언 권한 전이라 정식 빌더 대신 경량 "샘플 하루 코스" 작성기(제목·지역·스팟 1~12개, jsonb 저장). admin 검토 큐에 코스 렌더. 선택 항목.
+- [ ] **G01 잔여** — 승인 시 생성되는 guardian_profiles는 최소 필드(display_name)만 — 가디언 온보딩에서 나머지 보강.
 - [ ] **AD05 콘텐츠 모더레이션** — ✅ 작동(`admin-content-table` approve/reject/hide 배선).
 
 ### T11 후속 (별도 라운드)

@@ -9,6 +9,28 @@
 
 ---
 
+## 2026-05-23 - G01 Phase 2: sample_route(샘플 하루 코스) 첨부
+
+### 목표
+
+지원서에 샘플 루트 첨부. 지원자는 가디언 권한 전이라 정식 빌더(spot_catalog·맵 연계) 사용 불가 → 자족적 경량 작성기.
+
+### 설계
+
+- sample_route(jsonb) 형태: `{ title, area?, stops: [{ name, note? }] }`. 스팟 1~12개, 모두 자유 텍스트(catalog UUID 비참조).
+- 선택 항목: 제목·스팟 둘 다 비면 미첨부. 하나라도 있으면 제목+스팟≥1 강제.
+
+### 변경 파일
+
+- `src/components/guardian/guardian-apply-actions.ts` — sampleRouteSchema(zod) + GuardianSampleRoute 타입. submit 액션 sample_route 저장.
+- `src/components/guardian/guardian-apply-form.tsx` — 샘플 코스 작성기(제목/지역 + 동적 스팟 add/remove, 최대 12).
+- `src/components/admin/admin-guardian-applications.tsx` — sample_route 렌더(번호 목록).
+- `src/app/admin/guardians/page.tsx` — 쿼리에 sample_route 추가.
+
+### 검증 결과
+
+- `pnpm build`·`pnpm lint` 통과.
+
 ## 2026-05-23 - G01 Phase 2: 거주 증빙 문서 업로드(비공개 버킷 + 서명 URL)
 
 ### 목표

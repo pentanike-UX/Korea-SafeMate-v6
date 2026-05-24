@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Plus, X } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
 import {
   submitGuardianApplicationAction,
@@ -42,6 +43,20 @@ export function GuardianApplyForm({ isAuthed = false }: { isAuthed?: boolean }) 
   const [motivation, setMotivation] = useState("");
   const [residenceFile, setResidenceFile] = useState<File | null>(null);
 
+  const [sampleTitle, setSampleTitle] = useState("");
+  const [sampleArea, setSampleArea] = useState("");
+  const [sampleStops, setSampleStops] = useState<Array<{ name: string; note: string }>>([{ name: "", note: "" }]);
+
+  function updateStop(i: number, key: "name" | "note", value: string) {
+    setSampleStops((prev) => prev.map((s, idx) => (idx === i ? { ...s, [key]: value } : s)));
+  }
+  function addStop() {
+    setSampleStops((prev) => (prev.length >= 12 ? prev : [...prev, { name: "", note: "" }]));
+  }
+  function removeStop(i: number) {
+    setSampleStops((prev) => (prev.length <= 1 ? prev : prev.filter((_, idx) => idx !== i)));
+  }
+
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -60,6 +75,23 @@ export function GuardianApplyForm({ isAuthed = false }: { isAuthed?: boolean }) 
       setError("소개 및 경험을 조금 더 자세히 작성해 주세요.");
       return;
     }
+
+    // 샘플 코스 — 선택. 제목이나 스팟이 있으면 유효성 확인 후 첨부.
+    const filledStops = sampleStops
+      .map((s) => ({ name: s.name.trim(), note: s.note.trim() }))
+      .filter((s) => s.name.length > 0);
+    const sampleProvided = sampleTitle.trim().length > 0 || filledStops.length > 0;
+    if (sampleProvided && (sampleTitle.trim().length === 0 || filledStops.length === 0)) {
+      setError("샘플 코스를 첨부하려면 제목과 최소 1개의 장소가 필요합니다.");
+      return;
+    }
+    const sampleRoute = sampleProvided
+      ? {
+          title: sampleTitle.trim(),
+          area: sampleArea.trim() || undefined,
+          stops: filledStops.map((s) => ({ name: s.name, note: s.note || undefined })),
+        }
+      : undefined;
 
     startTransition(async () => {
       let residenceProofPath: string | undefined;
@@ -85,6 +117,7 @@ export function GuardianApplyForm({ isAuthed = false }: { isAuthed?: boolean }) 
         languages,
         motivation: motivation.trim(),
         residenceProofPath,
+        sampleRoute,
       });
       if (res.ok) {
         setOpen(true);
@@ -183,6 +216,64 @@ export function GuardianApplyForm({ isAuthed = false }: { isAuthed?: boolean }) 
           <p className="text-muted-foreground text-xs leading-relaxed">
             PDF·JPG·PNG·WEBP, 최대 10MB. 지금 없으면 승인 검토 중 별도 안내드립니다.
           </p>
+        </div>
+        <div className="border-border/60 space-y-3 rounded-xl border border-dashed p-4">
+          <div className="space-y-0.5">
+            <p className="text-text-strong text-sm font-semibold">
+              샘플 하루 코스 <span className="text-muted-foreground font-normal">(선택)</span>
+            </p>
+            <p className="text-muted-foreground text-xs leading-relaxed">
+              내가 잘 아는 동네로 짧은 하루 코스를 구성해 보여주세요. 심사에 도움이 됩니다.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input
+              value={sampleTitle}
+              onChange={(e) => setSampleTitle(e.target.value)}
+              placeholder="코스 제목 (예: 성수동 카페 하루)"
+            />
+            <Input
+              value={sampleArea}
+              onChange={(e) => setSampleArea(e.target.value)}
+              placeholder="지역 (예: 성수동)"
+            />
+          </div>
+          <div className="space-y-2">
+            {sampleStops.map((stop, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="text-muted-foreground mt-2.5 w-4 shrink-0 text-xs font-semibold">{i + 1}</span>
+                <div className="grid flex-1 gap-2 sm:grid-cols-2">
+                  <Input
+                    value={stop.name}
+                    onChange={(e) => updateStop(i, "name", e.target.value)}
+                    placeholder="장소 이름"
+                  />
+                  <Input
+                    value={stop.note}
+                    onChange={(e) => updateStop(i, "note", e.target.value)}
+                    placeholder="한 줄 메모 (선택)"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeStop(i)}
+                  disabled={sampleStops.length <= 1}
+                  aria-label="장소 삭제"
+                  className="text-muted-foreground hover:text-foreground mt-2 disabled:opacity-30"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={addStop}
+            disabled={sampleStops.length >= 12}
+            className="text-primary inline-flex items-center gap-1 text-sm font-medium disabled:opacity-40"
+          >
+            <Plus className="size-4" /> 장소 추가
+          </button>
         </div>
         <label className="text-muted-foreground flex cursor-pointer items-start gap-3 text-sm leading-relaxed">
           <input type="checkbox" required className="border-input text-primary mt-1 size-4 rounded" />

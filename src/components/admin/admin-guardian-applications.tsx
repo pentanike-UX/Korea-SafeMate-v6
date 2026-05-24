@@ -15,6 +15,7 @@ export interface AdminGuardianApplication {
   motivation: string;
   review_note: string | null;
   residence_proof: string | null;
+  sample_route: { title?: string; area?: string; stops?: Array<{ name?: string; note?: string }> } | null;
   created_at: string | null;
 }
 
@@ -106,6 +107,23 @@ export function AdminGuardianApplications({ applications }: { applications: Admi
             </div>
 
             <p className="text-foreground/90 mt-3 whitespace-pre-line text-sm leading-relaxed">{a.motivation}</p>
+
+            {a.sample_route && (a.sample_route.title || (a.sample_route.stops?.length ?? 0) > 0) ? (
+              <div className="mt-3 rounded-xl border border-border/60 bg-muted/30 p-3">
+                <p className="text-text-strong text-xs font-semibold">
+                  샘플 코스: {a.sample_route.title ?? "(제목 없음)"}
+                  {a.sample_route.area ? <span className="text-muted-foreground font-normal"> · {a.sample_route.area}</span> : null}
+                </p>
+                <ol className="text-muted-foreground mt-2 list-decimal space-y-0.5 pl-5 text-xs">
+                  {(a.sample_route.stops ?? []).map((s, i) => (
+                    <li key={i}>
+                      <span className="text-foreground/90 font-medium">{s.name}</span>
+                      {s.note ? ` — ${s.note}` : ""}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ) : null}
 
             {a.review_note ? (
               <p className="text-muted-foreground mt-2 rounded-lg bg-muted/40 px-3 py-2 text-xs">

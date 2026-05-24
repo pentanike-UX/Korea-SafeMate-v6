@@ -13,6 +13,19 @@ const ALLOWED_DOC_TYPES: Record<string, string> = {
   "image/webp": "webp",
 };
 
+const sampleRouteStopSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  note: z.string().trim().max(400).optional(),
+});
+
+const sampleRouteSchema = z.object({
+  title: z.string().trim().min(1).max(160),
+  area: z.string().trim().max(120).optional(),
+  stops: z.array(sampleRouteStopSchema).min(1).max(12),
+});
+
+export type GuardianSampleRoute = z.infer<typeof sampleRouteSchema>;
+
 const applySchema = z.object({
   realName: z.string().trim().min(1).max(120),
   displayName: z.string().trim().min(1).max(120),
@@ -20,6 +33,7 @@ const applySchema = z.object({
   languages: z.array(z.string().trim().min(1)).min(1).max(20),
   motivation: z.string().trim().min(10).max(4000),
   residenceProofPath: z.string().trim().max(512).optional(),
+  sampleRoute: sampleRouteSchema.optional(),
 });
 
 export interface UploadResidenceProofResult {
@@ -76,6 +90,7 @@ export async function submitGuardianApplicationAction(input: {
   languages: string[];
   motivation: string;
   residenceProofPath?: string;
+  sampleRoute?: GuardianSampleRoute;
 }): Promise<SubmitGuardianApplicationResult> {
   const userId = await getSupabaseAuthUserIdOnly();
   if (!userId) return { ok: false, needsLogin: true };
@@ -104,6 +119,7 @@ export async function submitGuardianApplicationAction(input: {
     languages: parsed.data.languages,
     motivation: parsed.data.motivation,
     residence_proof: parsed.data.residenceProofPath ?? null,
+    sample_route: parsed.data.sampleRoute ?? null,
   });
   if (error) {
     // 동시 제출 등으로 unique 위반 시

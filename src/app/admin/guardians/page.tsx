@@ -32,7 +32,7 @@ export default async function AdminGuardiansPage() {
   if (svc) {
     const { data } = await svc
       .from("guardian_applications")
-      .select("id, status, real_name, display_name, contact_email, languages, motivation, review_note, residence_proof, created_at")
+      .select("id, status, real_name, display_name, contact_email, languages, motivation, review_note, residence_proof, sample_route, created_at")
       .order("created_at", { ascending: false });
     applications = (data as AdminGuardianApplication[] | null) ?? [];
   }
