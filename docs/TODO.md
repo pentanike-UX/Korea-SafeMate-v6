@@ -174,7 +174,8 @@
 - [~] **폰트 floor 적용** — 🔄 explore 카드부터 시작(2026-05-23). 본문 10~11px → 12~14px, 이름 15px→base/lg, 헤드라인 line-clamp-2. **나머지 화면은 이 카드를 템플릿으로 순차 적용 예정.**
 - [ ] **위계 강화 + 그레이박스 정리** — explore 카드 점선 divider 제거 완료. mypage·admin 카드 등 나머지 적용 필요.
 - [ ] **프로필/아바타 확대** — 20px급 → 24~40px+, 좁으면 세로 배치.
-- [ ] **모바일 하단 탭바 도입 여부** — 현재 햄버거뿐. 여행 앱 기대치 갭.
+- [x] **모바일 하단 탭바 도입** — ✅ 2026-05-23. `MobileBottomTabBar`(포스트·하루이·메시지·마이페이지). 로그인 사용자/모바일 전용, sticky CTA·플로우 화면(루트뷰·가디언상세·book·checkout·guardian·admin) 숨김, safe-area + 인플로우 스페이서. PublicSiteShell 단일 마운트.
+- [x] **explore 이중 CTA 위계화** — ✅ 문의하기를 아웃라인(2차)로 낮춰 요청하기(다크 1차)가 명확히 구분.
 - [ ] **admin 테이블 카드형 폴백** — 모바일에서 가로 스크롤만 가능(7~8컬럼).
 - [ ] **공유 토큰 `listCardActionButtonClass`(36px) → 44px 승격 검토** — 현재 explore 카드는 로컬 오버라이드. 전 카드 일괄 적용은 RoutePostCard 등 미검토 화면 영향 → 별도 결정.
 

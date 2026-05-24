@@ -9,6 +9,32 @@
 
 ---
 
+## 2026-05-23 - 모바일 하단 탭바 + 스크린샷 기반 표시버그 수정
+
+### 목표
+
+실폰 스크린샷 벤치마킹 기반 순차 개선: 표시 버그 수정 + 하단 탭바 도입 + 이중 CTA 위계화.
+
+### 변경 파일
+
+- `src/lib/post-seed-content-templates.ts` — `formatRouteSummaryMeta` 시간대 현지화 버그(`flexible`만 처리 → morning/afternoon/evening 원본 노출 + '시간대 자유' 중복). 오전/오후/저녁/자유로 수정.
+- `src/components/route-posts/route-post-detail-client.tsx` — 타임라인 출발시각 9px→10/11px.
+- `src/components/guardians/guardian-profile-preview-sheet-trigger.tsx` — guardian_tier 원본 enum→tTier 현지화, 언어 소문자→대문자 `·` 구분.
+- `src/components/guardians/guardian-detail-view.tsx` — 메타 안내문(introDecisionLead) 제거, 점선 인용박스→좌측 강조, eyebrow 10→11px, 본문 15px.
+- `src/components/guardians/guardians-discover-client.tsx` — 이중 CTA 위계화(문의=아웃라인 2차, 요청=다크 1차).
+- `src/components/layout/mobile-bottom-tab-bar.tsx` (신규) — 포스트·하루이·메시지·마이페이지 4탭. 로그인/모바일 전용, sticky CTA·플로우 화면 숨김, safe-area + 인플로우 스페이서.
+- `src/components/layout/public-site-shell.tsx` — 탭바 마운트(public+authed 공용).
+
+### 검증 결과
+
+- `pnpm build`·`pnpm lint`(신규 파일) 통과.
+- 시각 검증은 실폰 권장(로컬 DB env 없음).
+
+### 남은 이슈
+
+- '시드 데이터 기준' 등 시드 데이터 내용 노출(실데이터 시 해소).
+- admin 테이블 모바일 카드형 폴백.
+
 ## 2026-05-23 - 불완전 기능/모바일 UI audit + 모바일 퀵윈 적용
 
 ### 목표

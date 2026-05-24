@@ -539,7 +539,7 @@ export function GuardiansDiscoverClient({
                             <GuardianInquiryOpenTrigger
                               className={cn(
                                 listCardActionButtonClass,
-                                "inline-flex h-11 w-full items-center justify-center rounded-[var(--radius-md)] border border-emerald-500/45 bg-emerald-50/90 text-sm font-semibold text-emerald-800 dark:bg-emerald-950/25 dark:text-emerald-300",
+                                "inline-flex h-11 min-h-11 w-full items-center justify-center rounded-[var(--radius-md)] border border-emerald-500/40 bg-transparent text-sm font-semibold text-emerald-700 hover:bg-emerald-50/60 dark:text-emerald-300 dark:hover:bg-emerald-950/25",
                               )}
                               detail={{
                                 guardianUserId: g.user_id,
