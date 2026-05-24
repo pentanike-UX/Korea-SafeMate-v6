@@ -191,17 +191,16 @@ export async function GuardianDetailView({
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-12 lg:gap-12">
         <div className="space-y-10 lg:col-span-7">
           <section>
-            <h2 className="text-text-strong text-lg font-semibold">{t("introTitle")}</h2>
-            <p className="text-muted-foreground mt-1 text-sm leading-relaxed">{t("introDecisionLead")}</p>
-            <div className="text-muted-foreground mt-3 space-y-4 text-sm leading-relaxed sm:text-[15px]">
+            <h2 className="text-text-strong text-xl font-semibold">{t("introTitle")}</h2>
+            <div className="text-muted-foreground mt-3 space-y-4 text-[15px] leading-relaxed">
               {longBioParagraphs.map((para, i) => (
                 <p key={i}>{para}</p>
               ))}
             </div>
-            <p className="text-muted-foreground/90 border-border/50 mt-4 rounded-xl border border-dashed bg-muted/40 px-4 py-3 text-sm italic leading-relaxed">
+            <p className="text-foreground/80 border-[var(--brand-primary)]/40 mt-4 border-l-2 pl-4 text-[15px] italic leading-relaxed">
               {line(g.signature_style)}
             </p>
-            <p className="text-muted-foreground mt-3 text-sm leading-relaxed">{line(g.response_note)}</p>
+            <p className="text-muted-foreground mt-3 text-[15px] leading-relaxed">{line(g.response_note)}</p>
           </section>
 
           <GuardianIntroGallery
@@ -250,7 +249,7 @@ export async function GuardianDetailView({
           })()}
 
           <section>
-            <p className="text-primary text-[10px] font-bold tracking-wide uppercase">{t("decisionRationaleEyebrow")}</p>
+            <p className="text-primary text-[11px] font-bold tracking-wide uppercase">{t("decisionRationaleEyebrow")}</p>
             <h2 className="text-text-strong mt-1 text-lg font-semibold">{t("trustTitle")}</h2>
             <p className="text-muted-foreground mt-1 text-sm">{t("trustLead")}</p>
             {g.trust_reason_items?.length ? (
@@ -283,7 +282,7 @@ export async function GuardianDetailView({
           </section>
 
           <section id="guardian-posts">
-            <p className="text-primary text-[10px] font-bold tracking-wide uppercase">{t("postsDecisionEyebrow")}</p>
+            <p className="text-primary text-[11px] font-bold tracking-wide uppercase">{t("postsDecisionEyebrow")}</p>
             <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
               <div className="min-w-0 flex-1">
                 <h2 className="text-text-strong text-lg font-semibold">{t("postsTitle")}</h2>
@@ -359,7 +358,7 @@ export async function GuardianDetailView({
           </section>
 
           <section className="border-border/50 border-t pt-2">
-            <p className="text-primary text-[10px] font-bold tracking-wide uppercase">{t("reviewsDecisionEyebrow")}</p>
+            <p className="text-primary text-[11px] font-bold tracking-wide uppercase">{t("reviewsDecisionEyebrow")}</p>
             <GuardianTravelerReviewsList
               reviews={reviews}
               locale={locale}
@@ -376,7 +375,7 @@ export async function GuardianDetailView({
 
         <aside className="lg:col-span-5">
           <div id="request" className="border-border/60 bg-card lg:sticky lg:top-24 space-y-4 rounded-2xl border p-6 shadow-[var(--shadow-sm)]">
-            <p className="text-primary text-[10px] font-bold tracking-[0.18em] uppercase">{t("requestCardEyebrow")}</p>
+            <p className="text-primary text-[11px] font-bold tracking-[0.18em] uppercase">{t("requestCardEyebrow")}</p>
             <h2 className="text-text-strong text-lg font-semibold">{t("requestCardTitle")}</h2>
             <p className="text-muted-foreground text-sm leading-relaxed">{t("requestLead")}</p>
             <ul className="text-muted-foreground space-y-2 text-xs leading-relaxed">

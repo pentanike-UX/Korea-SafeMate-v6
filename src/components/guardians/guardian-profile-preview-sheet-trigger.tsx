@@ -77,6 +77,7 @@ export function GuardianProfilePreviewPanel({
   const t = useTranslations("TravelerHub");
   const tReq = useTranslations("GuardianRequest");
   const tGd = useTranslations("GuardianDetail");
+  const tTier = useTranslations("GuardianTier");
   const locale = useLocale();
   const imgs = guardianProfileImageUrls(guardian);
   const isKo = locale === "ko";
@@ -129,10 +130,10 @@ export function GuardianProfilePreviewPanel({
               {regionDisplayLabelFromSlug(guardian.primary_region_slug, (k) => t(k))}
             </Badge>
           ) : null}
-          {guardian.guardian_tier ? <Badge variant="secondary">{guardian.guardian_tier}</Badge> : null}
+          {guardian.guardian_tier ? <Badge variant="secondary">{tTier(guardian.guardian_tier)}</Badge> : null}
           {languageList.length > 0 ? (
             <Badge variant="outline">
-              {t("guardianPreviewLanguages")} {languageList.join(", ")}
+              {t("guardianPreviewLanguages")} {languageList.map((c) => c.toUpperCase()).join(" · ")}
             </Badge>
           ) : null}
           {guardian.avg_traveler_rating != null ? (
