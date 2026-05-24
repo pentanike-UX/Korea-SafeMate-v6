@@ -603,7 +603,7 @@ function EditorialSpotRow({
   const spine = (
     <div className="flex w-8 shrink-0 flex-col items-center sm:w-10">
       <time
-        className="text-muted-foreground mb-1 text-[9px] font-semibold tabular-nums sm:text-[10px]"
+        className="text-muted-foreground mb-1 text-[10px] font-semibold tabular-nums sm:text-[11px]"
         aria-label={`${time} 출발`}
       >
         {time}

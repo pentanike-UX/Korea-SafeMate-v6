@@ -4,7 +4,8 @@ export function formatRouteSummaryMeta(m: RouteJourneyMetadata): string {
   const mode = m.transport_mode === "walk" ? "도보" : m.transport_mode === "car" ? "차량" : "도보·차 병행";
   const diff = m.difficulty === "easy" ? "가벼움" : m.difficulty === "moderate" ? "보통" : "활동적";
   const tod = m.recommended_time_of_day;
-  const todK = tod === "flexible" ? "시간대 자유" : tod;
+  const todK =
+    tod === "morning" ? "오전" : tod === "afternoon" ? "오후" : tod === "evening" ? "저녁" : "자유";
   return `예상 ${m.estimated_total_duration_minutes}분 전후 · 약 ${m.estimated_total_distance_km}km · ${mode} · 시간대 ${todK} · 난이도 ${diff}${m.night_friendly ? " · 밤에도 사람 있음" : ""}`;
 }
 
