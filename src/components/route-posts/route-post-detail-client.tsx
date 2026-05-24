@@ -52,7 +52,7 @@ function RouteFaqSection() {
   return (
     <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-9">
       <header className="mb-5 space-y-1">
-        <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+        <p className="text-[11px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
           FAQ
         </p>
         <h2 className="text-base font-semibold tracking-tight text-[var(--text-strong)]">{t("faqTitle")}</h2>
@@ -234,7 +234,7 @@ function FieldSection({
       )}
     >
       {label ? (
-        <p className="mb-1.5 text-[10px] font-semibold tracking-[0.16em] text-muted-foreground/70 uppercase">
+        <p className="mb-1.5 text-[11px] font-semibold tracking-[0.16em] text-muted-foreground/70 uppercase">
           {label}
         </p>
       ) : null}
@@ -262,7 +262,7 @@ function FieldHighlight({
     >
       <div className="border-l-2 border-primary/40 pl-3">
         {label ? (
-          <p className="mb-1.5 text-[10px] font-semibold tracking-[0.16em] text-primary/60 uppercase">
+          <p className="mb-1.5 text-[11px] font-semibold tracking-[0.16em] text-primary/60 uppercase">
             {label}
           </p>
         ) : null}
@@ -278,7 +278,7 @@ function FieldCaution({ children }: { children: ReactNode }) {
   return (
     <div className="border-t border-dashed border-border/25 pt-3 first:border-t-0 first:pt-0">
       <div className="rounded-r-lg border-l-2 border-amber-400/50 bg-amber-50/30 pl-3 pr-2 py-1 dark:bg-amber-950/15">
-        <p className="mb-1 text-[10px] font-semibold tracking-[0.16em] text-amber-600/80 uppercase dark:text-amber-400/80">
+        <p className="mb-1 text-[11px] font-semibold tracking-[0.16em] text-amber-600/80 uppercase dark:text-amber-400/80">
           ⚠️ {t("noticeLabel")}
         </p>
         {children}
@@ -1016,7 +1016,7 @@ export function RoutePostDetailClient({
              하단 중복 배너는 RoutePostDetailView에서 제거됨. */}
         <section className="max-w-[42rem] border-t border-border/40 pt-7 sm:pt-8">
           <header className="mb-5 space-y-2">
-            <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+            <p className="text-[11px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
               {t("themeRouteTeaserEyebrow")}
             </p>
             <h2 className="text-lg font-semibold tracking-tight text-[var(--text-strong)]">
