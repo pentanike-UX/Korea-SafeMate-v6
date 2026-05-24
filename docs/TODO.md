@@ -171,11 +171,20 @@
 - [x] **`min-h-screen`→`100dvh`** — ✅ 11개 파일 일관화(모바일 사파리 툴바 점프 방지).
 
 ### 7-B. 디자인 결정 필요 (다음 단계)
-- [ ] **폰트 floor 적용** — `text-[10px]/[11px]` 128개 파일 중 본문성 텍스트를 `text-sm`(14px)로. 뱃지/메타만 `text-xs`(12px) 허용. **화면별 판단 필요**(기계적 일괄 금지).
-- [ ] **위계 강화 + 그레이박스 정리** — mypage·admin 카드의 과도한 `border`/`bg-muted` 박스 줄이고 여백 그룹핑, 제목 키우기.
+- [~] **폰트 floor 적용** — 🔄 explore 카드부터 시작(2026-05-23). 본문 10~11px → 12~14px, 이름 15px→base/lg, 헤드라인 line-clamp-2. **나머지 화면은 이 카드를 템플릿으로 순차 적용 예정.**
+- [ ] **위계 강화 + 그레이박스 정리** — explore 카드 점선 divider 제거 완료. mypage·admin 카드 등 나머지 적용 필요.
 - [ ] **프로필/아바타 확대** — 20px급 → 24~40px+, 좁으면 세로 배치.
 - [ ] **모바일 하단 탭바 도입 여부** — 현재 햄버거뿐. 여행 앱 기대치 갭.
 - [ ] **admin 테이블 카드형 폴백** — 모바일에서 가로 스크롤만 가능(7~8컬럼).
+- [ ] **공유 토큰 `listCardActionButtonClass`(36px) → 44px 승격 검토** — 현재 explore 카드는 로컬 오버라이드. 전 카드 일괄 적용은 RoutePostCard 등 미검토 화면 영향 → 별도 결정.
+
+### explore 카드 리디자인 상세 (템플릿 v1, 2026-05-23)
+- 본문 floor: 헤드라인·지역·언어 `text-[11px]`→`text-xs`~`text-[13px]/sm`, 대표글·온라인뱃지 10px→11px.
+- 위계: 이름 `text-[15px]`→`text-base/lg font-bold`, 평점 `text-[11px]`→`text-[13px] font-bold` + 별 키움.
+- 라인 제거: 신뢰뱃지/평점 줄의 점선 `border-t border-dashed` 제거 → 여백 그룹핑.
+- 터치: 1차 CTA 36px→44px(h-11), 보조(비교/저장) 40px(h-10), 필터칩 36px→40px.
+- ⚠️ 시각 검증 미실시(로컬 DB env 없음) — 실폰 확인 + 스크린샷 기반 벤치마킹 iteration 권장.
+- 기존 린트: `Date.now()` in render(line 475) — 본 작업 무관 사전 존재, 빌드 비차단.
 
 ### 7-C. 기능 불완전 (UI와 별개 트랙, 우선순위 높음)
 - [ ] **결제(PG) 미연동** — checkout/booking/playbook 전부 시뮬레이션. `payment_status=paid` 경로 없음.
