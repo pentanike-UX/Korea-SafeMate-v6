@@ -685,7 +685,7 @@ export function GuardianRoutePostEditor({
   return (
     <GoogleMapsProvider>
     <div className="mx-auto grid min-h-[calc(100vh-8rem)] w-full max-w-[min(100%,96rem)] gap-8 lg:grid-cols-2 lg:gap-10">
-      <div className="space-y-10 pb-16">
+      <div className="min-w-0 space-y-10 pb-16">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
             <Link href={GUARDIAN_WORKSPACE.posts}>{COPY.back}</Link>
@@ -1452,7 +1452,7 @@ export function GuardianRoutePostEditor({
         </div>
       </div>
 
-      <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-24" aria-label="작성 보조 패널">
+      <aside className="flex min-w-0 flex-col gap-4 self-start lg:sticky lg:top-24" aria-label="작성 보조 패널">
         {/* ── 탭 헤더 ─────────────────────────────────────────────── */}
         <div role="tablist" aria-label="우측 패널 선택" className="inline-flex w-fit items-center gap-1 rounded-xl border border-border/60 bg-muted/30 p-1">
           <button

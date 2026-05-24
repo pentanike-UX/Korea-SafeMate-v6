@@ -17,6 +17,7 @@ const HIDE_PREFIXES = [
   "/book",
   "/checkout",
   "/guardian", // 가디언 워크스페이스 (/guardians 목록과 구분됨)
+  "/mypage/guardian", // mypage 내 가디언 워크스페이스(포스트 에디터 등) — 집중 플로우
   "/admin",
   "/explore/journey",
 ];
