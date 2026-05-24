@@ -133,9 +133,7 @@
 
 ---
 
-## 5. 알려진 기술 부채 / 개선 후보
-
-- [ ] `OSRM_BASE_URL` 자체 인스턴스 도입 (현재 공개 데모 서버 — 운영 불안정). `docker run osrm/osrm-backend` 가이드는 `env.example`에 기록됨.
+## 5. 알려진 기술 부채 / 개선 후보- [ ] `OSRM_BASE_URL` 자체 인스턴스 도입 (현재 공개 데모 서버 — 운영 불안정). `docker run osrm/osrm-backend` 가이드는 `env.example`에 기록됨.
 - [ ] mock directions JSON 자동 생성 — CI 단계에 통합 (현재 수동 스크립트)
 - [ ] `spot_catalog.lat/lng` admin 변경 시 directions 무효화 — 현재 `route_spots` 트리거 범위 밖. `/api/admin/routes/[id]/refresh-directions`로 수동 갱신만 가능
 - [ ] 미리보기 카드(`RouteDayPreview`)와 사용자 페이지 spot 카드 디자인 통일성 한 단계 더
@@ -157,3 +155,30 @@
 2. **검증 라운드(섹션 4)** — 이번 세션 배포분 실측 후 fix
 3. **🟡 완성도 점검(섹션 3)** — orders/requests·revision 흐름 정리
 4. **기술 부채(섹션 5)** — OSRM 자체 인스턴스, next/image 등
+
+---
+
+## 7. UI 품질 / 모바일 사용성 (2026-05-23 audit + 디자인 레퍼런스 영상 반영)
+
+> 목표: UI 퀄리티 향상 + 모바일에서 서비스 가능한 사용성. 영상(마디아 UI/UX 피드백) 원칙:
+> 본문 **최소 14px**(≤12px 지양) · 타이틀/본문/서브 **위계 차등** · 그레이박스·과도한 라인 **제거** ·
+> **터치 영역 확보** · 핵심요소(프로필 등) **과감히 키우기** · 실서비스 1:1 벤치마킹 · 여백 타이트하게 그룹핑.
+
+### 7-A. 모바일 퀵윈 (저위험·고임팩트)
+- [x] **viewport export 추가** — ✅ 2026-05-23. `src/app/layout.tsx`에 `width=device-width, initialScale=1, viewportFit=cover`. 모바일 축소 렌더 해소 + safe-area env() 활성화.
+- [x] **하단 고정바 safe-area** — ✅ `route-view-client` 저장바에 `pb-[max(0.75rem,env(safe-area-inset-bottom))]`.
+- [x] **터치 타깃 44px** — ✅ 헤더 햄버거·인박스 버튼 `size-9`(36px)→`size-11`(44px).
+- [x] **`min-h-screen`→`100dvh`** — ✅ 11개 파일 일관화(모바일 사파리 툴바 점프 방지).
+
+### 7-B. 디자인 결정 필요 (다음 단계)
+- [ ] **폰트 floor 적용** — `text-[10px]/[11px]` 128개 파일 중 본문성 텍스트를 `text-sm`(14px)로. 뱃지/메타만 `text-xs`(12px) 허용. **화면별 판단 필요**(기계적 일괄 금지).
+- [ ] **위계 강화 + 그레이박스 정리** — mypage·admin 카드의 과도한 `border`/`bg-muted` 박스 줄이고 여백 그룹핑, 제목 키우기.
+- [ ] **프로필/아바타 확대** — 20px급 → 24~40px+, 좁으면 세로 배치.
+- [ ] **모바일 하단 탭바 도입 여부** — 현재 햄버거뿐. 여행 앱 기대치 갭.
+- [ ] **admin 테이블 카드형 폴백** — 모바일에서 가로 스크롤만 가능(7~8컬럼).
+
+### 7-C. 기능 불완전 (UI와 별개 트랙, 우선순위 높음)
+- [ ] **결제(PG) 미연동** — checkout/booking/playbook 전부 시뮬레이션. `payment_status=paid` 경로 없음.
+- [ ] **가디언 대시보드 100% mock** — `guardian/dashboard`가 `mockGuardians`(mg14). ⚠️ **승인 CTA(`guardian-application-status.tsx:95`)가 이 mock 화면으로 보냄** → 승인된 실가디언이 가짜 프로필 봄. 정합성 수정 필요.
+- [ ] **프리미엄 루트 구매 불가** — `hasPlaybookPremium=isSuperAdmin||isOwner`, 여행자 구매 경로 없음.
+- [ ] **2차 stub** — 가디언 대시보드 모듈 버튼 disabled, services 가격 mock, booking-success 서버폴백, explore 카드 북마크/공유 disabled, `/api/bookings` 하드닝.

@@ -193,7 +193,7 @@ export function FaqContent({ locale }: { locale: string }) {
   const sections = isKo ? FAQ_KO : FAQ_EN;
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="min-h-[100dvh] bg-bg">
       <section className="border-b border-line bg-bg-card">
         <div className="page-container py-16 md:py-20">
           <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-soft">

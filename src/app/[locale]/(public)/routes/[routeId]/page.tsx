@@ -141,7 +141,7 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-bg">
+    <main className="min-h-[100dvh] bg-bg">
       <div className="border-b border-line-soft bg-bg-card px-4 py-4 sm:px-6">
         <p className="text-xs font-medium text-ink-soft uppercase tracking-widest mb-1">
           {fromDb && routeType === "custom" ? t("routeViewKickerMyRoute") : t("routeViewKickerRoute")}

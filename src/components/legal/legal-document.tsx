@@ -24,7 +24,7 @@ export function LegalDocument({
   isKo: boolean;
 }) {
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="min-h-[100dvh] bg-bg">
       <section className="border-b border-line bg-bg-card">
         <div className="page-container py-12 md:py-16">
           <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-soft">

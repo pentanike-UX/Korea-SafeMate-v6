@@ -247,7 +247,7 @@ export function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="min-h-[100dvh] bg-bg">
 
       {/* ─────────────────────────────────────────────────────────────
           1. HERO

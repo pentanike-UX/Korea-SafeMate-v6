@@ -176,7 +176,7 @@ export function RouteViewClient({
       {/* 하단 sticky 액션 바 — UUID 루트만 저장 버튼 노출 */}
       {canSave ? (
         <div className="fixed bottom-0 inset-x-0 z-30 border-t border-border/60 bg-background/95 backdrop-blur-lg">
-          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6">
             <p className="text-xs text-muted-foreground">
               {route.spots.length} {t("routeStatsStops").toLowerCase()}
               {" · "}

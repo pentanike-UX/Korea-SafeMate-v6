@@ -116,7 +116,7 @@ export default async function PricingPage() {
   await getTranslations("Pricing"); // keep translation namespace alive
 
   return (
-    <div className="min-h-screen bg-[var(--bg-page)]">
+    <div className="min-h-[100dvh] bg-[var(--bg-page)]">
 
       {/* ── 헤더 ── */}
       <section className="border-b border-border/50 bg-[var(--text-strong)]">

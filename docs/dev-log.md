@@ -9,6 +9,34 @@
 
 ---
 
+## 2026-05-23 - 불완전 기능/모바일 UI audit + 모바일 퀵윈 적용
+
+### 목표
+
+UI 퀄리티 향상 + 모바일 사용성이라는 목표 하에 (1) 불완전 기능 (2) 모바일/UI 품질 전수 분석 후, 저위험 퀵윈 즉시 적용. 디자인 레퍼런스 영상(마디아 UI/UX 피드백) 원칙 반영.
+
+### 분석 (병렬 에이전트 2종 + 검증)
+
+- **불완전 기능(High)**: 결제 PG 전부 시뮬레이션(돈 흐름 0), `guardian/dashboard` 100% mock(mg14) — 게다가 이번 세션에 만든 승인 CTA가 이 mock 화면으로 보냄(정합성 문제), 프리미엄 루트 구매 경로 없음.
+- **모바일(High)**: viewport export 전무(데스크톱 980px 축소 렌더), route-view 하단바 safe-area 미적용.
+- 영상 원칙(본문 14px↑, 위계, 그레이박스 제거, 터치영역, 과감한 사이즈, 벤치마킹)이 audit과 1:1 일치.
+
+### 변경 (모바일 퀵윈)
+
+- `src/app/layout.tsx` — `export const viewport`(device-width, initialScale 1, viewportFit cover).
+- `src/components/routes/route-view-client.tsx` — 저장바 `pb-[max(0.75rem,env(safe-area-inset-bottom))]`.
+- `src/components/layout/site-header.tsx`, `header-inbox-button.tsx` — 아이콘 버튼 36px→44px.
+- `min-h-screen`/`h-screen` → `100dvh` 11개 파일 일관화.
+
+### 검증 결과
+
+- `pnpm build` 통과.
+
+### 남은 이슈 (TODO §7 신설)
+
+- 7-B 디자인 결정: 폰트 floor·위계 강화·프로필 확대·하단 탭바·admin 테이블 카드형.
+- 7-C 기능: 결제 PG, 가디언 대시보드 실데이터(+승인 CTA 정합), 프리미엄 구매.
+
 ## 2026-05-23 - G01 Phase 2: sample_route(샘플 하루 코스) 첨부
 
 ### 목표

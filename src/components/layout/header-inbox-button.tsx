@@ -89,7 +89,7 @@ export function HeaderInboxButton({ onDarkSurface }: { onDarkSurface: boolean })
       aria-label={aria}
       title={aria}
       className={cn(
-        "relative inline-flex h-9 min-h-9 w-9 items-center justify-center rounded-[var(--radius-md)] border outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50",
+        "relative inline-flex size-11 min-h-11 w-11 items-center justify-center rounded-[var(--radius-md)] border outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50",
         onDarkSurface
           ? "border-white/25 bg-white/10 text-white hover:bg-white/16"
           : "border-border/80 bg-background hover:bg-muted/80",

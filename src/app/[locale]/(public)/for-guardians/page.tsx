@@ -29,7 +29,7 @@ const PAYOUT_RATE = 0.8;
 
 function ForGuardiansContent() {
   return (
-    <div className="min-h-screen bg-[var(--bg-page)]">
+    <div className="min-h-[100dvh] bg-[var(--bg-page)]">
 
       {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           HERO

@@ -487,7 +487,7 @@ export function PostsListClient({
   );
 
   return (
-    <div className="bg-[var(--bg-page)] min-h-screen">
+    <div className="bg-[var(--bg-page)] min-h-[100dvh]">
       {/* ── 헤더 — explore/routes 문구로 통일 ─────────────────────────────── */}
       <SubpageHero
         title={t("heroTitle")}

@@ -114,7 +114,7 @@ export function AdminSidebar({ showSuperAdmin = false }: { showSuperAdmin?: bool
   const groups = buildGroups(showSuperAdmin);
 
   return (
-    <aside className="bg-background flex w-full flex-col border-b md:sticky md:top-0 md:h-screen md:w-60 md:shrink-0 md:border-r md:border-b-0">
+    <aside className="bg-background flex w-full flex-col border-b md:sticky md:top-0 md:h-[100dvh] md:w-60 md:shrink-0 md:border-r md:border-b-0">
       <div className="flex h-14 items-center gap-3 border-b px-4 md:h-[4.25rem]">
         <span className="bg-foreground text-background flex size-9 items-center justify-center rounded-md text-[11px] font-bold tracking-tight">
           Ops

@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <HtmlLangSync />
       <div className="bg-muted/30 flex min-h-full flex-col md:flex-row">
         <AdminSidebar showSuperAdmin={showSuperAdmin} />
-        <div className="border-border/40 min-h-[calc(100vh-3.5rem)] flex-1 md:min-h-screen md:border-l">
+        <div className="border-border/40 min-h-[calc(100dvh-3.5rem)] flex-1 md:min-h-[100dvh] md:border-l">
           <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10">{children}</div>
         </div>
       </div>

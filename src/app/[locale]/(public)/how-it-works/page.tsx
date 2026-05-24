@@ -43,7 +43,7 @@ function HowItWorksContent() {
   ];
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="min-h-[100dvh] bg-bg">
       {/* ── 페이지 헤더 ── */}
       <section className="border-b border-line bg-bg-card">
         <div className="page-container py-16 md:py-20">

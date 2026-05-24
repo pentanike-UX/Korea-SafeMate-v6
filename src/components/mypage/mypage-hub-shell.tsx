@@ -189,7 +189,7 @@ export function MypageHubShell({
         pointsSheetInitial,
       }}
     >
-      <div className="bg-[var(--bg-page)] flex min-h-screen w-full max-w-[100vw] flex-col md:flex-row">
+      <div className="bg-[var(--bg-page)] flex min-h-[100dvh] w-full max-w-[100vw] flex-col md:flex-row">
         <aside
           className={cn(
             "border-border/60 bg-muted/15 flex w-full shrink-0 flex-col border-b md:w-72 md:border-r md:border-b-0 md:bg-muted/20",

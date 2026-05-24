@@ -183,7 +183,7 @@ export function SiteHeader() {
           <Sheet>
             <SheetTrigger
               className={cn(
-                "inline-flex size-9 min-h-9 min-w-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] border outline-none transition-colors duration-200 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:hidden",
+                "inline-flex size-11 min-h-11 min-w-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] border outline-none transition-colors duration-200 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:hidden",
                 onDarkSurface
                   ? "border-white/28 bg-white/12 text-white hover:bg-white/18"
                   : "border-input bg-background text-[var(--text-strong)] hover:bg-muted",
