@@ -691,7 +691,7 @@ export function GuardianRoutePostEditor({
             <Link href={GUARDIAN_WORKSPACE.posts}>{COPY.back}</Link>
           </Button>
           <p className="text-muted-foreground text-xs">
-            {mode === "create" ? "새 루트 포스트" : `편집 · ${post.id}`}
+            {mode === "create" ? "새 루트 포스트" : "편집 모드"}
             {persistedPostId ? <span className="text-primary ml-2 font-mono">· DB {persistedPostId.slice(0, 8)}…</span> : null}
           </p>
         </div>
@@ -865,9 +865,9 @@ export function GuardianRoutePostEditor({
                   updateMeta({ transport_mode: e.target.value as RouteJourney["metadata"]["transport_mode"] })
                 }
               >
-                <option value="walk">walk</option>
-                <option value="car">car</option>
-                <option value="mixed">mixed</option>
+                <option value="walk">도보</option>
+                <option value="car">차량</option>
+                <option value="mixed">도보·차 병행</option>
               </select>
             </div>
             <div className="space-y-2">
@@ -881,11 +881,11 @@ export function GuardianRoutePostEditor({
                   })
                 }
               >
-                <option value="morning">morning</option>
-                <option value="afternoon">afternoon</option>
-                <option value="evening">evening</option>
-                <option value="night">night</option>
-                <option value="flexible">flexible</option>
+                <option value="morning">오전</option>
+                <option value="afternoon">오후</option>
+                <option value="evening">저녁</option>
+                <option value="night">밤</option>
+                <option value="flexible">자유</option>
               </select>
             </div>
             <div className="space-y-2">
@@ -918,9 +918,9 @@ export function GuardianRoutePostEditor({
                 value={journey.metadata.difficulty}
                 onChange={(e) => updateMeta({ difficulty: e.target.value as RouteJourney["metadata"]["difficulty"] })}
               >
-                <option value="easy">easy</option>
-                <option value="moderate">moderate</option>
-                <option value="active">active</option>
+                <option value="easy">가벼움</option>
+                <option value="moderate">보통</option>
+                <option value="active">활동적</option>
               </select>
             </div>
             <div className="space-y-2 sm:col-span-2">
@@ -1023,7 +1023,7 @@ export function GuardianRoutePostEditor({
                         selectedSpotId === s.id && "ring-primary ring-2",
                       )}
                     >
-                      <button type="button" className="min-w-0 flex-1 text-left font-medium" onClick={() => setSelectedSpotId(s.id)}>
+                      <button type="button" className="w-full min-w-0 text-left text-sm font-semibold sm:w-auto sm:flex-1" onClick={() => setSelectedSpotId(s.id)}>
                         <span className="text-primary mr-2 font-mono text-xs">{index + 1}</span>
                         {s.title || s.place_name || "무제 스팟"}
                       </button>
