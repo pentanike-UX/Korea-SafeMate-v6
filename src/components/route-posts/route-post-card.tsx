@@ -68,8 +68,8 @@ export function RoutePostCard({ post, regionLabel, className }: { post: ContentP
           </div>
         </div>
         <div className="px-4 pb-1 pt-4 sm:px-5 sm:pb-2 sm:pt-5">
-          <p className="text-primary text-[10px] font-bold tracking-widest uppercase">{normalizeDisplayTags(post.tags).slice(0, 3).join(" · ")}</p>
-          <h2 className="text-foreground mt-1.5 line-clamp-2 text-[15px] font-semibold leading-snug sm:mt-2 sm:text-base">
+          <p className="text-primary text-[11px] font-bold tracking-widest uppercase">{normalizeDisplayTags(post.tags).slice(0, 3).join(" · ")}</p>
+          <h2 className="text-foreground mt-1.5 line-clamp-2 text-base font-bold leading-snug sm:mt-2 sm:text-lg">
             {post.title}
           </h2>
         </div>
@@ -130,12 +130,12 @@ export function RoutePostCard({ post, regionLabel, className }: { post: ContentP
           </div>
         </div>
         <div className="px-4 pb-1 pt-4 sm:px-5 sm:pb-2 sm:pt-5">
-          <p className="text-primary text-[10px] font-bold tracking-widest uppercase">{normalizeDisplayTags(post.tags).slice(0, 3).join(" · ")}</p>
-          <h2 className="text-foreground mt-1.5 line-clamp-2 text-[15px] font-semibold leading-snug group-hover:text-primary sm:mt-2 sm:text-base">
+          <p className="text-primary text-[11px] font-bold tracking-widest uppercase">{normalizeDisplayTags(post.tags).slice(0, 3).join(" · ")}</p>
+          <h2 className="text-foreground mt-1.5 line-clamp-2 text-base font-bold leading-snug group-hover:text-primary sm:mt-2 sm:text-lg">
             {post.title}
           </h2>
           <p className="text-muted-foreground mt-1.5 line-clamp-1 text-sm leading-snug sm:mt-2">{post.summary}</p>
-          <p className="text-muted-foreground mt-2 text-[11px] leading-snug">
+          <p className="text-muted-foreground mt-2 text-xs leading-snug">
             <span className="font-medium text-foreground/85">{areaLabel}</span>
             {spotPreviewLine ? (
               <>

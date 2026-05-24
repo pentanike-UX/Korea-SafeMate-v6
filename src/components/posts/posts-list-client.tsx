@@ -106,8 +106,8 @@ function ArticlePostCard({ post, regionLabel }: { post: ContentPost; regionLabel
           </div>
         </div>
         <div className="px-4 pb-1 pt-4 sm:px-5 sm:pb-2 sm:pt-5">
-          <p className="text-primary text-[10px] font-bold tracking-widest uppercase">{displayTags}</p>
-          <h2 className="text-foreground mt-1.5 line-clamp-2 text-[15px] font-semibold leading-snug sm:mt-2 sm:text-base">
+          <p className="text-primary text-[11px] font-bold tracking-widest uppercase">{displayTags}</p>
+          <h2 className="text-foreground mt-1.5 line-clamp-2 text-base font-bold leading-snug sm:mt-2 sm:text-lg">
             {post.title}
           </h2>
         </div>
@@ -151,14 +151,14 @@ function ArticlePostCard({ post, regionLabel }: { post: ContentPost; regionLabel
           </div>
         </div>
         <div className="px-4 pb-1 pt-4 sm:px-5 sm:pb-2 sm:pt-5">
-          <p className="text-primary text-[10px] font-bold tracking-widest uppercase">{displayTags}</p>
-          <h2 className="text-foreground mt-1.5 line-clamp-2 text-[15px] font-semibold leading-snug group-hover:text-primary sm:mt-2 sm:text-base">
+          <p className="text-primary text-[11px] font-bold tracking-widest uppercase">{displayTags}</p>
+          <h2 className="text-foreground mt-1.5 line-clamp-2 text-base font-bold leading-snug group-hover:text-primary sm:mt-2 sm:text-lg">
             {post.title}
           </h2>
           <p className="text-muted-foreground mt-1.5 line-clamp-2 text-sm leading-relaxed sm:mt-2">
             {post.summary}
           </p>
-          <p className="text-muted-foreground mt-2 text-[11px] leading-snug">
+          <p className="text-muted-foreground mt-2 text-xs leading-snug">
             <span className="font-medium text-foreground/85 capitalize">{regionLabel}</span>
             {post.category_slug ? (
               <>
