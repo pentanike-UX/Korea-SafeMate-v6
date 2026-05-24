@@ -660,21 +660,21 @@ function journeyKMusicPalace(postId: string): RouteJourney {
       next_move_mode: "walk",
       spot_types: ["scene", "photo"],
     }),
-    // ── 6. 정동길 K-MUSIC 굿즈·서점 — 결제 가능 스팟 (mock) ────────────────────
+    // ── 6. 정동길 K-MUSIC 굿즈·서점 — 결제 가능 스팟 (예시) ────────────────────
     // 비즈니스 메모: 실제 PG/재고 연동 없이 commerce 데이터 구조와 UI 노출만 시연.
     // 가상 브랜드명("Soundtrack Books × 정동")으로 실 매장 혼동 방지.
     spot(postId, 6, {
       lat: 37.5670, lng: 126.9737,
       title: "마무리 — K-뮤직 앨범과 음악 서적이 함께 있는 공식 굿즈 코너",
-      place_name: "Soundtrack Books × 정동 (mock)",
+      place_name: "Soundtrack Books × 정동 (예시)",
       spot_name: "Soundtrack Books × 정동",
       display_name: "Soundtrack Books × 정동",
-      real_place_name: "Soundtrack Books × 정동 (mock store)",
+      real_place_name: "Soundtrack Books × 정동 (예시 매장)",
       category: "굿즈·서점",
       district: "중구",
-      address: "서울특별시 중구 정동길 일대 (mock)",
-      road_address: "정동길 (mock)",
-      address_line: "서울 중구 정동길 일대 (mock store)",
+      address: "서울특별시 중구 정동길 일대 (예시)",
+      road_address: "정동길 (예시)",
+      address_line: "서울 중구 정동길 일대 (예시 매장)",
       image_query: "K-POP 앨범 굿즈 서점 인테리어",
       images: { hero: IMG_GWANGHWAMUN_SQUARE },
       source_status: "mock",
@@ -685,10 +685,10 @@ function journeyKMusicPalace(postId: string): RouteJourney {
       recommend_reason: "걷고 본 장면을 ‘앨범 한 장 / 책 한 권’으로 정리하기 좋은 위치.",
       stay_duration_minutes: 25,
       photo_tip: "매장 내부 촬영은 직원 확인 후. 굿즈는 구매 후 외부에서 컷을 남기는 편이 매너입니다.",
-      caution: "이 매장은 시연용 mock 데이터입니다. 실제 운영 매장이 아닙니다.",
+      caution: "한정 굿즈·포토카드는 조기 소진될 수 있어요. 방문 전 공식 채널에서 재고를 확인하면 헛걸음을 줄일 수 있습니다. (시연용 예시 매장)",
       theme_reason: "코스의 종합 — 들은 곡과 본 장면을 손에 남기는 결제 가능 스팟.",
       what_to_do: "관심 아티스트 앨범·포토카드 확인 → 음악 서적 코너 한 바퀴 → 구매 후 정동길에서 마무리.",
-      image_alt: "K-POP 앨범과 음악 서적이 함께 진열된 굿즈샵 인테리어 (mock)",
+      image_alt: "K-POP 앨범과 음악 서적이 함께 진열된 굿즈샵 인테리어 (예시)",
       spot_types: ["buy", "end"],
       commerce: {
         is_commerce_spot: true,
@@ -704,8 +704,8 @@ function journeyKMusicPalace(postId: string): RouteJourney {
         ],
         reservation_required: false,
         partner_enabled: true,
-        partner_name: "Soundtrack Books (mock partner)",
-        disclaimer: "이 매장은 시연용 mock 데이터입니다. 실제 결제·재고 연동은 추후 단계에서 진행됩니다. 상품 구성과 재고는 방문 시점에 따라 달라질 수 있어 방문 전 확인을 권장합니다.",
+        partner_name: "Soundtrack Books (예시 파트너)",
+        disclaimer: "시연용 예시 매장입니다. 실제 결제·재고 연동은 추후 단계에서 제공됩니다. 상품 구성과 재고는 방문 시점에 따라 달라질 수 있어 방문 전 확인을 권장합니다.",
       },
     }),
   ];
