@@ -293,7 +293,7 @@ export function RouteDayPreview({
                         ★
                       </span>
                     ) : null}
-                    {s.place_name && s.title && s.place_name !== s.title ? (
+                    {s.place_name && s.title && !s.title.includes(s.place_name) ? (
                       <span className="text-muted-foreground truncate text-[11px]">{s.place_name}</span>
                     ) : null}
                   </div>
@@ -336,16 +336,19 @@ function SpotLeadVisual({
 }) {
   if (imageUrl?.trim()) {
     return (
-      <div className="relative size-9 shrink-0 overflow-hidden rounded-md border border-border/60 bg-muted">
-        {/* 미리보기 단계의 36px 썸네일 — next/image의 remotePatterns 설정 부담을 피해 plain img 사용 */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imageUrl}
-          alt={title}
-          loading="lazy"
-          decoding="async"
-          className="h-full w-full object-cover"
-        />
+      <div className="relative size-9 shrink-0">
+        {/* 이미지는 내부 div에서 클립(둥근 모서리), 번호 뱃지는 바깥 형제라 잘리지 않음 */}
+        <div className="size-full overflow-hidden rounded-md border border-border/60 bg-muted">
+          {/* 미리보기 단계의 36px 썸네일 — next/image의 remotePatterns 설정 부담을 피해 plain img 사용 */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imageUrl}
+            alt={title}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
+        </div>
         <span
           className={cn(
             "absolute -bottom-1 -right-1 inline-flex size-4 items-center justify-center rounded-full text-[9px] font-bold tabular-nums shadow-sm ring-1 ring-card",

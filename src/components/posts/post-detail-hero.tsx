@@ -12,11 +12,6 @@ import { cn } from "@/lib/utils";
 import type { PostTypeLabelKey } from "@/lib/post-detail-type-label";
 import { ArrowRight, Calendar, Heart, MapPin } from "lucide-react";
 
-function heroGradient(post: Pick<ContentPost, "title" | "kind">) {
-  const hue = post.title.length * 17 + post.kind.length * 40;
-  return `linear-gradient(145deg, hsl(${hue % 360} 45% 92%) 0%, hsl(${(hue + 50) % 360} 40% 85%) 50%, #fff 100%)`;
-}
-
 type HeroPost = Pick<
   ContentPost,
   | "title"
@@ -55,17 +50,14 @@ export function PostDetailHero({
     day: "numeric",
   });
 
-  const imageTreatment = cn(postHeroCoverClass(post), "opacity-[0.48] mix-blend-multiply");
+  const imageTreatment = cn(postHeroCoverClass(post), "opacity-90 dark:opacity-55");
 
-  const washGradient = "absolute inset-0 bg-gradient-to-t from-white via-white/65 to-white/25";
+  const washGradient = "absolute inset-0 bg-gradient-to-t from-background via-background/75 to-background/20";
 
   return (
     <header className="relative mx-auto max-w-6xl px-4 sm:px-6">
       {/* 콘텐츠가 정상 흐름(mt-auto)으로 들어가 긴 제목도 잘리지 않음. 이미지는 배경 레이어. */}
-      <div
-        className="border-border/60 relative flex min-h-[min(56vw,260px)] flex-col overflow-hidden rounded-[1.75rem] border shadow-[var(--shadow-md)] sm:min-h-[300px] lg:min-h-[340px]"
-        style={{ background: heroGradient(post) }}
-      >
+      <div className="border-border/60 bg-muted relative flex min-h-[min(56vw,260px)] flex-col overflow-hidden rounded-[1.75rem] border shadow-[var(--shadow-md)] sm:min-h-[300px] lg:min-h-[340px]">
         <div className="absolute inset-0">
           <Image src={coverUrl} alt={coverAlt} fill className={imageTreatment} sizes="100vw" priority />
           <div className={washGradient} />
