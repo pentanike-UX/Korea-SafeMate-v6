@@ -187,8 +187,15 @@
 - ⚠️ 시각 검증 미실시(로컬 DB env 없음) — 실폰 확인 + 스크린샷 기반 벤치마킹 iteration 권장.
 - 기존 린트: `Date.now()` in render(line 475) — 본 작업 무관 사전 존재, 빌드 비차단.
 
-### 7-C. 기능 불완전 (UI와 별개 트랙, 우선순위 높음)
-- [ ] **결제(PG) 미연동** — checkout/booking/playbook 전부 시뮬레이션. `payment_status=paid` 경로 없음.
-- [ ] **가디언 대시보드 100% mock** — `guardian/dashboard`가 `mockGuardians`(mg14). ⚠️ **승인 CTA(`guardian-application-status.tsx:95`)가 이 mock 화면으로 보냄** → 승인된 실가디언이 가짜 프로필 봄. 정합성 수정 필요.
-- [ ] **프리미엄 루트 구매 불가** — `hasPlaybookPremium=isSuperAdmin||isOwner`, 여행자 구매 경로 없음.
-- [ ] **2차 stub** — 가디언 대시보드 모듈 버튼 disabled, services 가격 mock, booking-success 서버폴백, explore 카드 북마크/공유 disabled, `/api/bookings` 하드닝.
+### 7-C. 기능 불완전 (UI와 별개 트랙)
+
+> 2026-05-23~24 진행 현황. 외부 연동/키/제품 결정이 필요한 항목은 ⏸, 코드로 가능한 건 처리.
+
+- [ ] ⏸ **결제(PG) 미연동** — checkout/booking/playbook 전부 시뮬레이션. `payment_status=paid` 경로 없음. **Toss/Kakao PG 연동 + 키 필요 → 제품/계정 결정 대기.**
+- [x] **승인 CTA 정합성** — ✅ 2026-05-24. 승인된 가디언 CTA를 mock `/guardian/dashboard` → 실제 워크스페이스 `/mypage/guardian/posts`(DB 기반)로 변경. "승인됐는데 가짜 프로필" 문제 해소.
+- [ ] ⏸ **가디언 대시보드(`/guardian/dashboard`) 100% mock** — `mockGuardians`(mg14). 승인 CTA는 이미 실 워크스페이스로 우회. 이 레거시 mock 대시보드 자체는 데모용일 수 있어 **리다이렉트/철거 여부 결정 필요**(실 `/mypage/guardian/*`가 DB 기반 대체재).
+- [ ] ⏸ **프리미엄 루트 구매 불가** — `hasPlaybookPremium=isSuperAdmin||isOwner`. 구매/구독 플로는 결제 PG 연동에 종속 → PG 후.
+- [x] **explore 카드 북마크/공유** — ✅ 2026-05-24. dead(disabled) 버튼 배선: 북마크는 `/api/traveler/saved-posts` 토글(피드 N-fetch 방지 위해 마운트 GET 생략, 탭 시 POST만), 공유는 `navigator.share`+클립보드 폴백.
+- [ ] **2차 stub 잔여** — 가디언 대시보드 모듈 버튼 disabled(레거시 mock 대시보드 소속), `/services` 가격 mock, booking-success 서버폴백, `/api/bookings` 하드닝(Zod·auth 파생 traveler_user_id).
+- [ ] ⏸ **운영 데이터 시딩** — routes 0건(service-role 키 필요).
+- [ ] ⏸ **사전 perf 부채** — `auth_rls_initplan` 77건 등(실데이터 후 일괄).

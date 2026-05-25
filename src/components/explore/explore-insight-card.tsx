@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { ExploreInsight } from "@/lib/explore-utils";
@@ -21,6 +22,38 @@ export function ExploreInsightCard({ insight, showRegion = true }: Props) {
   const tTier = useTranslations("GuardianTier");
   const { post, regionName, categoryName, authorTier, authorAvgRating, authorPosts30d, hasGuardianProfile } =
     insight;
+
+  // 피드 카드라 마운트 시 저장상태 GET을 생략(카드 수만큼 요청 방지). 탭하면 토글 POST만.
+  const [saved, setSaved] = useState(false);
+  const [saveBusy, setSaveBusy] = useState(false);
+
+  async function toggleSave() {
+    setSaveBusy(true);
+    try {
+      const res = await fetch("/api/traveler/saved-posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ post_id: post.id, action: "toggle" }),
+      });
+      const data = (await res.json()) as { saved?: boolean };
+      if (res.ok) setSaved(Boolean(data.saved));
+    } catch {
+      /* ignore */
+    } finally {
+      setSaveBusy(false);
+    }
+  }
+
+  function sharePost() {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}/posts/${post.id}`;
+    if (navigator.share) {
+      void navigator.share({ title: post.title, url }).catch(() => {});
+    } else if (navigator.clipboard) {
+      void navigator.clipboard.writeText(url).catch(() => {});
+    }
+  }
 
   return (
     <Card className="border-primary/10 flex h-full flex-col overflow-hidden shadow-sm transition-shadow hover:shadow-md">
@@ -119,10 +152,12 @@ export function ExploreInsightCard({ insight, showRegion = true }: Props) {
             variant="ghost"
             size="icon-sm"
             className="rounded-lg"
-            disabled
-            title={t("bookmarkTodo")}
+            disabled={saveBusy}
+            aria-pressed={saved}
+            onClick={() => void toggleSave()}
+            title={t("bookmark")}
           >
-            <Bookmark className="size-4" />
+            <Bookmark className={saved ? "size-4 fill-current" : "size-4"} />
             <span className="sr-only">{t("bookmark")}</span>
           </Button>
           <Button
@@ -130,8 +165,8 @@ export function ExploreInsightCard({ insight, showRegion = true }: Props) {
             variant="ghost"
             size="icon-sm"
             className="rounded-lg"
-            disabled
-            title={t("shareTodo")}
+            onClick={sharePost}
+            title={t("share")}
           >
             <Share2 className="size-4" />
             <span className="sr-only">{t("share")}</span>

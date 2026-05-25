@@ -92,7 +92,7 @@ export function GuardianApplicationStatus({ status, displayName, languages, revi
 
       {status === "approved" ? (
         <Button asChild className="w-full rounded-xl">
-          <Link href="/guardian/dashboard">하루이 대시보드로</Link>
+          <Link href="/mypage/guardian/posts">하루이 워크스페이스로</Link>
         </Button>
       ) : (
         <Button asChild variant="outline" className="w-full rounded-xl">
