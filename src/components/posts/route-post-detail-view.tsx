@@ -80,7 +80,7 @@ export async function RoutePostDetailView({ post, editHref, isOwner }: { post: C
       <PostDetailHero post={post} coverUrl={heroCover} coverAlt={heroAlt} typeLabelKey={typeLabelKey} postId={post.id} isRoute />
 
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-12 lg:gap-12">
-        <div className="lg:col-span-8">
+        <div className="min-w-0 lg:col-span-8">
           {/* TODO(purchase): hasPlaybookPremium을 슈퍼관리자가 아닌 실제 구매/구독 완료와 연동 */}
           <RoutePostDetailClient
             post={post}

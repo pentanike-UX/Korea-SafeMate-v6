@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { MapPin, Clock, X, ChevronLeft, ChevronRight, Camera, Lightbulb, AlertTriangle } from "lucide-react";
+import { MapPin, Clock, ChevronLeft, ChevronRight, Camera, Lightbulb, AlertTriangle } from "lucide-react";
 import type { HaruSpot, AppLocale } from "@/types/haru";
 import type { LocaleMap } from "@/types/haru";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,28 @@ export function HaruSpotDetailSheet({
     queueMicrotask(() => setGalleryIdx(0));
   }
 
+  // 모바일 전체화면 시트 — 폰 '뒤로가기'(history popstate)로 닫히게 연동.
+  // onOpenChange는 부모에서 매 렌더 새 함수일 수 있어 ref로 고정(effect는 open에만 의존).
+  const onOpenChangeRef = useRef(onOpenChange);
+  onOpenChangeRef.current = onOpenChange;
+  useEffect(() => {
+    if (!open || typeof window === "undefined") return;
+    let closedByPop = false;
+    window.history.pushState({ haruSpotSheet: true }, "");
+    const onPop = () => {
+      closedByPop = true;
+      onOpenChangeRef.current(false);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      // UI로 닫은 경우에만 우리가 넣은 history 항목을 정리(중복 pop 방지).
+      if (!closedByPop && window.history.state?.haruSpotSheet) {
+        window.history.back();
+      }
+    };
+  }, [open]);
+
   if (!spot) return null;
 
   const name = pickLocale(spot.catalog.name, locale) ?? "Spot";
@@ -57,38 +79,38 @@ export function HaruSpotDetailSheet({
       <SheetContent
         side="right"
         showCloseButton={false}
-        className="flex w-full flex-col gap-0 overflow-hidden p-0 data-[side=right]:sm:max-w-[480px] data-[side=right]:md:max-w-[600px] data-[side=right]:lg:max-w-[780px] data-[side=right]:xl:max-w-[920px] data-[side=right]:2xl:max-w-[1080px]"
+        className="flex w-full flex-col gap-0 overflow-hidden p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-[480px] data-[side=right]:md:max-w-[600px] data-[side=right]:lg:max-w-[780px] data-[side=right]:xl:max-w-[920px] data-[side=right]:2xl:max-w-[1080px]"
         aria-label={name}
       >
-        {/* ── 헤더 (sticky) ───────────────────────────────────────── */}
-        <div className="flex shrink-0 items-center gap-3 border-b border-border/50 bg-card px-4 py-3.5">
+        {/* ── 헤더 (sticky) — 모바일 전체화면에서 뒤로가기 화살표로 닫음 ── */}
+        <div className="flex shrink-0 items-center gap-2 border-b border-border/50 bg-card px-2 py-2.5 sm:gap-3 sm:px-4 sm:py-3.5">
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label={t("spotDetailCloseAria")}
+          >
+            <ChevronLeft className="size-5" />
+          </button>
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-2xl dark:bg-emerald-950/40">
             {spot.catalog.category_emoji}
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-foreground">{name}</p>
-            <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-              <Clock className="size-3" aria-hidden />
-              {t("spotDetailStayLabel", { m: spot.stay_min })}
+            <p className="flex min-w-0 items-center gap-1 text-[11px] text-muted-foreground">
+              <Clock className="size-3 shrink-0" aria-hidden />
+              <span className="shrink-0">{t("spotDetailStayLabel", { m: spot.stay_min })}</span>
               {spot.catalog.address ? (
                 <>
-                  <span aria-hidden className="mx-1 opacity-50">
+                  <span aria-hidden className="mx-1 shrink-0 opacity-50">
                     ·
                   </span>
-                  <MapPin className="size-3" aria-hidden />
+                  <MapPin className="size-3 shrink-0" aria-hidden />
                   <span className="truncate">{spot.catalog.address}</span>
                 </>
               ) : null}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            className="ml-auto flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            aria-label={t("spotDetailCloseAria")}
-          >
-            <X className="size-4" />
-          </button>
         </div>
 
         {/* ── 본문 (scroll) ────────────────────────────────────────── */}

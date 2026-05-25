@@ -101,7 +101,7 @@ export async function PostDetailView({ post, editHref, isOwner }: { post: Conten
       <PostDetailHero post={post} coverUrl={heroCover} coverAlt={heroAlt} typeLabelKey={typeLabelKey} postId={post.id} />
 
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-12 lg:gap-12">
-        <div className="max-w-none space-y-8 lg:col-span-8">
+        <div className="min-w-0 max-w-none space-y-8 lg:col-span-8">
           {articleIntro ? <PostDetailIntroPanel variant="article" primary={lead} /> : null}
 
           {showOneLineTip ? (

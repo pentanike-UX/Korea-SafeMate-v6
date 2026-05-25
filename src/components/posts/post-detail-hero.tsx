@@ -55,24 +55,22 @@ export function PostDetailHero({
     day: "numeric",
   });
 
-  /** 실용 팁·루트형 공통 — 동일 쉘·오버레이·메타 그리드 */
-  const imageShell =
-    "relative aspect-[16/9] min-h-[min(52vw,260px)] max-h-[min(52vh,520px)] overflow-hidden sm:min-h-[280px] sm:max-h-[min(58vh,580px)] lg:aspect-[2.12/1] lg:min-h-[300px] lg:max-h-[min(62vh,620px)]";
-
   const imageTreatment = cn(postHeroCoverClass(post), "opacity-[0.48] mix-blend-multiply");
 
   const washGradient = "absolute inset-0 bg-gradient-to-t from-white via-white/65 to-white/25";
 
   return (
     <header className="relative mx-auto max-w-6xl px-4 sm:px-6">
+      {/* 콘텐츠가 정상 흐름(mt-auto)으로 들어가 긴 제목도 잘리지 않음. 이미지는 배경 레이어. */}
       <div
-        className="border-border/60 relative overflow-hidden rounded-[1.75rem] border shadow-[var(--shadow-md)]"
+        className="border-border/60 relative flex min-h-[min(56vw,260px)] flex-col overflow-hidden rounded-[1.75rem] border shadow-[var(--shadow-md)] sm:min-h-[300px] lg:min-h-[340px]"
         style={{ background: heroGradient(post) }}
       >
-        <div className={imageShell}>
+        <div className="absolute inset-0">
           <Image src={coverUrl} alt={coverAlt} fill className={imageTreatment} sizes="100vw" priority />
           <div className={washGradient} />
-          <div className="absolute right-0 bottom-0 left-0 space-y-3 p-6 sm:p-10">
+        </div>
+        <div className="relative mt-auto space-y-3 p-6 sm:p-10">
             <div className="flex flex-wrap items-center gap-2">
               {post.is_sample ? <PostSampleBadge /> : null}
               <Badge variant="default" className="rounded-full bg-primary/90 font-semibold text-primary-foreground">
@@ -122,7 +120,6 @@ export function PostDetailHero({
             </div>
           </div>
         </div>
-      </div>
     </header>
   );
 }
