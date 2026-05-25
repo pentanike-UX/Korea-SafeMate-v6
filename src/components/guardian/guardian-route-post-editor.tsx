@@ -969,7 +969,7 @@ export function GuardianRoutePostEditor({
               className="rounded-xl"
               autoComplete="off"
             />
-            <ul className="border-border/60 max-h-52 overflow-auto rounded-xl border bg-white/80 text-sm shadow-[var(--shadow-sm)]">
+            <ul className="border-border/60 max-h-52 overflow-auto rounded-xl border bg-card text-sm shadow-[var(--shadow-sm)]">
               {filteredPlaces.length === 0 ? (
                 <li className="text-muted-foreground px-3 py-4 text-center text-xs">검색 결과가 없습니다.</li>
               ) : (
@@ -1019,7 +1019,7 @@ export function GuardianRoutePostEditor({
                   <li key={s.id} className="space-y-1.5">
                     <div
                       className={cn(
-                        "border-border/60 flex flex-wrap items-center gap-2 rounded-xl border bg-white/90 p-3",
+                        "border-border/60 flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3",
                         selectedSpotId === s.id && "ring-primary ring-2",
                       )}
                     >
@@ -1076,7 +1076,7 @@ export function GuardianRoutePostEditor({
           </ul>
 
           {selectedSpot ? (
-            <div className="border-border/60 space-y-3 rounded-2xl border bg-white/95 p-4">
+            <div className="border-border/60 space-y-3 rounded-2xl border bg-card p-4">
               <p className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">선택된 스팟</p>
               <div className="border-border/50 space-y-1 rounded-xl border bg-muted/15 p-3">
                 <p className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">{COPY.selectedLocation}</p>
@@ -1512,7 +1512,7 @@ export function GuardianRoutePostEditor({
               <p className="text-muted-foreground text-[11px] leading-snug">{COPY.routeOsrmHint}</p>
             </div>
 
-            <div className="border-border/60 relative h-[min(500px,65vh)] overflow-hidden rounded-2xl border bg-white shadow-[var(--shadow-md)]">
+            <div className="border-border/60 relative h-[min(500px,65vh)] overflow-hidden rounded-2xl border bg-card shadow-[var(--shadow-md)]">
               <RouteMapPreview
                 spots={journey.spots}
                 path={journey.path}
@@ -1524,7 +1524,7 @@ export function GuardianRoutePostEditor({
               />
             </div>
 
-            <div className="border-border/60 rounded-2xl border bg-white/90 p-4 text-xs">
+            <div className="border-border/60 rounded-2xl border bg-card p-4 text-xs">
               <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">루트 요약</p>
               <div className="flex flex-wrap gap-2">
                 <Badge variant="secondary" className="rounded-full font-medium">{journey.metadata.estimated_total_distance_km} km</Badge>

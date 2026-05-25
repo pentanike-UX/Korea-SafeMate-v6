@@ -113,7 +113,7 @@ export async function GuardianPostsManagement({
           return (
             <li
               key={p.id}
-              className="border-border/60 flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-white/90 p-4 shadow-[var(--shadow-sm)]"
+              className="border-border/60 flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-card p-4 shadow-[var(--shadow-sm)]"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
