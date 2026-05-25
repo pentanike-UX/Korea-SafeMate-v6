@@ -1,10 +1,9 @@
 "use client";
 
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { ContentPost, NaverPrimaryPlace, RouteJourneyMetadata, RouteSpot } from "@/types/domain";
 import { RouteDayPreview } from "@/components/route-posts/route-day-preview";
-import { RouteStickyLocalNav } from "@/components/route-posts/route-sticky-local-nav";
 import type { GuardianRequestSheetHostProps } from "@/components/guardians/guardian-request-sheet";
 import { PostInfoNarrativeStack } from "@/components/posts/post-info-blocks";
 import { PlaybookUnlockSheet } from "@/components/route-posts/playbook-unlock-sheet";
@@ -834,10 +833,8 @@ export function RoutePostDetailClient({
   const triggerRef = useRef<HTMLDivElement>(null);
   const spotsEndRef = useRef<HTMLDivElement>(null);
 
-  const [activeSpotId, setActiveSpotId] = useState<string | null>(spots[0]?.id ?? null);
-  const [flashId, setFlashId] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [showStickyNav, setShowStickyNav] = useState(false);
+  // flashId: 과거 스팟 점프 하이라이트용. 스티키 nav 제거 후엔 트리거가 없어 항상 비활성.
+  const [flashId] = useState<string | null>(null);
   /** 슈퍼관리자 전용 이미지·검수 디버그 — 기본 숨김 */
   const [adminDebugOpen, setAdminDebugOpen] = useState(false);
   /** 데모 잠금 해제 — 메모리만(새로고침 시 초기화). TODO: 실제 구독/결제 연동 */
@@ -855,62 +852,6 @@ export function RoutePostDetailClient({
   void payDrawerOpen;
   void setPayDrawerOpen;
   const effectivePlaybookPremium = true;
-
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1023px)");
-    const fn = () => setIsMobile(mq.matches);
-    fn();
-    mq.addEventListener("change", fn);
-    return () => mq.removeEventListener("change", fn);
-  }, []);
-
-  const navigateToSpotSection = useCallback((id: string) => {
-    setActiveSpotId(id);
-    document.getElementById(`route-spot-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    setFlashId(id);
-    window.setTimeout(() => setFlashId(null), 2200);
-  }, []);
-
-  useEffect(() => {
-    let raf = 0;
-    const tick = () => {
-      const mapEl = triggerRef.current;
-      const endEl = spotsEndRef.current;
-      if (!mapEl || !endEl) return;
-
-      const mapBottom = mapEl.getBoundingClientRect().bottom;
-      const endTop = endEl.getBoundingClientRect().top;
-      const stickyOn = mapBottom < 0 && endTop > 0;
-      setShowStickyNav((prev) => (prev === stickyOn ? prev : stickyOn));
-
-      const headerH = window.innerWidth >= 640 ? 64 : 56;
-      const stickyH = stickyOn ? (isMobile ? 48 : 56) : 0;
-      const probeY = headerH + stickyH + 20;
-
-      let nextActive: string | null = spots[0]?.id ?? null;
-      for (const spot of spots) {
-        const el = document.getElementById(`route-spot-${spot.id}`);
-        if (!el) continue;
-        const top = el.getBoundingClientRect().top;
-        if (top <= probeY) nextActive = spot.id;
-      }
-      setActiveSpotId((prev) => (prev === nextActive ? prev : nextActive));
-    };
-
-    const onScroll = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(tick);
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    tick();
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, [spots, isMobile]);
 
   const visualPlan = useMemo(() => buildLocalPostVisualPlan(post), [post]);
   const { lead, rest } = useMemo(() => splitPostBodyLeadRest(post.body), [post.body]);
@@ -958,16 +899,6 @@ export function RoutePostDetailClient({
 
   return (
     <>
-      {showStickyNav && spots.length > 0 ? (
-        <RouteStickyLocalNav
-          spots={spots}
-          activeSpotId={activeSpotId}
-          onSpotNavigate={(id) => navigateToSpotSection(id)}
-          isMobile={isMobile}
-          venueSafe={!effectivePlaybookPremium}
-        />
-      ) : null}
-
       <PlaybookUnlockSheet
         open={payDrawerOpen}
         onOpenChange={setPayDrawerOpen}
