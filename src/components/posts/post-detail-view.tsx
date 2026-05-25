@@ -117,7 +117,7 @@ export async function PostDetailView({ post, editHref, isOwner }: { post: Conten
           ) : null}
 
           {post.summary.trim() ? (
-            <Card className="border-border/60 rounded-2xl border bg-white/90 shadow-[var(--shadow-sm)]">
+            <Card className="border-border/60 rounded-2xl border bg-card shadow-[var(--shadow-sm)]">
               <CardContent className="space-y-4 p-5 sm:p-6">
                 <p className="text-primary text-[10px] font-bold tracking-[0.2em] uppercase">{t("articleKeyTakeawayEyebrow")}</p>
                 <div className={POST_DETAIL_PARAGRAPH_STACK}>

@@ -133,7 +133,7 @@ export function PostInfoChecklist({
   if (items.length === 0) return null;
   return (
     <section
-      className={cn("border-border/60 rounded-2xl border bg-white/90 px-4 py-4 shadow-[var(--shadow-sm)] sm:px-5 sm:py-5", className)}
+      className={cn("border-border/60 rounded-2xl border bg-card px-4 py-4 shadow-[var(--shadow-sm)] sm:px-5 sm:py-5", className)}
       aria-label={label}
     >
       <div className="text-muted-foreground flex items-center gap-2">
