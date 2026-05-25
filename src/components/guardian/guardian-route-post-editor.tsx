@@ -1403,7 +1403,9 @@ export function GuardianRoutePostEditor({
           </div>
         </section>
 
-        <GuardianPostAiMetaPanel post={post} onApply={(next) => setPost(next)} />
+        <div className="py-4">
+          <GuardianPostAiMetaPanel post={post} onApply={(next) => setPost(next)} />
+        </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <Button
