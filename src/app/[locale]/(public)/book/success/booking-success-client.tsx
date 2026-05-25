@@ -31,7 +31,14 @@ function isServiceCode(v: string): v is ServiceTypeCode {
   return mockServiceTypes.some((s) => s.code === v);
 }
 
-export function BookingSuccessClient() {
+export function BookingSuccessClient({
+  serverPayload = null,
+  serverId = null,
+}: {
+  /** sessionStorage가 없을 때 서버에서 내려준 본인 소유 예약 요약(PII 보호: 소유 검증됨). */
+  serverPayload?: BookingRequestPayload | null;
+  serverId?: string | null;
+} = {}) {
   const t = useTranslations("BookingSuccess");
   const tSvc = useTranslations("Services");
   const searchParams = useSearchParams();
@@ -49,8 +56,8 @@ export function BookingSuccessClient() {
     }
   }, []);
 
-  const id = stored?.id ?? idParam ?? "—";
-  const payload = stored?.payload;
+  const id = stored?.id ?? serverId ?? idParam ?? "—";
+  const payload = stored?.payload ?? serverPayload ?? undefined;
   const svc =
     payload && isServiceCode(payload.service_code)
       ? tSvc(`cards.${payload.service_code}.title`)
@@ -116,7 +123,6 @@ export function BookingSuccessClient() {
           </CardHeader>
           <CardContent className="text-muted-foreground text-sm">
             {t("summaryUnavailableHint")}
-            {/* TODO(prod): Server-rendered success from booking id + auth. */}
           </CardContent>
         </Card>
       )}

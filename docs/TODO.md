@@ -196,6 +196,8 @@
 - [ ] ⏸ **가디언 대시보드(`/guardian/dashboard`) 100% mock** — `mockGuardians`(mg14). 승인 CTA는 이미 실 워크스페이스로 우회. 이 레거시 mock 대시보드 자체는 데모용일 수 있어 **리다이렉트/철거 여부 결정 필요**(실 `/mypage/guardian/*`가 DB 기반 대체재).
 - [ ] ⏸ **프리미엄 루트 구매 불가** — `hasPlaybookPremium=isSuperAdmin||isOwner`. 구매/구독 플로는 결제 PG 연동에 종속 → PG 후.
 - [x] **explore 카드 북마크/공유** — ✅ 2026-05-24. dead(disabled) 버튼 배선: 북마크는 `/api/traveler/saved-posts` 토글(피드 N-fetch 방지 위해 마운트 GET 생략, 탭 시 POST만), 공유는 `navigator.share`+클립보드 폴백.
-- [ ] **2차 stub 잔여** — 가디언 대시보드 모듈 버튼 disabled(레거시 mock 대시보드 소속), `/services` 가격 mock, booking-success 서버폴백, `/api/bookings` 하드닝(Zod·auth 파생 traveler_user_id).
+- [x] **`/api/bookings` 하드닝** — ✅ 2026-05-24. Zod 스키마(타입·길이 캡·email·`agreements.scope` 동의 게이트), `traveler_user_id`를 세션에서 파생(클라 신뢰 X), DB 실패 시 500. (idempotency·email queue는 잔여)
+- [x] **booking-success 서버 폴백** — ✅ 2026-05-24. sessionStorage 없을 때(새로고침·직접진입) **로그인+본인 소유** 예약만 service-role로 조회해 요약 렌더(PII 보호). 게스트는 기존 안내 유지.
+- [ ] **2차 stub 잔여** — 가디언 대시보드 모듈 버튼 disabled(레거시 mock 대시보드 소속), `/services` 가격 mock(DB 시드 없음), `/api/bookings` idempotency·email queue.
 - [ ] ⏸ **운영 데이터 시딩** — routes 0건(service-role 키 필요).
 - [ ] ⏸ **사전 perf 부채** — `auth_rls_initplan` 77건 등(실데이터 후 일괄).
