@@ -193,7 +193,7 @@
 
 - [ ] ⏸ **결제(PG) 미연동** — checkout/booking/playbook 전부 시뮬레이션. `payment_status=paid` 경로 없음. **Toss/Kakao PG 연동 + 키 필요 → 제품/계정 결정 대기.**
 - [x] **승인 CTA 정합성** — ✅ 2026-05-24. 승인된 가디언 CTA를 mock `/guardian/dashboard` → 실제 워크스페이스 `/mypage/guardian/posts`(DB 기반)로 변경. "승인됐는데 가짜 프로필" 문제 해소.
-- [ ] ⏸ **가디언 대시보드(`/guardian/dashboard`) 100% mock** — `mockGuardians`(mg14). 승인 CTA는 이미 실 워크스페이스로 우회. 이 레거시 mock 대시보드 자체는 데모용일 수 있어 **리다이렉트/철거 여부 결정 필요**(실 `/mypage/guardian/*`가 DB 기반 대체재).
+- [x] **`/guardian/dashboard` mock 철거** — ✅ 2026-05-24. 레거시 mock 대시보드(mg14) → `/mypage/guardian/posts`로 리다이렉트(`/guardian/posts` 등 기존 패턴과 동일). 실사용자에게 가짜 데이터 노출 제거. `GuardianDashboardView`+mock은 추후 실데이터 대시보드 재사용 위해 파일 보존.
 - [ ] ⏸ **프리미엄 루트 구매 불가** — `hasPlaybookPremium=isSuperAdmin||isOwner`. 구매/구독 플로는 결제 PG 연동에 종속 → PG 후.
 - [x] **explore 카드 북마크/공유** — ✅ 2026-05-24. dead(disabled) 버튼 배선: 북마크는 `/api/traveler/saved-posts` 토글(피드 N-fetch 방지 위해 마운트 GET 생략, 탭 시 POST만), 공유는 `navigator.share`+클립보드 폴백.
 - [x] **`/api/bookings` 하드닝** — ✅ 2026-05-24. Zod 스키마(타입·길이 캡·email·`agreements.scope` 동의 게이트), `traveler_user_id`를 세션에서 파생(클라 신뢰 X), DB 실패 시 500. (idempotency·email queue는 잔여)
