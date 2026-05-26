@@ -163,6 +163,7 @@ export function mapRouteRowToHaruRoute(
     id: row.id,
     title,
     guardian: {
+      user_id: row.guardian_user_id,
       display_name: guardianDisplayName,
       photo_url: guardianPhotoUrl,
       last_seen_at: guardianLastSeenAt,

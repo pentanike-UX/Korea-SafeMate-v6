@@ -1775,7 +1775,13 @@
     "spotDetailStayLabel": "Stay {m} min",
     "spotDetailGalleryEmpty": "Photos coming soon",
     "spotDetailCloseAria": "Close",
-    "spotDetailGalleryAria": "Spot photo gallery"
+    "spotDetailGalleryAria": "Spot photo gallery",
+    "routeViewerModeTimeline": "タイムライン",
+    "routeViewerModeMap": "マップ",
+    "routeViewerSummaryLabel": "ルート概要",
+    "routeViewerChatGuardian": "ハルイとチャット",
+    "routeViewerCloseLabel": "閉じる",
+    "routeViewerTimelineAria": "スポットタイムライン"
   },
   "GuardianProfileEdit": {
     "metaTitle": "ガーディアンプロフィール編集",

@@ -1805,7 +1805,13 @@
     "spotDetailStayLabel": "Stay {m} min",
     "spotDetailGalleryEmpty": "Photos coming soon",
     "spotDetailCloseAria": "Close",
-    "spotDetailGalleryAria": "Spot photo gallery"
+    "spotDetailGalleryAria": "Spot photo gallery",
+    "routeViewerModeTimeline": "Timeline",
+    "routeViewerModeMap": "Map",
+    "routeViewerSummaryLabel": "Route summary",
+    "routeViewerChatGuardian": "Chat with guide",
+    "routeViewerCloseLabel": "Close",
+    "routeViewerTimelineAria": "Spot timeline"
   },
   "GuardianProfileEdit": {
     "metaTitle": "Edit guardian profile",

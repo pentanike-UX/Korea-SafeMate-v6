@@ -27,11 +27,14 @@ export function HaruSpotDetailSheet({
   locale,
   open,
   onOpenChange,
+  side = "right",
 }: {
   spot: HaruSpot | null;
   locale: AppLocale;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** 데스크톱: "right" 슬라이드 인 / 모바일: "bottom" 하단 시트 */
+  side?: "right" | "bottom";
 }) {
   const t = useTranslations("TravelerHub");
   const [galleryIdx, setGalleryIdx] = useState(0);
@@ -45,7 +48,9 @@ export function HaruSpotDetailSheet({
   // 모바일 전체화면 시트 — 폰 '뒤로가기'(history popstate)로 닫히게 연동.
   // onOpenChange는 부모에서 매 렌더 새 함수일 수 있어 ref로 고정(effect는 open에만 의존).
   const onOpenChangeRef = useRef(onOpenChange);
-  onOpenChangeRef.current = onOpenChange;
+  useEffect(() => {
+    onOpenChangeRef.current = onOpenChange;
+  }, [onOpenChange]);
   useEffect(() => {
     if (!open || typeof window === "undefined") return;
     let closedByPop = false;
@@ -77,11 +82,24 @@ export function HaruSpotDetailSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
-        side="right"
+        side={side}
         showCloseButton={false}
-        className="flex w-full flex-col gap-0 overflow-hidden p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-[480px] data-[side=right]:md:max-w-[600px] data-[side=right]:lg:max-w-[780px] data-[side=right]:xl:max-w-[920px] data-[side=right]:2xl:max-w-[1080px]"
+        className={cn(
+          "flex w-full flex-col gap-0 overflow-hidden p-0",
+          // 데스크톱: 우측 슬라이드. 화면 절반 미만으로 제한해 지도가 살아있게.
+          "data-[side=right]:w-full data-[side=right]:sm:max-w-[440px] data-[side=right]:md:max-w-[440px] data-[side=right]:lg:max-w-[480px] data-[side=right]:xl:max-w-[520px]",
+          // 모바일 bottom sheet: 90vh + 핸들바
+          "data-[side=bottom]:max-h-[90vh] data-[side=bottom]:rounded-t-3xl",
+        )}
         aria-label={name}
       >
+        {/* 모바일 bottom sheet 핸들바 */}
+        {side === "bottom" ? (
+          <div className="flex shrink-0 justify-center pt-2 pb-1" aria-hidden>
+            <span className="bg-muted-foreground/30 h-1 w-10 rounded-full" />
+          </div>
+        ) : null}
+
         {/* ── 헤더 (sticky) — 모바일 전체화면에서 뒤로가기 화살표로 닫음 ── */}
         <div className="flex shrink-0 items-center gap-2 border-b border-border/50 bg-card px-2 py-2.5 sm:gap-3 sm:px-4 sm:py-3.5">
           <button

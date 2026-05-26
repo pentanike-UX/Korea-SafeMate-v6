@@ -177,6 +177,8 @@ export interface HaruRoute {
   id: string;
   title: LocaleMap;
   guardian: {
+    /** 채팅·프로필 CTA를 위해 가능한 경우 채워준다. */
+    user_id?: string | null;
     display_name: string;
     photo_url?: string | null;
     /** ISO timestamp 또는 `mock:online` 센티넬. 온라인 상태 판정용. */

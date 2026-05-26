@@ -1805,7 +1805,13 @@
     "spotDetailStayLabel": "체류 {m}분",
     "spotDetailGalleryEmpty": "사진이 아직 준비되지 않았어요",
     "spotDetailCloseAria": "닫기",
-    "spotDetailGalleryAria": "스팟 사진 갤러리"
+    "spotDetailGalleryAria": "스팟 사진 갤러리",
+    "routeViewerModeTimeline": "타임라인",
+    "routeViewerModeMap": "지도",
+    "routeViewerSummaryLabel": "루트 요약",
+    "routeViewerChatGuardian": "하루이와 채팅",
+    "routeViewerCloseLabel": "닫기",
+    "routeViewerTimelineAria": "스팟 타임라인"
   },
   "GuardianProfileEdit": {
     "metaTitle": "하루이 프로필 편집",

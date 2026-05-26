@@ -1776,7 +1776,13 @@
     "spotDetailStayLabel": "Stay {m} min",
     "spotDetailGalleryEmpty": "Photos coming soon",
     "spotDetailCloseAria": "Close",
-    "spotDetailGalleryAria": "Spot photo gallery"
+    "spotDetailGalleryAria": "Spot photo gallery",
+    "routeViewerModeTimeline": "Dòng thời gian",
+    "routeViewerModeMap": "Bản đồ",
+    "routeViewerSummaryLabel": "Tóm tắt lộ trình",
+    "routeViewerChatGuardian": "Chat với guide",
+    "routeViewerCloseLabel": "Đóng",
+    "routeViewerTimelineAria": "Dòng thời gian điểm đến"
   },
   "GuardianProfileEdit": {
     "metaTitle": "Edit guardian profile",

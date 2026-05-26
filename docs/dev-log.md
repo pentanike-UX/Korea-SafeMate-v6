@@ -9,6 +9,59 @@
 
 ---
 
+## 2026-05-26 — 하루루트 유료 전용 Route Cockpit 1차 (Phase 1)
+
+### 목표
+
+결제 후 진입하는 유료 하루루트가 "공개 상세 페이지 + 카드 나열"이 아니라 **전용 Route Cockpit**으로 보이도록 구조·인터랙션·애니메이션을 재편. 가치 콘텐츠 데이터 필드·결제 완료 페이지·이탈 확인 모달은 Phase 2.
+
+### 변경 파일
+
+- `src/components/routes/route-view-client.tsx` (구조 재편)
+- `src/components/routes/route-spot-rail-vertical.tsx` (신규 — 데스크톱 좌측 세로 타임라인 레일)
+- `src/components/routes/haru-spot-detail-sheet.tsx` (side prop, 반응형, 핸들바)
+- `src/components/ui/sheet.tsx` (transition timing/easing — 320ms · cubic-bezier(0.22,1,0.36,1))
+- `src/types/haru.ts` — `HaruRoute.guardian.user_id?` 추가 (채팅 CTA용)
+- `src/lib/routes/haru-route-from-supabase.server.ts` — `user_id` 매핑
+- `messages/{ko,en,ja,th,vi}.json` — `routeViewerModeTimeline/Map`, `routeViewerSummaryLabel`, `routeViewerChatGuardian`, `routeViewerCloseLabel`, `routeViewerTimelineAria` 추가
+
+### 변경 내용
+
+- **3섹션 Top Bar**: 좌(← 루트 요약) | 중앙(제목+메타칩, 좌측 정렬) | 우(하루이 미니프로필+OnlineDot, 채팅, 공유, 저장, X). 데스크톱에서만 ←옆 "루트 요약" 라벨, X 표시. 하드코딩된 "타임라인"/"지도" → i18n.
+- **데스크톱(md ≥768px) split**: `grid-cols-[320px_1fr] xl:grid-cols-[360px_1fr]` — 좌측에 세로 타임라인 레일, 우측에 풀높이 지도. 모드 토글 미노출(둘이 함께 보임).
+- **모바일(<md)**: 기존 모드 토글 유지 (타임라인 ↔ 지도). 기본은 `map`.
+- **세로 레일** (`route-spot-rail-vertical.tsx`): 순번 뱃지 + 썸네일 + 카테고리/Pick/체류 + 이름 + 가디언 노트(line-clamp 2) + 이동시간. 선택된 스팟 강조 (브랜드 컬러 ring + bg).
+- **스팟 드로어**:
+  - `side` prop 추가. `route-view-client`에서 `matchMedia("(min-width: 768px)")`로 desktop=right / mobile=bottom 결정.
+  - 데스크톱 우측 패널 폭 축소(`sm:max-w-[440px] lg:max-w-[480px] xl:max-w-[520px]`)로 지도가 살아있게.
+  - 모바일 bottom sheet: `max-h-[90vh] rounded-t-3xl` + 핸들바.
+  - 애니메이션: Sheet 전체 transition 320ms · `cubic-bezier(0.22, 1, 0.36, 1)`로 통일, opacity도 함께 페이드.
+- **ESC 이중 처리**: 스팟 드로어가 열려 있으면 ESC=드로어만 닫음, 닫혀 있으면 ESC=플레이어 이탈.
+- **하루이 채팅 CTA**: Top Bar의 메시지 아이콘. `GUARDIAN_INQUIRY_OPEN_EVENT`를 dispatch (`route.guardian.user_id` 없으면 displayName만으로 시트 오픈).
+- **다음 단계(NextStepsBlock)**: 데스크톱 좌측 레일 하단·모바일 타임라인 모드 본문 하단에 배치. `text-left` 명시 + `max-w-2xl` 좌측 정렬.
+
+### 검증 결과
+
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm exec eslint` (변경 파일) 통과.
+- `pnpm build` 통과 (Compiled successfully · 1008 페이지 SSG).
+- 브라우저 시각 검증 미실행 (preview 서버 미기동).
+
+### 남은 이슈 (Phase 2 대상)
+
+- **결제 완료 페이지** 재설계 (현재 "고마움이 전달됐어요." → 하루이 프로필 + 한줄 소개 + "내 하루 루트 열기" / "하루이에게 메시지 보내기" CTA).
+- **유료 가치 콘텐츠 필드**: 방문 추천 시간, 사진 포인트, 이동 팁, 근처 결제 가능 스팟, 굿즈/앨범/카페 등 구매 정보, 혼잡도/주의사항, 하루이 Pick 배지. 일부는 `HaruSpot.details`에 이미 존재 — UI 확장으로 노출 보강 필요.
+- **이탈 확인 모달**: 메모 작성·메시지 작성·일정 수정 요청 중에는 닫기/뒤로 가기 시 확인 다이얼로그.
+- **스와이프 다운 닫기**(모바일 bottom sheet): 현재 핸들바는 시각 단서만, 실제 드래그 닫기는 미구현. base-ui Dialog 기본은 백드롭 탭/ESC만 지원.
+- **데스크톱 1280px 이상 3컬럼**: 현재는 2컬럼(레일+지도)+드로어 오버레이. 3컬럼(레일+지도+드로어 인라인)으로 분리하려면 지도 폭 동적 축소 + 드로어를 grid 셀로 옮겨야 함 — 시각 확인 후 결정.
+
+### 다음 작업
+
+- 결제 완료 페이지 재설계.
+- 가치 콘텐츠 필드 노출 확장 (`HaruSpot.details`에 누락된 필드 추가, 시트에 새 블록).
+
+---
+
 ## 2026-05-26 — Stage 3·4·5 (가로 레일·지도 마커·다크모드 chrome)
 
 ### 목표

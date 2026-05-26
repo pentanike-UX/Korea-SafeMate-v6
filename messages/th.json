@@ -1776,7 +1776,13 @@
     "spotDetailStayLabel": "Stay {m} min",
     "spotDetailGalleryEmpty": "Photos coming soon",
     "spotDetailCloseAria": "Close",
-    "spotDetailGalleryAria": "Spot photo gallery"
+    "spotDetailGalleryAria": "Spot photo gallery",
+    "routeViewerModeTimeline": "ไทม์ไลน์",
+    "routeViewerModeMap": "แผนที่",
+    "routeViewerSummaryLabel": "สรุปเส้นทาง",
+    "routeViewerChatGuardian": "แชทกับไกด์",
+    "routeViewerCloseLabel": "ปิด",
+    "routeViewerTimelineAria": "ไทม์ไลน์จุดหมาย"
   },
   "GuardianProfileEdit": {
     "metaTitle": "Edit guardian profile",
