@@ -222,35 +222,36 @@ export function RouteViewClient({
               precomputedProvider={precomputedDirections?.provider ?? null}
             />
           ) : (
-            <div className="h-full overflow-y-auto overscroll-contain">
-              <div className="px-4 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-6 md:px-8">
-                <div className="max-w-2xl">
-                  <HaruTimeline route={route} locale={locale} onSpotClick={(s) => setSelectedSpot(s)} />
+            <div className="h-full overflow-y-auto overscroll-contain py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+              {/* 스팟 가로 레일 — 전체 너비 사용(자체 가로 스크롤) */}
+              <div className="px-4 sm:px-6 md:px-8">
+                <HaruTimeline route={route} locale={locale} onSpotClick={(s) => setSelectedSpot(s)} />
+              </div>
 
-                  {/* 다음 단계 — 좌측 정렬 */}
-                  <div className="border-border/50 bg-card mt-8 rounded-3xl border p-5 shadow-sm sm:p-6">
-                    <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-wider">
-                      {t("routeNextStepsTitle")}
-                    </p>
-                    <ol className="mt-4 space-y-3">
-                      {[1, 2, 3].map((n) => (
-                        <li
-                          key={n}
-                          className="border-border/40 bg-background/50 flex items-start gap-3 rounded-2xl border p-3"
-                        >
-                          <span className="bg-primary/10 text-primary flex size-7 shrink-0 items-center justify-center rounded-lg font-mono text-xs font-bold">
-                            {n}
-                          </span>
-                          <p className="text-foreground/85 text-sm leading-relaxed">{t(`routeNextStep${n}`)}</p>
-                        </li>
-                      ))}
-                    </ol>
-                    <p className="text-muted-foreground mt-4 text-xs">
-                      {route.spots.length} {t("routeStatsStops").toLowerCase()}
-                      {durH > 0 ? ` · ${t("routeHoursOnly", { h: durH })}` : ""}
-                      {durM > 0 ? ` ${t("routeMinutesOnly", { m: durM })}` : ""}
-                    </p>
-                  </div>
+              {/* 다음 단계 — 좌측 정렬, 읽기 폭 제한 */}
+              <div className="px-4 sm:px-6 md:px-8">
+                <div className="border-border/50 bg-card mt-8 max-w-2xl rounded-3xl border p-5 shadow-sm sm:p-6">
+                  <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-wider">
+                    {t("routeNextStepsTitle")}
+                  </p>
+                  <ol className="mt-4 space-y-3">
+                    {[1, 2, 3].map((n) => (
+                      <li
+                        key={n}
+                        className="border-border/40 bg-background/50 flex items-start gap-3 rounded-2xl border p-3"
+                      >
+                        <span className="bg-primary/10 text-primary flex size-7 shrink-0 items-center justify-center rounded-lg font-mono text-xs font-bold">
+                          {n}
+                        </span>
+                        <p className="text-foreground/85 text-sm leading-relaxed">{t(`routeNextStep${n}`)}</p>
+                      </li>
+                    ))}
+                  </ol>
+                  <p className="text-muted-foreground mt-4 text-xs">
+                    {route.spots.length} {t("routeStatsStops").toLowerCase()}
+                    {durH > 0 ? ` · ${t("routeHoursOnly", { h: durH })}` : ""}
+                    {durM > 0 ? ` ${t("routeMinutesOnly", { m: durM })}` : ""}
+                  </p>
                 </div>
               </div>
             </div>

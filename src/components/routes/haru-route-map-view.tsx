@@ -134,7 +134,7 @@ function HaruRouteMapInner({
         disableDefaultUI={false}
         mapTypeControl={false}
         streetViewControl={false}
-        style={{ width: "100%", height: "min(70vh, 640px)" }}
+        style={{ width: "100%", height: "100%" }}
       >
         {spots.map((s) => (
           <AdvancedMarker
