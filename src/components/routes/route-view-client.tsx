@@ -12,6 +12,7 @@ import { useRouter } from "@/i18n/navigation";
 import { toggleSavedRouteAction } from "@/app/[locale]/(public)/routes/[routeId]/saved-route-actions";
 import type { HaruRoute, HaruSpot, AppLocale } from "@/types/haru";
 import { cn } from "@/lib/utils";
+import { OnlineDot } from "@/components/guardians/guardian-online-status";
 
 /**
  * 라우트 페이지 클라이언트 컨테이너.
@@ -153,11 +154,14 @@ export function RouteViewClient({
             {/* 우: 하루이 정보 + 공유 + 저장 */}
             <div className="flex shrink-0 items-center gap-1.5">
               <div className="flex min-w-0 items-center gap-2">
-                <span className="border-border/60 bg-muted size-8 shrink-0 overflow-hidden rounded-full border">
-                  {route.guardian.photo_url ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={route.guardian.photo_url} alt="" className="size-full object-cover" />
-                  ) : null}
+                <span className="relative shrink-0">
+                  <span className="border-border/60 bg-muted block size-8 overflow-hidden rounded-full border">
+                    {route.guardian.photo_url ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={route.guardian.photo_url} alt="" className="size-full object-cover" />
+                    ) : null}
+                  </span>
+                  <OnlineDot lastSeenAt={route.guardian.last_seen_at} size="sm" />
                 </span>
                 <div className="hidden min-w-0 leading-tight sm:block">
                   <p className="text-foreground max-w-[10rem] truncate text-xs font-semibold">

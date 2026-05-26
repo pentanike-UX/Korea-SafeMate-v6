@@ -17,6 +17,7 @@ import {
   representativePostLinesForSheetPreview,
 } from "@/lib/guardian-representative-post-context";
 import { SaveGuardianButton } from "@/components/guardians/save-guardian-button";
+import { OnlineDot } from "@/components/guardians/guardian-online-status";
 import { listCardActionButtonClass } from "@/components/ui/action-variants";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -101,14 +102,17 @@ export function HomeRecommendedGuardiansSection() {
                 className="border-border/70 bg-card flex flex-col rounded-[var(--radius-md)] border p-3 shadow-[var(--shadow-sm)] transition-shadow sm:p-4 hover:shadow-[var(--shadow-md)] active:scale-[0.99]"
               >
                 <div className="flex gap-3">
-                  <div className="border-border/50 relative size-14 shrink-0 overflow-hidden rounded-full border bg-muted sm:size-[4.25rem]">
-                    {imgs.avatar ? (
-                      <Image src={imgs.avatar} alt="" fill className={GUARDIAN_AVATAR_COVER_CLASS} sizes="72px" />
-                    ) : (
-                      <span className="text-muted-foreground flex size-full items-center justify-center text-lg font-semibold">
-                        {g.display_name.charAt(0)}
-                      </span>
-                    )}
+                  <div className="relative shrink-0">
+                    <div className="border-border/50 relative size-14 overflow-hidden rounded-full border bg-muted sm:size-[4.25rem]">
+                      {imgs.avatar ? (
+                        <Image src={imgs.avatar} alt="" fill className={GUARDIAN_AVATAR_COVER_CLASS} sizes="72px" />
+                      ) : (
+                        <span className="text-muted-foreground flex size-full items-center justify-center text-lg font-semibold">
+                          {g.display_name.charAt(0)}
+                        </span>
+                      )}
+                    </div>
+                    <OnlineDot lastSeenAt={g.last_seen_at} size="md" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-foreground truncate font-semibold">{g.display_name}</p>

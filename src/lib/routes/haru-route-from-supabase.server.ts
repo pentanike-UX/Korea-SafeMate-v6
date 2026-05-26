@@ -138,6 +138,7 @@ export function mapRouteRowToHaruRoute(
   row: RouteRow,
   guardianDisplayName: string,
   guardianPhotoUrl: string | null,
+  guardianLastSeenAt: string | null = null,
 ): HaruRoute {
   const rawSpots = [...(row.route_spots ?? [])].sort((a, b) => a.sort_order - b.sort_order);
   const spots: HaruSpot[] = [];
@@ -164,6 +165,7 @@ export function mapRouteRowToHaruRoute(
     guardian: {
       display_name: guardianDisplayName,
       photo_url: guardianPhotoUrl,
+      last_seen_at: guardianLastSeenAt,
     },
     total_duration_min: total,
     estimated_cost_min_krw: row.estimated_cost_min_krw,
@@ -334,18 +336,25 @@ export async function fetchHaruRouteFromSupabase(
 
   let guardianName = "Guardian";
   let guardianPhoto: string | null = null;
+  let guardianLastSeenAt: string | null = null;
   const { data: gp } = await supabase
     .from("guardian_profiles")
-    .select("display_name, photo_url, avatar_image_url")
+    .select("display_name, photo_url, avatar_image_url, last_seen_at")
     .eq("user_id", row.guardian_user_id)
     .maybeSingle();
   if (gp) {
-    const g = gp as { display_name?: string; photo_url?: string | null; avatar_image_url?: string | null };
+    const g = gp as {
+      display_name?: string;
+      photo_url?: string | null;
+      avatar_image_url?: string | null;
+      last_seen_at?: string | null;
+    };
     if (g.display_name?.trim()) guardianName = g.display_name.trim();
     guardianPhoto = g.photo_url ?? g.avatar_image_url ?? null;
+    guardianLastSeenAt = g.last_seen_at ?? null;
   }
 
-  const haru = mapRouteRowToHaruRoute(row, guardianName, guardianPhoto);
+  const haru = mapRouteRowToHaruRoute(row, guardianName, guardianPhoto, guardianLastSeenAt);
 
   // directions_meta는 jsonb — 최소 검증으로 안전하게 캐스팅(필드 누락 시 null로 폴백).
   const rawMeta = (row as unknown as { directions_meta?: unknown }).directions_meta;

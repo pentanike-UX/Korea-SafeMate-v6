@@ -9,6 +9,40 @@
 
 ---
 
+## 2026-05-26 — B-2·B-3 HaruRoute 온라인 데이터 + 적용처 5곳 부착
+
+### 목표
+
+핸드오프 §B 2~3 — `HaruRoute.guardian`에 `last_seen_at` 필드를 추가하고, 하루이 아바타·CTA가 노출되는 화면에 공유 컴포넌트(B-1)를 부착.
+
+### 변경 파일
+
+- `src/types/haru.ts` — `HaruRoute.guardian.last_seen_at?: string | null` 추가.
+- `src/data/mock/haru-route.ts` — mockHaruRoute에 `last_seen_at: "mock:online"` 채움.
+- `src/lib/routes/haru-route-from-supabase.server.ts` — `mapRouteRowToHaruRoute`에 `guardianLastSeenAt` 파라미터 추가, `fetchHaruRouteFromSupabase`에서 `guardian_profiles.last_seen_at`를 select하여 매핑.
+- `src/components/routes/route-view-client.tsx` — 플레이어 상단바 하루이 아바타에 `OnlineDot` (sm).
+- `src/components/guardians/guardian-detail-view.tsx` — 가디언 상세 히어로 아바타에 `OnlineDot` (md).
+- `src/components/home/home-recommended-guardians.tsx` — 추천 카드 아바타에 `OnlineDot` (md).
+- `src/components/posts/post-author-aside.tsx` — 하드코딩 green badge 제거, `OnlineStatusBadge` 사용 (guardian.last_seen_at 기반). 미사용 `tReq` 제거.
+- `src/components/posts/post-author-request-cta.tsx` — `lastSeenAt` prop 추가, online일 때만 inquiry 버튼 안에 펄스 점 표시.
+
+### 검증 결과
+
+- `pnpm exec tsc --noEmit` 통과.
+- 변경 파일 단위 `pnpm exec eslint` 통과 (사전 존재 warning 1건만, 본 변경과 무관).
+- `pnpm build` 통과 (1008 페이지 SSG).
+
+### 남은 이슈
+
+- `route-post-card`: ContentPost에 `author_last_seen_at`이 없어 미적용. 필요 시 ContentPost 타입 + posts-public 조인 확장이 선행되어야 함.
+- 운영 DB의 `guardian_profiles.last_seen_at` 컬럼이 실제로 채워져야 production에서 점이 보임. mock 데이터(`mock:online`)만 즉시 동작.
+
+### 다음 작업
+
+- 핸드오프 §C Stage 3 (가로 레일 스냅/페이드/카드 간격), Stage 4 (지도 마커 번호 시각 확인), Stage 5 (반응형·safe-area, 다크모드 플로팅 chrome).
+
+---
+
 ## 2026-05-26 — B-1 공유 컴포넌트 추출 (guardian-online-status)
 
 ### 목표

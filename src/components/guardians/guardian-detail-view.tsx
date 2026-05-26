@@ -28,6 +28,7 @@ import {
   GUARDIAN_PROFILE_HERO_COVER_CLASS,
 } from "@/lib/guardian-profile-images";
 import { GuardianIntroGallery } from "@/components/guardians/guardian-intro-gallery";
+import { OnlineDot } from "@/components/guardians/guardian-online-status";
 import { GUARDIAN_TIER_ROLE_BADGE_CLASSNAME, guardianTierBadgeVariant } from "@/lib/guardian-tier-ui";
 import type { GuardianTrustBadgeId, LocalizedCopy } from "@/types/guardian-marketing";
 import type { TravelerReview } from "@/types/domain";
@@ -135,8 +136,11 @@ export async function GuardianDetailView({
             <div className="absolute bottom-0 left-0 right-0 flex flex-col gap-3 p-6 sm:flex-row sm:items-end sm:justify-between sm:p-10">
               <div className="min-w-0 max-w-3xl">
                 <div className="flex flex-wrap items-end gap-3 sm:gap-4">
-                  <div className="border-background/40 relative size-14 min-h-0 min-w-0 shrink-0 overflow-hidden rounded-full border-2 shadow-md ring-2 ring-black/20 sm:size-[4.25rem]">
-                    <Image src={imgs.avatar} alt="" fill className={GUARDIAN_AVATAR_COVER_CLASS} sizes="72px" />
+                  <div className="relative shrink-0">
+                    <div className="border-background/40 relative size-14 min-h-0 min-w-0 overflow-hidden rounded-full border-2 shadow-md ring-2 ring-black/20 sm:size-[4.25rem]">
+                      <Image src={imgs.avatar} alt="" fill className={GUARDIAN_AVATAR_COVER_CLASS} sizes="72px" />
+                    </div>
+                    <OnlineDot lastSeenAt={g.last_seen_at} size="md" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h1 className="text-3xl font-semibold tracking-tight text-white drop-shadow-[0_2px_14px_rgba(0,0,0,0.9)] sm:text-4xl">

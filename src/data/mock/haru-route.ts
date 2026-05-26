@@ -171,6 +171,7 @@ export const mockHaruRoute: HaruRoute = {
   guardian: {
     display_name: "Seoho · Seoul Palace Tribe",
     photo_url: null,
+    last_seen_at: "mock:online",
   },
   total_duration_min: 240, // 4시간 (5스팟 + 인사동 케타포 마무리)
   estimated_cost_min_krw: 0,

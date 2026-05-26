@@ -12,6 +12,7 @@ import {
 } from "@/components/guardians/guardian-inquiry-sheet";
 import { cn } from "@/lib/utils";
 import { MessageCircle, ClipboardList } from "lucide-react";
+import { resolveOnlineStatus } from "@/components/guardians/guardian-online-status";
 
 /** 포스트 작성 하루이에게 두 가지 CTA를 함께 표시:
  *  - 문의하기: 즉각 간단 문의 (문의 시트)
@@ -20,11 +21,15 @@ import { MessageCircle, ClipboardList } from "lucide-react";
 export function PostAuthorRequestCta({
   openDetail,
   className,
+  lastSeenAt,
 }: {
   openDetail: GuardianRequestOpenDetail & { guardianUserId: string; postId: string; postTitle: string };
   className?: string;
+  /** 작성자(하루이)의 마지막 활동 시각. online일 때 문의 CTA 옆에 점이 표시된다. */
+  lastSeenAt?: string | null;
 }) {
   const t = useTranslations("GuardianRequest");
+  const isOnline = resolveOnlineStatus(lastSeenAt) === "online";
 
   const handleInquiry = useCallback(() => {
     window.dispatchEvent(
@@ -50,6 +55,9 @@ export function PostAuthorRequestCta({
       >
         <MessageCircle className="size-4" aria-hidden />
         {t("sidebarCtaInquiryNow")}
+        {isOnline ? (
+          <span className="inline-flex size-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+        ) : null}
       </button>
       <p className="text-center text-[11px] text-muted-foreground">{t("sidebarInquiryHint")}</p>
 

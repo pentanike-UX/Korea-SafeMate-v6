@@ -179,6 +179,8 @@ export interface HaruRoute {
   guardian: {
     display_name: string;
     photo_url?: string | null;
+    /** ISO timestamp 또는 `mock:online` 센티넬. 온라인 상태 판정용. */
+    last_seen_at?: string | null;
   };
   total_duration_min: number;
   estimated_cost_min_krw?: number | null;

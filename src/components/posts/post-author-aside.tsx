@@ -19,6 +19,7 @@ import { guardianProfileImageUrls, GUARDIAN_PROFILE_HERO_COVER_CLASS } from "@/l
 import { GUARDIAN_TIER_ROLE_BADGE_CLASSNAME, guardianTierBadgeVariant } from "@/lib/guardian-tier-ui";
 import { cn } from "@/lib/utils";
 import { PostSampleBadge } from "@/components/posts/post-sample-badge";
+import { OnlineStatusBadge } from "@/components/guardians/guardian-online-status";
 
 export async function PostAuthorAside({
   post,
@@ -30,7 +31,6 @@ export async function PostAuthorAside({
 }) {
   const t = await getTranslations("Posts");
   const tTier = await getTranslations("GuardianTier");
-  const tReq = await getTranslations("GuardianRequest");
   const tBrand = await getTranslations("Brand");
   const guardian = await getPublicGuardianByIdMerged(post.author_user_id);
   const imgs = guardian ? guardianProfileImageUrls(guardian) : null;
@@ -67,11 +67,7 @@ export async function PostAuthorAside({
         <CardContent className="space-y-3 p-5">
           <div className="flex items-center justify-between gap-2">
             <p className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">{t("authorCardEyebrow")}</p>
-            {/* 온라인 상태 배지 */}
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
-              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
-              {tReq("sidebarOnline")}
-            </span>
+            <OnlineStatusBadge lastSeenAt={guardian?.last_seen_at} />
           </div>
           {post.is_sample ? (
             <p className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs leading-relaxed">
@@ -107,6 +103,7 @@ export async function PostAuthorAside({
               ) : null}
               <GuardianRequestIntakeBullets />
               <PostAuthorRequestCta
+                lastSeenAt={guardian.last_seen_at}
                 openDetail={{
                   guardianUserId: guardian.user_id,
                   displayName: guardian.display_name,
