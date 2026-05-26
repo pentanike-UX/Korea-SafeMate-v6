@@ -685,7 +685,7 @@ export function GuardianRoutePostEditor({
   return (
     <GoogleMapsProvider>
     <div className="mx-auto grid min-h-[calc(100vh-8rem)] w-full max-w-[min(100%,96rem)] gap-8 lg:grid-cols-2 lg:gap-10">
-      <div className="min-w-0 space-y-10 pb-16">
+      <div className="min-w-0 space-y-10 pb-28 sm:pb-16">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
             <Link href={GUARDIAN_WORKSPACE.posts}>{COPY.back}</Link>
@@ -727,8 +727,8 @@ export function GuardianRoutePostEditor({
           </ol>
         </nav>
 
-        <section className="space-y-3">
-          <h2 className="text-foreground text-sm font-semibold">{COPY.typeTitle}</h2>
+        <section className="space-y-3 rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
+          <h2 className="text-foreground text-base font-semibold tracking-tight">{COPY.typeTitle}</h2>
           <div className="flex flex-wrap gap-2">
             {(
               [
@@ -752,8 +752,8 @@ export function GuardianRoutePostEditor({
           <p className="text-muted-foreground text-xs">{COPY.typeHint}</p>
         </section>
 
-        <section className="space-y-4">
-          <h2 className="text-foreground text-sm font-semibold">{COPY.basicTitle}</h2>
+        <section className="space-y-4 rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
+          <h2 className="text-foreground text-base font-semibold tracking-tight">{COPY.basicTitle}</h2>
           <div className="space-y-2">
             <Label htmlFor="rt-title">{COPY.title}</Label>
             <Input
@@ -794,7 +794,7 @@ export function GuardianRoutePostEditor({
             <Label htmlFor="rt-kind">{COPY.kindLabel}</Label>
             <select
               id="rt-kind"
-              className="border-input bg-background h-9 w-full rounded-lg border px-2 text-sm"
+              className="border-input bg-background h-11 w-full rounded-xl border px-3 text-sm"
               value={post.kind}
               onChange={(e) => setPost((p) => ({ ...p, kind: e.target.value as ContentPostKind }))}
             >
@@ -810,7 +810,7 @@ export function GuardianRoutePostEditor({
             <Label htmlFor="rt-theme">하루웨이 테마</Label>
             <select
               id="rt-theme"
-              className="border-input bg-background h-9 w-full rounded-lg border px-2 text-sm"
+              className="border-input bg-background h-11 w-full rounded-xl border px-3 text-sm"
               value={post.theme ?? ""}
               onChange={(e) => {
                 const v = e.target.value;
@@ -832,7 +832,7 @@ export function GuardianRoutePostEditor({
             <Label htmlFor="rt-hero-subject">{COPY.heroSubjectLabel}</Label>
             <select
               id="rt-hero-subject"
-              className="border-input bg-background h-9 w-full rounded-lg border px-2 text-sm"
+              className="border-input bg-background h-11 w-full rounded-xl border px-3 text-sm"
               value={post.hero_subject ?? ""}
               onChange={(e) => {
                 const v = e.target.value;
@@ -853,13 +853,13 @@ export function GuardianRoutePostEditor({
           </div>
         </section>
 
-        <section className="space-y-4">
-          <h2 className="text-foreground text-sm font-semibold">{COPY.metaTitle}</h2>
+        <section className="space-y-4 rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
+          <h2 className="text-foreground text-base font-semibold tracking-tight">{COPY.metaTitle}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>{COPY.transport}</Label>
               <select
-                className="border-input bg-background h-9 w-full rounded-lg border px-2 text-sm"
+                className="border-input bg-background h-11 w-full rounded-xl border px-3 text-sm"
                 value={journey.metadata.transport_mode}
                 onChange={(e) =>
                   updateMeta({ transport_mode: e.target.value as RouteJourney["metadata"]["transport_mode"] })
@@ -873,7 +873,7 @@ export function GuardianRoutePostEditor({
             <div className="space-y-2">
               <Label>{COPY.timeOfDay}</Label>
               <select
-                className="border-input bg-background h-9 w-full rounded-lg border px-2 text-sm"
+                className="border-input bg-background h-11 w-full rounded-xl border px-3 text-sm"
                 value={journey.metadata.recommended_time_of_day}
                 onChange={(e) =>
                   updateMeta({
@@ -914,7 +914,7 @@ export function GuardianRoutePostEditor({
             <div className="space-y-2">
               <Label>{COPY.difficulty}</Label>
               <select
-                className="border-input bg-background h-9 w-full rounded-lg border px-2 text-sm"
+                className="border-input bg-background h-11 w-full rounded-xl border px-3 text-sm"
                 value={journey.metadata.difficulty}
                 onChange={(e) => updateMeta({ difficulty: e.target.value as RouteJourney["metadata"]["difficulty"] })}
               >
@@ -951,9 +951,9 @@ export function GuardianRoutePostEditor({
           </div>
         </section>
 
-        <section className="space-y-4">
+        <section className="space-y-4 rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
           <div>
-            <h2 className="text-foreground text-sm font-semibold">{COPY.spotEditorTitle}</h2>
+            <h2 className="text-foreground text-base font-semibold tracking-tight">{COPY.spotEditorTitle}</h2>
             <p className="text-muted-foreground mt-1.5 text-xs leading-relaxed">{COPY.spotSearchLead}</p>
           </div>
 
@@ -1407,7 +1407,7 @@ export function GuardianRoutePostEditor({
           <GuardianPostAiMetaPanel post={post} onApply={(next) => setPost(next)} />
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t border-border/60 bg-background/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-lg [&>button]:flex-1 sm:static sm:flex-wrap sm:items-center sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:pb-0 sm:backdrop-blur-none sm:[&>button]:flex-none">
           <Button
             type="button"
             size="lg"
