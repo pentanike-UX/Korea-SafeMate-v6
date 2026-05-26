@@ -9,6 +9,48 @@
 
 ---
 
+## 2026-05-26 — Stage 3·4·5 (가로 레일·지도 마커·다크모드 chrome)
+
+### 목표
+
+핸드오프 §C — 전면 플레이어 마무리. 가로 레일 스냅·페이드 보강, 지도 마커 번호 가독성, 다크모드/safe-area 점검.
+
+### 변경 파일
+
+- `src/components/patterns/haru-timeline/haru-timeline.tsx`
+- `src/components/routes/haru-route-map-view.tsx`
+- `src/components/guardians/guardian-online-status.tsx`
+
+### 변경 내용
+
+- Stage 3 — 가로 레일 (`haru-timeline.tsx`):
+  - `ScrollHint`에 좌측 페이드(w-6) 추가, 우측은 w-10으로 확대 — 모바일 양쪽 모두 스크롤 여지 시각 단서.
+  - 컨테이너에 `scroll-pl-3 sm:scroll-pl-0` + `px-3 pt-1 sm:px-1` — 첫 카드가 좌측 페이드 뒤로 숨지 않게 스냅 정렬·패딩 보정.
+  - `scroll-smooth` 추가 — 외부 트리거(예: 마커 클릭) 스크롤이 부드럽게.
+- Stage 4 — 지도 마커 (`haru-route-map-view.tsx:146`):
+  - `Pin scale`을 일반 1.05→1.2 / featured 1.25→1.4로 키움.
+  - 글리프 폰트 `text-xs font-bold` → `text-[13px] font-extrabold tabular-nums text-white drop-shadow` — 1~6 숫자가 작은 줌 레벨에서도 또렷.
+- Stage 5 — 다크모드 chrome (`guardian-online-status.tsx`):
+  - `OnlineStatusBadge` emerald/amber tone에 dark variant 추가 (`dark:bg-emerald-400/15 dark:text-emerald-300`, `dark:bg-amber-300/15 dark:text-amber-300`) — 어두운 배경에서도 대비 확보.
+
+### 검증 결과
+
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm exec eslint`(변경 파일) 통과.
+- `pnpm build` 통과 (Compiled successfully · 1008 페이지 SSG).
+- 브라우저 검증 미실행 (preview 서버 미기동) — 시각 확인 권장.
+
+### 남은 이슈
+
+- `route-view-client` 모드 토글 라벨 "타임라인"/"지도"가 하드코딩(한국어). i18n 키 추가 필요(별도 작업).
+- 모드 토글 외 플로팅 chrome(폴리라인 폴백 배지)은 기존 dark variant 보유 — 변경 불필요.
+
+### 다음 작업
+
+- 핸드오프 §D 외부 의존(결제 PG/프리미엄 구매/운영 데이터 시딩) 해소 후 운영 검증.
+
+---
+
 ## 2026-05-26 — B-2·B-3 HaruRoute 온라인 데이터 + 적용처 5곳 부착
 
 ### 목표

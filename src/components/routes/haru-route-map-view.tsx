@@ -147,9 +147,11 @@ function HaruRouteMapInner({
               background={spotPinColor(s)}
               borderColor="#ffffff"
               glyphColor="#ffffff"
-              scale={s.featured ? 1.25 : 1.05}
+              scale={s.featured ? 1.4 : 1.2}
             >
-              <span className="text-xs font-bold">{s.order}</span>
+              <span className="text-[13px] font-extrabold leading-none tabular-nums text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.4)]">
+                {s.order}
+              </span>
             </Pin>
           </AdvancedMarker>
         ))}

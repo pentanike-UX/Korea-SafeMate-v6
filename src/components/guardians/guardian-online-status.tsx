@@ -74,7 +74,9 @@ export function OnlineStatusBadge({
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold",
-        status === "online" ? "bg-emerald-500/12 text-emerald-600" : "bg-amber-400/12 text-amber-600",
+        status === "online"
+          ? "bg-emerald-500/12 text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-300"
+          : "bg-amber-400/15 text-amber-600 dark:bg-amber-300/15 dark:text-amber-300",
         className,
       )}
     >

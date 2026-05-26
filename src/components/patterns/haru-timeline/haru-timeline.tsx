@@ -72,10 +72,16 @@ function MapPanel({ route }: { route: HaruRoute }) {
 
 function ScrollHint() {
   return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-12 bg-gradient-to-l from-bg to-transparent sm:hidden"
-    />
+    <>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-6 bg-gradient-to-r from-bg to-transparent sm:hidden"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-10 bg-gradient-to-l from-bg to-transparent sm:hidden"
+      />
+    </>
   );
 }
 
@@ -128,12 +134,14 @@ export function HaruTimeline({
           ref={scrollRef}
           className={cn(
             "flex items-center gap-0 overflow-x-auto pb-4",
-            // 스냅 스크롤 (모바일)
-            "snap-x snap-mandatory sm:snap-none",
+            // 스냅 스크롤 (모바일) — 페이드 폭만큼 스냅 패딩 보정
+            "snap-x snap-mandatory scroll-pl-3 sm:snap-none sm:scroll-pl-0",
+            // 부드러운 스크롤
+            "scroll-smooth",
             // 스크롤바 숨기기 (시각적으로 깔끔하게)
             "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-            // 상하 패딩 — 카드 그림자 잘리지 않게
-            "px-1 pt-1",
+            // 좌우 패딩 — 첫·마지막 카드가 페이드에 잘리지 않게
+            "px-3 pt-1 sm:px-1",
           )}
           role="list"
           aria-label="하루 루트 스팟 목록"
