@@ -745,6 +745,10 @@
     "moodStyle_no_match_test": "No guides match this option",
     "moodStyle_no_match_test_hint": "Intentional unmatched option for empty-result UX testing"
   },
+  "OnlineStatus": {
+    "online": "Online",
+    "recently": "Recently active"
+  },
   "GuardiansDiscover": {
     "metaTitle": "haruee",
     "metaDescription": "Compare haruee by region, language, and travel style.",

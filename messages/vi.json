@@ -746,6 +746,10 @@
     "moodStyle_no_match_test": "No guides match this option",
     "moodStyle_no_match_test_hint": "Intentional unmatched option for empty-result UX testing"
   },
+  "OnlineStatus": {
+    "online": "Đang online",
+    "recently": "Vừa hoạt động"
+  },
   "GuardiansDiscover": {
     "metaTitle": "Guardians",
     "metaDescription": "Compare trusted local guardians by area, language, and theme.",

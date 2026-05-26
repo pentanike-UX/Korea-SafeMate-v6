@@ -745,6 +745,10 @@
     "moodStyle_no_match_test": "No guides match this option",
     "moodStyle_no_match_test_hint": "empty結果UXテスト用の意図的な非マッチ項目"
   },
+  "OnlineStatus": {
+    "online": "オンライン",
+    "recently": "最近アクティブ"
+  },
   "GuardiansDiscover": {
     "metaTitle": "Guardian",
     "metaDescription": "エリア・言語・テーマで比較。",

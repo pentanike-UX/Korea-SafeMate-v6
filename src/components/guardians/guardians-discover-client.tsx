@@ -23,6 +23,7 @@ import {
   resolveRepresentativeContentPost,
 } from "@/lib/guardian-representative-post-context";
 import { SaveGuardianButton } from "@/components/guardians/save-guardian-button";
+import { OnlineHighlightChip } from "@/components/guardians/guardian-online-status";
 import { publicGuardianToSheetPreview } from "@/lib/guardian-profile-sheet-preview";
 import { ExplorationFilterSummaryBar, type ExplorationSummaryChip } from "@/components/listing/exploration-filter-summary-bar";
 import { StickyListingFiltersBar } from "@/components/listing/sticky-listing-filters-bar";
@@ -472,12 +473,7 @@ export function GuardiansDiscoverClient({
                       <div className="relative min-h-0 w-[30%] min-w-[6.75rem] max-w-[8.5rem] shrink-0 self-stretch overflow-hidden bg-muted sm:min-w-[7.25rem] sm:max-w-[9rem]">
                         <Image src={imgs.default} alt="" fill className={GUARDIAN_LIST_CARD_COVER_CLASS} sizes="(max-width:640px) 32vw, 18vw" />
                         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/35 to-transparent" />
-                        {(g.last_seen_at === "mock:online" || (g.last_seen_at && Date.now() - new Date(g.last_seen_at).getTime() < 30 * 60 * 1000)) && (
-                          <span className="absolute top-2 right-2 flex items-center gap-1 rounded-full border border-white/20 bg-emerald-500/90 px-2 py-1 text-[11px] font-bold text-white shadow-sm backdrop-blur-sm">
-                            <span className="size-1.5 rounded-full bg-white" aria-hidden />
-                            {t("statusOnline")}
-                          </span>
-                        )}
+                        <OnlineHighlightChip lastSeenAt={g.last_seen_at} className="absolute top-2 right-2" />
                       </div>
                       <CardContent className="flex min-w-0 flex-1 flex-col gap-2.5 p-3 sm:p-3.5">
                         <div className="min-w-0 space-y-1">

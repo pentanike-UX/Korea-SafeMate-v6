@@ -9,6 +9,48 @@
 
 ---
 
+## 2026-05-26 — B-1 공유 컴포넌트 추출 (guardian-online-status)
+
+### 목표
+
+핸드오프 §B 1번 — 가디언(하루이) 온라인 상태 표현을 한 곳에서 정의하고 여러 화면에서 재사용 가능하도록 공유 컴포넌트로 추출.
+
+### 변경 파일
+
+- `src/components/guardians/guardian-online-status.tsx` (신규)
+- `src/components/guardians/guardian-profile-preview-sheet-trigger.tsx`
+- `src/components/guardians/guardians-discover-client.tsx`
+- `messages/{ko,en,ja,th,vi}.json` (`OnlineStatus.online`, `OnlineStatus.recently` 추가)
+
+### 변경 내용
+
+- 신규 공유 컴포넌트:
+  - `resolveOnlineStatus(lastSeenAt)` — `mock:online` 센티넬 + 30분/24시간 윈도우 판정. NaN 가드 추가.
+  - `OnlineDot` — 부모 `relative` 기준 아바타 우하단 absolute 점 (sm/md/lg). online일 때만 렌더.
+  - `OnlineStatusBadge` — 텍스트 배지(온라인/최근 활동), tone(emerald/amber).
+  - `OnlineHighlightChip` — 이미지 위 다크 배경 강조 칩(흰 글씨), online 전용.
+- preview 시트 trigger의 로컬 `resolveOnlineStatus`/`OnlineStatusBadge`/인라인 `<span>` 점 → 공유 컴포넌트로 치환. 하드코딩된 한국어 "온라인" 라벨 제거.
+- explore 카드(`guardians-discover-client.tsx` ~475) 인라인 online 체크·칩 → `OnlineHighlightChip`로 통일.
+- i18n: 신규 top-level 네임스페이스 `OnlineStatus`에 `online`/`recently` 키 5개 로케일 추가.
+
+### 검증 결과
+
+- `pnpm install` (`@vis.gl/react-google-maps` 등 누락분 복구).
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm exec eslint` (변경 3개 파일) 통과.
+- `pnpm build` 통과 (Compiled successfully · 1008 페이지 SSG).
+
+### 남은 이슈
+
+- 핸드오프 §B 2~4 미착수: `HaruRoute.guardian.last_seen_at` 데이터 필드 추가, 플레이어 상단바·가디언 상세 히어로·route-post-card·home-recommended-guardians·post-author-aside·post-author-request-cta에 `OnlineDot` 적용.
+
+### 다음 작업
+
+- B-2: `src/types/haru.ts`의 `HaruRoute.guardian`에 `last_seen_at?: string | null` 추가 + mock/DB 매핑 채우기.
+- B-3: 위 6개 적용처에 `OnlineDot`(아바타) + 필요 시 `OnlineStatusBadge` 부착.
+
+---
+
 ## 2026-05-24 — [핸드오프 / 진행중] 하루루트 전면 플레이어 + 온라인상태 (다음 세션 이어서)
 
 > 컨텍스트 한계로 중단. 아래대로 다음 세션이 이어받는다. 최신 커밋: `b99cd6e` (main 직접 푸시).
