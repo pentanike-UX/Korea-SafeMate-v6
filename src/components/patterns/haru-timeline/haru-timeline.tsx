@@ -87,6 +87,8 @@ export interface HaruTimelineProps {
   /** 스팟 클릭 시 콜백 (상세 모달 등) */
   onSpotClick?: (spot: HaruSpot) => void;
   className?: string;
+  /** 헤더(제목·메타·조감/지도보기)를 숨김 — 전면 플레이어처럼 상단 바가 별도로 있을 때. */
+  hideHeader?: boolean;
 }
 
 export function HaruTimeline({
@@ -94,6 +96,7 @@ export function HaruTimeline({
   locale = "en",
   onSpotClick,
   className,
+  hideHeader = false,
 }: HaruTimelineProps) {
   const [compact, setCompact] = React.useState(false);
   const [mapOpen, setMapOpen] = React.useState(false);
@@ -107,14 +110,16 @@ export function HaruTimeline({
       aria-label={title}
     >
       {/* ── 헤더 ── */}
-      <TimelineHeader
-        route={route}
-        locale={locale}
-        compact={compact}
-        mapOpen={mapOpen}
-        onToggleCompact={() => setCompact((v) => !v)}
-        onToggleMap={() => setMapOpen((v) => !v)}
-      />
+      {hideHeader ? null : (
+        <TimelineHeader
+          route={route}
+          locale={locale}
+          compact={compact}
+          mapOpen={mapOpen}
+          onToggleCompact={() => setCompact((v) => !v)}
+          onToggleMap={() => setMapOpen((v) => !v)}
+        />
+      )}
 
       {/* ── 타임라인 스크롤 영역 ── */}
       <div className="relative">

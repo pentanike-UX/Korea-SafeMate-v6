@@ -112,6 +112,14 @@ export function RouteViewClient({
   // 유료 영역 — 헤더/푸터를 덮는 전면 몰입 플레이어
   const durH = Math.floor(route.total_duration_min / 60);
   const durM = route.total_duration_min % 60;
+  const durationLabel = durH > 0 ? (durM > 0 ? `${durH}시간 ${durM}분` : `${durH}시간`) : `${durM}분`;
+  const fmtKrw = (n: number) => (n >= 10000 ? `${Math.round(n / 10000)}만원` : `${n.toLocaleString()}원`);
+  const costLabel =
+    route.estimated_cost_min_krw != null
+      ? route.estimated_cost_max_krw != null
+        ? `${fmtKrw(route.estimated_cost_min_krw)}~${fmtKrw(route.estimated_cost_max_krw)}`
+        : fmtKrw(route.estimated_cost_min_krw)
+      : null;
 
   return (
     <GoogleMapsProvider>
@@ -128,53 +136,69 @@ export function RouteViewClient({
               <ArrowLeft className="size-5" />
             </button>
 
-            <div className="flex min-w-0 flex-1 items-center gap-2.5">
-              <span className="border-border/60 bg-muted size-9 shrink-0 overflow-hidden rounded-full border">
-                {route.guardian.photo_url ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={route.guardian.photo_url} alt="" className="size-full object-cover" />
+            {/* 좌: 제목 + 요약 메타 칩 */}
+            <div className="min-w-0 flex-1">
+              <p className="text-foreground truncate text-sm font-bold leading-tight sm:text-[15px]">{title}</p>
+              <div className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-1 text-[11px] leading-tight">
+                <span className="bg-muted rounded-md px-1.5 py-0.5 font-medium tabular-nums">⏱ {durationLabel}</span>
+                {costLabel ? (
+                  <span className="bg-muted rounded-md px-1.5 py-0.5 font-medium tabular-nums">₩ {costLabel}</span>
                 ) : null}
-              </span>
-              <div className="min-w-0">
-                <p className="text-foreground truncate text-sm font-bold leading-tight sm:text-[15px]">{title}</p>
-                <p className="text-muted-foreground truncate text-[11px] leading-tight">
-                  {route.guardian.display_name}
-                  <span className="text-emerald-600 dark:text-emerald-400"> · {t("routePaidKickerFull")}</span>
-                </p>
+                <span className="bg-muted rounded-md px-1.5 py-0.5 font-medium tabular-nums">
+                  📍 {route.spots.length} {t("routeStatsStops").toLowerCase()}
+                </span>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={sharePlayer}
-              aria-label="share"
-              className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-10 shrink-0 items-center justify-center rounded-full transition-colors"
-            >
-              <Share2 className="size-5" />
-            </button>
-            {canSave ? (
+            {/* 우: 하루이 정보 + 공유 + 저장 */}
+            <div className="flex shrink-0 items-center gap-1.5">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="border-border/60 bg-muted size-8 shrink-0 overflow-hidden rounded-full border">
+                  {route.guardian.photo_url ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={route.guardian.photo_url} alt="" className="size-full object-cover" />
+                  ) : null}
+                </span>
+                <div className="hidden min-w-0 leading-tight sm:block">
+                  <p className="text-foreground max-w-[10rem] truncate text-xs font-semibold">
+                    {route.guardian.display_name}
+                  </p>
+                  <p className="text-muted-foreground text-[10px]">{t("routePaidKickerFull")}</p>
+                </div>
+              </div>
+
               <button
                 type="button"
-                onClick={onToggleSave}
-                disabled={savePending}
-                aria-pressed={saved}
-                aria-label={saved ? t("routeSavedCta") : t("routeSaveCta")}
-                className={cn(
-                  "flex size-10 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-60",
-                  saved
-                    ? "text-[var(--brand-primary)]"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
+                onClick={sharePlayer}
+                aria-label="share"
+                className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-10 shrink-0 items-center justify-center rounded-full transition-colors"
               >
-                {savePending ? (
-                  <Loader2 className="size-5 animate-spin" aria-hidden />
-                ) : saved ? (
-                  <BookmarkCheck className="size-5" aria-hidden />
-                ) : (
-                  <Bookmark className="size-5" aria-hidden />
-                )}
+                <Share2 className="size-5" />
               </button>
-            ) : null}
+              {canSave ? (
+                <button
+                  type="button"
+                  onClick={onToggleSave}
+                  disabled={savePending}
+                  aria-pressed={saved}
+                  aria-label={saved ? t("routeSavedCta") : t("routeSaveCta")}
+                  className={cn(
+                    "flex size-10 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-60",
+                    saved
+                      ? "text-[var(--brand-primary)]"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  {savePending ? (
+                    <Loader2 className="size-5 animate-spin" aria-hidden />
+                  ) : saved ? (
+                    <BookmarkCheck className="size-5" aria-hidden />
+                  ) : (
+                    <Bookmark className="size-5" aria-hidden />
+                  )}
+                </button>
+              ) : null}
+            </div>
           </div>
 
           {/* 모드 토글 (좌측 정렬) */}
@@ -225,7 +249,7 @@ export function RouteViewClient({
             <div className="h-full overflow-y-auto overscroll-contain py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
               {/* 스팟 가로 레일 — 전체 너비 사용(자체 가로 스크롤) */}
               <div className="px-4 sm:px-6 md:px-8">
-                <HaruTimeline route={route} locale={locale} onSpotClick={(s) => setSelectedSpot(s)} />
+                <HaruTimeline route={route} locale={locale} hideHeader onSpotClick={(s) => setSelectedSpot(s)} />
               </div>
 
               {/* 다음 단계 — 좌측 정렬, 읽기 폭 제한 */}
