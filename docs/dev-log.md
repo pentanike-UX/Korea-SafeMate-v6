@@ -9,6 +9,40 @@
 
 ---
 
+## 2026-05-24 — [핸드오프 / 진행중] 하루루트 전면 플레이어 + 온라인상태 (다음 세션 이어서)
+
+> 컨텍스트 한계로 중단. 아래대로 다음 세션이 이어받는다. 최신 커밋: `b99cd6e` (main 직접 푸시).
+> 운영: Vercel `korea-safe-mate-v6`, Supabase `twxlokedllghbpztoiej`. **routes 데이터 0건(mock 구동).** 검증=`pnpm build`+`pnpm lint`.
+
+### A. 이번 세션 완료 (하루루트 유료 = 전면 몰입 플레이어)
+파일: `src/components/routes/route-view-client.tsx`
+- 잠금해제 시 **`fixed inset-0 z-[60]` 오버레이**로 사이트 셸(헤더/푸터) 덮음. 프리뷰(미결제)는 일반 셸 유지(결정: B안 = 결제만 전면).
+- **이탈**: 좌상단 `←` → 데모잠금해제면 `setUnlocked(false)`(프리뷰복귀), 서버결제/소유면 `router.back()`(히스토리 없으면 `/mypage/routes`). + **ESC** 키 + 배경 **스크롤 잠금**(body overflow hidden). 진입=일반 네비.
+- **상단 글래스 바**: 좌 `← + 제목 + 요약 메타칩(⏱시간·₩비용·📍스팟수)`, 우 `하루이 아바타+이름(모바일 아바타만, hidden sm:block) + 공유(navigator.share+클립보드) + 저장`.
+- 본문: 지도 풀높이(`haru-route-map-view.tsx` `<Map>` height `min(70vh,640px)`→`100%`), 타임라인 가로 레일 전체너비(`max-w-2xl` 제거, 다음단계만 max-w-2xl). `HaruTimeline`에 **`hideHeader` prop** 추가 → 본문 제목중복·조감/지도보기 버튼 제거.
+- 시트 애니메이션: `src/components/ui/sheet.tsx` translate `2.5rem`→`*-full`(전체 슬라이드 인/아웃, 전 시트 공통), z `50`→`70/71`(전면 플레이어 위 표시). 스팟 시트(`haru-spot-detail-sheet.tsx`)는 모바일 전면+뒤로가기(history) 이미 적용됨.
+
+### B. 진행중 — 1) 온라인 상태를 "하루이 표현 모든 곳"에 (사용자 요청, 미착수)
+현재 상태:
+- `resolveOnlineStatus(lastSeenAt)`/`OnlineStatusBadge`가 `guardian-profile-preview-sheet-trigger.tsx:25,34`에 **로컬 정의(중복)**. explore 카드(`guardians-discover-client.tsx` ~476)는 자체 인라인 online 체크. 판정: `last_seen_at === "mock:online"` 또는 30분 이내 = online.
+- ⚠️ **`HaruRoute.guardian`(`src/types/haru.ts:179`)에 `last_seen_at` 없음** → 플레이어 상단바에서 온라인 점 표시하려면 데이터 추가 필요.
+
+해야 할 일:
+1. **공유 컴포넌트 추출**: `src/components/guardians/guardian-online-status.tsx` 신규 — `resolveOnlineStatus` + `OnlineDot`(아바타 우하단 `absolute` 작은 점) + `OnlineStatusBadge`. preview 시트의 로컬 정의를 이걸로 대체.
+2. **`HaruRoute.guardian`에 `last_seen_at?: string | null` 추가** + 채우기: mock(`src/data/mock/haru-route.ts`, `service-sample-overlay.ts`), DB 매핑(`src/lib/routes/haru-route-from-supabase.server.ts` — 가디언 profile의 last_seen_at join).
+3. **`OnlineDot` 적용처(모두)**: 플레이어 상단바 하루이 아바타(`route-view-client.tsx` 우측 클러스터), 가디언 상세 히어로(`guardian-detail-view.tsx`), `route-post-card`(작성자), `home-recommended-guardians`, `post-author-aside`, `post-author-request-cta`. explore카드·preview시트는 공유 컴포넌트로 **통일**.
+4. **반응형**: 플레이어 상단바 우측(하루이+공유+저장)이 모바일에서 안 좁게(이름은 이미 hidden sm:block, 점은 absolute라 영향 적음). 좁으면 저장 아이콘 우선순위 검토.
+
+### C. 진행중 — 2) Stage 3~5 (전면 플레이어 마무리, 미착수)
+- **Stage 3**: 가로 레일 다듬기 — 스냅/페이드/카드 간격. 레일: `src/components/patterns/haru-timeline/haru-timeline.tsx:122` (`overflow-x-auto snap-x`).
+- **Stage 4**: 지도 마커 번호(1~6) — `haru-route-map-view.tsx:152`에서 `Pin` 안에 `s.order` 이미 렌더됨. 표시/스타일 확인만.
+- **Stage 5**: 반응형·safe-area 미세조정(상단바 우측 클러스터, 모바일 한손 도달), 다크모드 플로팅 chrome 점검.
+
+### D. 외부 의존 대기 ⏸ (TODO §7-C)
+결제 PG(Toss/Kakao 키·결정), 프리미엄 구매, 운영 데이터 시딩(service-role 키), 사전 perf 부채(auth_rls_initplan 77건).
+
+---
+
 ## 2026-05-23 - 모바일 하단 탭바 + 스크린샷 기반 표시버그 수정
 
 ### 목표
