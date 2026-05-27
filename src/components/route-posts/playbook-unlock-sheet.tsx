@@ -7,12 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { GuardianRequestOpenTrigger, type GuardianRequestOpenDetail } from "@/components/guardians/guardian-request-sheet";
 import { cn } from "@/lib/utils";
+import { useRouter } from "@/i18n/navigation";
+import { confirmRouteCheckoutAction } from "@/lib/route-access-checkout.server";
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirmDemoUnlock: () => void;
   guardianOpenDetail: GuardianRequestOpenDetail;
+  /** Phase 3C: 결제 완료 시 서버에서 grant/pack 생성을 위해 필요. mock 루트면 생략 가능. */
+  routeId?: string;
 };
 
 // 결제 시트 단계 — 심플 흐름: plan(월구독·일회성) → method(Toss/Kakao) → processing → success
@@ -26,8 +30,15 @@ type PlanCode = "monthly_9900" | "pass_1" | "pass_3" | "pass_5";
  *   intro → method (토스/카카오 선택) → processing (로딩) → success (자동 unlock)
  * TODO: 실제 결제(인앱/웹) 연동 시 confirm 시점에 PG 호출 + 검증.
  */
-export function PlaybookUnlockSheet({ open, onOpenChange, onConfirmDemoUnlock, guardianOpenDetail }: Props) {
+export function PlaybookUnlockSheet({
+  open,
+  onOpenChange,
+  onConfirmDemoUnlock,
+  guardianOpenDetail,
+  routeId,
+}: Props) {
   const t = useTranslations("RoutePosts");
+  const router = useRouter();
   const [step, setStep] = useState<Step>("plan");
   const [method, setMethod] = useState<PayMethod | null>(null);
   const [plan, setPlan] = useState<PlanCode | null>(null);
@@ -52,13 +63,28 @@ export function PlaybookUnlockSheet({ open, onOpenChange, onConfirmDemoUnlock, g
       return () => clearTimeout(id);
     }
     if (step === "success") {
-      const id = setTimeout(() => {
+      const id = setTimeout(async () => {
+        // Phase 3C: 결제 완료 시점에 서버측 grant/pack 발급을 시도.
+        // routeId가 있을 때만 (mock 루트가 아닐 때) 실제 grant를 만든다.
+        // 실패해도 데모 unlock은 유지 — 운영에선 실패 시 에러 토스트로 교체.
+        if (routeId && plan && plan !== "monthly_9900") {
+          try {
+            await confirmRouteCheckoutAction({
+              routeId,
+              plan,
+              receiptId: `fake_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            });
+            router.refresh();
+          } catch {
+            /* swallow — 데모는 그대로 진행 */
+          }
+        }
         onConfirmDemoUnlock();
         onOpenChange(false);
       }, 2000);
       return () => clearTimeout(id);
     }
-  }, [step, onConfirmDemoUnlock, onOpenChange]);
+  }, [step, onConfirmDemoUnlock, onOpenChange, routeId, plan, router]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

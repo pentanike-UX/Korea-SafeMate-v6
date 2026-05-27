@@ -216,6 +216,7 @@ export function RouteFreePreviewSection({
         onOpenChange={setPayOpen}
         onConfirmDemoUnlock={onUnlock}
         guardianOpenDetail={guardianOpenDetail}
+        routeId={route.id}
       />
     </div>
   );

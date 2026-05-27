@@ -9,6 +9,44 @@
 
 ---
 
+## 2026-05-27 — Phase 3C (fake 결제 완료 → 실 grant/pack 발급 연결)
+
+### 목표
+
+기존 PlaybookUnlockSheet(데모 4단계 결제)의 success 시점에 실제 서버 grant/pack을 발급. Toss/Kakao 실 PG 연결은 영수증 검증 부분만 따로 추가하면 됨.
+
+### 변경 파일
+
+- `src/lib/route-access-checkout.server.ts` (신규) — `confirmRouteCheckoutAction` 단일 진입점. plan별 분기.
+- `src/components/route-posts/playbook-unlock-sheet.tsx` — `routeId` prop 수용, success 시 confirm 액션 호출 + `router.refresh()`.
+- `src/components/routes/route-free-preview-section.tsx` — `routeId={route.id}` 전달.
+
+### 변경 내용
+
+- `confirmRouteCheckoutAction({ routeId, plan, receiptId })`:
+  - `pass_1` → `createRouteSingleGrantAction` (90일 grant).
+  - `pass_3`/`pass_5` → `createRouteTicketPackAction` 후 그 자리에서 `consumeRouteTicketAction` 1장 즉시 소모 (현재 보던 루트 unlock).
+  - `monthly_9900` → 월구독 placeholder(TODO).
+  - 영수증 검증은 stub — Phase 3C+ 실 PG SDK 결합 시 그 자리에 추가.
+- PlaybookUnlockSheet:
+  - `routeId` prop 추가(기본 undefined). mock 루트는 그대로 데모 unlock만.
+  - success 단계 useEffect에서 fake receipt 생성 후 `confirmRouteCheckoutAction` 호출 → 성공이든 실패든 데모 unlock은 그대로 진행(시연 안정성). 운영 모드에선 실패 시 토스트로 교체.
+  - `router.refresh()` 호출로 grant 발급 후 서버 access resolver가 본인 owner로 판정하게 함.
+
+### 검증 결과
+
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm exec eslint`(변경 파일) 통과(pre-existing warning 1건 외 신규 없음).
+- `pnpm build` 통과 (1008 페이지 SSG).
+- 실제 grant 생성은 DB 마이그레이션 적용 + 로그인 사용자 시 동작.
+
+### 남은 작업
+
+- Phase 3C+: Toss/Kakao SDK 결합 — receiptId 검증, 실 PG 승인/취소 처리.
+- Phase 3D: 마이페이지 `<RouteOwnerSharePanel>` 통합, grant 만료 카운트다운, 운영 대시보드.
+
+---
+
 ## 2026-05-27 — Phase 3B-2 (클라이언트 ticket-prompt/exhausted 다이얼로그 자동 발화)
 
 ### 목표
