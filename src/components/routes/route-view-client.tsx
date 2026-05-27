@@ -33,6 +33,8 @@ import {
 } from "@/components/routes/route-ticket-dialogs";
 import { consumeRouteTicketAction } from "@/lib/route-access-actions.server";
 import { RouteOwnerSharePanelLoader } from "@/components/routes/route-owner-share-panel-loader";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { ROUTE_OWNER_SHARE_OPEN_EVENT } from "@/components/route-posts/playbook-unlock-sheet";
 import { useToast } from "@/components/ui/toast";
 
 /**
@@ -92,6 +94,16 @@ export function RouteViewClient({
     return lockedHint.reason === "ticket-prompt" ? "prompt" : "exhausted";
   });
   const [, startTicketConsume] = useTransition();
+  /** owner 공유 sheet — 상단 Share 버튼 + 결제 완료 후 공유 CTA에서 트리거. */
+  const [ownerShareSheetOpen, setOwnerShareSheetOpen] = useState(false);
+
+  /** PlaybookUnlockSheet에서 dispatch한 이벤트를 받아 공유 sheet 자동 오픈. */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = () => setOwnerShareSheetOpen(true);
+    window.addEventListener(ROUTE_OWNER_SHARE_OPEN_EVENT, handler);
+    return () => window.removeEventListener(ROUTE_OWNER_SHARE_OPEN_EVENT, handler);
+  }, []);
 
   // 데스크톱(md ≥768px) 감지 — 시트 side, 좌측 레일 노출 여부 결정.
   useEffect(() => {
@@ -128,6 +140,12 @@ export function RouteViewClient({
   }, [initialUnlocked, router]);
 
   function sharePlayer() {
+    // owner면 무료 초대 sheet를 우선 열어준다 — Korea-SafeMate 공유는 무료 초대(최대 2명)가
+    // 1차 흐름이고, 단순 링크 복사/시스템 공유는 보조 흐름.
+    if (ownerGrantId) {
+      setOwnerShareSheetOpen(true);
+      return;
+    }
     if (typeof window === "undefined") return;
     const title = route.title[locale] ?? route.title.en ?? "Route";
     const url = `${window.location.origin}/routes/${route.id}`;
@@ -328,8 +346,14 @@ export function RouteViewClient({
               <button
                 type="button"
                 onClick={sharePlayer}
-                aria-label="share"
-                className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-10 shrink-0 items-center justify-center rounded-full transition-colors"
+                aria-label={ownerGrantId ? t("routeOwnerShareTitle") : "share"}
+                title={ownerGrantId ? t("routeOwnerShareTitle") : undefined}
+                className={cn(
+                  "flex size-10 shrink-0 items-center justify-center rounded-full transition-colors",
+                  ownerGrantId
+                    ? "text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
               >
                 <Share2 className="size-5" />
               </button>
@@ -466,6 +490,28 @@ export function RouteViewClient({
               if (!open) setSelectedSpot(null);
             }}
           />
+        ) : null}
+
+        {/* owner 공유 sheet — 상단 Share2 버튼 또는 결제 완료 후 CTA에서 트리거.
+            ownerGrantId가 있을 때만 진입 가능. 좌측 레일 하단의 인라인 패널과 같은 데이터를 공유. */}
+        {ownerGrantId ? (
+          <Sheet open={ownerShareSheetOpen} onOpenChange={setOwnerShareSheetOpen}>
+            <SheetContent
+              side={isDesktop ? "right" : "bottom"}
+              className={cn(
+                "z-[80] overflow-y-auto",
+                isDesktop ? "w-[420px] max-w-full" : "max-h-[85vh] rounded-t-3xl",
+              )}
+            >
+              <SheetHeader>
+                <SheetTitle>{t("routeOwnerShareTitle")}</SheetTitle>
+                <SheetDescription>{t("routeOwnerShareHint")}</SheetDescription>
+              </SheetHeader>
+              <div className="px-5 pb-6 pt-2">
+                <RouteOwnerSharePanelLoader grantId={ownerGrantId} />
+              </div>
+            </SheetContent>
+          </Sheet>
         ) : null}
       </div>
     </GoogleMapsProvider>

@@ -11,6 +11,13 @@ import { useRouter } from "@/i18n/navigation";
 import { confirmRouteCheckoutAction } from "@/lib/route-access-checkout.server";
 import { useToast } from "@/components/ui/toast";
 
+/**
+ * 결제 완료 후 사용자가 "친구에게 무료로 공유" CTA를 누를 때 dispatch.
+ * RouteViewClient가 listen하여 공유 sheet를 자동으로 열어준다.
+ * 페이지 전환 없이도 onConfirmDemoUnlock → 본문 노출과 함께 공유 sheet가 열림.
+ */
+export const ROUTE_OWNER_SHARE_OPEN_EVENT = "route-owner-share-open";
+
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -72,6 +79,10 @@ export function PlaybookUnlockSheet({
       void (async () => {
         // Phase 3C: 결제 완료 시점에 서버측 grant/pack 발급을 시도.
         // routeId가 있을 때만 (mock 루트가 아닐 때) 실제 grant를 만든다.
+        // 주의: router.refresh()는 호출하지 않음 — 시트가 살아있는 동안 부모
+        //       (RouteFreePreviewSection)가 unmount되면 시트도 사라져 공유 CTA를
+        //       사용자가 누를 수 없게 되기 때문. unlock은 사용자가 CTA를 누른
+        //       시점에 onConfirmDemoUnlock()으로 부모에게 전달.
         if (routeId && plan && plan !== "monthly_9900") {
           try {
             await confirmRouteCheckoutAction({
@@ -79,7 +90,6 @@ export function PlaybookUnlockSheet({
               plan,
               receiptId: `fake_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             });
-            router.refresh();
           } catch {
             /* swallow — 데모는 그대로 진행 */
           }
@@ -91,11 +101,9 @@ export function PlaybookUnlockSheet({
           title: t("paymentSuccessToastTitle", { price: priceLabel }),
           description: t("paymentSuccessToastBody"),
         });
-        // 데모 unlock은 즉시 적용해서 뒤에서 콘텐츠가 풀리도록.
-        onConfirmDemoUnlock();
       })();
     }
-  }, [step, grantConfirmed, onConfirmDemoUnlock, routeId, plan, router, toast, t]);
+  }, [step, grantConfirmed, routeId, plan, toast, t]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -125,10 +133,22 @@ export function PlaybookUnlockSheet({
           <SuccessStep
             t={t}
             plan={plan}
-            onClose={() => onOpenChange(false)}
-            onShare={() => {
+            onClose={() => {
+              // 1) 부모(RouteFreePreviewSection)에게 unlock 신호 — 본문이 풀리며
+              //    이 시트도 함께 unmount되므로, unlock은 이 시점이 가장 안전.
+              onConfirmDemoUnlock();
               onOpenChange(false);
-              // Cockpit 좌측 공유 패널이 자동 노출되도록 router.refresh로 access reason→owner 갱신.
+              // 2) 서버 grant가 발급됐으므로 access resolver 결과(owner)를 반영.
+              router.refresh();
+            }}
+            onShare={() => {
+              // 1) unlock + 시트 닫기
+              onConfirmDemoUnlock();
+              onOpenChange(false);
+              // 2) RouteViewClient가 받아서 owner 공유 sheet 자동 오픈.
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent(ROUTE_OWNER_SHARE_OPEN_EVENT));
+              }
               router.refresh();
             }}
           />

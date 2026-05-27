@@ -9,6 +9,63 @@
 
 ---
 
+## 2026-05-27 — Phase 3M (결제 후 재진입 잠금 + 공유 CTA 영구화)
+
+**문제 보고 (사용자)**:
+1. 한 번 결제한 사용자가 동일 루트에 재진입해도 미리보기 화면이 계속 뜸 → 본문으로 자동 진입해야 함.
+2. 결제 완료 시트의 "친구에게 무료로 공유" CTA가 너무 짧게 보이고 사라져 사용 불가 → 하루루트 화면 내에서도 공유 진입점이 필요.
+
+**원인 분석**:
+
+1. `routes/[routeId]/page.tsx`: `wantsPreview`(query `?preview=1`)가 true이면 `resolveRouteAccessServer`를 통째로 skip. 즉, RelatedRouteBanner나 다른 진입점이 한 번이라도 `?preview=1`을 부착하면 결제 grant가 있어도 잠금 화면이 노출. preview 쿼리는 "미결제 맛보기" 의도였는데 owner/shared-invite까지 막아버린 게 잘못.
+
+2. `PlaybookUnlockSheet`: Success step 도달 시 `useEffect` 안에서 `onConfirmDemoUnlock()`을 즉시 호출 → 부모 `RouteFreePreviewSection`이 unlocked=true로 전이 → 그 자체가 unmount되며 **시트도 함께 사라짐**. 그래서 공유 CTA가 0.5초도 안 되어 화면에서 증발.
+
+**조치**:
+
+### A) page.tsx — preview 쿼리와 무관하게 access resolver 적용
+
+```ts
+// 변경 전
+if (!initialUnlocked && !wantsPreview && _isUuid(routeId)) { ... }
+
+// 변경 후
+if (!initialUnlocked && _isUuid(routeId)) {
+  const decision = await resolveRouteAccessServer({ routeId, userId });
+  if (decision.canView) { /* owner/shared-invite는 항상 unlock */ }
+  else if (!wantsPreview && decision.reason === "ticket-prompt") { /* ... */ }
+}
+```
+
+결과: 결제자/공유받은자는 어떤 URL(`?preview=1` 포함)로 진입해도 즉시 본문. ticket-prompt 다이얼로그는 `?preview=1` 명시 시에는 띄우지 않아 맛보기 흐름 유지.
+
+### B) PlaybookUnlockSheet — Success는 grant만 발급, unlock은 명시적 CTA
+
+- Success step useEffect: `confirmRouteCheckoutAction` 호출 + 토스트만. `onConfirmDemoUnlock()` 호출 제거, `router.refresh()` 제거.
+- "전체 코스 보기" CTA `onClose`: `onConfirmDemoUnlock()` + `onOpenChange(false)` + `router.refresh()`.
+- "친구에게 무료로 공유" CTA `onShare`: unlock + 시트 닫기 + **`ROUTE_OWNER_SHARE_OPEN_EVENT` dispatch** + refresh.
+
+이제 success 시트는 사용자가 CTA를 누를 때까지 그대로 떠 있고, 어떤 CTA를 눌렀느냐에 따라 다음 화면이 자연스럽게 이어진다.
+
+### C) RouteViewClient — 상단 Share2 버튼이 owner 공유 sheet 진입점
+
+- 새 state `ownerShareSheetOpen` + `ROUTE_OWNER_SHARE_OPEN_EVENT` listener.
+- `sharePlayer()`: `ownerGrantId`가 있으면 `setOwnerShareSheetOpen(true)` 우선, 없으면 기존 `navigator.share` 폴백.
+- Share2 버튼: owner면 `text-[var(--brand-primary)]` + i18n title로 시각적 강조.
+- 새 Sheet: 모바일은 bottom, 데스크톱은 right side. 내부에 기존 `RouteOwnerSharePanelLoader`를 그대로 마운트(코드 재사용).
+
+이로써 결제 후 본문 어디서든 상단 Share 버튼 하나로 무료 초대 sheet 진입 가능. 좌측 인라인 패널은 그대로 유지(데스크톱 사용자에게 항시 노출).
+
+### D) 이벤트 브리지
+
+`ROUTE_OWNER_SHARE_OPEN_EVENT`를 `PlaybookUnlockSheet`에서 export → 결제 완료 후 공유 CTA → `RouteViewClient`가 listen → 본문이 풀리는 동시에 공유 sheet 자동 오픈. 페이지 리로드 없이 한 흐름.
+
+**검증**: `pnpm tsc --noEmit` 통과. `pnpm build` 성공. lint는 기존 패턴(`setState in effect`)만 잔존.
+
+**파일**: `src/app/[locale]/(public)/routes/[routeId]/page.tsx`, `src/components/route-posts/playbook-unlock-sheet.tsx`, `src/components/routes/route-view-client.tsx` (3개, +80/-12).
+
+---
+
 ## 2026-05-27 — hotfix(vercel): cron schedule daily 변경
 
 **증상**: Phase 3I 이후(`af363701` 다음 푸시 5건) Vercel production 자동 배포가 전혀 트리거되지 않음. GitHub은 정상 푸시됨.

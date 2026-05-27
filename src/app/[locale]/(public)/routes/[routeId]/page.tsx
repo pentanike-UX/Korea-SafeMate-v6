@@ -103,8 +103,10 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
   if (initialUnlocked) {
     viewLogSource = "custom-self";
   }
-  if (!initialUnlocked && !wantsPreview && _isUuid(routeId)) {
-    // 비-mock UUID 루트만 access resolver 적용 (mock은 별도 데모 unlock 흐름).
+  if (!initialUnlocked && _isUuid(routeId)) {
+    // 비-mock UUID 루트는 preview 쿼리와 무관하게 access resolver 적용.
+    // 정책: 결제(owner)·공유 초대(shared-invite) 보유자는 어떤 진입경로로 와도 즉시 unlock.
+    //       `?preview=1`은 미결제 사용자의 "맛보기" 진입(미로그인/비결제) 의도로만 사용.
     const decision = await resolveRouteAccessServer({ routeId, userId });
     if (decision.canView) {
       initialUnlocked = true;
@@ -116,13 +118,13 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
         accessOwnerGrantId = decision.ownerGrantId;
         viewLogSource = "owner";
       }
-    } else if (decision.reason === "ticket-prompt") {
+    } else if (!wantsPreview && decision.reason === "ticket-prompt") {
       accessLockedHint = {
         reason: "ticket-prompt",
         ticketsRemaining: decision.ticketsRemaining ?? null,
         ticketPackId: decision.ticketPackId ?? null,
       };
-    } else if (decision.reason === "tickets-exhausted") {
+    } else if (!wantsPreview && decision.reason === "tickets-exhausted") {
       accessLockedHint = { reason: "tickets-exhausted" };
     }
   }
