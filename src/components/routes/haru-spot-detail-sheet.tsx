@@ -16,12 +16,15 @@ export function HaruSpotDetailSheet({
   open,
   onOpenChange,
   side = "bottom",
+  fullscreen = false,
 }: {
   spot: HaruSpot | null;
   locale: AppLocale;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   side?: "right" | "bottom";
+  /** 모바일에서 전체 화면을 덮도록 — 핸들바 없이 라운드 제거하고 100dvh로 노출. */
+  fullscreen?: boolean;
 }) {
   // 모바일 전체화면 시트 — 폰 '뒤로가기'(history popstate)로 닫히게 연동.
   const onOpenChangeRef = useRef(onOpenChange);
@@ -56,11 +59,13 @@ export function HaruSpotDetailSheet({
         className={cn(
           "flex w-full flex-col gap-0 overflow-hidden p-0",
           "data-[side=right]:w-full data-[side=right]:sm:max-w-[440px] data-[side=right]:lg:max-w-[480px] data-[side=right]:xl:max-w-[520px]",
-          "data-[side=bottom]:max-h-[90vh] data-[side=bottom]:rounded-t-3xl",
+          fullscreen
+            ? "data-[side=bottom]:h-[100dvh] data-[side=bottom]:max-h-[100dvh] data-[side=bottom]:rounded-none"
+            : "data-[side=bottom]:max-h-[90vh] data-[side=bottom]:rounded-t-3xl",
         )}
         aria-label={spot.catalog.name[locale] ?? spot.catalog.name.en ?? "Spot"}
       >
-        {side === "bottom" ? (
+        {side === "bottom" && !fullscreen ? (
           <div className="flex shrink-0 justify-center pt-2 pb-1" aria-hidden>
             <span className="bg-muted-foreground/30 h-1 w-10 rounded-full" />
           </div>

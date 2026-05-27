@@ -3,8 +3,6 @@
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import {
-  List,
-  Map as MapIcon,
   Bookmark,
   BookmarkCheck,
   Loader2,
@@ -13,7 +11,6 @@ import {
   X,
   MessageCircle,
 } from "lucide-react";
-import { HaruTimeline } from "@/components/patterns/haru-timeline";
 import { RouteFreePreviewSection } from "@/components/routes/route-free-preview-section";
 import { HaruSpotDetailSheet } from "@/components/routes/haru-spot-detail-sheet";
 import { SpotDetailContent } from "@/components/routes/spot-detail-content";
@@ -59,8 +56,6 @@ export function RouteViewClient({
   const t = useTranslations("TravelerHub");
   const router = useRouter();
   const [unlocked, setUnlocked] = useState(initialUnlocked);
-  /** 모바일 전용 — 데스크톱(md+)에서는 항상 split (타임라인 + 지도) */
-  const [mobileViewMode, setMobileViewMode] = useState<"timeline" | "map">("map");
   const [selectedSpot, setSelectedSpot] = useState<HaruSpot | null>(null);
   const [saved, setSaved] = useState(initialSaved);
   const [savePending, startSaveTransition] = useTransition();
@@ -285,100 +280,87 @@ export function RouteViewClient({
             </div>
           </div>
 
-          {/* 모드 토글 — 모바일 전용 (데스크톱은 split 레이아웃이라 불필요) */}
-          <div className="px-2 pb-2 sm:hidden">
-            <div className="border-border/50 bg-muted/50 inline-flex gap-1 rounded-xl border p-1">
-              <button
-                type="button"
-                onClick={() => setMobileViewMode("timeline")}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors",
-                  mobileViewMode === "timeline"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <List className="size-3.5" aria-hidden />
-                {t("routeViewerModeTimeline")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileViewMode("map")}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors",
-                  mobileViewMode === "map"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <MapIcon className="size-3.5" aria-hidden />
-                {t("routeViewerModeMap")}
-              </button>
-            </div>
-          </div>
         </header>
 
         {/* ── Body ── */}
         <div className="relative min-h-0 flex-1">
-          {/* 데스크톱: split 레이아웃 (좌 패널 — 레일 또는 상세 / 우 지도) */}
-          <div className="hidden h-full md:grid md:grid-cols-[360px_1fr] xl:grid-cols-[440px_1fr]">
+          {/* 데스크톱/태블릿 (md+): 좌측 레일(고정) + 상세 패널(슬라이드 in) + 지도(밀려서 좁아짐) */}
+          <div className="hidden h-full md:flex">
+            {/* 1. 스팟 목록 레일 — 항상 고정 */}
+            <aside className="border-border/60 bg-card/30 h-full w-[320px] shrink-0 overflow-y-auto overscroll-contain border-r lg:w-[360px] xl:w-[400px]">
+              <RouteSpotRailVertical
+                route={route}
+                locale={locale}
+                selectedSpotId={selectedSpot?.id ?? null}
+                onSpotClick={(s) => setSelectedSpot(s)}
+              />
+              <div className="px-3 pb-5 sm:px-4">
+                <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
+              </div>
+            </aside>
+
+            {/* 2. 상세 패널 — selectedSpot일 때만 width가 0→fixed로 확장(슬라이드 효과) */}
             <aside
+              aria-hidden={!selectedSpot}
+              style={{ transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)" }}
               className={cn(
-                "border-border/60 bg-card/30 h-full overflow-hidden border-r",
-                // 상세 모드일 땐 자체 스크롤은 SpotDetailContent 내부에서 처리
-                selectedSpot ? "flex flex-col" : "overflow-y-auto overscroll-contain",
+                "bg-card h-full shrink-0 overflow-hidden border-r border-border/60 transition-[width] duration-[320ms]",
+                selectedSpot ? "w-[380px] lg:w-[440px] xl:w-[500px]" : "w-0",
               )}
             >
-              {selectedSpot ? (
-                <SpotDetailContent
-                  key={selectedSpot.id}
-                  spot={selectedSpot}
-                  locale={locale}
-                  onClose={() => setSelectedSpot(null)}
-                />
-              ) : (
-                <>
-                  <RouteSpotRailVertical
-                    route={route}
+              {/* 내부는 항상 fixed 폭 — 컨테이너 width 변경 시 콘텐츠가 리플로우되지 않게 */}
+              <div className="h-full w-[380px] lg:w-[440px] xl:w-[500px]">
+                {selectedSpot ? (
+                  <SpotDetailContent
+                    key={selectedSpot.id}
+                    spot={selectedSpot}
                     locale={locale}
-                    selectedSpotId={null}
-                    onSpotClick={(s) => setSelectedSpot(s)}
+                    onClose={() => setSelectedSpot(null)}
                   />
-                  <div className="px-3 pb-5 sm:px-4">
-                    <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
-                  </div>
-                </>
-              )}
+                ) : null}
+              </div>
             </aside>
-            <div className="relative min-h-0">{MapView}</div>
+
+            {/* 3. 지도 — 남은 공간 모두 채움 */}
+            <div className="relative min-h-0 flex-1">{MapView}</div>
           </div>
 
-          {/* 모바일: 모드 토글로 전환 */}
-          <div className="h-full md:hidden">
-            {mobileViewMode === "map" ? (
-              MapView
-            ) : (
-              <div className="h-full overflow-y-auto overscroll-contain py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-                <div className="px-4 sm:px-6">
-                  <HaruTimeline route={route} locale={locale} hideHeader onSpotClick={(s) => setSelectedSpot(s)} />
-                </div>
-                <div className="px-4 sm:px-6">
-                  <div className="mt-6">
-                    <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
-                  </div>
+          {/* 모바일 (<md): 구글 지도 스타일 — 지도 베이스 + 50% peek 패널 + 상세는 별도 풀스크린 시트 */}
+          <div className="relative h-full md:hidden">
+            {MapView}
+            {/* peek 패널: 지도 위에 50% 높이로 항상 떠 있음. 상세가 열리면 풀스크린 시트가 위에 덮음. */}
+            <div
+              className={cn(
+                "absolute inset-x-0 bottom-0 z-10 flex h-[50%] flex-col overflow-hidden rounded-t-3xl border-t border-border/60 bg-card shadow-2xl",
+                "pb-[env(safe-area-inset-bottom)]",
+              )}
+            >
+              <div className="flex shrink-0 justify-center pt-2 pb-1" aria-hidden>
+                <span className="bg-muted-foreground/30 h-1 w-10 rounded-full" />
+              </div>
+              <div className="flex-1 overflow-y-auto overscroll-contain">
+                <RouteSpotRailVertical
+                  route={route}
+                  locale={locale}
+                  selectedSpotId={null}
+                  onSpotClick={(s) => setSelectedSpot(s)}
+                />
+                <div className="px-3 pb-5">
+                  <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
-        {/* 스팟 상세 — 모바일 전용 bottom sheet. 데스크톱은 좌측 패널 인라인. */}
+        {/* 스팟 상세 — 모바일 전용 fullscreen bottom sheet. 데스크톱은 좌측 인라인 패널로 처리. */}
         {!isDesktop ? (
           <HaruSpotDetailSheet
             spot={selectedSpot}
             locale={locale}
             open={selectedSpot != null}
             side="bottom"
+            fullscreen
             onOpenChange={(open) => {
               if (!open) setSelectedSpot(null);
             }}

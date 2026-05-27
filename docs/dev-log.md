@@ -9,6 +9,44 @@
 
 ---
 
+## 2026-05-27 — Cockpit Phase 2B (레일 고정·상세 슬라이드·모바일 peek+풀스크린)
+
+### 목표
+
+피드백 반영: 좌측 스팟 목록은 항상 고정. 스팟 클릭 시 그 오른쪽으로 상세 패널이 슬라이드 확장(지도가 밀려 좁아짐). 모바일은 구글 지도처럼 지도 베이스 + 50% peek 패널 + 스팟 클릭 시 풀스크린 상세 시트.
+
+### 변경 파일
+
+- `src/components/routes/route-view-client.tsx`
+- `src/components/routes/haru-spot-detail-sheet.tsx` — `fullscreen` prop 추가.
+
+### 변경 내용
+
+- 데스크톱/태블릿 (md+):
+  - 본문을 `flex` 3섹션으로 재편 — (1) 레일(고정 폭 320/360/400) + (2) 상세 패널(width 0 → 380/440/500) + (3) 지도(flex-1).
+  - 상세 패널은 `transition-[width] duration-[320ms] cubic-bezier(0.22, 1, 0.36, 1)` — width가 0에서 고정값으로 자라며 슬라이드 효과. 내부는 항상 고정 폭으로 리플로우 방지.
+  - 선택 스팟은 레일에서 강조(`selectedSpotId` 전달) — 사용자가 어떤 스팟을 보고 있는지 항상 확인 가능.
+- 모바일 (<md):
+  - 모드 토글 제거. 지도가 본문 전체 베이스.
+  - peek 패널: `absolute inset-x-0 bottom-0 h-[50%] rounded-t-3xl border-t shadow-2xl` — 50% 높이로 항상 떠 있음. 핸들바 + 스팟 레일 + NextStepsBlock.
+  - 스팟 탭 시: `HaruSpotDetailSheet`에 `fullscreen` prop으로 100dvh + 라운드 제거 + 핸들바 제거 — 화면 전체를 덮으며 슬라이드 업.
+  - 백드롭 투명 유지(Phase 2A).
+- 사용처 정리: `List`/`Map as MapIcon`/`HaruTimeline`/`mobileViewMode` 미사용 import·state 제거.
+
+### 검증 결과
+
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm exec eslint`(변경 파일) 통과.
+- `pnpm build` 통과 (Compiled successfully · 1008 페이지 SSG).
+- 시각 검증: (a) 데스크톱 스팟 클릭 시 좌측 상세 패널이 슬라이드 확장하며 지도가 밀려 좁아지는지, (b) 모바일에서 지도 위 50% peek 패널 상시 노출 + 스팟 탭 시 풀스크린 상세, (c) 지도 마커 클릭에서도 동일 동작 확인 권장.
+
+### 남은 이슈
+
+- peek 패널 드래그로 30/50/90% 스냅 전환(현재는 50% 고정).
+- 데스크톱 좁은 폭에서 레일+상세+지도가 모두 좁아질 수 있음 — 시연 후 임계점 조정.
+
+---
+
 ## 2026-05-27 — Cockpit Phase 2A (좌측 패널 inline 상세 · 백드롭 제거 · mock 가디언)
 
 ### 목표
