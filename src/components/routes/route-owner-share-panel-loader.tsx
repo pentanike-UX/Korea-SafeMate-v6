@@ -9,6 +9,7 @@ import {
   type ShareInviteSlot,
 } from "@/components/routes/route-owner-share-panel";
 import {
+  createRouteInviteLinkAction,
   createRouteShareInviteAction,
   listRouteShareInvitesAction,
   revokeRouteShareInviteAction,
@@ -22,7 +23,14 @@ import { useToast } from "@/components/ui/toast";
  * - 멤버 검색 시트 (오버레이)
  * - 발급·회수 액션 호출 후 목록 갱신
  */
-export function RouteOwnerSharePanelLoader({ grantId }: { grantId: string }) {
+export function RouteOwnerSharePanelLoader({
+  grantId,
+  routeId,
+}: {
+  grantId: string;
+  /** 토큰 링크 URL을 만들기 위한 routeId. 외부에서 routeId를 알고 있을 때 전달. */
+  routeId?: string;
+}) {
   const t = useTranslations("TravelerHub");
   const { toast } = useToast();
   const [invites, setInvites] = useState<ShareInviteSlot[]>([]);
@@ -33,6 +41,7 @@ export function RouteOwnerSharePanelLoader({ grantId }: { grantId: string }) {
   >([]);
   const [searchPending, startSearch] = useTransition();
   const [actionPending, startAction] = useTransition();
+  const [linkPending, setLinkPending] = useState(false);
 
   const refresh = useCallback(() => {
     startAction(async () => {
@@ -100,9 +109,98 @@ export function RouteOwnerSharePanelLoader({ grantId }: { grantId: string }) {
     });
   }
 
+  /**
+   * Phase 3N — 토큰 링크 발급/획득.
+   * 활성 pending 토큰이 이미 있으면 그것을 재사용, 없으면 새 token 생성.
+   * 반환: 외부에서 share()/clipboard 등 후속 동작에 쓸 수 있는 fully-qualified URL.
+   */
+  async function ensureLinkUrl(): Promise<string | null> {
+    const existing = invites.find((iv) => iv.pending && iv.invite_token);
+    if (existing?.invite_token && routeId) {
+      return buildInviteUrl(routeId, existing.invite_token);
+    }
+    setLinkPending(true);
+    try {
+      const r = await createRouteInviteLinkAction({ grantId });
+      if (!r.ok) {
+        const msg =
+          r.error === "invite-limit"
+            ? t("routeShareInviteErrLimit")
+            : t("routeShareInviteErrGeneric");
+        toast({ variant: "error", title: msg });
+        return null;
+      }
+      refresh();
+      if (!routeId) {
+        // routeId가 없으면 호출처에서 URL을 만들 수 없으므로 token만 임시 노출.
+        toast({ variant: "error", title: t("routeShareInviteErrGeneric") });
+        return null;
+      }
+      return buildInviteUrl(routeId, r.token);
+    } finally {
+      setLinkPending(false);
+    }
+  }
+
+  async function onShareLink() {
+    const url = await ensureLinkUrl();
+    if (!url) return;
+    const title = t("routeOwnerShareLinkTitle");
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title, text: t("routeOwnerShareLinkShareBody"), url });
+        return;
+      } catch {
+        /* 사용자가 share 캔슬한 경우 등 — clipboard 폴백 */
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast({ variant: "success", title: t("routeOwnerShareLinkCopyOk") });
+      } catch {
+        toast({ variant: "error", title: t("routeShareInviteErrGeneric") });
+      }
+    }
+  }
+
+  async function onCopyLink() {
+    const url = await ensureLinkUrl();
+    if (!url) return;
+    if (typeof navigator === "undefined" || !navigator.clipboard) {
+      toast({ variant: "error", title: t("routeShareInviteErrGeneric") });
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({
+        variant: "success",
+        title: t("routeOwnerShareLinkCopyOk"),
+        description: url,
+      });
+    } catch {
+      toast({ variant: "error", title: t("routeShareInviteErrGeneric") });
+    }
+  }
+
+  async function onCreateLink() {
+    await ensureLinkUrl();
+  }
+
+  const hasActiveLink = invites.some((iv) => iv.pending && iv.invite_token);
+
   return (
     <>
-      <RouteOwnerSharePanel invites={invites} onInvite={onInviteClick} onRevoke={onRevoke} />
+      <RouteOwnerSharePanel
+        invites={invites}
+        onInvite={onInviteClick}
+        onCreateLink={onCreateLink}
+        onShareLink={onShareLink}
+        onCopyLink={onCopyLink}
+        onRevoke={onRevoke}
+        linkBusy={linkPending}
+        hasActiveLink={hasActiveLink}
+      />
 
       <Sheet open={searchOpen} onOpenChange={setSearchOpen}>
         <SheetContent side="bottom" className="max-h-[80vh] rounded-t-3xl p-0">
@@ -156,4 +254,11 @@ export function RouteOwnerSharePanelLoader({ grantId }: { grantId: string }) {
       </Sheet>
     </>
   );
+}
+
+/** Phase 3N — invite_token을 fully-qualified URL로 변환. window가 없는 경로(SSR)는 상대 경로. */
+function buildInviteUrl(routeId: string, token: string): string {
+  const path = `/routes/${routeId}?invite=${encodeURIComponent(token)}`;
+  if (typeof window === "undefined") return path;
+  return `${window.location.origin}${path}`;
 }

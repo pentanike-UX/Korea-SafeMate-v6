@@ -27,10 +27,11 @@ import mockDirections from "@/data/mock/haru-route-directions.json";
 import { resolveRouteAccessServer } from "@/lib/route-access.server";
 import { isUuidRouteId as _isUuid } from "@/lib/routes/haru-route-from-supabase.server";
 import { logRouteViewEvent } from "@/lib/route-view-log.server";
+import { redeemRouteInviteLinkAction } from "@/lib/route-access-actions.server";
 
 interface Props {
   params: Promise<{ routeId: string; locale: string }>;
-  searchParams: Promise<{ preview?: string | string[] }>;
+  searchParams: Promise<{ preview?: string | string[]; invite?: string | string[] }>;
 }
 
 function isMockRouteId(routeId: string) {
@@ -43,8 +44,30 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const previewParam = typeof sp.preview === "string" ? sp.preview : Array.isArray(sp.preview) ? sp.preview[0] : null;
   const wantsPreview = previewParam === "1";
+  const inviteTokenParam =
+    typeof sp.invite === "string" ? sp.invite : Array.isArray(sp.invite) ? sp.invite[0] : null;
+  const inviteToken = inviteTokenParam?.trim() || null;
 
   const userId = await getSupabaseAuthUserIdOnly();
+
+  // Phase 3N — 토큰 링크 흐름: ?invite={token}이 붙어있고 로그인 상태면 즉시 redeem.
+  // 비로그인 상태면 login → next={현 URL}로 보내 로그인 후 다시 들어와 redeem되도록.
+  if (inviteToken && _isUuid(routeId)) {
+    if (!userId) {
+      const loginPath = loginPathForLocale(localeParam as AppLocale);
+      const nextPath =
+        safeNextPath(withLocalePath(localeParam as AppLocale, `/routes/${routeId}?invite=${encodeURIComponent(inviteToken)}`)) ??
+        "/explore";
+      redirect(`${loginPath}?next=${encodeURIComponent(nextPath)}`);
+    }
+    // 로그인 사용자라면 redeem 시도. 결과는 silent — 실패해도 access resolver가
+    // 다음 단계에서 owner/shared-invite 여부를 다시 판정해 정답 화면을 결정한다.
+    try {
+      await redeemRouteInviteLinkAction({ routeId, token: inviteToken });
+    } catch {
+      /* swallow — 토큰 무효/만료여도 본문 표시는 access resolver가 결정 */
+    }
+  }
 
   let route: HaruRoute | null = null;
   let routeType: "sample" | "custom" | "mock" = "mock";

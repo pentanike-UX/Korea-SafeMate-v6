@@ -416,7 +416,7 @@ export function RouteViewClient({
                 <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
                 {ownerGrantId ? (
                   <div className="mt-3">
-                    <RouteOwnerSharePanelLoader grantId={ownerGrantId} />
+                    <RouteOwnerSharePanelLoader grantId={ownerGrantId} routeId={route.id} />
                   </div>
                 ) : null}
               </div>
@@ -472,7 +472,7 @@ export function RouteViewClient({
                   <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
                 {ownerGrantId ? (
                   <div className="mt-3">
-                    <RouteOwnerSharePanelLoader grantId={ownerGrantId} />
+                    <RouteOwnerSharePanelLoader grantId={ownerGrantId} routeId={route.id} />
                   </div>
                 ) : null}
                 </div>
@@ -513,7 +513,7 @@ export function RouteViewClient({
             </SheetHeader>
             <div className="px-5 pb-6 pt-2">
               {ownerGrantId ? (
-                <RouteOwnerSharePanelLoader grantId={ownerGrantId} />
+                <RouteOwnerSharePanelLoader grantId={ownerGrantId} routeId={route.id} />
               ) : (
                 <div className="flex flex-col items-center gap-3 py-10 text-center">
                   <Loader2 className="size-6 animate-spin text-muted-foreground" aria-hidden />

@@ -9,6 +9,7 @@ import { GuardianRequestOpenTrigger, type GuardianRequestOpenDetail } from "@/co
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
 import { confirmRouteCheckoutAction } from "@/lib/route-access-checkout.server";
+import { createRouteInviteLinkAction } from "@/lib/route-access-actions.server";
 import { useToast } from "@/components/ui/toast";
 
 /**
@@ -52,8 +53,10 @@ export function PlaybookUnlockSheet({
   const [method, setMethod] = useState<PayMethod | null>(null);
   const [plan, setPlan] = useState<PlanCode | null>(null);
   const [grantConfirmed, setGrantConfirmed] = useState(false);
+  /** Phase 3N — 결제 응답에서 받은 grantId. success 단계의 "무료 공유" CTA가 토큰 발급에 사용. */
+  const [grantId, setGrantId] = useState<string | null>(null);
+  const [sharingLink, setSharingLink] = useState(false);
 
-  // 시트가 닫히면 단계 초기화 (열면 항상 플랜 선택부터)
   useEffect(() => {
     if (!open) {
       const id = setTimeout(() => {
@@ -61,6 +64,8 @@ export function PlaybookUnlockSheet({
         setMethod(null);
         setPlan(null);
         setGrantConfirmed(false);
+        setGrantId(null);
+        setSharingLink(false);
       }, 200);
       return () => clearTimeout(id);
     }
@@ -85,11 +90,17 @@ export function PlaybookUnlockSheet({
         //       시점에 onConfirmDemoUnlock()으로 부모에게 전달.
         if (routeId && plan && plan !== "monthly_9900") {
           try {
-            await confirmRouteCheckoutAction({
+            const res = await confirmRouteCheckoutAction({
               routeId,
               plan,
               receiptId: `fake_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
             });
+            if (res.ok) {
+              // pass_1은 grantId, pass_3/5는 consumedGrantId — 둘 다 owner grant 식별자.
+              const gid =
+                "grantId" in res ? res.grantId : "consumedGrantId" in res ? res.consumedGrantId : null;
+              if (gid) setGrantId(gid);
+            }
           } catch {
             /* swallow — 데모는 그대로 진행 */
           }
@@ -141,15 +152,62 @@ export function PlaybookUnlockSheet({
               // 2) 서버 grant가 발급됐으므로 access resolver 결과(owner)를 반영.
               router.refresh();
             }}
-            onShare={() => {
-              // 1) unlock + 시트 닫기
-              onConfirmDemoUnlock();
-              onOpenChange(false);
-              // 2) RouteViewClient가 받아서 owner 공유 sheet 자동 오픈.
-              if (typeof window !== "undefined") {
-                window.dispatchEvent(new CustomEvent(ROUTE_OWNER_SHARE_OPEN_EVENT));
+            sharing={sharingLink}
+            onShare={async () => {
+              // Phase 3N: 결제 직후 무료 공유 = 토큰 링크 발급 → 네이티브 share 즉시 호출.
+              // 사용자가 시트를 닫기 전에 share UI(카톡/메시지 등)를 곧바로 띄워서
+              // "친구에게 보내기"가 한 탭으로 끝나도록.
+              if (!grantId || !routeId) {
+                // grantId가 없으면(mock 루트 or 결제 실패) 기존 흐름으로 폴백 — sheet 열고 안내.
+                onConfirmDemoUnlock();
+                onOpenChange(false);
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent(ROUTE_OWNER_SHARE_OPEN_EVENT));
+                }
+                router.refresh();
+                return;
               }
-              router.refresh();
+              setSharingLink(true);
+              try {
+                const r = await createRouteInviteLinkAction({ grantId });
+                if (!r.ok) {
+                  toast({
+                    variant: "error",
+                    title: t("paymentSuccessShareError"),
+                  });
+                  return;
+                }
+                const url = `${window.location.origin}/routes/${routeId}?invite=${encodeURIComponent(r.token)}`;
+                const title = t("paymentSuccessShareTitle");
+                const text = t("paymentSuccessShareBody");
+                let shared = false;
+                if (typeof navigator !== "undefined" && navigator.share) {
+                  try {
+                    await navigator.share({ title, text, url });
+                    shared = true;
+                  } catch {
+                    /* 사용자 취소 — clipboard 폴백 */
+                  }
+                }
+                if (!shared && typeof navigator !== "undefined" && navigator.clipboard) {
+                  try {
+                    await navigator.clipboard.writeText(url);
+                    toast({
+                      variant: "success",
+                      title: t("paymentSuccessLinkCopied"),
+                      description: url,
+                    });
+                  } catch {
+                    /* clipboard 실패해도 share UI는 이미 띄워봤음 */
+                  }
+                }
+              } finally {
+                setSharingLink(false);
+                // share UI가 닫힌 후 본문 진입 — 사용자가 결과를 보고 자연스럽게 본문으로.
+                onConfirmDemoUnlock();
+                onOpenChange(false);
+                router.refresh();
+              }
             }}
           />
         )}
@@ -389,11 +447,13 @@ function SuccessStep({
   plan,
   onClose,
   onShare,
+  sharing = false,
 }: {
   t: (k: string) => string;
   plan: PlanCode | null;
   onClose: () => void;
   onShare: () => void;
+  sharing?: boolean;
 }) {
   const priceLabel = plan ? PLAN_PRICE[plan] : t("paywallCtaPrimaryPrice");
   // 시연용 가짜 영수증 번호 — 매 진입마다 새로 생성 (실 PG 연동 시 콜백 값으로 교체).
@@ -424,10 +484,15 @@ function SuccessStep({
           <button
             type="button"
             onClick={onShare}
-            className="flex h-11 w-full items-center justify-center gap-1.5 rounded-2xl border border-border/60 bg-card text-sm font-semibold text-foreground transition-colors hover:bg-muted/40"
+            disabled={sharing}
+            className="flex h-11 w-full items-center justify-center gap-1.5 rounded-2xl border border-border/60 bg-card text-sm font-semibold text-foreground transition-colors hover:bg-muted/40 disabled:opacity-60"
           >
-            <Users className="size-4 text-[var(--brand-primary)]" aria-hidden />
-            {t("paymentSuccessShareCta")}
+            {sharing ? (
+              <Loader2 className="size-4 animate-spin text-[var(--brand-primary)]" aria-hidden />
+            ) : (
+              <Users className="size-4 text-[var(--brand-primary)]" aria-hidden />
+            )}
+            {sharing ? t("paymentSuccessShareSending") : t("paymentSuccessShareCta")}
           </button>
         ) : null}
         {plan !== "monthly_9900" ? (

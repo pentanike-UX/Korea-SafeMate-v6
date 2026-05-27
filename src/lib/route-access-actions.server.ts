@@ -201,23 +201,29 @@ export async function createRouteShareInviteAction(input: {
   return { ok: true, inviteId: inserted!.id };
 }
 
-/** 오너용 — 본인 grant의 활성 초대 목록 + grantee 프로필. */
+/**
+ * 오너용 — 본인 grant의 활성 초대 목록 + grantee 프로필.
+ *
+ * Phase 3N: granted_to_user_id가 NULL인 row(=토큰 발급 후 redeem 대기)도 포함.
+ * 그 경우 user_id/display_name은 null/"pending"으로 표시되고 invite_token이 채워진다.
+ */
 export async function listRouteShareInvitesAction(input: {
   grantId: string;
 }): Promise<{
   ok: true;
   invites: Array<{
     invite_id: string;
-    user_id: string;
+    user_id: string | null;
     display_name: string;
     avatar_url?: string | null;
+    invite_token?: string | null;
+    pending: boolean;
   }>;
 } | { ok: false; error: string }> {
   const ownerId = await getSupabaseAuthUserIdOnly();
   if (!ownerId) return { ok: false, error: "unauthorized" };
   const svc = createServiceRoleSupabase();
   if (!svc) return { ok: false, error: "service-role-unavailable" };
-  // 소유권 확인
   const { data: grant } = await svc
     .from("route_access_grants")
     .select("id, owner_user_id")
@@ -226,52 +232,72 @@ export async function listRouteShareInvitesAction(input: {
   if (!grant || grant.owner_user_id !== ownerId) return { ok: false, error: "not-owner" };
   const { data: rows } = await svc
     .from("route_share_invites")
-    .select("id, granted_to_user_id")
+    .select("id, granted_to_user_id, invite_token, created_at")
     .eq("grant_id", input.grantId)
-    .eq("status", "active");
-  const userIds = (rows ?? []).map((r: { granted_to_user_id: string }) => r.granted_to_user_id);
-  if (userIds.length === 0) return { ok: true, invites: [] };
-  // guardian_profiles 우선, 없으면 user_profiles 폴백 — 일반회원도 표시 가능.
-  const [{ data: gProfiles }, { data: uProfiles }] = await Promise.all([
-    svc
-      .from("guardian_profiles")
-      .select("user_id, display_name, photo_url, avatar_image_url")
-      .in("user_id", userIds),
-    svc
-      .from("user_profiles")
-      .select("user_id, display_name, profile_image_url")
-      .in("user_id", userIds),
-  ]);
+    .eq("status", "active")
+    .order("created_at", { ascending: true });
+  const rowsArr = (rows ?? []) as Array<{
+    id: string;
+    granted_to_user_id: string | null;
+    invite_token: string | null;
+  }>;
+  const userIds = rowsArr
+    .map((r) => r.granted_to_user_id)
+    .filter((v): v is string => Boolean(v));
   const profileMap = new Map<string, { display_name: string; avatar_url: string | null }>();
-  for (const p of (gProfiles ?? []) as Array<{
-    user_id: string;
-    display_name?: string | null;
-    photo_url?: string | null;
-    avatar_image_url?: string | null;
-  }>) {
-    profileMap.set(p.user_id, {
-      display_name: p.display_name?.trim() || "Member",
-      avatar_url: p.photo_url ?? p.avatar_image_url ?? null,
-    });
+  if (userIds.length > 0) {
+    const [{ data: gProfiles }, { data: uProfiles }] = await Promise.all([
+      svc
+        .from("guardian_profiles")
+        .select("user_id, display_name, photo_url, avatar_image_url")
+        .in("user_id", userIds),
+      svc
+        .from("user_profiles")
+        .select("user_id, display_name, profile_image_url")
+        .in("user_id", userIds),
+    ]);
+    for (const p of (gProfiles ?? []) as Array<{
+      user_id: string;
+      display_name?: string | null;
+      photo_url?: string | null;
+      avatar_image_url?: string | null;
+    }>) {
+      profileMap.set(p.user_id, {
+        display_name: p.display_name?.trim() || "Member",
+        avatar_url: p.photo_url ?? p.avatar_image_url ?? null,
+      });
+    }
+    for (const p of (uProfiles ?? []) as Array<{
+      user_id: string;
+      display_name?: string | null;
+      profile_image_url?: string | null;
+    }>) {
+      if (profileMap.has(p.user_id)) continue;
+      profileMap.set(p.user_id, {
+        display_name: p.display_name?.trim() || "Member",
+        avatar_url: p.profile_image_url ?? null,
+      });
+    }
   }
-  for (const p of (uProfiles ?? []) as Array<{
-    user_id: string;
-    display_name?: string | null;
-    profile_image_url?: string | null;
-  }>) {
-    if (profileMap.has(p.user_id)) continue;
-    profileMap.set(p.user_id, {
-      display_name: p.display_name?.trim() || "Member",
-      avatar_url: p.profile_image_url ?? null,
-    });
-  }
-  const invites = (rows ?? []).map((r: { id: string; granted_to_user_id: string }) => {
+  const invites = rowsArr.map((r) => {
+    if (!r.granted_to_user_id) {
+      return {
+        invite_id: r.id,
+        user_id: null,
+        display_name: "pending",
+        avatar_url: null,
+        invite_token: r.invite_token,
+        pending: true,
+      };
+    }
     const prof = profileMap.get(r.granted_to_user_id);
     return {
       invite_id: r.id,
       user_id: r.granted_to_user_id,
       display_name: prof?.display_name ?? "Member",
       avatar_url: prof?.avatar_url ?? null,
+      invite_token: r.invite_token,
+      pending: false,
     };
   });
   return { ok: true, invites };
@@ -353,6 +379,148 @@ export async function searchMembersForInviteAction(input: {
     .slice(0, 8)
     .map(({ user_id, display_name, avatar_url }) => ({ user_id, display_name, avatar_url }));
   return { ok: true, results: merged };
+}
+
+/**
+ * Phase 3N — 토큰 링크 발급. grantId로 token이 박힌 invite row 생성.
+ * granted_to_user_id는 NULL로 시작 → 누군가 redeem 시 그 사용자 ID로 채워짐.
+ *
+ * 활성 invite 한도(grant당 2개)는 token 발급도 카운트. 사용자가 의도적으로
+ * 다중 토큰 발급 시 트리거가 막아주고 application도 같은 에러 코드 반환.
+ *
+ * 토큰은 22자 base64url (≈ 128bit 엔트로피) — URL 친화적, 추측 비용 충분.
+ */
+export async function createRouteInviteLinkAction(input: {
+  grantId: string;
+}): Promise<{ ok: true; inviteId: string; token: string } | { ok: false; error: string }> {
+  const ownerId = await getSupabaseAuthUserIdOnly();
+  if (!ownerId) return { ok: false, error: "unauthorized" };
+  const svc = createServiceRoleSupabase();
+  if (!svc) return { ok: false, error: "service-role-unavailable" };
+
+  const { data: grant, error: grantErr } = await svc
+    .from("route_access_grants")
+    .select("id, owner_user_id, expires_at")
+    .eq("id", input.grantId)
+    .maybeSingle();
+  if (grantErr || !grant) return { ok: false, error: "grant-not-found" };
+  if (grant.owner_user_id !== ownerId) return { ok: false, error: "not-owner" };
+  if (new Date(grant.expires_at).getTime() < Date.now()) return { ok: false, error: "grant-expired" };
+
+  const { data: actives } = await svc
+    .from("route_share_invites")
+    .select("id")
+    .eq("grant_id", input.grantId)
+    .eq("status", "active");
+  if ((actives?.length ?? 0) >= ROUTE_SHARE_INVITE_LIMIT) {
+    return { ok: false, error: "invite-limit" };
+  }
+
+  const token = generateInviteToken();
+  const { data: inserted, error: insErr } = await svc
+    .from("route_share_invites")
+    .insert({
+      grant_id: input.grantId,
+      granted_by_user_id: ownerId,
+      granted_to_user_id: null,
+      invite_token: token,
+      status: "active",
+    })
+    .select("id")
+    .single();
+  if (insErr) {
+    if (insErr.message.includes("route_share_invite_limit")) return { ok: false, error: "invite-limit" };
+    return { ok: false, error: insErr.message };
+  }
+
+  const recent = await countRecentInviteEventsForGrant(input.grantId, 60 * 60 * 1000);
+  if (recent >= 3) {
+    await logAbuseSignal({
+      signalType: "invite-rapid-warn",
+      severity: "warn",
+      grantId: input.grantId,
+      actorUserId: ownerId,
+      payload: { recent_invites_1h: recent, kind: "link" },
+    });
+  }
+
+  return { ok: true, inviteId: inserted!.id, token };
+}
+
+/**
+ * Phase 3N — 토큰을 가진 사용자가 routeId로 진입할 때 호출.
+ * 자신을 granted_to_user_id로 매핑하고 redeemed_at 채움.
+ *
+ * 케이스:
+ *  - 토큰 row 없음 → invalid
+ *  - 본인이 grant owner → 의미 없음, ok 반환 (이미 본인이 access)
+ *  - 이미 다른 사람에게 redeem됨 → invalid (한 토큰 = 한 사람)
+ *  - 이미 본인에게 redeem됨 → 멱등 ok 반환
+ *  - 정상 → granted_to_user_id 채우고 ok
+ */
+export async function redeemRouteInviteLinkAction(input: {
+  routeId: string;
+  token: string;
+}): Promise<
+  | { ok: true; status: "redeemed" | "already-redeemed" | "self-owner" }
+  | { ok: false; error: string }
+> {
+  const viewerId = await getSupabaseAuthUserIdOnly();
+  if (!viewerId) return { ok: false, error: "unauthorized" };
+  if (!input.token) return { ok: false, error: "missing-token" };
+  const svc = createServiceRoleSupabase();
+  if (!svc) return { ok: false, error: "service-role-unavailable" };
+
+  const { data: invite, error: invErr } = await svc
+    .from("route_share_invites")
+    .select("id, grant_id, granted_to_user_id, status")
+    .eq("invite_token", input.token)
+    .maybeSingle();
+  if (invErr || !invite) return { ok: false, error: "invite-not-found" };
+  if (invite.status !== "active") return { ok: false, error: "invite-inactive" };
+
+  const { data: grant, error: grantErr } = await svc
+    .from("route_access_grants")
+    .select("id, route_id, owner_user_id, expires_at")
+    .eq("id", invite.grant_id)
+    .maybeSingle();
+  if (grantErr || !grant) return { ok: false, error: "grant-not-found" };
+  if (grant.route_id !== input.routeId) return { ok: false, error: "route-mismatch" };
+  if (new Date(grant.expires_at).getTime() < Date.now()) return { ok: false, error: "grant-expired" };
+
+  if (grant.owner_user_id === viewerId) {
+    return { ok: true, status: "self-owner" };
+  }
+
+  if (invite.granted_to_user_id) {
+    if (invite.granted_to_user_id === viewerId) {
+      return { ok: true, status: "already-redeemed" };
+    }
+    return { ok: false, error: "invite-claimed" };
+  }
+
+  const { error: updErr } = await svc
+    .from("route_share_invites")
+    .update({
+      granted_to_user_id: viewerId,
+      redeemed_at: new Date().toISOString(),
+    })
+    .eq("id", invite.id);
+  if (updErr) {
+    if (updErr.code === "23505") return { ok: true, status: "already-redeemed" };
+    return { ok: false, error: updErr.message };
+  }
+  return { ok: true, status: "redeemed" };
+}
+
+/** Web Crypto 기반 22자 base64url 토큰(≈128bit). Node/Edge 양쪽 동작. */
+function generateInviteToken(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  // base64url: + → -, / → _, padding 제거
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 export async function revokeRouteShareInviteAction(input: {
