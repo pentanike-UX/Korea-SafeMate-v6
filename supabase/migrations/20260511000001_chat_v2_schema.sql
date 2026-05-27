@@ -45,5 +45,15 @@ create policy "message_threads_update_participants"
   );
 
 -- 8. Supabase Realtime 활성화 (messages 테이블)
--- Dashboard에서 이미 활성화된 경우 무시
-alter publication supabase_realtime add table public.messages;
+-- Dashboard에서 이미 활성화된 경우 무시 (idempotent)
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'messages'
+  ) then
+    alter publication supabase_realtime add table public.messages;
+  end if;
+end$$;

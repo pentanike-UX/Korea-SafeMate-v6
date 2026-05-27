@@ -16,6 +16,7 @@ create policy "mypage_block_attention_seen_owner"
 
 drop policy if exists "content_posts_public_read_approved" on public.content_posts;
 drop policy if exists "content_posts_author_read_self" on public.content_posts;
+drop policy if exists "content_posts_read" on public.content_posts;
 create policy "content_posts_read" on public.content_posts for select
   using (status in ('approved', 'blocked') or author_user_id = (select auth.uid()));
 
