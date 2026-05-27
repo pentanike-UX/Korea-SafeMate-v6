@@ -1801,6 +1801,7 @@
     "routeOwnerShareTitle": "친구에게 무료로 공유",
     "routeOwnerShareLimit": "남은 무료 초대 {n}/2",
     "routeOwnerShareHint": "회원 검색으로만 무료 초대 가능 · 링크 복사는 친구가 직접 결제해야 보여요",
+    "routeOwnerShareLoading": "공유 권한을 확인하는 중…",
     "routeOwnerShareEmpty": "아직 초대한 사람이 없어요",
     "routeOwnerShareSlotEmpty": "비어있음",
     "routeOwnerShareSlotRevoke": "초대 회수",

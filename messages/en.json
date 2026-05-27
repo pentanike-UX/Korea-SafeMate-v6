@@ -1800,6 +1800,7 @@
     "routeOwnerShareTitle": "Share free with a friend",
     "routeOwnerShareLimit": "{n}/2 free invites left",
     "routeOwnerShareHint": "Only verified members via search · Copied links require purchase",
+    "routeOwnerShareLoading": "Checking share permissions…",
     "routeOwnerShareEmpty": "No invites yet",
     "routeOwnerShareSlotEmpty": "Empty",
     "routeOwnerShareSlotRevoke": "Revoke",

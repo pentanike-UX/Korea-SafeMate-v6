@@ -1771,6 +1771,7 @@
     "routeOwnerShareTitle": "Chia sẻ miễn phí cho bạn bè",
     "routeOwnerShareLimit": "Còn {n}/2 lời mời miễn phí",
     "routeOwnerShareHint": "Chỉ mời miễn phí thành viên qua tìm kiếm · Link copy phải thanh toán",
+    "routeOwnerShareLoading": "Đang kiểm tra quyền chia sẻ…",
     "routeOwnerShareEmpty": "Chưa có lời mời",
     "routeOwnerShareSlotEmpty": "Trống",
     "routeOwnerShareSlotRevoke": "Hủy",

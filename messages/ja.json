@@ -1770,6 +1770,7 @@
     "routeOwnerShareTitle": "友達に無料でシェア",
     "routeOwnerShareLimit": "残り無料招待 {n}/2",
     "routeOwnerShareHint": "メンバー検索でのみ無料招待可 · リンクコピーは購入が必要",
+    "routeOwnerShareLoading": "共有権限を確認中…",
     "routeOwnerShareEmpty": "まだ招待した相手がいません",
     "routeOwnerShareSlotEmpty": "未割り当て",
     "routeOwnerShareSlotRevoke": "取り消す",

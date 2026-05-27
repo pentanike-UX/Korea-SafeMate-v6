@@ -140,9 +140,12 @@ export function RouteViewClient({
   }, [initialUnlocked, router]);
 
   function sharePlayer() {
-    // owner면 무료 초대 sheet를 우선 열어준다 — Korea-SafeMate 공유는 무료 초대(최대 2명)가
-    // 1차 흐름이고, 단순 링크 복사/시스템 공유는 보조 흐름.
-    if (ownerGrantId) {
+    // unlock된 본문 안에서 Share 버튼은 항상 무료 초대 sheet를 우선 노출.
+    //  - ownerGrantId 있음 → 즉시 RouteOwnerSharePanelLoader 렌더 (실제 초대 발급 가능)
+    //  - ownerGrantId 없음(결제 직후 props 미반영 / mock 루트 / 본인 커스텀 루트 등)
+    //    → loading placeholder가 잠시 표시되고 router.refresh 후 panel로 자연 전환.
+    //    grant가 영원히 없는 케이스(mock 등)에서는 사용자가 시트를 닫으면 됨 — 시연 흐름은 깨지지 않음.
+    if (unlocked) {
       setOwnerShareSheetOpen(true);
       return;
     }
@@ -346,11 +349,11 @@ export function RouteViewClient({
               <button
                 type="button"
                 onClick={sharePlayer}
-                aria-label={ownerGrantId ? t("routeOwnerShareTitle") : "share"}
-                title={ownerGrantId ? t("routeOwnerShareTitle") : undefined}
+                aria-label={unlocked ? t("routeOwnerShareTitle") : "share"}
+                title={unlocked ? t("routeOwnerShareTitle") : undefined}
                 className={cn(
                   "flex size-10 shrink-0 items-center justify-center rounded-full transition-colors",
-                  ownerGrantId
+                  unlocked
                     ? "text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
@@ -493,26 +496,33 @@ export function RouteViewClient({
         ) : null}
 
         {/* owner 공유 sheet — 상단 Share2 버튼 또는 결제 완료 후 CTA에서 트리거.
-            ownerGrantId가 있을 때만 진입 가능. 좌측 레일 하단의 인라인 패널과 같은 데이터를 공유. */}
-        {ownerGrantId ? (
-          <Sheet open={ownerShareSheetOpen} onOpenChange={setOwnerShareSheetOpen}>
-            <SheetContent
-              side={isDesktop ? "right" : "bottom"}
-              className={cn(
-                "z-[80] overflow-y-auto",
-                isDesktop ? "w-[420px] max-w-full" : "max-h-[85vh] rounded-t-3xl",
-              )}
-            >
-              <SheetHeader>
-                <SheetTitle>{t("routeOwnerShareTitle")}</SheetTitle>
-                <SheetDescription>{t("routeOwnerShareHint")}</SheetDescription>
-              </SheetHeader>
-              <div className="px-5 pb-6 pt-2">
+            Sheet 자체는 항상 mount. ownerGrantId가 없으면 loading placeholder를 보여주고
+            (결제 직후 router.refresh가 끝나면 자연스럽게 panel로 전환), grant가 있을 때
+            RouteOwnerSharePanelLoader로 실제 무료 초대 UI 노출. */}
+        <Sheet open={ownerShareSheetOpen} onOpenChange={setOwnerShareSheetOpen}>
+          <SheetContent
+            side={isDesktop ? "right" : "bottom"}
+            className={cn(
+              "z-[80] overflow-y-auto",
+              isDesktop ? "w-[420px] max-w-full" : "max-h-[85vh] rounded-t-3xl",
+            )}
+          >
+            <SheetHeader>
+              <SheetTitle>{t("routeOwnerShareTitle")}</SheetTitle>
+              <SheetDescription>{t("routeOwnerShareHint")}</SheetDescription>
+            </SheetHeader>
+            <div className="px-5 pb-6 pt-2">
+              {ownerGrantId ? (
                 <RouteOwnerSharePanelLoader grantId={ownerGrantId} />
-              </div>
-            </SheetContent>
-          </Sheet>
-        ) : null}
+              ) : (
+                <div className="flex flex-col items-center gap-3 py-10 text-center">
+                  <Loader2 className="size-6 animate-spin text-muted-foreground" aria-hidden />
+                  <p className="text-sm text-muted-foreground">{t("routeOwnerShareLoading")}</p>
+                </div>
+              )}
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
     </GoogleMapsProvider>
   );

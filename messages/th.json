@@ -1771,6 +1771,7 @@
     "routeOwnerShareTitle": "แชร์ฟรีให้เพื่อน",
     "routeOwnerShareLimit": "เหลือเชิญฟรี {n}/2",
     "routeOwnerShareHint": "เชิญฟรีได้เฉพาะสมาชิกจากการค้นหา · ลิงก์คัดลอกต้องชำระเงิน",
+    "routeOwnerShareLoading": "กำลังตรวจสอบสิทธิ์การแบ่งปัน…",
     "routeOwnerShareEmpty": "ยังไม่มีคำเชิญ",
     "routeOwnerShareSlotEmpty": "ว่าง",
     "routeOwnerShareSlotRevoke": "ยกเลิก",
