@@ -83,6 +83,11 @@ export function RouteViewClient({
   }
 
   const exitPlayer = useCallback(() => {
+    // 네비게이션 직전 body 스크롤 잠금을 명시적으로 해제 — useEffect cleanup이
+    // 라우터 이동 도중 늦게 호출돼 다음 페이지가 스크롤 불가가 되는 버그 방어.
+    if (typeof document !== "undefined") {
+      document.body.style.overflow = "";
+    }
     if (!initialUnlocked) {
       setUnlocked(false);
       return;
@@ -115,23 +120,39 @@ export function RouteViewClient({
     window.dispatchEvent(new CustomEvent<GuardianInquiryOpenDetail>(GUARDIAN_INQUIRY_OPEN_EVENT, { detail }));
   }
 
-  // 전면 플레이어 동안 배경 셸 스크롤 잠금 + ESC.
+  // 전면 플레이어 동안 배경 셸 스크롤 잠금.
+  // ESC와 분리 — selectedSpot/exitPlayer 변화로 effect가 재실행되며 cleanup이
+  // 어긋나 다음 페이지에서 body가 잠겨 있는 문제 방지. unlocked에만 의존.
   useEffect(() => {
     if (!unlocked || typeof document === "undefined") return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (selectedSpot) setSelectedSpot(null);
-        else exitPlayer();
-      }
-    };
-    window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = prevOverflow;
-      window.removeEventListener("keydown", onKey);
     };
+  }, [unlocked]);
+
+  // ESC: 스팟 드로어가 열려 있으면 드로어만, 아니면 플레이어 이탈.
+  useEffect(() => {
+    if (!unlocked || typeof window === "undefined") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (selectedSpot) setSelectedSpot(null);
+      else exitPlayer();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [unlocked, selectedSpot, exitPlayer]);
+
+  // 언마운트 시 body 스크롤을 반드시 풀어준다 — 라우터 이동으로 컴포넌트가
+  // 떼어질 때 다음 페이지가 스크롤 불가로 남는 버그 방어.
+  useEffect(() => {
+    return () => {
+      if (typeof document !== "undefined") {
+        document.body.style.overflow = "";
+      }
+    };
+  }, []);
 
   if (!unlocked) {
     return <RouteFreePreviewSection route={route} locale={locale} onUnlock={() => setUnlocked(true)} />;

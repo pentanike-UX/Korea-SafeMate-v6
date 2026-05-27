@@ -9,6 +9,36 @@
 
 ---
 
+## 2026-05-27 — fix(routes): 유료 플레이어 이탈 후 다음 페이지 스크롤 잠김
+
+### 증상
+
+`/ko/routes/mock?preview=1` → 뒤로가기 → `/ko/posts/...` 이동 시, 도착한 포스트 페이지의 `body`가 스크롤 불가 상태로 남아 화면 탐색 불가.
+
+### 원인
+
+`route-view-client.tsx`의 스크롤 잠금 effect가 `[unlocked, selectedSpot, exitPlayer]`에 의존 — 스팟 선택 등으로 effect가 자주 재실행되면서 cleanup이 어긋남. 라우터 이동으로 컴포넌트 언마운트가 발생할 때 마지막 cleanup이 `prevOverflow`를 정확히 비우지 못하는 케이스가 있었다.
+
+### 변경 파일
+
+- `src/components/routes/route-view-client.tsx`
+
+### 변경 내용
+
+- 스크롤 잠금 effect를 ESC 핸들러와 분리 — `[unlocked]`에만 의존하도록 좁힘.
+- ESC 핸들러는 별도 effect로 (selectedSpot/exitPlayer 변화에만 반응).
+- 언마운트 전용 effect 추가: `useEffect(() => () => { document.body.style.overflow = ""; }, [])` — 어떤 경로로 컴포넌트가 떨어져도 반드시 잠금 해제.
+- `exitPlayer`도 네비게이션 직전 `body.style.overflow = ""` 명시 (router.back/push 도중 cleanup이 늦게 호출되는 케이스 방어).
+
+### 검증 결과
+
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm exec eslint` (변경 파일) 통과.
+- `pnpm build` 통과 (Compiled successfully · 1008 페이지 SSG).
+- 시각 검증: 시연 시 `routes/mock?preview=1` → 뒤로가기 → 포스트 페이지가 정상 스크롤되는지 확인 권장.
+
+---
+
 ## 2026-05-26 — 하루루트 유료 전용 Route Cockpit 1차 (Phase 1)
 
 ### 목표
