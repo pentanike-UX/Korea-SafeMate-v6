@@ -55,6 +55,7 @@ export async function resolveRouteAccessServer({
         reason: r.reason === "shared-invite" ? "shared-invite" : "owner",
         expires_at: r.expires_at,
         sharedBy,
+        ownerGrantId: r.reason === "owner" ? r.grant_id : null,
       };
     }
   }

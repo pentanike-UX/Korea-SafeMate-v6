@@ -32,6 +32,7 @@ import {
   RouteTicketExhaustedDialog,
 } from "@/components/routes/route-ticket-dialogs";
 import { consumeRouteTicketAction } from "@/lib/route-access-actions.server";
+import { RouteOwnerSharePanelLoader } from "@/components/routes/route-owner-share-panel-loader";
 
 /**
  * 라우트 페이지 클라이언트 컨테이너.
@@ -53,6 +54,7 @@ export function RouteViewClient({
   initialSaved = false,
   sharedBy = null,
   lockedHint = null,
+  ownerGrantId = null,
 }: {
   route: HaruRoute;
   locale: AppLocale;
@@ -72,6 +74,8 @@ export function RouteViewClient({
     ticketsRemaining?: number | null;
     ticketPackId?: string | null;
   } | null;
+  /** 본인 owner인 경우 grant id — RouteOwnerSharePanel에 사용. */
+  ownerGrantId?: string | null;
 }) {
   const t = useTranslations("TravelerHub");
   const router = useRouter();
@@ -379,6 +383,11 @@ export function RouteViewClient({
               />
               <div className="px-3 pb-5 sm:px-4">
                 <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
+                {ownerGrantId ? (
+                  <div className="mt-3">
+                    <RouteOwnerSharePanelLoader grantId={ownerGrantId} />
+                  </div>
+                ) : null}
               </div>
             </aside>
 
@@ -430,6 +439,11 @@ export function RouteViewClient({
                 />
                 <div className="px-3 pb-5">
                   <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
+                {ownerGrantId ? (
+                  <div className="mt-3">
+                    <RouteOwnerSharePanelLoader grantId={ownerGrantId} />
+                  </div>
+                ) : null}
                 </div>
               </div>
             </div>

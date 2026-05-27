@@ -171,6 +171,95 @@ export async function createRouteShareInviteAction(input: {
   return { ok: true, inviteId: inserted!.id };
 }
 
+/** 오너용 — 본인 grant의 활성 초대 목록 + grantee 프로필. */
+export async function listRouteShareInvitesAction(input: {
+  grantId: string;
+}): Promise<{
+  ok: true;
+  invites: Array<{
+    invite_id: string;
+    user_id: string;
+    display_name: string;
+    avatar_url?: string | null;
+  }>;
+} | { ok: false; error: string }> {
+  const ownerId = await getSupabaseAuthUserIdOnly();
+  if (!ownerId) return { ok: false, error: "unauthorized" };
+  const svc = createServiceRoleSupabase();
+  if (!svc) return { ok: false, error: "service-role-unavailable" };
+  // 소유권 확인
+  const { data: grant } = await svc
+    .from("route_access_grants")
+    .select("id, owner_user_id")
+    .eq("id", input.grantId)
+    .maybeSingle();
+  if (!grant || grant.owner_user_id !== ownerId) return { ok: false, error: "not-owner" };
+  const { data: rows } = await svc
+    .from("route_share_invites")
+    .select("id, granted_to_user_id")
+    .eq("grant_id", input.grantId)
+    .eq("status", "active");
+  const userIds = (rows ?? []).map((r: { granted_to_user_id: string }) => r.granted_to_user_id);
+  if (userIds.length === 0) return { ok: true, invites: [] };
+  const { data: profiles } = await svc
+    .from("guardian_profiles")
+    .select("user_id, display_name, photo_url, avatar_image_url")
+    .in("user_id", userIds);
+  const profileMap = new Map<string, { display_name: string; avatar_url: string | null }>(
+    (profiles ?? []).map((p: { user_id: string; display_name?: string | null; photo_url?: string | null; avatar_image_url?: string | null }) => [
+      p.user_id,
+      {
+        display_name: p.display_name?.trim() || "Member",
+        avatar_url: p.photo_url ?? p.avatar_image_url ?? null,
+      },
+    ]),
+  );
+  const invites = (rows ?? []).map((r: { id: string; granted_to_user_id: string }) => {
+    const prof = profileMap.get(r.granted_to_user_id);
+    return {
+      invite_id: r.id,
+      user_id: r.granted_to_user_id,
+      display_name: prof?.display_name ?? "Member",
+      avatar_url: prof?.avatar_url ?? null,
+    };
+  });
+  return { ok: true, invites };
+}
+
+/** 멤버 검색 — display_name 부분 일치, 최대 8명. 본인 제외. */
+export async function searchMembersForInviteAction(input: {
+  query: string;
+}): Promise<{
+  ok: true;
+  results: Array<{
+    user_id: string;
+    display_name: string;
+    avatar_url?: string | null;
+  }>;
+} | { ok: false; error: string }> {
+  const ownerId = await getSupabaseAuthUserIdOnly();
+  if (!ownerId) return { ok: false, error: "unauthorized" };
+  const q = input.query.trim();
+  if (q.length < 2) return { ok: true, results: [] };
+  const svc = createServiceRoleSupabase();
+  if (!svc) return { ok: false, error: "service-role-unavailable" };
+  const { data, error } = await svc
+    .from("guardian_profiles")
+    .select("user_id, display_name, photo_url, avatar_image_url")
+    .ilike("display_name", `%${q}%`)
+    .neq("user_id", ownerId)
+    .limit(8);
+  if (error) return { ok: false, error: error.message };
+  return {
+    ok: true,
+    results: (data ?? []).map((r: { user_id: string; display_name?: string | null; photo_url?: string | null; avatar_image_url?: string | null }) => ({
+      user_id: r.user_id,
+      display_name: r.display_name?.trim() || "Member",
+      avatar_url: r.photo_url ?? r.avatar_image_url ?? null,
+    })),
+  };
+}
+
 export async function revokeRouteShareInviteAction(input: {
   inviteId: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {

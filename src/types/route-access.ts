@@ -62,6 +62,8 @@ export interface RouteAccessDecision {
   ticketsRemaining?: number | null;
   /** ticket-prompt 일 때 사용할 pack id */
   ticketPackId?: string | null;
+  /** owner인 경우 grant id (공유 패널 등에서 사용) */
+  ownerGrantId?: string | null;
 }
 
 export const ROUTE_ACCESS_WINDOW_DAYS = 90;

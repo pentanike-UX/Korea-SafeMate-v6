@@ -9,6 +9,46 @@
 
 ---
 
+## 2026-05-27 — Phase 3D (Cockpit 좌측 RouteOwnerSharePanel 통합 + 검색·발급·회수)
+
+### 목표
+
+본인 owner인 사용자가 Cockpit 진입 시 좌측 패널 하단(다음 단계 아래)에 공유 패널이 자동 노출. 멤버 검색 시트에서 회원을 선택하면 active invite 슬롯에 추가, 옆 X 버튼으로 회수.
+
+### 변경 파일
+
+- `src/types/route-access.ts` — `RouteAccessDecision.ownerGrantId` 추가.
+- `src/lib/route-access.server.ts` — owner reason일 때 `ownerGrantId` 채워서 반환.
+- `src/lib/route-access-actions.server.ts` — `listRouteShareInvitesAction`(active invite + grantee profile), `searchMembersForInviteAction`(display_name ILIKE, 최대 8명).
+- `src/components/routes/route-owner-share-panel-loader.tsx` (신규) — RouteOwnerSharePanel을 감싸 list/invite/revoke 액션과 멤버 검색 Sheet 연결.
+- `src/components/routes/route-view-client.tsx` — `ownerGrantId` prop 수용, 좌측 패널(데스크톱)·peek 패널(모바일) 모두에서 NextStepsBlock 아래에 share panel 노출.
+- `src/app/[locale]/(public)/routes/[routeId]/page.tsx` — decision의 ownerGrantId를 RouteViewClient에 전달.
+
+### UX 흐름
+
+1. 본인이 결제한 루트 진입 → `decision.reason === "owner"` + `ownerGrantId` 전달.
+2. 좌측 패널: "다음 단계" 카드 아래에 공유 패널이 자동 표시(2슬롯 + 잔여 카운터).
+3. "회원 검색" 클릭 → bottom sheet 오픈 → 입력어 2자 이상부터 250ms 디바운스로 `searchMembersForInviteAction` 호출 → 결과 클릭 시 `createRouteShareInviteAction` → 슬롯 채워짐.
+4. 슬롯의 X 클릭 → `revokeRouteShareInviteAction` → 슬롯 비워짐.
+5. 한도(2명) 초과 시도는 DB 트리거가 이중 방어, 액션도 사전 검사로 친절한 에러.
+6. 비-owner(공유받은 사람 / 비결제자)에게는 share panel 미노출 — 정책에 맞춤.
+
+### 검증 결과
+
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm exec eslint`(변경 파일) 통과.
+- `pnpm build` 통과 (1008 페이지 SSG).
+- 실제 invite/revoke는 마이그레이션 적용 + service-role 키 설정 시 동작.
+
+### 남은 작업 (Phase 3E+)
+
+- 마이페이지 전용 share 관리 화면(전 루트 grant 목록 + 만료 카운트다운).
+- 운영 대시보드(grant/invite 조회, admin-comp 발급, 어뷰징 모니터).
+- 실 PG SDK(Toss/Kakao) 결합 — `confirmRouteCheckoutAction`의 영수증 검증 자리.
+- 에러 토스트(현재는 silent fail).
+
+---
+
 ## 2026-05-27 — Phase 3C (fake 결제 완료 → 실 grant/pack 발급 연결)
 
 ### 목표

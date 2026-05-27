@@ -90,6 +90,7 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
     display_name: string;
     avatar_url?: string | null;
   } | null = null;
+  let accessOwnerGrantId: string | null = null;
   /** ticket-prompt / tickets-exhausted 등 잠금이긴 하지만 클라이언트에서 분기 다이얼로그가 필요한 경우. */
   let accessLockedHint: {
     reason: "ticket-prompt" | "tickets-exhausted";
@@ -104,6 +105,9 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
       initialUnlocked = true;
       if (decision.reason === "shared-invite" && decision.sharedBy) {
         accessSharedBy = decision.sharedBy;
+      }
+      if (decision.reason === "owner" && decision.ownerGrantId) {
+        accessOwnerGrantId = decision.ownerGrantId;
       }
     } else if (decision.reason === "ticket-prompt") {
       accessLockedHint = {
@@ -192,6 +196,7 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
         initialSaved={initialSaved}
         sharedBy={accessSharedBy}
         lockedHint={accessLockedHint}
+        ownerGrantId={accessOwnerGrantId}
       />
     </main>
   );
