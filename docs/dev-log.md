@@ -9,6 +9,71 @@
 
 ---
 
+## 2026-05-27 — Phase 3L (MVP 시연 정합성 7종 일괄)
+
+**목표**: 하루웨이 발견 → 하루루트 결제 → 마이페이지 기록 → 무료 공유 → AI 채팅 까지 엔드-투-엔드 시연 흐름이 실제처럼 동작하도록 7개 갭을 메움. 결제는 시뮬레이션, 그 외 모든 mutation은 실 DB로 흐름.
+
+### 1) 데모 시드 SQL — `routes` 1건 확보
+
+- `supabase/demo-seed/2026-05-27-demo-content.sql` 신설(idempotent). 가디언 1(mg14 김서호, ai_auto_reply ON) + traveler 3명(검색 풀용) + spot_catalog 5(종로 K-드라마) + routes 1(`44553acb-…`) + route_spots 5 + content_posts 1(related_route_id 매핑) 생성.
+- `supabase/demo-seed/README.md` — 적용/제거 방법, UUID 표.
+- 마이그레이션이 아니라 별도 폴더 — 운영에 1회 수동 실행. 모든 UUID는 `seedUuidV5`로 결정적.
+
+### 2) `content_posts.related_route_id` 마이그레이션
+
+- `supabase/migrations/20260527000006_content_posts_related_route_id.sql`: nullable FK → `routes(id) on delete set null` + 부분 인덱스. comment로 의미 명시.
+- `posts-public-merged.server.ts`의 `RawPost`·`mapToContentPost`에 `related_route_id` 매핑 추가.
+- `types/domain.ts`의 `ContentPost`에 `related_route_id?: string | null` 필드.
+
+### 3) `RelatedRouteBanner` / `PlaybookUnlockSheet`에 실 routeId
+
+- `route-post-detail-client.tsx`에서 `routeId="mock"` 하드코딩 제거 → `post.related_route_id ?? "mock"`(또는 unlock 시 `?? undefined`).
+- `related-route-banner.tsx`: `routeId === "mock"`일 때만 `?preview=1` 부착, 실 UUID는 access resolver가 판정하도록 query 없이 진입.
+
+### 4) 가디언 에디터 저장 시 routes/route_spots 자동 upsert
+
+- 신규 `src/lib/routes/sync-route-from-post.server.ts`:
+  - `routeId = seedUuidV5("safemate:route-from-post:" + postId)` — 같은 post는 항상 같은 route로 매핑.
+  - `spotId = seedUuidV5("safemate:spot-from-journey:" + name+lat+lng)` — 좌표 흔들림 방지(1e5 round).
+  - `spot_catalog` upsert(category 휴리스틱: 카페/맛집/쇼핑/야간/자연/체험 키워드) + `routes` upsert(status는 `post.status === approved/published`면 public, 아니면 draft) + `route_spots` 재생성 + `content_posts.related_route_id` 갱신.
+  - `move_from_prev_method`는 이전 spot의 `next_move_mode`에서 walk/subway/taxi로 정규화(bus→subway 임시 매핑).
+- `guardian-posts-persist.ts`의 `insertGuardianContentPost`·`updateGuardianContentPost`에서 mutation 성공 직후 호출. 실패해도 본 post는 저장됨(catch + log only).
+
+### 5) 회원 검색 풀에 traveler 합치기
+
+- `route-access-actions.server.ts/searchMembersForInviteAction`: `guardian_profiles ⊕ user_profiles` 동시 조회 → user_id 기준 dedup(가디언 우선). 기존엔 가디언만 검색되어 일반 traveler를 무료 초대할 수 없던 문제 해결.
+- `listRouteShareInvitesAction`도 동일 방식으로 폴백 — 가디언 아닌 traveler를 초대해도 이름/아바타가 표시됨.
+
+### 6) 결제 성공 토스트 + Success 시트 공유 CTA
+
+- `playbook-unlock-sheet.tsx`:
+  - Success 단계 도달 시 `useToast()`로 `paymentSuccessToastTitle/Body` 노출(₩ 가격 보간).
+  - SuccessStep 자동 닫힘 제거 → 사용자가 "전체 코스 보기" 또는 "친구에게 무료로 공유하기" 명시적 선택.
+  - 영수증 번호(`R-…`) 노출, 공유 CTA(`paymentSuccessShareCta`) + 힌트(`paymentSuccessShareHint`). 월정액 플랜에선 공유 CTA 숨김.
+- 5개 로케일(`messages/ko·en·ja·vi·th.json`)에 i18n 키 5종 추가.
+
+### 7) AI 채팅 "타이핑 중" 인디케이터
+
+- `guardian-inquiry-sheet.tsx`:
+  - 신규 `aiTyping` 상태 + 12초 타임아웃 ref. traveler 메시지 전송 성공 직후 활성화.
+  - `useThreadRealtime` 콜백에서 `sender_role !== 'traveler'` 메시지 도착 시 자동 해제.
+  - 시트 닫힐 때 타이머 정리.
+  - 렌더 조건을 `isSending || aiTyping`으로 확장 — 기존 점 3개 애니메이션 재사용.
+
+### 검증
+
+- `pnpm exec tsc --noEmit` → 0 errors.
+- `pnpm build` → 통과(전체 라우트 prerender 성공).
+- `pnpm lint` → 사전 존재 lint 20건(use-viewer-role 등) 외 신규 코드 0건.
+
+### 시연 적용 순서
+
+1. `supabase/migrations/20260527000006_content_posts_related_route_id.sql` 적용.
+2. `supabase/demo-seed/2026-05-27-demo-content.sql` 적용 → routes 1건 확보.
+3. (선택) 가디언이 새 post 작성하면 routes 자동 생성됨.
+
+---
+
 ## 2026-05-27 — Phase 3H·3I·3J 일괄 (어뷰징 감시·만료 알림 cron·comp 사유)
 
 ### Phase 3H — 어뷰징 자동 감시

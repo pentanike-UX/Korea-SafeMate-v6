@@ -70,12 +70,15 @@ export function GuardianInquirySheetGlobal() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  /** traveler 메시지 송신 직후 ~ AI/하루이 답변 도착 사이의 "타이핑 중" 인디케이터. */
+  const [aiTyping, setAiTyping] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const [inquiryError, setInquiryError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const aiTypingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* 페이지 레벨 하루이 기본값 수신 */
   useEffect(() => {
@@ -171,7 +174,24 @@ export function GuardianInquirySheetGlobal() {
       if (prev.some((m) => m.id === newMsg.id)) return prev;
       return [...prev, newMsg];
     });
+    // 가디언/AI 응답이 도착하면 타이핑 인디케이터 해제.
+    if (newMsg.sender_role !== "traveler") {
+      setAiTyping(false);
+      if (aiTypingTimerRef.current) {
+        clearTimeout(aiTypingTimerRef.current);
+        aiTypingTimerRef.current = null;
+      }
+    }
   });
+
+  /* 시트 닫힐 때 타이머 정리 */
+  useEffect(() => {
+    if (!open && aiTypingTimerRef.current) {
+      clearTimeout(aiTypingTimerRef.current);
+      aiTypingTimerRef.current = null;
+      setAiTyping(false);
+    }
+  }, [open]);
 
   /* 메시지 하단 자동 스크롤 */
   useEffect(() => {
@@ -250,6 +270,15 @@ export function GuardianInquirySheetGlobal() {
             });
           });
         }
+        // traveler 메시지 송신 성공 → 가디언/AI 응답 기다리는 동안 타이핑 인디케이터 표시.
+        // AI 자동답변(`triggerAiReplyWithServiceRole`)은 보통 2~6초 안에 도착하므로
+        // 12초 후 자동 해제하여 가디언이 자리 비웠을 때 무한 표시되지 않도록.
+        setAiTyping(true);
+        if (aiTypingTimerRef.current) clearTimeout(aiTypingTimerRef.current);
+        aiTypingTimerRef.current = setTimeout(() => {
+          setAiTyping(false);
+          aiTypingTimerRef.current = null;
+        }, 12000);
       } catch {
         setSendError(t("networkErrorSend"));
         setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
@@ -257,7 +286,7 @@ export function GuardianInquirySheetGlobal() {
         setIsSending(false);
       }
     },
-    [threadId, isSending],
+    [threadId, isSending, t],
   );
 
   const handleSend = useCallback(() => sendMessage(input), [input, sendMessage]);
@@ -392,8 +421,8 @@ export function GuardianInquirySheetGlobal() {
                 ),
               )}
 
-              {/* 전송 중 표시 */}
-              {isSending && (
+              {/* 전송 중 / AI 타이핑 표시 — traveler 메시지 송신 직후 또는 가디언 답변 대기 동안 */}
+              {(isSending || aiTyping) && (
                 <div className="mb-3 flex items-end gap-2">
                   <div className="relative size-7 shrink-0 overflow-hidden rounded-full border border-border/40">
                     <Image

@@ -3,6 +3,7 @@ import { isUuidString, resolveAuthorUserId } from "@/lib/guardian-posts-api";
 import { isMockGuardianId, resolveMockGuardianUuid } from "@/lib/dev/mock-guardian-auth";
 import { processContentPostPointsAfterWrite } from "@/lib/points/point-hooks";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
+import { syncRouteFromPost } from "@/lib/routes/sync-route-from-post.server";
 
 /**
  * mock guardian ID(mg01~mg15)면 Supabase에 등록된 실제 UUID로 치환.
@@ -98,6 +99,21 @@ export async function insertGuardianContentPost(payload: GuardianPostSavePayload
 
   await processContentPostPointsAfterWrite(data.id);
 
+  // 하루웨이 포스트와 1:1 매핑되는 하루루트 자동 동기화 — journey가 있으면.
+  await syncRouteFromPost({
+    sb,
+    postId: data.id,
+    authorUserId: authorUuid,
+    routeJourney: payload.route_journey ?? null,
+    titleKo: payload.title,
+    titleEn: null,
+    coverImageUrl: payload.cover_image_url ?? null,
+    postStatus: payload.status,
+    regionTags: [payload.region_slug].filter(Boolean),
+  }).catch((e) => {
+    console.error("[guardian-posts-persist] syncRouteFromPost(insert)", e);
+  });
+
   return { ok: true, id: data.id, saved: true };
 }
 
@@ -182,6 +198,21 @@ export async function updateGuardianContentPost(
   }
 
   await processContentPostPointsAfterWrite(postId);
+
+  // 본인 포스트가 수정됐으니 매핑된 routes/route_spots도 동기화.
+  await syncRouteFromPost({
+    sb,
+    postId,
+    authorUserId: authorUuid,
+    routeJourney: payload.route_journey ?? null,
+    titleKo: payload.title,
+    titleEn: null,
+    coverImageUrl: payload.cover_image_url ?? null,
+    postStatus: payload.status,
+    regionTags: [payload.region_slug].filter(Boolean),
+  }).catch((e) => {
+    console.error("[guardian-posts-persist] syncRouteFromPost(update)", e);
+  });
 
   return { ok: true, id: postId, saved: true };
 }

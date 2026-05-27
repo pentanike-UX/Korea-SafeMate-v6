@@ -48,10 +48,13 @@ export function RelatedRouteBanner({
           : `${mins}m`
       : null;
 
+  // mock 루트는 항상 preview, 실제 UUID 루트는 access resolver가 판단하도록 query 없이 진입.
+  const href = routeId === "mock" ? `/routes/${routeId}?preview=1` : `/routes/${routeId}`;
+
   return (
     <div className={cn("mx-auto max-w-3xl px-4 sm:px-6", className)}>
       <Link
-        href={`/routes/${routeId}?preview=1`}
+        href={href}
         className={cn(
           "group relative block overflow-hidden rounded-3xl border-2 border-[var(--brand-primary)]/30",
           "bg-gradient-to-br from-emerald-50/50 via-card to-card p-5 shadow-md sm:p-6",

@@ -130,6 +130,8 @@
 
 ### ⚠️ 별도 발견: 운영 데이터 시딩
 - [ ] 운영 DB `routes`/`route_spots`/`spot_catalog` 데이터 0건 — 데모/실서비스 전 시드 전략 필요. (`pnpm seed:sample` 등 스크립트 존재, 운영 적용 여부 결정 필요)
+- [x] **MVP 시연용 시드 SQL 준비 (2026-05-27, Phase 3L)** — `supabase/demo-seed/2026-05-27-demo-content.sql` 작성. 가디언 1·routes 1·route_spots 5·content_posts 1(related_route_id 매핑)·traveler 3명 멱등 INSERT. 운영 1회 실행 필요. README에 적용/제거 SQL 명시.
+- [x] **가디언 신규 post 저장 시 routes 자동 생성 (2026-05-27, Phase 3L)** — `syncRouteFromPost` 헬퍼로 `route_journey`가 있는 post 저장 시 `routes`/`route_spots`/`spot_catalog` 자동 upsert + `related_route_id` 연결. 이후로는 가디언이 콘텐츠만 올리면 운영 데이터가 자연히 쌓임.
 
 ---
 

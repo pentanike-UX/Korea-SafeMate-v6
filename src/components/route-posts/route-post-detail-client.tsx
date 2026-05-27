@@ -903,6 +903,7 @@ export function RoutePostDetailClient({
         open={payDrawerOpen}
         onOpenChange={setPayDrawerOpen}
         onConfirmDemoUnlock={() => setPlaybookSessionUnlock(true)}
+        routeId={post.related_route_id ?? undefined}
         guardianOpenDetail={{
           guardianUserId: requestHost.guardianUserId,
           displayName: requestHost.displayName,
@@ -957,7 +958,7 @@ export function RoutePostDetailClient({
           </header>
 
           <RelatedRouteBanner
-            routeId="mock"
+            routeId={post.related_route_id ?? "mock"}
             routeTitle={post.title}
             totalDurationMin={journey.metadata.estimated_total_duration_minutes ?? undefined}
             spotCount={spots.length}

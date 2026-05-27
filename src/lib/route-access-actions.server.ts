@@ -231,19 +231,40 @@ export async function listRouteShareInvitesAction(input: {
     .eq("status", "active");
   const userIds = (rows ?? []).map((r: { granted_to_user_id: string }) => r.granted_to_user_id);
   if (userIds.length === 0) return { ok: true, invites: [] };
-  const { data: profiles } = await svc
-    .from("guardian_profiles")
-    .select("user_id, display_name, photo_url, avatar_image_url")
-    .in("user_id", userIds);
-  const profileMap = new Map<string, { display_name: string; avatar_url: string | null }>(
-    (profiles ?? []).map((p: { user_id: string; display_name?: string | null; photo_url?: string | null; avatar_image_url?: string | null }) => [
-      p.user_id,
-      {
-        display_name: p.display_name?.trim() || "Member",
-        avatar_url: p.photo_url ?? p.avatar_image_url ?? null,
-      },
-    ]),
-  );
+  // guardian_profiles 우선, 없으면 user_profiles 폴백 — 일반회원도 표시 가능.
+  const [{ data: gProfiles }, { data: uProfiles }] = await Promise.all([
+    svc
+      .from("guardian_profiles")
+      .select("user_id, display_name, photo_url, avatar_image_url")
+      .in("user_id", userIds),
+    svc
+      .from("user_profiles")
+      .select("user_id, display_name, profile_image_url")
+      .in("user_id", userIds),
+  ]);
+  const profileMap = new Map<string, { display_name: string; avatar_url: string | null }>();
+  for (const p of (gProfiles ?? []) as Array<{
+    user_id: string;
+    display_name?: string | null;
+    photo_url?: string | null;
+    avatar_image_url?: string | null;
+  }>) {
+    profileMap.set(p.user_id, {
+      display_name: p.display_name?.trim() || "Member",
+      avatar_url: p.photo_url ?? p.avatar_image_url ?? null,
+    });
+  }
+  for (const p of (uProfiles ?? []) as Array<{
+    user_id: string;
+    display_name?: string | null;
+    profile_image_url?: string | null;
+  }>) {
+    if (profileMap.has(p.user_id)) continue;
+    profileMap.set(p.user_id, {
+      display_name: p.display_name?.trim() || "Member",
+      avatar_url: p.profile_image_url ?? null,
+    });
+  }
   const invites = (rows ?? []).map((r: { id: string; granted_to_user_id: string }) => {
     const prof = profileMap.get(r.granted_to_user_id);
     return {
@@ -256,7 +277,11 @@ export async function listRouteShareInvitesAction(input: {
   return { ok: true, invites };
 }
 
-/** 멤버 검색 — display_name 부분 일치, 최대 8명. 본인 제외. */
+/**
+ * 멤버 검색 — display_name 부분 일치, 최대 8명. 본인 제외.
+ * 검색 풀: guardian_profiles UNION user_profiles — 가디언/일반회원 모두 무료 초대 대상.
+ * 두 테이블에 같은 user_id가 있으면 guardian_profiles 쪽을 우선(avatar·display_name 풍부).
+ */
 export async function searchMembersForInviteAction(input: {
   query: string;
 }): Promise<{
@@ -273,21 +298,61 @@ export async function searchMembersForInviteAction(input: {
   if (q.length < 2) return { ok: true, results: [] };
   const svc = createServiceRoleSupabase();
   if (!svc) return { ok: false, error: "service-role-unavailable" };
-  const { data, error } = await svc
-    .from("guardian_profiles")
-    .select("user_id, display_name, photo_url, avatar_image_url")
-    .ilike("display_name", `%${q}%`)
-    .neq("user_id", ownerId)
-    .limit(8);
-  if (error) return { ok: false, error: error.message };
-  return {
-    ok: true,
-    results: (data ?? []).map((r: { user_id: string; display_name?: string | null; photo_url?: string | null; avatar_image_url?: string | null }) => ({
+
+  const [{ data: gRows, error: gErr }, { data: uRows, error: uErr }] = await Promise.all([
+    svc
+      .from("guardian_profiles")
+      .select("user_id, display_name, photo_url, avatar_image_url")
+      .ilike("display_name", `%${q}%`)
+      .neq("user_id", ownerId)
+      .limit(8),
+    svc
+      .from("user_profiles")
+      .select("user_id, display_name, profile_image_url")
+      .ilike("display_name", `%${q}%`)
+      .neq("user_id", ownerId)
+      .limit(8),
+  ]);
+  if (gErr) return { ok: false, error: gErr.message };
+  if (uErr) return { ok: false, error: uErr.message };
+
+  const map = new Map<
+    string,
+    { user_id: string; display_name: string; avatar_url: string | null; rank: number }
+  >();
+  // 1차: guardian_profiles (avatar 풍부, 신뢰도 ↑)
+  for (const r of (gRows ?? []) as Array<{
+    user_id: string;
+    display_name?: string | null;
+    photo_url?: string | null;
+    avatar_image_url?: string | null;
+  }>) {
+    map.set(r.user_id, {
       user_id: r.user_id,
       display_name: r.display_name?.trim() || "Member",
       avatar_url: r.photo_url ?? r.avatar_image_url ?? null,
-    })),
-  };
+      rank: 0,
+    });
+  }
+  // 2차: user_profiles에 있고 guardian_profiles엔 없는 사람만 추가.
+  for (const r of (uRows ?? []) as Array<{
+    user_id: string;
+    display_name?: string | null;
+    profile_image_url?: string | null;
+  }>) {
+    if (map.has(r.user_id)) continue;
+    map.set(r.user_id, {
+      user_id: r.user_id,
+      display_name: r.display_name?.trim() || "Member",
+      avatar_url: r.profile_image_url ?? null,
+      rank: 1,
+    });
+  }
+  const merged = [...map.values()]
+    .sort((a, b) => a.rank - b.rank || a.display_name.localeCompare(b.display_name))
+    .slice(0, 8)
+    .map(({ user_id, display_name, avatar_url }) => ({ user_id, display_name, avatar_url }));
+  return { ok: true, results: merged };
 }
 
 export async function revokeRouteShareInviteAction(input: {

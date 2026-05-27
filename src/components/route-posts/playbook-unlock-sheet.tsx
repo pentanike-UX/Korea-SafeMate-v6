@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { GuardianRequestOpenTrigger, type GuardianRequestOpenDetail } from "@/components/guardians/guardian-request-sheet";
 import { cn } from "@/lib/utils";
 import { useRouter } from "@/i18n/navigation";
 import { confirmRouteCheckoutAction } from "@/lib/route-access-checkout.server";
+import { useToast } from "@/components/ui/toast";
 
 type Props = {
   open: boolean;
@@ -39,9 +40,11 @@ export function PlaybookUnlockSheet({
 }: Props) {
   const t = useTranslations("RoutePosts");
   const router = useRouter();
+  const { toast } = useToast();
   const [step, setStep] = useState<Step>("plan");
   const [method, setMethod] = useState<PayMethod | null>(null);
   const [plan, setPlan] = useState<PlanCode | null>(null);
+  const [grantConfirmed, setGrantConfirmed] = useState(false);
 
   // 시트가 닫히면 단계 초기화 (열면 항상 플랜 선택부터)
   useEffect(() => {
@@ -50,23 +53,25 @@ export function PlaybookUnlockSheet({
         setStep("plan");
         setMethod(null);
         setPlan(null);
+        setGrantConfirmed(false);
       }, 200);
       return () => clearTimeout(id);
     }
   }, [open]);
 
-  // processing → success → 자동 unlock + close
-  // 데모 임팩트 강화: 결제 진행/완료 화면이 시연자에게 충분히 보이도록 약간의 지연.
+  // processing → success → grant 발급 + 토스트
+  // Success 시트는 사용자가 명시적으로 닫거나 "전체 코스 보기"를 누를 때까지 유지
+  // (공유 CTA를 보고 누를 수 있도록).
   useEffect(() => {
     if (step === "processing") {
       const id = setTimeout(() => setStep("success"), 2500);
       return () => clearTimeout(id);
     }
-    if (step === "success") {
-      const id = setTimeout(async () => {
+    if (step === "success" && !grantConfirmed) {
+      setGrantConfirmed(true);
+      void (async () => {
         // Phase 3C: 결제 완료 시점에 서버측 grant/pack 발급을 시도.
         // routeId가 있을 때만 (mock 루트가 아닐 때) 실제 grant를 만든다.
-        // 실패해도 데모 unlock은 유지 — 운영에선 실패 시 에러 토스트로 교체.
         if (routeId && plan && plan !== "monthly_9900") {
           try {
             await confirmRouteCheckoutAction({
@@ -79,12 +84,18 @@ export function PlaybookUnlockSheet({
             /* swallow — 데모는 그대로 진행 */
           }
         }
+        // 결제 성공 토스트 — 데모/실 둘 다 노출.
+        const priceLabel = plan ? PLAN_PRICE[plan].replace("₩", "").replace(",", "") : "";
+        toast({
+          variant: "success",
+          title: t("paymentSuccessToastTitle", { price: priceLabel }),
+          description: t("paymentSuccessToastBody"),
+        });
+        // 데모 unlock은 즉시 적용해서 뒤에서 콘텐츠가 풀리도록.
         onConfirmDemoUnlock();
-        onOpenChange(false);
-      }, 2000);
-      return () => clearTimeout(id);
+      })();
     }
-  }, [step, onConfirmDemoUnlock, onOpenChange, routeId, plan, router]);
+  }, [step, grantConfirmed, onConfirmDemoUnlock, routeId, plan, router, toast, t]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -111,7 +122,16 @@ export function PlaybookUnlockSheet({
         ) : step === "processing" ? (
           <ProcessingStep t={t} method={method ?? "toss"} plan={plan} />
         ) : (
-          <SuccessStep t={t} plan={plan} />
+          <SuccessStep
+            t={t}
+            plan={plan}
+            onClose={() => onOpenChange(false)}
+            onShare={() => {
+              onOpenChange(false);
+              // Cockpit 좌측 공유 패널이 자동 노출되도록 router.refresh로 access reason→owner 갱신.
+              router.refresh();
+            }}
+          />
         )}
       </SheetContent>
     </Sheet>
@@ -344,18 +364,58 @@ function ProcessingStep({ t, method, plan }: { t: (k: string) => string; method:
 }
 
 // ── Step 4: 결제 완료 ────────────────────────────────────────────────────────
-function SuccessStep({ t, plan }: { t: (k: string) => string; plan: PlanCode | null }) {
+function SuccessStep({
+  t,
+  plan,
+  onClose,
+  onShare,
+}: {
+  t: (k: string) => string;
+  plan: PlanCode | null;
+  onClose: () => void;
+  onShare: () => void;
+}) {
   const priceLabel = plan ? PLAN_PRICE[plan] : t("paywallCtaPrimaryPrice");
+  // 시연용 가짜 영수증 번호 — 매 진입마다 새로 생성 (실 PG 연동 시 콜백 값으로 교체).
+  const [receiptNo] = useState(
+    () => `R-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+  );
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-12 min-h-[26rem] text-center">
+    <div className="flex flex-col items-center px-6 py-10 min-h-[26rem] text-center">
       <div className="mb-5 flex size-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300">
         <Check className="size-8" strokeWidth={3} />
       </div>
       <p className="text-xl font-bold text-foreground">{t("paymentSuccessTitle")}</p>
       <p className="mt-2 text-sm text-muted-foreground">{t("paymentSuccessLead")}</p>
-      <p className="mt-4 text-2xl font-extrabold tracking-tight text-foreground">
-        {priceLabel}
+      <p className="mt-4 text-2xl font-extrabold tracking-tight text-foreground">{priceLabel}</p>
+      <p className="mt-2 text-[11px] text-muted-foreground tabular-nums">
+        {t("paymentSuccessReceiptLabel")} · {receiptNo}
       </p>
+
+      <div className="mt-7 w-full space-y-2.5">
+        <Button
+          type="button"
+          onClick={onClose}
+          className="h-11 w-full rounded-2xl text-sm font-bold"
+        >
+          {t("paymentSuccessUnlockCta")}
+        </Button>
+        {plan !== "monthly_9900" ? (
+          <button
+            type="button"
+            onClick={onShare}
+            className="flex h-11 w-full items-center justify-center gap-1.5 rounded-2xl border border-border/60 bg-card text-sm font-semibold text-foreground transition-colors hover:bg-muted/40"
+          >
+            <Users className="size-4 text-[var(--brand-primary)]" aria-hidden />
+            {t("paymentSuccessShareCta")}
+          </button>
+        ) : null}
+        {plan !== "monthly_9900" ? (
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            {t("paymentSuccessShareHint")}
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }

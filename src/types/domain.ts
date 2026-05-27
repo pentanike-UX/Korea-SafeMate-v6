@@ -767,6 +767,13 @@ export interface ContentPost {
    * AI_CONTENT_HARUWAY_RULES.md §3 참조.
    */
   theme?: HaruwayTheme;
+  /**
+   * 본 포스트와 1:1 매핑된 실제 하루루트(UUID). 채워져 있으면
+   * RelatedRouteBanner·PlaybookUnlockSheet가 이 routeId로 진입하여
+   * 결제 → route_access_grants 발급 사이클을 완성한다.
+   * DB: `content_posts.related_route_id` (마이그레이션 20260527000006)
+   */
+  related_route_id?: string | null;
 }
 
 export interface ServiceType {

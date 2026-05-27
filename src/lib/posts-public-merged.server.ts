@@ -38,6 +38,8 @@ type RawPost = {
   structured_content?: unknown;
   is_sample?: boolean | null;
   seed_content_key?: string | null;
+  /** 마이그레이션 20260527000006 이후 컬럼 — 1:1 매핑된 하루루트 UUID. */
+  related_route_id?: string | null;
 };
 
 function heroSubjectFromRow(v: unknown): ContentPostHeroSubject | undefined {
@@ -82,6 +84,7 @@ function mapToContentPost(
     ...(heroSubject != null ? { hero_subject: heroSubject } : {}),
     ...(structured != null ? { structured_content: structured } : {}),
     ...(row.is_sample === true ? { is_sample: true } : {}),
+    ...(row.related_route_id ? { related_route_id: row.related_route_id } : {}),
     has_route: Boolean(rj?.spots?.length),
   };
 }
