@@ -14,6 +14,7 @@ import {
   Settings,
   Shield,
   Star,
+  Ticket,
   Users,
 } from "lucide-react";
 
@@ -58,7 +59,10 @@ const buildGroups = (showSuper: boolean): NavGroup[] => {
     {
       label: "Economy",
       description: "Ledger policy & adjustments",
-      items: [{ href: "/admin/points", label: "Points", icon: Coins }],
+      items: [
+        { href: "/admin/points", label: "Points", icon: Coins },
+        { href: "/admin/route-passes", label: "Route Passes", icon: Ticket },
+      ],
     },
   ];
 
