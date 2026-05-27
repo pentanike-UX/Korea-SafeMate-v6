@@ -65,12 +65,16 @@ export async function adminRevokeInviteAction(input: {
 export async function adminIssueCompGrantAction(input: {
   routeId: string;
   ownerUserId: string;
+  /** 발급 사유 — 최소 3자. CHECK 제약으로 DB에서도 강제. */
+  reason: string;
   /** 90일 외 다른 기간(일 단위). 기본 90일. */
   validDays?: number;
 }): Promise<{ ok: true; grantId: string } | { ok: false; error: string }> {
   const admin = await requireSuperAdminUserId();
   if (!admin) return { ok: false, error: "forbidden" };
   if (!input.routeId || !input.ownerUserId) return { ok: false, error: "invalid-input" };
+  const reason = input.reason?.trim() ?? "";
+  if (reason.length < 3) return { ok: false, error: "reason-required" };
   const svc = createServiceRoleSupabase();
   if (!svc) return { ok: false, error: "service-role-unavailable" };
   const days = input.validDays && input.validDays > 0 ? Math.min(365, input.validDays) : 90;
@@ -83,6 +87,7 @@ export async function adminIssueCompGrantAction(input: {
         owner_user_id: input.ownerUserId,
         source: "admin-comp",
         expires_at: expires,
+        comp_reason: reason,
       },
       { onConflict: "route_id,owner_user_id" },
     )
@@ -95,7 +100,7 @@ export async function adminIssueCompGrantAction(input: {
     grantId: data.id,
     actorUserId: admin,
     targetUserId: input.ownerUserId,
-    payload: { valid_days: days, route_id: input.routeId },
+    payload: { valid_days: days, route_id: input.routeId, reason },
   });
   revalidatePath(ROUTE);
   return { ok: true, grantId: data.id };

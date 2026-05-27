@@ -9,6 +9,45 @@
 
 ---
 
+## 2026-05-27 — Phase 3H·3I·3J 일괄 (어뷰징 감시·만료 알림 cron·comp 사유)
+
+### Phase 3H — 어뷰징 자동 감시
+
+- `supabase/migrations/20260527000002_route_abuse_signals.sql`: `route_abuse_signals` 테이블(signal_type·severity·grant·actor·target·payload) + RLS(super_admin SELECT) + invite revoke 누적 5회 초과 시 새 active 발급 차단 트리거.
+- `lib/route-abuse-signals.server.ts`: `logAbuseSignal`, `countRecentInviteEventsForGrant`.
+- `route-access-actions`:
+  - self-invite → `invite-self-attempt`(warn).
+  - DB revoke-cycle 차단 → `invite-cycle-warn`(critical) + 에러 `invite-cycle-limit`.
+  - 1시간 내 발급 3건 이상 → `invite-rapid-warn`(warn).
+- admin actions: expire/revoke/comp 모두 signal 로깅.
+- /admin/route-passes에 Abuse signals 테이블 섹션(severity badge·actor·target·grant·payload).
+
+### Phase 3I — owner 만료 24h/72h 알림 cron
+
+- `supabase/migrations/20260527000003_route_grant_expiry_notifications.sql`: `route_grant_expiry_notifications(grant_id, kind 72h|24h|expired, status queued|sent|failed)` + UNIQUE dedup.
+- 신규 `/api/cron/grant-expiry-notify` (GET, nodejs runtime, `CRON_SECRET` Bearer 검증) — 3개 윈도우 검사 후 dedup INSERT.
+- `vercel.json`: `crons` 매시 정각(`0 * * * *`) 등록.
+- 실제 알림 전송(메일·푸시·인앱)은 별도 worker에서 queued row 처리 — 본 PR은 dedup queue write까지.
+
+### Phase 3J — comp grant 사유 메타 + audit
+
+- `supabase/migrations/20260527000004_route_grant_comp_reason.sql`: `route_access_grants.comp_reason text` + CHECK(source='admin-comp' → reason ≥ 3자).
+- `adminIssueCompGrantAction`에 `reason` 필수 파라미터. 빈 사유는 `reason-required` 에러. `comp-issued` signal payload에 reason 포함.
+- admin client 폼에 Reason 입력 필드(필수, 최소 3자 클라이언트 가드).
+- grants 테이블 source 컬럼에 `"reason"` 인용 표시 (truncate + tooltip).
+
+### 검증
+
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm exec eslint`(변경 파일) 통과.
+- `pnpm build` 통과 (1014 페이지 SSG).
+
+### 운영 적용
+
+마이그레이션 3종을 운영 DB에 적용 후 `CRON_SECRET` env 설정, 그리고 super_admin 로그인 상태에서 /admin/route-passes로 시각 확인.
+
+---
+
 ## 2026-05-27 — Phase 3E·3F·3G 일괄 (마이페이지·운영·토스트)
 
 ### Phase 3E — 마이페이지 route passes

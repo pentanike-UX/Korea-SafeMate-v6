@@ -15,6 +15,7 @@ export interface AdminGrantRow {
   expires_at: string;
   created_at: string;
   active_invite_count: number;
+  comp_reason: string | null;
 }
 
 export interface AdminInviteRow {
@@ -96,7 +97,7 @@ export async function adminListRoutePasses(): Promise<{
   // grants — 최근 500건.
   const { data: grants } = await svc
     .from("route_access_grants")
-    .select("id, route_id, owner_user_id, source, expires_at, created_at")
+    .select("id, route_id, owner_user_id, source, expires_at, created_at, comp_reason")
     .order("created_at", { ascending: false })
     .limit(500);
   const grantRows = (grants ?? []) as Array<{
@@ -106,6 +107,7 @@ export async function adminListRoutePasses(): Promise<{
     source: AdminGrantRow["source"];
     expires_at: string;
     created_at: string;
+    comp_reason: string | null;
   }>;
 
   // active invite count per grant
@@ -133,6 +135,7 @@ export async function adminListRoutePasses(): Promise<{
     expires_at: g.expires_at,
     created_at: g.created_at,
     active_invite_count: inviteCountByGrant.get(g.id) ?? 0,
+    comp_reason: g.comp_reason,
   }));
 
   // invites — 최근 200건.

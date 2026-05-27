@@ -41,6 +41,7 @@ export function AdminRoutePassesClient({
   const [compRouteId, setCompRouteId] = useState("");
   const [compOwnerId, setCompOwnerId] = useState("");
   const [compDays, setCompDays] = useState("90");
+  const [compReason, setCompReason] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
 
   function notify(msg: string) {
@@ -70,10 +71,15 @@ export function AdminRoutePassesClient({
       notify("routeId and ownerUserId required");
       return;
     }
+    if (compReason.trim().length < 3) {
+      notify("Reason required (min 3 chars)");
+      return;
+    }
     start(async () => {
       const r = await adminIssueCompGrantAction({
         routeId: compRouteId.trim(),
         ownerUserId: compOwnerId.trim(),
+        reason: compReason.trim(),
         validDays: Number(compDays) || 90,
       });
       if (r.ok) {
@@ -81,6 +87,7 @@ export function AdminRoutePassesClient({
         setCompRouteId("");
         setCompOwnerId("");
         setCompDays("90");
+        setCompReason("");
       } else {
         notify(`Failed: ${r.error}`);
       }
@@ -131,6 +138,15 @@ export function AdminRoutePassesClient({
               className="w-24 rounded-lg border border-border/60 bg-background px-3 py-1.5 text-sm tabular-nums"
             />
           </label>
+          <label className="flex flex-col gap-1 text-xs">
+            <span className="font-semibold">Reason (required)</span>
+            <input
+              value={compReason}
+              onChange={(e) => setCompReason(e.target.value)}
+              placeholder="CS resolution / influencer promo / refund offset…"
+              className="w-96 rounded-lg border border-border/60 bg-background px-3 py-1.5 text-sm"
+            />
+          </label>
           <button
             type="submit"
             disabled={pending}
@@ -178,7 +194,17 @@ export function AdminRoutePassesClient({
                           {g.owner_user_id.slice(0, 8)}…
                         </p>
                       </td>
-                      <td className="px-3 py-2">{g.source}</td>
+                      <td className="px-3 py-2">
+                        <p>{g.source}</p>
+                        {g.comp_reason ? (
+                          <p
+                            className="text-muted-foreground mt-0.5 max-w-[14rem] truncate text-[10px]"
+                            title={g.comp_reason}
+                          >
+                            “{g.comp_reason}”
+                          </p>
+                        ) : null}
+                      </td>
                       <td className="px-3 py-2">
                         <p className={expired ? "text-rose-500 font-semibold" : ""}>
                           {formatDate(g.expires_at)}
