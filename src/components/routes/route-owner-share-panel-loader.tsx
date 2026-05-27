@@ -14,6 +14,7 @@ import {
   revokeRouteShareInviteAction,
   searchMembersForInviteAction,
 } from "@/lib/route-access-actions.server";
+import { useToast } from "@/components/ui/toast";
 
 /**
  * Cockpit에서 사용 — 오너인 사용자에게 RouteOwnerSharePanel을 노출.
@@ -23,6 +24,7 @@ import {
  */
 export function RouteOwnerSharePanelLoader({ grantId }: { grantId: string }) {
   const t = useTranslations("TravelerHub");
+  const { toast } = useToast();
   const [invites, setInvites] = useState<ShareInviteSlot[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQ, setSearchQ] = useState("");
@@ -69,15 +71,32 @@ export function RouteOwnerSharePanelLoader({ grantId }: { grantId: string }) {
       if (r.ok) {
         setSearchOpen(false);
         refresh();
+        toast({
+          variant: "success",
+          title: t("routeShareInviteOkTitle"),
+          description: t("routeShareInviteOkBody"),
+        });
+        return;
       }
-      // 실패 시 그대로 두고 사용자가 다시 시도(에러 토스트는 후속).
+      const msg =
+        r.error === "invite-limit"
+          ? t("routeShareInviteErrLimit")
+          : r.error === "duplicate-grantee"
+            ? t("routeShareInviteErrDuplicate")
+            : t("routeShareInviteErrGeneric");
+      toast({ variant: "error", title: msg });
     });
   }
 
   function onRevoke(inviteId: string) {
     startAction(async () => {
       const r = await revokeRouteShareInviteAction({ inviteId });
-      if (r.ok) refresh();
+      if (r.ok) {
+        refresh();
+        toast({ variant: "success", title: t("routeShareRevokeOk") });
+      } else {
+        toast({ variant: "error", title: t("routeShareRevokeErr") });
+      }
     });
   }
 

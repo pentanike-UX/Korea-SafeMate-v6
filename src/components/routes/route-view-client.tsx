@@ -33,6 +33,7 @@ import {
 } from "@/components/routes/route-ticket-dialogs";
 import { consumeRouteTicketAction } from "@/lib/route-access-actions.server";
 import { RouteOwnerSharePanelLoader } from "@/components/routes/route-owner-share-panel-loader";
+import { useToast } from "@/components/ui/toast";
 
 /**
  * 라우트 페이지 클라이언트 컨테이너.
@@ -79,6 +80,7 @@ export function RouteViewClient({
 }) {
   const t = useTranslations("TravelerHub");
   const router = useRouter();
+  const { toast } = useToast();
   const [unlocked, setUnlocked] = useState(initialUnlocked);
   const [selectedSpot, setSelectedSpot] = useState<HaruSpot | null>(null);
   const [saved, setSaved] = useState(initialSaved);
@@ -147,6 +149,8 @@ export function RouteViewClient({
         setTicketDialog(null);
         // 서버에서 grant가 발급됐으므로 페이지 다시 로드 → initialUnlocked=true로 진입.
         router.refresh();
+      } else {
+        toast({ variant: "error", title: t("routeTicketConsumeErr") });
       }
     });
   }

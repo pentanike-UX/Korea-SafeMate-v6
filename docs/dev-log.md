@@ -9,6 +9,38 @@
 
 ---
 
+## 2026-05-27 — Phase 3E·3F·3G 일괄 (마이페이지·운영·토스트)
+
+### Phase 3E — 마이페이지 route passes
+
+- 신규 `/[locale]/(authed)/mypage/route-passes/page.tsx` — grants(만료일·잔여일·공유 N명) + ticket packs(잔여/총) + 빈 상태 + explore 진입 CTA.
+- 신규 `src/lib/route-access-mypage.server.ts` — `listMyRoutePasses(locale)`로 grants+packs+route 제목+active invite count 일괄 fetch.
+- i18n: `routePasses*` 12개 키 5 로케일.
+
+### Phase 3F — 운영 대시보드
+
+- 신규 `/admin/route-passes` — Grants(최근 500)·Invites(최근 200)·Packs(최근 200) 테이블 + Comp grant 발급 폼.
+- 신규 `src/lib/route-access-admin.server.ts` — `requireSuperAdminUserId`, `adminListRoutePasses()`.
+- 신규 `src/app/admin/route-passes/actions.ts` — 모두 super_admin 검사: `adminExpireGrantAction`(어뷰징 대응), `adminRevokeInviteAction`, `adminIssueCompGrantAction`(admin-comp source, 1~365일 사용자 지정).
+- Admin sidebar Economy 그룹에 Route Passes 추가.
+
+### Phase 3G — 에러 토스트
+
+- `src/app/layout.tsx`: `<ToastProvider>` mount (ThemeProvider 안쪽).
+- `RouteOwnerSharePanelLoader`:
+  - 발급 성공/실패별 친절한 메시지 (invite-limit / duplicate-grantee / generic).
+  - 회수 성공/실패 메시지.
+- `RouteViewClient.onConsumeTicketConfirm`: 실패 시 error 토스트.
+- i18n: `routeShareInviteOk*`, `routeShareInviteErr*`, `routeShareRevoke*`, `routeTicketConsumeErr` 8개 키 5 로케일.
+
+### 검증
+
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm exec eslint`(변경 파일) 통과.
+- `pnpm build` 통과 (1014 페이지 SSG).
+
+---
+
 ## 2026-05-27 — Phase 3D (Cockpit 좌측 RouteOwnerSharePanel 통합 + 검색·발급·회수)
 
 ### 목표
