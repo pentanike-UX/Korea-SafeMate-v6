@@ -9,6 +9,47 @@
 
 ---
 
+## 2026-05-27 — Cockpit Phase 2A (좌측 패널 inline 상세 · 백드롭 제거 · mock 가디언)
+
+### 목표
+
+피드백 반영: (1) 헤더 우측 하루이 프로필이 비어 있음 — mock에 한글 이름·이미지 채우기. (2) 스팟 클릭 시 우측 시트가 아닌 좌측 패널이 스팟 상세로 확장되어 노출. (3) 백드롭 dim/blur 제거. (4) 지도 마커 클릭에서도 동일 동작.
+
+### 변경 파일
+
+- `src/data/mock/haru-route.ts` — guardian.display_name "Seoho · Seoul Palace Tribe" → "김서호", photo_url null → `/mock/profiles/profile_14_avatar.jpg` (mg14 시드와 일치).
+- `src/components/routes/spot-detail-content.tsx` (신규) — Sheet에서 본문만 추출한 재사용 컴포넌트. 헤더(닫기 + 카테고리 이모지 + 이름·체류·주소) + 갤러리 + 칩/사운드트랙/노트/커머스/아티스트/4 블록.
+- `src/components/routes/haru-spot-detail-sheet.tsx` — 모바일 bottom sheet 전용 래퍼로 슬림화, 본문은 SpotDetailContent 위임. mountKey 패턴 제거(스팟별 `key={spot.id}`로 자연 리마운트).
+- `src/components/ui/sheet.tsx` — `backdropTransparent` prop 추가. true면 `bg-transparent`로 dim/blur 완전 제거.
+- `src/components/routes/route-view-client.tsx` — 데스크톱 좌측 aside가 selectedSpot일 때 SpotDetailContent를 인라인 렌더, 아니면 RouteSpotRailVertical + NextStepsBlock. 데스크톱에서 HaruSpotDetailSheet 미렌더. 좌측 폭 `md:360px xl:440px`로 확장.
+
+### 답변 (사용자 질문)
+
+- **이름이 영어인 이유**: `src/data/mock/haru-route.ts` 165~174줄 `mockHaruRoute.guardian.display_name`가 "Seoho · Seoul Palace Tribe" 하드코딩. → 본 PR에서 "김서호"로 교체.
+- **"전체 루트" 문구 위치**: i18n 키 `TravelerHub.routePaidKickerFull` (현재 ko = "전체 루트"). `messages/{ko,en,ja,th,vi}.json` 에서 수정 가능.
+
+### 변경 내용 (상세)
+
+- 좌측 패널 인라인 상세: aside가 `selectedSpot ? SpotDetailContent : (Rail + NextSteps)` — 같은 슬롯에서 스왑되어 "패널이 펼쳐진다"는 인상.
+- 백드롭: 모바일 bottom sheet는 `backdropTransparent` 적용 — 지도/타임라인이 어두워지지 않음. 시트 외부 탭 닫기는 유지.
+- 지도 마커 클릭: `haru-route-map-view.tsx`가 이미 `onSpotClick?.(s)`를 발화 — route-view-client에서 `setSelectedSpot(s)`로 연결돼 있으므로 데스크톱에선 좌측 패널이 즉시 상세로 전환, 모바일에선 bottom sheet 노출. (별도 변경 불필요)
+- 갤러리 인덱스 상태는 SpotDetailContent 내부 — 스팟 변경 시 `key={spot.id}`로 자연 리셋.
+
+### 검증 결과
+
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm exec eslint`(변경 파일) 통과.
+- `pnpm build` 통과 (Compiled successfully · 1008 페이지 SSG).
+- 시각 검증: 시연 시 (a) 헤더 우측 김서호 아바타+이름 표시, (b) 좌측 카드/지도 마커 클릭으로 좌측 패널이 상세로 전환, (c) 우측 지도 그대로 보임, (d) 모바일 bottom sheet에 백드롭 없음 확인 권장.
+
+### 남은 이슈 (Phase 2 잔여)
+
+- 결제 완료 페이지 재설계.
+- 유료 가치 필드(추천시간/사진포인트/이동팁/근처결제/굿즈/혼잡도/Pick).
+- 이탈 확인 모달, 스와이프 다운 닫기.
+
+---
+
 ## 2026-05-27 — fix(routes): 유료 플레이어 이탈 후 다음 페이지 스크롤 잠김
 
 ### 증상

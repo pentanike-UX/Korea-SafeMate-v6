@@ -16,6 +16,7 @@ import {
 import { HaruTimeline } from "@/components/patterns/haru-timeline";
 import { RouteFreePreviewSection } from "@/components/routes/route-free-preview-section";
 import { HaruSpotDetailSheet } from "@/components/routes/haru-spot-detail-sheet";
+import { SpotDetailContent } from "@/components/routes/spot-detail-content";
 import { HaruRouteMapView } from "@/components/routes/haru-route-map-view";
 import { RouteSpotRailVertical } from "@/components/routes/route-spot-rail-vertical";
 import { GoogleMapsProvider } from "@/components/maps/google-maps-provider";
@@ -319,18 +320,35 @@ export function RouteViewClient({
 
         {/* ── Body ── */}
         <div className="relative min-h-0 flex-1">
-          {/* 데스크톱: split 레이아웃 (좌 세로 레일 + 우 지도) */}
-          <div className="hidden h-full md:grid md:grid-cols-[320px_1fr] xl:grid-cols-[360px_1fr]">
-            <aside className="border-border/60 bg-card/30 h-full overflow-y-auto border-r overscroll-contain">
-              <RouteSpotRailVertical
-                route={route}
-                locale={locale}
-                selectedSpotId={selectedSpot?.id ?? null}
-                onSpotClick={(s) => setSelectedSpot(s)}
-              />
-              <div className="px-3 pb-5 sm:px-4">
-                <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
-              </div>
+          {/* 데스크톱: split 레이아웃 (좌 패널 — 레일 또는 상세 / 우 지도) */}
+          <div className="hidden h-full md:grid md:grid-cols-[360px_1fr] xl:grid-cols-[440px_1fr]">
+            <aside
+              className={cn(
+                "border-border/60 bg-card/30 h-full overflow-hidden border-r",
+                // 상세 모드일 땐 자체 스크롤은 SpotDetailContent 내부에서 처리
+                selectedSpot ? "flex flex-col" : "overflow-y-auto overscroll-contain",
+              )}
+            >
+              {selectedSpot ? (
+                <SpotDetailContent
+                  key={selectedSpot.id}
+                  spot={selectedSpot}
+                  locale={locale}
+                  onClose={() => setSelectedSpot(null)}
+                />
+              ) : (
+                <>
+                  <RouteSpotRailVertical
+                    route={route}
+                    locale={locale}
+                    selectedSpotId={null}
+                    onSpotClick={(s) => setSelectedSpot(s)}
+                  />
+                  <div className="px-3 pb-5 sm:px-4">
+                    <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
+                  </div>
+                </>
+              )}
             </aside>
             <div className="relative min-h-0">{MapView}</div>
           </div>
@@ -354,16 +372,18 @@ export function RouteViewClient({
           </div>
         </div>
 
-        {/* 스팟 상세 — 데스크톱: 우측 슬라이드 인, 모바일: 하단 시트 */}
-        <HaruSpotDetailSheet
-          spot={selectedSpot}
-          locale={locale}
-          open={selectedSpot != null}
-          side={isDesktop ? "right" : "bottom"}
-          onOpenChange={(open) => {
-            if (!open) setSelectedSpot(null);
-          }}
-        />
+        {/* 스팟 상세 — 모바일 전용 bottom sheet. 데스크톱은 좌측 패널 인라인. */}
+        {!isDesktop ? (
+          <HaruSpotDetailSheet
+            spot={selectedSpot}
+            locale={locale}
+            open={selectedSpot != null}
+            side="bottom"
+            onOpenChange={(open) => {
+              if (!open) setSelectedSpot(null);
+            }}
+          />
+        ) : null}
       </div>
     </GoogleMapsProvider>
   );

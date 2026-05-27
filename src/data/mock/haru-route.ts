@@ -169,8 +169,8 @@ export const mockHaruRoute: HaruRoute = {
     en: "K-Music Stages Across Seoul's Palaces",
   },
   guardian: {
-    display_name: "Seoho · Seoul Palace Tribe",
-    photo_url: null,
+    display_name: "김서호",
+    photo_url: "/mock/profiles/profile_14_avatar.jpg",
     last_seen_at: "mock:online",
   },
   total_duration_min: 240, // 4시간 (5스팟 + 인사동 케타포 마무리)

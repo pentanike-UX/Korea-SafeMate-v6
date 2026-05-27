@@ -23,12 +23,19 @@ function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
   return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />
 }
 
-function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
+function SheetOverlay({
+  className,
+  transparent = false,
+  ...props
+}: SheetPrimitive.Backdrop.Props & { transparent?: boolean }) {
   return (
     <SheetPrimitive.Backdrop
       data-slot="sheet-overlay"
       className={cn(
-        "fixed inset-0 z-[70] bg-black/10 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs",
+        "fixed inset-0 z-[70] transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0",
+        transparent
+          ? "bg-transparent"
+          : "bg-black/10 supports-backdrop-filter:backdrop-blur-xs",
         className
       )}
       {...props}
@@ -41,14 +48,17 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
+  backdropTransparent = false,
   ...props
 }: SheetPrimitive.Popup.Props & {
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
+  /** 배경 dim/blur를 완전히 제거하고 싶을 때 — Route Cockpit 등. */
+  backdropTransparent?: boolean
 }) {
   return (
     <SheetPortal>
-      <SheetOverlay />
+      <SheetOverlay transparent={backdropTransparent} />
       <SheetPrimitive.Popup
         data-slot="sheet-content"
         data-side={side}
