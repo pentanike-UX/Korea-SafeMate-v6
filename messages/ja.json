@@ -1803,6 +1803,7 @@
     "routeOwnerShareSlotRevoke": "取り消す",
     "routeOwnerShareInviteCta": "メンバー検索",
     "routeOwnerShareSearchBack": "共有に戻る",
+    "routeOwnerShareSearchClose": "検索を閉じる",
     "routeOwnerShareSearchPlaceholder": "名前で検索（2文字以上）",
     "routeOwnerShareSearchHint": "登録済みメンバー名を2文字以上入力してください",
     "routeOwnerShareSearchNoMatches": "該当するメンバーがいません",

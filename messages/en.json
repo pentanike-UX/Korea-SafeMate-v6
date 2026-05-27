@@ -1833,6 +1833,7 @@
     "routeOwnerShareSlotRevoke": "Revoke",
     "routeOwnerShareInviteCta": "Find member",
     "routeOwnerShareSearchBack": "Back to share",
+    "routeOwnerShareSearchClose": "Close search",
     "routeOwnerShareSearchPlaceholder": "Search by name (2+ characters)",
     "routeOwnerShareSearchHint": "Enter at least 2 characters of the member's name",
     "routeOwnerShareSearchNoMatches": "No members found",

@@ -6,7 +6,6 @@ import {
   RouteOwnerSharePanel,
   type ShareInviteSlot,
 } from "@/components/routes/route-owner-share-panel";
-import { RouteOwnerShareMemberSearch } from "@/components/routes/route-owner-share-member-search";
 import {
   createRouteInviteLinkAction,
   createRouteShareInviteAction,
@@ -69,12 +68,6 @@ export function RouteOwnerSharePanelLoader({
     }, 250);
     return () => clearTimeout(handle);
   }, [debouncedQ, searchOpen]);
-
-  function onInviteClick() {
-    setSearchQ("");
-    setSearchResults([]); // 검색 시트 새로 열 때 이전 결과 초기화 (이벤트 핸들러에서 안전)
-    setSearchOpen(true);
-  }
 
   function onPickMember(userId: string) {
     startAction(async () => {
@@ -199,24 +192,23 @@ export function RouteOwnerSharePanelLoader({
       ? buildInviteUrl(routeId, activeLinkInvite.invite_token)
       : null;
 
-  if (searchOpen) {
-    return (
-      <RouteOwnerShareMemberSearch
-        searchQ={searchQ}
-        onSearchQChange={setSearchQ}
-        searchResults={searchResults}
-        searchPending={searchPending}
-        actionPending={actionPending}
-        onBack={() => setSearchOpen(false)}
-        onPickMember={onPickMember}
-      />
-    );
-  }
-
   return (
     <RouteOwnerSharePanel
       invites={invites}
-      onOpenMemberSearch={onInviteClick}
+      memberSearchOpen={searchOpen}
+      onMemberSearchOpenChange={(open) => {
+        if (open) {
+          setSearchQ("");
+          setSearchResults([]);
+        }
+        setSearchOpen(open);
+      }}
+      memberSearchQ={searchQ}
+      onMemberSearchQChange={setSearchQ}
+      memberSearchResults={searchResults}
+      memberSearchPending={searchPending}
+      memberInvitePending={actionPending}
+      onPickMember={onPickMember}
       onShareLink={onShareLink}
       onCopyLink={onCopyLink}
       onRevoke={onRevoke}

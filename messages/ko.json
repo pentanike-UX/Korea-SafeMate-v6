@@ -1834,6 +1834,7 @@
     "routeOwnerShareSlotRevoke": "초대 회수",
     "routeOwnerShareInviteCta": "회원 검색",
     "routeOwnerShareSearchBack": "공유로 돌아가기",
+    "routeOwnerShareSearchClose": "검색 닫기",
     "routeOwnerShareSearchPlaceholder": "이름으로 검색 (2글자 이상)",
     "routeOwnerShareSearchHint": "가입한 회원 이름을 2글자 이상 입력해 주세요",
     "routeOwnerShareSearchNoMatches": "검색 결과가 없어요",

@@ -1,17 +1,17 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Loader2, Search, UserCheck } from "lucide-react";
+import { Loader2, Search, UserCheck, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-/** 공유 시트 내부 단계 — 중첩 Sheet 없이 회원 검색 (z-index 충돌 방지). */
-export function RouteOwnerShareMemberSearch({
+/** 회원 카드(B) 안에서 펼쳐지는 인라인 검색 — 별도 시트/화면 전환 없음. */
+export function RouteOwnerShareMemberSearchInline({
   searchQ,
   onSearchQChange,
   searchResults,
   searchPending,
   actionPending,
-  onBack,
+  onClose,
   onPickMember,
   className,
 }: {
@@ -20,7 +20,7 @@ export function RouteOwnerShareMemberSearch({
   searchResults: Array<{ user_id: string; display_name: string; avatar_url?: string | null }>;
   searchPending: boolean;
   actionPending: boolean;
-  onBack: () => void;
+  onClose: () => void;
   onPickMember: (userId: string) => void;
   className?: string;
 }) {
@@ -29,22 +29,27 @@ export function RouteOwnerShareMemberSearch({
   const showEmpty = trimmed.length >= 2 && !searchPending && searchResults.length === 0;
 
   return (
-    <div className={cn("flex flex-col gap-4 px-6 pb-8 pt-12 sm:px-8 sm:pt-14", className)}>
-      <header className="flex items-center gap-2 pr-11">
+    <div
+      className={cn(
+        "mt-3 space-y-3 rounded-xl border border-[var(--brand-primary)]/35 bg-[var(--brand-primary)]/[0.04] p-3",
+        className,
+      )}
+      role="region"
+      aria-label={t("routeOwnerShareInviteCta")}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-foreground text-xs font-bold">{t("routeOwnerShareInviteCta")}</p>
         <button
           type="button"
-          onClick={onBack}
-          className="text-muted-foreground hover:text-foreground hover:bg-muted -ml-1 flex size-9 shrink-0 items-center justify-center rounded-full transition-colors"
-          aria-label={t("routeOwnerShareSearchBack")}
+          onClick={onClose}
+          className="text-muted-foreground hover:text-foreground hover:bg-muted flex size-7 shrink-0 items-center justify-center rounded-full transition-colors"
+          aria-label={t("routeOwnerShareSearchClose")}
         >
-          <ArrowLeft className="size-5" aria-hidden />
+          <X className="size-4" aria-hidden />
         </button>
-        <h2 className="text-foreground min-w-0 flex-1 font-serif text-xl font-bold tracking-tight">
-          {t("routeOwnerShareMemberTitle")}
-        </h2>
-      </header>
+      </div>
 
-      <label className="border-border/60 focus-within:border-[var(--brand-primary)] flex items-center gap-2 rounded-xl border bg-background px-3 py-2.5">
+      <label className="border-border/60 focus-within:border-[var(--brand-primary)] flex items-center gap-2 rounded-lg border bg-background px-3 py-2">
         <Search className="text-muted-foreground size-4 shrink-0" aria-hidden />
         <input
           autoFocus
@@ -56,14 +61,14 @@ export function RouteOwnerShareMemberSearch({
         {searchPending ? <Loader2 className="text-muted-foreground size-4 shrink-0 animate-spin" /> : null}
       </label>
 
-      <ul className="min-h-[12rem] space-y-1.5">
+      <ul className="max-h-[min(40vh,16rem)] space-y-1 overflow-y-auto overscroll-contain">
         {trimmed.length < 2 ? (
-          <li className="text-muted-foreground py-8 text-center text-sm leading-relaxed">
+          <li className="text-muted-foreground px-1 py-4 text-center text-xs leading-relaxed">
             {t("routeOwnerShareSearchHint")}
           </li>
         ) : null}
         {showEmpty ? (
-          <li className="text-muted-foreground py-8 text-center text-sm">{t("routeOwnerShareSearchNoMatches")}</li>
+          <li className="text-muted-foreground px-1 py-4 text-center text-xs">{t("routeOwnerShareSearchNoMatches")}</li>
         ) : null}
         {searchResults.map((m) => (
           <li key={m.user_id}>
@@ -71,9 +76,9 @@ export function RouteOwnerShareMemberSearch({
               type="button"
               onClick={() => onPickMember(m.user_id)}
               disabled={actionPending}
-              className="hover:bg-muted disabled:opacity-60 flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition-colors"
+              className="hover:bg-muted/80 disabled:opacity-60 flex w-full items-center gap-2.5 rounded-lg p-2 text-left transition-colors"
             >
-              <span className="bg-muted size-10 shrink-0 overflow-hidden rounded-full">
+              <span className="bg-muted size-9 shrink-0 overflow-hidden rounded-full">
                 {m.avatar_url ? (
                   /* eslint-disable-next-line @next/next/no-img-element */
                   <img src={m.avatar_url} alt="" className="size-full object-cover" />

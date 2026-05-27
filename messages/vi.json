@@ -1804,6 +1804,7 @@
     "routeOwnerShareSlotRevoke": "Hủy",
     "routeOwnerShareInviteCta": "Tìm thành viên",
     "routeOwnerShareSearchBack": "Quay lại chia sẻ",
+    "routeOwnerShareSearchClose": "Đóng tìm kiếm",
     "routeOwnerShareSearchPlaceholder": "Tìm theo tên (từ 2 ký tự)",
     "routeOwnerShareSearchHint": "Nhập ít nhất 2 ký tự tên thành viên",
     "routeOwnerShareSearchNoMatches": "Không tìm thấy thành viên",

@@ -1804,6 +1804,7 @@
     "routeOwnerShareSlotRevoke": "ยกเลิก",
     "routeOwnerShareInviteCta": "ค้นหาสมาชิก",
     "routeOwnerShareSearchBack": "กลับไปแชร์",
+    "routeOwnerShareSearchClose": "ปิดการค้นหา",
     "routeOwnerShareSearchPlaceholder": "ค้นหาด้วยชื่อ (อย่างน้อย 2 ตัวอักษร)",
     "routeOwnerShareSearchHint": "พิมพ์ชื่อสมาชิกอย่างน้อย 2 ตัวอักษร",
     "routeOwnerShareSearchNoMatches": "ไม่พบสมาชิก",

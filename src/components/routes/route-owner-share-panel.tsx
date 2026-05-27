@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Link2, MessageCircle, Copy, UserPlus, X, Search, Loader2 } from "lucide-react";
+import { RouteOwnerShareMemberSearchInline } from "@/components/routes/route-owner-share-member-search";
 import { cn } from "@/lib/utils";
 
 /**
@@ -28,7 +30,14 @@ export interface ShareInviteSlot {
 
 export function RouteOwnerSharePanel({
   invites,
-  onOpenMemberSearch,
+  memberSearchOpen,
+  onMemberSearchOpenChange,
+  memberSearchQ,
+  onMemberSearchQChange,
+  memberSearchResults,
+  memberSearchPending,
+  memberInvitePending,
+  onPickMember,
   onShareLink,
   onCopyLink,
   onRevoke,
@@ -38,7 +47,14 @@ export function RouteOwnerSharePanel({
   activeLinkUrl = null,
 }: {
   invites: ShareInviteSlot[];
-  onOpenMemberSearch: () => void;
+  memberSearchOpen: boolean;
+  onMemberSearchOpenChange: (open: boolean) => void;
+  memberSearchQ: string;
+  onMemberSearchQChange: (q: string) => void;
+  memberSearchResults: Array<{ user_id: string; display_name: string; avatar_url?: string | null }>;
+  memberSearchPending: boolean;
+  memberInvitePending: boolean;
+  onPickMember: (userId: string) => void;
   onShareLink: () => void;
   onCopyLink: () => void;
   onRevoke: (inviteId: string) => void;
@@ -56,6 +72,12 @@ export function RouteOwnerSharePanel({
   const limitFull = remaining === 0;
 
   const isSheet = variant === "sheet";
+  const memberSectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!memberSearchOpen || !memberSectionRef.current) return;
+    memberSectionRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [memberSearchOpen]);
 
   return (
     <div
@@ -197,11 +219,30 @@ export function RouteOwnerSharePanel({
         ) : null}
       </section>
 
-      {/* ── B) 회원 검색으로 직접 전달 ──────────────────────────────────── */}
-      <section className="border-border/60 rounded-2xl border bg-card p-5 shadow-sm">
+      {/* ── B) 회원 검색으로 직접 전달 (검색 UI는 이 카드 안에서 펼침) ───── */}
+      <section
+        ref={memberSectionRef}
+        className={cn(
+          "rounded-2xl border bg-card p-5 shadow-sm transition-colors",
+          memberSearchOpen
+            ? "border-[var(--brand-primary)]/45 ring-1 ring-[var(--brand-primary)]/20"
+            : "border-border/60",
+        )}
+      >
         <div className="mb-3 flex items-center gap-2.5">
-          <span className="bg-muted/80 flex size-9 shrink-0 items-center justify-center rounded-xl">
-            <Search className="text-muted-foreground size-4.5" aria-hidden />
+          <span
+            className={cn(
+              "flex size-9 shrink-0 items-center justify-center rounded-xl",
+              memberSearchOpen ? "bg-[var(--brand-primary)]/15" : "bg-muted/80",
+            )}
+          >
+            <Search
+              className={cn(
+                "size-4.5",
+                memberSearchOpen ? "text-[var(--brand-primary)]" : "text-muted-foreground",
+              )}
+              aria-hidden
+            />
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-foreground text-sm font-bold">{t("routeOwnerShareMemberTitle")}</p>
@@ -211,15 +252,28 @@ export function RouteOwnerSharePanel({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onOpenMemberSearch}
-          disabled={limitFull && memberSlots.length === 0}
-          className="border-border/60 hover:bg-muted text-foreground flex h-11 w-full items-center justify-center gap-2 rounded-xl border bg-card px-4 text-sm font-semibold transition-colors disabled:opacity-50"
-        >
-          <UserPlus className="size-4" aria-hidden />
-          {t("routeOwnerShareMemberCta")}
-        </button>
+        {!memberSearchOpen ? (
+          <button
+            type="button"
+            onClick={() => onMemberSearchOpenChange(true)}
+            disabled={limitFull && memberSlots.length === 0}
+            aria-expanded={false}
+            className="border-border/60 hover:bg-muted text-foreground flex h-11 w-full items-center justify-center gap-2 rounded-xl border bg-card px-4 text-sm font-semibold transition-colors disabled:opacity-50"
+          >
+            <UserPlus className="size-4" aria-hidden />
+            {t("routeOwnerShareMemberCta")}
+          </button>
+        ) : (
+          <RouteOwnerShareMemberSearchInline
+            searchQ={memberSearchQ}
+            onSearchQChange={onMemberSearchQChange}
+            searchResults={memberSearchResults}
+            searchPending={memberSearchPending}
+            actionPending={memberInvitePending}
+            onClose={() => onMemberSearchOpenChange(false)}
+            onPickMember={onPickMember}
+          />
+        )}
 
         {memberSlots.length > 0 ? (
           <ul className="mt-3 space-y-1.5">
