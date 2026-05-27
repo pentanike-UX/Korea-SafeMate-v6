@@ -26,6 +26,7 @@ import {
   GUARDIAN_INQUIRY_OPEN_EVENT,
   type GuardianInquiryOpenDetail,
 } from "@/components/guardians/guardian-inquiry-sheet";
+import { SharedByBanner } from "@/components/routes/shared-by-banner";
 
 /**
  * 라우트 페이지 클라이언트 컨테이너.
@@ -45,6 +46,7 @@ export function RouteViewClient({
   precomputedDirections = null,
   canSave = false,
   initialSaved = false,
+  sharedBy = null,
 }: {
   route: HaruRoute;
   locale: AppLocale;
@@ -52,6 +54,12 @@ export function RouteViewClient({
   precomputedDirections?: RouteViewPrecomputedDirections | null;
   canSave?: boolean;
   initialSaved?: boolean;
+  /** 공유 초대로 접근한 경우 오너 정보 — 상단에 SharedByBanner 노출. */
+  sharedBy?: {
+    user_id: string;
+    display_name: string;
+    avatar_url?: string | null;
+  } | null;
 }) {
   const t = useTranslations("TravelerHub");
   const router = useRouter();
@@ -281,6 +289,12 @@ export function RouteViewClient({
           </div>
 
         </header>
+
+        {sharedBy ? (
+          <div className="border-b border-border/40 bg-background/95 px-3 py-2 sm:px-4">
+            <SharedByBanner ownerName={sharedBy.display_name} ownerAvatarUrl={sharedBy.avatar_url} />
+          </div>
+        ) : null}
 
         {/* ── Body ── */}
         <div className="relative min-h-0 flex-1">

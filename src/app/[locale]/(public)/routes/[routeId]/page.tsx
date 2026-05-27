@@ -24,6 +24,8 @@ import {
 import { getServerSupabaseForUser, getSupabaseAuthUserIdOnly } from "@/lib/supabase/server-user";
 import { getDirectionsForCoords } from "@/lib/routing/directions-server";
 import mockDirections from "@/data/mock/haru-route-directions.json";
+import { resolveRouteAccessServer } from "@/lib/route-access.server";
+import { isUuidRouteId as _isUuid } from "@/lib/routes/haru-route-from-supabase.server";
 
 interface Props {
   params: Promise<{ routeId: string; locale: string }>;
@@ -79,10 +81,26 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
 
   const t = await getTranslations("TravelerHub");
 
-  // 잠금/해제 결정:
-  // - 본인 커스텀 루트(routeType=custom + DB 보유) → 즉시 unlocked
-  // - 그 외(mock, sample, preview=1) → 처음 lock 상태로 무료 영역 노출, 결제 시 해제
-  const initialUnlocked = fromDb && routeType === "custom" && !wantsPreview;
+  // 잠금/해제 결정 (정책: docs/payment-and-share-policy.md):
+  // - 본인 커스텀 루트 → 즉시 unlocked
+  // - DB grant 보유(본인 결제) 또는 활성 공유 초대 → unlocked + sharedBy 정보
+  // - 그 외 → lock + 결제 시 해제
+  let accessSharedBy: {
+    user_id: string;
+    display_name: string;
+    avatar_url?: string | null;
+  } | null = null;
+  let initialUnlocked = fromDb && routeType === "custom" && !wantsPreview;
+  if (!initialUnlocked && !wantsPreview && _isUuid(routeId)) {
+    // 비-mock UUID 루트만 access resolver 적용 (mock은 별도 데모 unlock 흐름).
+    const decision = await resolveRouteAccessServer({ routeId, userId });
+    if (decision.canView) {
+      initialUnlocked = true;
+      if (decision.reason === "shared-invite" && decision.sharedBy) {
+        accessSharedBy = decision.sharedBy;
+      }
+    }
+  }
 
   const title = route.title[locale] ?? route.title.en ?? "Route";
 
@@ -158,6 +176,7 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
         }
         canSave={canSave && Boolean(userId)}
         initialSaved={initialSaved}
+        sharedBy={accessSharedBy}
       />
     </main>
   );

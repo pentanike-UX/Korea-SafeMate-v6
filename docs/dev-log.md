@@ -9,6 +9,56 @@
 
 ---
 
+## 2026-05-27 — Phase 3B (DB 스키마 + 서버 access resolver + 페이지 통합)
+
+### 목표
+
+Phase 3A 정책을 신뢰 가능한 서버측 판정으로 결합. DB 스키마·RLS·서버 액션·페이지 결합 + SharedByBanner 자동 노출.
+
+### 변경 파일
+
+- `supabase/migrations/20260527000001_route_access_policy.sql` (신규)
+- `src/lib/route-access.server.ts` (신규)
+- `src/lib/route-access-actions.server.ts` (신규 — 5개 server action)
+- `src/app/[locale]/(public)/routes/[routeId]/page.tsx` — DB UUID 루트에 대해 resolver 적용 + `sharedBy` prop 전달
+- `src/components/routes/route-view-client.tsx` — `sharedBy` prop 수용, 헤더 아래 `<SharedByBanner>` 노출
+
+### 변경 내용
+
+- **DB 스키마**:
+  - `route_access_grants`(route_id, owner_user_id, source, expires_at) UNIQUE(route_id, owner_user_id) + RLS SELECT own.
+  - `route_ticket_packs`(owner_user_id, pack_size 3|5, tickets_used, expires_at) + RLS SELECT own + CHECK tickets_used ≤ pack_size.
+  - `route_share_invites`(grant_id, granted_by, granted_to, status, revoked_at) UNIQUE(grant_id, granted_to_user_id) + RLS SELECT party + 트리거 `route_share_invite_enforce_limit`(grant당 active 2개 한도 이중 방어).
+  - RPC `route_access_resolve(p_route_id, p_viewer)` — owner 또는 shared-invite 판정 단일 쿼리.
+  - INSERT/UPDATE/DELETE는 service-role 경유만 허용(정책 미부여로 기본 거부).
+- **서버 resolver** `resolveRouteAccessServer({ routeId, userId })`:
+  1) RPC로 owner / shared-invite 판정 → sharedBy 정보 조회 후 반환.
+  2) 잔여 티켓 계산 → `ticket-prompt` (사용 가능 pack_id 반환) / `tickets-exhausted`.
+  3) 그 외 `no-access` / 비로그인 `anonymous`.
+- **서버 액션** (모두 service-role):
+  - `createRouteSingleGrantAction` — 단건 990 결제 검증 후 90일 grant.
+  - `createRouteTicketPackAction` — Trio/Penta 패키지 생성(12개월 유효).
+  - `consumeRouteTicketAction` — 사용자 컨펌 후 1장 소모 + 90일 grant 발급. race-safe(`update with check`).
+  - `createRouteShareInviteAction` — 오너 권한 + 2명 한도 + self-invite 차단 + duplicate 차단.
+  - `revokeRouteShareInviteAction` — 오너만 회수 가능.
+- **페이지 결합**: UUID 루트만 resolver 호출(mock은 별도 데모 unlock 흐름). decision.sharedBy를 RouteViewClient에 전달.
+- **SharedByBanner**: Top Bar 바로 아래에 `border-b + bg-background/95`로 사뿐히 노출. 본인 grant 경우 미노출.
+
+### 검증 결과
+
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm exec eslint`(변경 파일) 통과.
+- `pnpm build` 통과 (1008 페이지 SSG).
+- 마이그레이션 SQL은 로컬 적용 미실행 — 운영 적용 시 `supabase migration up` 또는 SQL Editor 실행 필요.
+
+### 남은 작업
+
+- **Phase 3B-2**: 클라이언트에서 `ticket-prompt` / `tickets-exhausted` 처리 — 무료 영역 진입 시 다이얼로그 발화 → `consumeRouteTicketAction` 호출 → `router.refresh()`로 unlocked 상태 갱신.
+- **Phase 3C**: PG 실 결제(Toss/Kakao) 콜백에서 `createRouteSingleGrantAction` / `createRouteTicketPackAction` 호출.
+- **Phase 3D**: 마이페이지/오너 화면에 `<RouteOwnerSharePanel>` 통합, grant 만료 카운트다운, 운영 대시보드.
+
+---
+
 ## 2026-05-27 — Phase 3A 결제·공유 정책 (문서 + 카피 + UI 스캐폴딩)
 
 ### 목표
