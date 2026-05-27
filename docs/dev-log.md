@@ -9,6 +9,18 @@
 
 ---
 
+## 2026-05-27 — hotfix(vercel): cron schedule daily 변경
+
+**증상**: Phase 3I 이후(`af363701` 다음 푸시 5건) Vercel production 자동 배포가 전혀 트리거되지 않음. GitHub은 정상 푸시됨.
+
+**원인**: `vercel.json`의 cron이 `0 * * * *` (매시 정각, 일 24회). **Hobby 플랜은 일 1회 cron**만 허용 → Vercel API가 모든 신규 배포를 `cron_jobs_limits_reached` 에러로 거부.
+
+**조치**: schedule을 `0 0 * * *` (매일 자정 UTC, 일 1회)로 변경. 24h/72h 만료 알림은 윈도우가 조금 길게 지연되지만 MVP 시연/운영 초기는 영향 미미.
+
+**TODO**: 트래픽 증가 또는 알림 정확도 요구 시 Pro 업그레이드 후 hourly 복귀.
+
+---
+
 ## 2026-05-27 — Phase 3L (MVP 시연 정합성 7종 일괄)
 
 **목표**: 하루웨이 발견 → 하루루트 결제 → 마이페이지 기록 → 무료 공유 → AI 채팅 까지 엔드-투-엔드 시연 흐름이 실제처럼 동작하도록 7개 갭을 메움. 결제는 시뮬레이션, 그 외 모든 mutation은 실 DB로 흐름.
