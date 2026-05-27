@@ -9,6 +9,58 @@
 
 ---
 
+## 2026-05-27 — Phase 3A 결제·공유 정책 (문서 + 카피 + UI 스캐폴딩)
+
+### 목표
+
+신규 정책 반영. (1) 990원 = 그 루트 90일 무제한, 3건/5건 패키지도 각 루트 90일 무제한. (2) 오너 권한 + 식별 가능 회원 2명 무료 초대, 비식별 진입은 강제 paywall. (3) 단건/패키지 보유자 별 분기 다이얼로그. (4) SharedByBanner.
+
+본 PR은 **Phase 3A** — 정책 문서화 + 카피 갱신 + 클라이언트측 mock + UI 컴포넌트 스캐폴딩. 실제 DB/PG 연동은 Phase 3B~3C.
+
+### 변경 파일 (신규)
+
+- `docs/payment-and-share-policy.md` — 정책 단일 소스(가격·접근·공유·DB 모델·롤아웃).
+- `src/types/route-access.ts` — `RouteAccessGrant` · `RouteTicketPack` · `RouteShareInvite` · `RouteAccessReason` · `RouteAccessDecision` + 상수.
+- `src/lib/route-access-mock.ts` — sessionStorage 기반 mock resolver: `mockGrantSingle`, `mockGrantPack`, `mockConsumeTicket`, `mockGrantShareInvite(2슬롯 한도)`, `mockRevokeShareInvite`, `mockResolveAccess`.
+- `src/components/routes/shared-by-banner.tsx` — 공유받은 사용자 상단 안내(이름·아바타·"90일 무제한").
+- `src/components/routes/route-owner-share-panel.tsx` — 오너용 2슬롯 공유 패널 + 비식별 링크 안내.
+- `src/components/routes/route-ticket-dialogs.tsx` — `RouteTicketConsumeConfirmDialog`(잔여 티켓 사용 컨펌) + `RouteTicketExhaustedDialog`(소진 안내).
+
+### 변경 파일 (수정)
+
+- `messages/{ko,en,ja,th,vi}.json`:
+  - `routeUnlockHint` → "₩990 · 이 루트를 90일간 횟수 제한 없이 무제한 열람" (현 ko 기준).
+  - `routePaidBannerLead` → "결제 완료. 90일간 무제한 열람".
+  - `planPass{1,3,5}Label/Unit` → "이 루트 1개 / 원하는 루트 3·5개 각 90일 무제한".
+  - 신규 키: `routeSharedByBannerLead/Sub`, `routeOwnerShare*`, `routeTicketConfirm*`, `routeTicketExhausted*`.
+
+### 정책 요약 (자세한 건 정책 문서 참조)
+
+| 상황 | 결과 |
+|---|---|
+| 본인 grant 미만료 | 통과 (owner) |
+| 공유 초대 활성 (식별) | 통과 (shared-invite, SharedByBanner 노출) |
+| Trio/Penta 잔여 티켓 | 컨펌 다이얼로그 후 1장 소모 → 90일 grant 생성 |
+| 패키지 소진 | 재결제 다이얼로그 |
+| 비로그인 / 비식별 share URL | 강제 paywall |
+| 단건 990 구매자, 다른 루트 진입 | 별도 결제 |
+
+오너 공유 한도: grant당 최대 2명, **식별 가능 회원만** 무료 초대. 링크 복사로 비식별 공유 시도는 받는 사람이 결제해야 함.
+
+### 검증 결과
+
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm exec eslint`(변경 파일) 통과.
+- `pnpm build` 통과 (1008 페이지 SSG).
+
+### 남은 작업
+
+- **Phase 3B**: Supabase 스키마(`route_access_grants`/`route_ticket_packs`/`route_share_invites`) + RLS + 서버 액션. `RouteFreePreviewSection`/`RouteViewClient`/`PlaybookUnlockSheet`에 실 access resolver 연결, 컨펌·소진 다이얼로그 발화 조건 결합.
+- **Phase 3C**: Toss/Kakao PG 실 연동(가격 990/2500/3600), 결제 영수증 → grant 생성.
+- **Phase 3D**: 운영 대시보드(grant·invite 조회/회수), 어뷰징 모니터링.
+
+---
+
 ## 2026-05-27 — Cockpit Phase 2B (레일 고정·상세 슬라이드·모바일 peek+풀스크린)
 
 ### 목표
