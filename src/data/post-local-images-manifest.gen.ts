@@ -137,5 +137,5 @@ export const POST_LOCAL_IMAGE_POOL_GWANGHWAMUN: readonly string[] = [
   "/mock/posts/광화문_047.jpg",
   "/mock/posts/광화문_048.jpg",
   "/mock/posts/광화문_049.jpg",
-  "/mock/posts/광화문_050.jpg"
+  "/mock/posts/광화문_050.jpg"
 ] as const;

@@ -26,6 +26,7 @@ import { getDirectionsForCoords } from "@/lib/routing/directions-server";
 import mockDirections from "@/data/mock/haru-route-directions.json";
 import { resolveRouteAccessServer } from "@/lib/route-access.server";
 import { isUuidRouteId as _isUuid } from "@/lib/routes/haru-route-from-supabase.server";
+import { logRouteViewEvent } from "@/lib/route-view-log.server";
 
 interface Props {
   params: Promise<{ routeId: string; locale: string }>;
@@ -97,7 +98,11 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
     ticketsRemaining?: number | null;
     ticketPackId?: string | null;
   } | null = null;
+  let viewLogSource: "owner" | "shared-invite" | "ticket" | "custom-self" | null = null;
   let initialUnlocked = fromDb && routeType === "custom" && !wantsPreview;
+  if (initialUnlocked) {
+    viewLogSource = "custom-self";
+  }
   if (!initialUnlocked && !wantsPreview && _isUuid(routeId)) {
     // 비-mock UUID 루트만 access resolver 적용 (mock은 별도 데모 unlock 흐름).
     const decision = await resolveRouteAccessServer({ routeId, userId });
@@ -105,9 +110,11 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
       initialUnlocked = true;
       if (decision.reason === "shared-invite" && decision.sharedBy) {
         accessSharedBy = decision.sharedBy;
+        viewLogSource = "shared-invite";
       }
       if (decision.reason === "owner" && decision.ownerGrantId) {
         accessOwnerGrantId = decision.ownerGrantId;
+        viewLogSource = "owner";
       }
     } else if (decision.reason === "ticket-prompt") {
       accessLockedHint = {
@@ -118,6 +125,15 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
     } else if (decision.reason === "tickets-exhausted") {
       accessLockedHint = { reason: "tickets-exhausted" };
     }
+  }
+  // 투명성 — 실제 unlocked 상태로 진입한 UUID 루트는 본인 열람 이력으로 로깅.
+  if (initialUnlocked && userId && _isUuid(routeId) && viewLogSource) {
+    await logRouteViewEvent({
+      routeId,
+      viewerUserId: userId,
+      source: viewLogSource,
+      grantId: accessOwnerGrantId,
+    });
   }
 
   const title = route.title[locale] ?? route.title.en ?? "Route";
