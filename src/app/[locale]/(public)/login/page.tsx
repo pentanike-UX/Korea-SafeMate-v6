@@ -2,7 +2,10 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { AuthPageFrame } from "@/components/auth/auth-page-frame";
 import { LoginCardClient } from "@/components/auth/login-card-client";
+import { RouteInviteLoginBanner } from "@/components/auth/route-invite-login-banner";
 import { MockGuardianQuickLogin } from "@/components/auth/mock-guardian-quick-login";
+import { parseInviteFromNextPath } from "@/lib/auth/parse-invite-next-path";
+import { fetchRouteTitleForInvite } from "@/lib/routes/route-invite-context.server";
 import { MockSuperAdminLogin } from "@/components/auth/mock-super-admin-login";
 import { isSuperAdminLoginEnabled } from "@/lib/dev/mock-super-admin-auth";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
@@ -30,6 +33,10 @@ export default async function LoginPage({ params, searchParams }: Props) {
   const sp = await searchParams;
   const nextParam = typeof sp.next === "string" ? sp.next : Array.isArray(sp.next) ? sp.next[0] : undefined;
   const safeNext = safeNextPath(nextParam) ?? withLocalePath(locale, "/explore");
+  const inviteFromNext = parseInviteFromNextPath(safeNext);
+  const inviteRouteTitle = inviteFromNext
+    ? await fetchRouteTitleForInvite(inviteFromNext.routeId, locale)
+    : null;
 
   const sb = await getServerSupabaseForUser();
   if (sb) {
@@ -42,10 +49,15 @@ export default async function LoginPage({ params, searchParams }: Props) {
   }
 
   return (
-    <AuthPageFrame title={t("login.title")} description={t("login.description")}>
+    <AuthPageFrame
+      title={inviteFromNext ? t("routeInviteLoginPageTitle") : t("login.title")}
+      description={inviteFromNext ? t("routeInviteLoginPageDescription") : t("login.description")}
+    >
+      {inviteFromNext ? <RouteInviteLoginBanner routeTitle={inviteRouteTitle} /> : null}
       <LoginCardClient nextPath={safeNext} />
       <MockGuardianQuickLogin
         className="mt-6"
+        returnPath={safeNext}
         topSlot={
           isSuperAdminLoginEnabled()
             ? <MockSuperAdminLogin nextPath={safeNext} />

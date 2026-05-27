@@ -2,7 +2,22 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Clock, Wallet, MapPin, Sunrise, Sun, Moon, Sparkles, Lock, Check, ChevronRight, User, MessageCircle } from "lucide-react";
+import {
+  Clock,
+  Wallet,
+  MapPin,
+  Sunrise,
+  Sun,
+  Moon,
+  Sparkles,
+  Lock,
+  Check,
+  ChevronRight,
+  User,
+  MessageCircle,
+  Gift,
+  AlertCircle,
+} from "lucide-react";
 import { PlaybookUnlockSheet } from "@/components/route-posts/playbook-unlock-sheet";
 import type { GuardianRequestOpenDetail } from "@/components/guardians/guardian-request-sheet";
 import type { HaruRoute, AppLocale } from "@/types/haru";
@@ -16,10 +31,12 @@ export function RouteFreePreviewSection({
   route,
   locale,
   onUnlock,
+  inviteAccessHint = null,
 }: {
   route: HaruRoute;
   locale: AppLocale;
   onUnlock: () => void;
+  inviteAccessHint?: "claimed" | "invalid" | null;
 }) {
   const t = useTranslations("TravelerHub");
   const [payOpen, setPayOpen] = useState(false);
@@ -65,8 +82,35 @@ export function RouteFreePreviewSection({
     avatarUrl: route.guardian.photo_url ?? undefined,
   };
 
+  const showPaymentCta = !inviteAccessHint;
+
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-6 sm:px-6 md:py-8">
+      {inviteAccessHint === "claimed" ? (
+        <div
+          className="flex gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-4"
+          role="alert"
+        >
+          <AlertCircle className="mt-0.5 size-5 shrink-0 text-amber-700 dark:text-amber-300" aria-hidden />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-foreground">{t("routeInviteClaimedTitle")}</p>
+            <p className="text-muted-foreground text-sm leading-relaxed">{t("routeInviteClaimedBody")}</p>
+          </div>
+        </div>
+      ) : null}
+      {inviteAccessHint === "invalid" ? (
+        <div
+          className="flex gap-3 rounded-2xl border border-destructive/25 bg-destructive/5 px-4 py-4"
+          role="alert"
+        >
+          <AlertCircle className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden />
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-foreground">{t("routeInviteInvalidTitle")}</p>
+            <p className="text-muted-foreground text-sm leading-relaxed">{t("routeInviteInvalidBody")}</p>
+          </div>
+        </div>
+      ) : null}
+
       {/* ── Hero · 통계 칩 ────────────────────────────────────────────── */}
       <section className="rounded-3xl border border-border/50 bg-card p-5 shadow-sm sm:p-6">
         <p className="text-[11px] font-bold uppercase tracking-wider text-primary">
@@ -177,47 +221,55 @@ export function RouteFreePreviewSection({
         </section>
       ) : null}
 
-      {/* ── "결제하면 풀리는 것" — 가치 어필 + Unlock CTA ─────────────── */}
-      <section className="rounded-3xl border-2 border-[var(--brand-primary)]/30 bg-gradient-to-br from-emerald-50/40 via-card to-card p-5 shadow-md sm:p-6 dark:from-emerald-950/20">
-        <div className="mb-3 flex items-center gap-2">
-          <Sparkles className="size-4 text-[var(--brand-primary)]" />
-          <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand-primary)]">
-            {t("routeWhatYouGetTitle")}
+      {showPaymentCta ? (
+        <section className="rounded-3xl border-2 border-[var(--brand-primary)]/30 bg-gradient-to-br from-emerald-50/40 via-card to-card p-5 shadow-md sm:p-6 dark:from-emerald-950/20">
+          <div className="mb-3 flex items-center gap-2">
+            <Sparkles className="size-4 text-[var(--brand-primary)]" />
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--brand-primary)]">
+              {t("routeWhatYouGetTitle")}
+            </p>
+          </div>
+          <ul className="space-y-2.5 text-sm leading-relaxed text-foreground/85">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <li key={n} className="flex items-start gap-2.5">
+                <Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />
+                <span>{t(`routeWhatYouGet${n}`)}</span>
+              </li>
+            ))}
+          </ul>
+
+          <button
+            type="button"
+            onClick={() => setPayOpen(true)}
+            className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-primary)] text-base font-bold text-[var(--text-on-brand)] shadow-[var(--shadow-brand)] transition-all hover:opacity-95 hover:scale-[1.01]"
+          >
+            {t("routeUnlockCta")}
+            <ChevronRight className="size-4" />
+          </button>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            <span className="font-bold text-foreground">{t("routeUnlockPrice")}</span>
+            {" · "}
+            {t("routeUnlockHint")}
           </p>
-        </div>
-        <ul className="space-y-2.5 text-sm leading-relaxed text-foreground/85">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <li key={n} className="flex items-start gap-2.5">
-              <Check className="mt-0.5 size-4 shrink-0 text-emerald-600" />
-              <span>{t(`routeWhatYouGet${n}`)}</span>
-            </li>
-          ))}
-        </ul>
+        </section>
+      ) : (
+        <section className="rounded-3xl border border-primary/25 bg-primary/5 p-5 sm:p-6">
+          <div className="flex gap-3">
+            <Gift className="size-5 shrink-0 text-primary" aria-hidden />
+            <p className="text-muted-foreground text-sm leading-relaxed">{t("routeInviteNoPaymentHint")}</p>
+          </div>
+        </section>
+      )}
 
-        {/* CTA */}
-        <button
-          type="button"
-          onClick={() => setPayOpen(true)}
-          className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-primary)] text-base font-bold text-[var(--text-on-brand)] shadow-[var(--shadow-brand)] transition-all hover:opacity-95 hover:scale-[1.01]"
-        >
-          {t("routeUnlockCta")}
-          <ChevronRight className="size-4" />
-        </button>
-        <p className="mt-2 text-center text-xs text-muted-foreground">
-          <span className="font-bold text-foreground">{t("routeUnlockPrice")}</span>
-          {" · "}
-          {t("routeUnlockHint")}
-        </p>
-      </section>
-
-      {/* 결제 시트 (기존 4단계 Toss/Kakao 가짜 결제) */}
-      <PlaybookUnlockSheet
-        open={payOpen}
-        onOpenChange={setPayOpen}
-        onConfirmDemoUnlock={onUnlock}
-        guardianOpenDetail={guardianOpenDetail}
-        routeId={route.id}
-      />
+      {showPaymentCta ? (
+        <PlaybookUnlockSheet
+          open={payOpen}
+          onOpenChange={setPayOpen}
+          onConfirmDemoUnlock={onUnlock}
+          guardianOpenDetail={guardianOpenDetail}
+          routeId={route.id}
+        />
+      ) : null}
     </div>
   );
 }

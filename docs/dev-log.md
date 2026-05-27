@@ -9,6 +9,28 @@
 
 ---
 
+## 2026-05-27 — Phase 3P (초대 링크 무료 열람 + 공유 패널 UI)
+
+**문제 보고**:
+1. 초대 링크(`?invite=`)로 들어와도 로그인 후 결제(잠금) 화면 — 무료 공유 멘탈모델과 불일치.
+2. 링크 복사 시 「초대를 보내지 못했어요」 스낵바 (실제는 DB `invite_token` 컬럼 미적용).
+3. 공유 시트: 닫기(X)와 「남은 무료 초대」 배지 겹침, URL·pending 중복, 회원 검색 시트가 뒤에 가림.
+
+**원인·조치**:
+
+1. **RLS** — `route_access_resolve`가 invitee에게 `route_access_grants` SELECT 불가 → 항상 no-access.  
+   마이그레이션 `20260527000008_route_access_grants_shared_invitee_select.sql` 적용(원격 push 완료).
+
+2. **링크 발급** — `20260527000007_route_invite_links.sql` 원격 미적용 상태였음 → `supabase db push`로 적용.
+
+3. **초대 UX** — 로그인/가입에 무료 공유 배너·`next` 유지, redeem 후 `?invite=` 제거 redirect, claimed/invalid 시 결제 CTA 대신 안내.
+
+4. **공유 패널** — 헤더 레이아웃·링크 카드 통합, 회원 검색을 중첩 Sheet → 시트 내 단계 전환(`RouteOwnerShareMemberSearch`).
+
+**검증**: `pnpm build` 통과. 프로덕션 초대 링크·복사는 배포 후 재확인.
+
+---
+
 ## 2026-05-27 — Phase 3M (결제 후 재진입 잠금 + 공유 CTA 영구화)
 
 **문제 보고 (사용자)**:

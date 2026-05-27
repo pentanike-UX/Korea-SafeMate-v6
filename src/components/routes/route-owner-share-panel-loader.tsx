@@ -2,12 +2,11 @@
 
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { Search, Loader2, UserCheck } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   RouteOwnerSharePanel,
   type ShareInviteSlot,
 } from "@/components/routes/route-owner-share-panel";
+import { RouteOwnerShareMemberSearch } from "@/components/routes/route-owner-share-member-search";
 import {
   createRouteInviteLinkAction,
   createRouteShareInviteAction,
@@ -117,6 +116,11 @@ export function RouteOwnerSharePanelLoader({
    * 활성 pending 토큰이 이미 있으면 그것을 재사용, 없으면 새 token 생성.
    * 반환: 외부에서 share()/clipboard 등 후속 동작에 쓸 수 있는 fully-qualified URL.
    */
+  function linkCreateErrMsg(error: string) {
+    if (error === "invite-limit") return t("routeShareInviteErrLimit");
+    return t("routeOwnerShareLinkCreateErr");
+  }
+
   async function ensureLinkUrl(): Promise<string | null> {
     const existing = invites.find((iv) => iv.pending && iv.invite_token);
     if (existing?.invite_token && routeId) {
@@ -126,17 +130,12 @@ export function RouteOwnerSharePanelLoader({
     try {
       const r = await createRouteInviteLinkAction({ grantId });
       if (!r.ok) {
-        const msg =
-          r.error === "invite-limit"
-            ? t("routeShareInviteErrLimit")
-            : t("routeShareInviteErrGeneric");
-        toast({ variant: "error", title: msg });
+        toast({ variant: "error", title: linkCreateErrMsg(r.error) });
         return null;
       }
       refresh();
       if (!routeId) {
-        // routeId가 없으면 호출처에서 URL을 만들 수 없으므로 token만 임시 노출.
-        toast({ variant: "error", title: t("routeShareInviteErrGeneric") });
+        toast({ variant: "error", title: t("routeOwnerShareLinkCreateErr") });
         return null;
       }
       return buildInviteUrl(routeId, r.token);
@@ -167,7 +166,7 @@ export function RouteOwnerSharePanelLoader({
           durationMs: 7000,
         });
       } catch {
-        toast({ variant: "error", title: t("routeShareInviteErrGeneric") });
+        toast({ variant: "error", title: t("routeOwnerShareLinkCopyErr") });
       }
     }
   }
@@ -176,7 +175,7 @@ export function RouteOwnerSharePanelLoader({
     const url = await ensureLinkUrl();
     if (!url) return;
     if (typeof navigator === "undefined" || !navigator.clipboard) {
-      toast({ variant: "error", title: t("routeShareInviteErrGeneric") });
+      toast({ variant: "error", title: t("routeOwnerShareLinkCopyErr") });
       return;
     }
     try {
@@ -188,7 +187,7 @@ export function RouteOwnerSharePanelLoader({
         durationMs: 7000,
       });
     } catch {
-      toast({ variant: "error", title: t("routeShareInviteErrGeneric") });
+      toast({ variant: "error", title: t("routeOwnerShareLinkCopyErr") });
     }
   }
 
@@ -200,70 +199,31 @@ export function RouteOwnerSharePanelLoader({
       ? buildInviteUrl(routeId, activeLinkInvite.invite_token)
       : null;
 
-  return (
-    <>
-      <RouteOwnerSharePanel
-        invites={invites}
-        onOpenMemberSearch={onInviteClick}
-        onShareLink={onShareLink}
-        onCopyLink={onCopyLink}
-        onRevoke={onRevoke}
-        linkBusy={linkPending}
-        variant={variant}
-        activeLinkUrl={activeLinkUrl}
+  if (searchOpen) {
+    return (
+      <RouteOwnerShareMemberSearch
+        searchQ={searchQ}
+        onSearchQChange={setSearchQ}
+        searchResults={searchResults}
+        searchPending={searchPending}
+        actionPending={actionPending}
+        onBack={() => setSearchOpen(false)}
+        onPickMember={onPickMember}
       />
+    );
+  }
 
-      <Sheet open={searchOpen} onOpenChange={setSearchOpen}>
-        <SheetContent side="bottom" className="max-h-[80vh] rounded-t-3xl p-0">
-          <SheetHeader>
-            <SheetTitle>{t("routeOwnerShareInviteCta")}</SheetTitle>
-          </SheetHeader>
-          <div className="space-y-3 px-5 pb-6">
-            <label className="border-border/60 focus-within:border-[var(--brand-primary)] flex items-center gap-2 rounded-xl border bg-background px-3 py-2">
-              <Search className="text-muted-foreground size-4" aria-hidden />
-              <input
-                autoFocus
-                value={searchQ}
-                onChange={(e) => setSearchQ(e.target.value)}
-                placeholder={t("routeOwnerShareInviteCta")}
-                className="flex-1 bg-transparent text-sm outline-none"
-              />
-              {searchPending ? <Loader2 className="text-muted-foreground size-4 animate-spin" /> : null}
-            </label>
-            <ul className="space-y-1.5">
-              {searchResults.length === 0 && searchQ.trim().length >= 2 && !searchPending ? (
-                <li className="text-muted-foreground py-6 text-center text-sm">No matches</li>
-              ) : null}
-              {searchResults.map((m) => (
-                <li key={m.user_id}>
-                  <button
-                    type="button"
-                    onClick={() => onPickMember(m.user_id)}
-                    disabled={actionPending}
-                    className="hover:bg-muted disabled:opacity-60 flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors"
-                  >
-                    <span className="bg-muted size-9 shrink-0 overflow-hidden rounded-full">
-                      {m.avatar_url ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={m.avatar_url} alt="" className="size-full object-cover" />
-                      ) : null}
-                    </span>
-                    <span className="text-foreground flex-1 truncate text-sm font-semibold">
-                      {m.display_name}
-                    </span>
-                    {actionPending ? (
-                      <Loader2 className="text-muted-foreground size-4 animate-spin" />
-                    ) : (
-                      <UserCheck className="text-muted-foreground size-4" />
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </SheetContent>
-      </Sheet>
-    </>
+  return (
+    <RouteOwnerSharePanel
+      invites={invites}
+      onOpenMemberSearch={onInviteClick}
+      onShareLink={onShareLink}
+      onCopyLink={onCopyLink}
+      onRevoke={onRevoke}
+      linkBusy={linkPending}
+      variant={variant}
+      activeLinkUrl={activeLinkUrl}
+    />
   );
 }
 

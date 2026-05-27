@@ -60,23 +60,21 @@ export function RouteOwnerSharePanel({
   return (
     <div
       className={cn(
-        isSheet ? "flex flex-col gap-5 px-6 pb-8 pt-6 sm:px-8 sm:pt-8" : "flex flex-col gap-4 p-4",
+        isSheet ? "flex flex-col gap-5 px-6 pb-8 pt-12 sm:px-8 sm:pt-14" : "flex flex-col gap-4 p-4",
         className,
       )}
     >
-      {/* 시트 메인 헤더 — 잔여 무료 슬롯 표시 */}
-      <header className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-foreground font-serif text-xl font-bold tracking-tight sm:text-2xl">
-            {t("routeOwnerShareTitle")}
-          </h2>
-          <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">
-            {t("routeOwnerShareLeadV2")}
-          </p>
-        </div>
+      {/* 시트 닫기(X)와 겹치지 않도록 우측 여백 확보 */}
+      <header className="pr-11">
+        <h2 className="text-foreground font-serif text-xl font-bold tracking-tight sm:text-2xl">
+          {t("routeOwnerShareTitle")}
+        </h2>
+        <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">
+          {t("routeOwnerShareLeadV2")}
+        </p>
         <span
           className={cn(
-            "shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-bold tabular-nums",
+            "mt-3 inline-flex rounded-full border px-2.5 py-1 text-[11px] font-bold tabular-nums",
             limitFull
               ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
               : "border-[var(--brand-primary)]/40 bg-[var(--brand-primary)]/10 text-[var(--brand-primary)]",
@@ -132,12 +130,22 @@ export function RouteOwnerSharePanel({
           </button>
         </div>
 
-        {/* 발급된 활성 URL — readonly 박스. 클릭/포커스 시 전체 선택. */}
-        {activeLinkUrl ? (
+        {/* 활성 링크 — URL 박스 1개로 통합 (pending 행과 중복 표시 제거) */}
+        {activeLinkUrl && linkSlots[0] ? (
           <div className="mt-3 space-y-1.5">
-            <p className="text-muted-foreground text-[11px] font-medium">
-              {t("routeOwnerShareLinkUrlLabel")}
-            </p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-muted-foreground text-[11px] font-medium">
+                {t("routeOwnerShareLinkPendingLabel")}
+              </p>
+              <button
+                type="button"
+                onClick={() => onRevoke(linkSlots[0]!.invite_id)}
+                aria-label={t("routeOwnerShareSlotRevoke")}
+                className="text-muted-foreground hover:text-foreground text-[11px] font-medium underline-offset-2 hover:underline"
+              >
+                {t("routeOwnerShareSlotRevoke")}
+              </button>
+            </div>
             <div className="bg-background/80 border-border/60 flex items-center gap-2 overflow-hidden rounded-lg border px-2 py-1.5">
               <input
                 readOnly
@@ -158,10 +166,7 @@ export function RouteOwnerSharePanel({
               </button>
             </div>
           </div>
-        ) : null}
-
-        {/* 발급된 pending 토큰 슬롯 표시 (회수 버튼 포함) */}
-        {linkSlots.length > 0 ? (
+        ) : linkSlots.length > 0 ? (
           <ul className="mt-3 space-y-1.5">
             {linkSlots.map((slot) => (
               <li

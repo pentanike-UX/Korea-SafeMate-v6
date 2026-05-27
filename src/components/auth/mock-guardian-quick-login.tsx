@@ -6,6 +6,7 @@ import { resolveGuardianDisplayName } from "@/data/mock/guardian-seed-display-na
 import { GUARDIAN_SEED_ROWS } from "@/data/mock/guardians-seed";
 import { loginAsMockGuardian } from "@/lib/dev/login-as-mock-guardian";
 import { guardianProfileImageUrlsFromIndex } from "@/lib/guardian-profile-images";
+import { safeNextPath } from "@/lib/auth/safe-next-path";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -21,9 +22,12 @@ const tierBadgeClass: Record<string, string> = {
 export function MockGuardianQuickLogin({
   className,
   topSlot,
+  returnPath = null,
 }: {
   className?: string;
   topSlot?: React.ReactNode;
+  /** 로그인 페이지 `?next=` — 있으면 mock 로그인 후 해당 경로로 이동 (초대 링크 QA용). */
+  returnPath?: string | null;
 }) {
   const t = useTranslations("Login");
   const locale = useLocale();
@@ -39,7 +43,8 @@ export function MockGuardianQuickLogin({
         setPendingId(null);
         return;
       }
-      window.location.assign(`/${locale}/mypage?segment=guardian`);
+      const next = safeNextPath(returnPath);
+      window.location.assign(next ?? `/${locale}/mypage?segment=guardian`);
     } catch {
       setPendingId(null);
     }

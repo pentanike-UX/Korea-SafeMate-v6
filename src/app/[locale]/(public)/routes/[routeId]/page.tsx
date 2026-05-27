@@ -15,6 +15,7 @@ import { RouteViewClient } from "@/components/routes/route-view-client";
 import { mockHaruRoute } from "@/data/mock/haru-route";
 import type { AppLocale, HaruRoute } from "@/types/haru";
 import { loginPathForLocale, withLocalePath } from "@/lib/auth/route-path";
+import { routing } from "@/i18n/routing";
 import { safeNextPath } from "@/lib/auth/safe-next-path";
 import {
   fetchHaruRouteFromSupabase,
@@ -47,25 +48,38 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
   const inviteTokenParam =
     typeof sp.invite === "string" ? sp.invite : Array.isArray(sp.invite) ? sp.invite[0] : null;
   const inviteToken = inviteTokenParam?.trim() || null;
+  const appLocale = (routing.locales.includes(localeParam as AppLocale)
+    ? localeParam
+    : locale) as AppLocale;
 
   const userId = await getSupabaseAuthUserIdOnly();
 
-  // Phase 3N — 토큰 링크 흐름: ?invite={token}이 붙어있고 로그인 상태면 즉시 redeem.
-  // 비로그인 상태면 login → next={현 URL}로 보내 로그인 후 다시 들어와 redeem되도록.
+  /** 초대 링크 redeem 실패 시 결제 UI 대신 안내할 힌트. */
+  let inviteAccessHint: "claimed" | "invalid" | null = null;
+
+  // Phase 3N — 토큰 링크: 비로그인 → 초대 맥락 로그인, 로그인 후 redeem → 깨끗한 URL로 redirect.
   if (inviteToken && _isUuid(routeId)) {
     if (!userId) {
-      const loginPath = loginPathForLocale(localeParam as AppLocale);
+      const loginPath = loginPathForLocale(appLocale);
       const nextPath =
-        safeNextPath(withLocalePath(localeParam as AppLocale, `/routes/${routeId}?invite=${encodeURIComponent(inviteToken)}`)) ??
+        safeNextPath(withLocalePath(appLocale, `/routes/${routeId}?invite=${encodeURIComponent(inviteToken)}`)) ??
         "/explore";
       redirect(`${loginPath}?next=${encodeURIComponent(nextPath)}`);
     }
-    // 로그인 사용자라면 redeem 시도. 결과는 silent — 실패해도 access resolver가
-    // 다음 단계에서 owner/shared-invite 여부를 다시 판정해 정답 화면을 결정한다.
-    try {
-      await redeemRouteInviteLinkAction({ routeId, token: inviteToken });
-    } catch {
-      /* swallow — 토큰 무효/만료여도 본문 표시는 access resolver가 결정 */
+    const redeem = await redeemRouteInviteLinkAction({ routeId, token: inviteToken });
+    if (redeem.ok) {
+      if (redeem.status === "redeemed" || redeem.status === "already-redeemed") {
+        redirect(withLocalePath(appLocale, `/routes/${routeId}`));
+      }
+    } else if (redeem.error === "invite-claimed") {
+      inviteAccessHint = "claimed";
+    } else if (
+      redeem.error === "invite-not-found" ||
+      redeem.error === "invite-inactive" ||
+      redeem.error === "grant-expired" ||
+      redeem.error === "route-mismatch"
+    ) {
+      inviteAccessHint = "invalid";
     }
   }
 
@@ -238,6 +252,7 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
         sharedBy={accessSharedBy}
         lockedHint={accessLockedHint}
         ownerGrantId={accessOwnerGrantId}
+        inviteAccessHint={inviteAccessHint}
       />
     </main>
   );

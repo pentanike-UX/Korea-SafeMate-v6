@@ -58,6 +58,7 @@ export function RouteViewClient({
   sharedBy = null,
   lockedHint = null,
   ownerGrantId = null,
+  inviteAccessHint = null,
 }: {
   route: HaruRoute;
   locale: AppLocale;
@@ -79,6 +80,8 @@ export function RouteViewClient({
   } | null;
   /** 본인 owner인 경우 grant id — RouteOwnerSharePanel에 사용. */
   ownerGrantId?: string | null;
+  /** 초대 링크 redeem 실패 — 결제 CTA 대신 안내. */
+  inviteAccessHint?: "claimed" | "invalid" | null;
 }) {
   const t = useTranslations("TravelerHub");
   const router = useRouter();
@@ -254,7 +257,12 @@ export function RouteViewClient({
   if (!unlocked) {
     return (
       <>
-        <RouteFreePreviewSection route={route} locale={locale} onUnlock={() => setUnlocked(true)} />
+        <RouteFreePreviewSection
+          route={route}
+          locale={locale}
+          onUnlock={() => setUnlocked(true)}
+          inviteAccessHint={inviteAccessHint}
+        />
         {ticketDialogs}
       </>
     );
@@ -492,7 +500,7 @@ export function RouteViewClient({
           <SheetContent
             side={isDesktop ? "right" : "bottom"}
             className={cn(
-              "z-[80] overflow-y-auto",
+              "z-[80] gap-0 overflow-y-auto p-0",
               isDesktop ? "w-[440px] max-w-full" : "max-h-[88vh] rounded-t-3xl",
             )}
           >
