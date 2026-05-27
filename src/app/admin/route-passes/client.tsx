@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { AdminGrantRow, AdminInviteRow, AdminPackRow } from "@/lib/route-access-admin.server";
+import type {
+  AdminAbuseSignalRow,
+  AdminGrantRow,
+  AdminInviteRow,
+  AdminPackRow,
+} from "@/lib/route-access-admin.server";
 import {
   adminExpireGrantAction,
   adminIssueCompGrantAction,
@@ -25,10 +30,12 @@ export function AdminRoutePassesClient({
   grants,
   invites,
   packs,
+  signals,
 }: {
   grants: AdminGrantRow[];
   invites: AdminInviteRow[];
   packs: AdminPackRow[];
+  signals: AdminAbuseSignalRow[];
 }) {
   const [pending, start] = useTransition();
   const [compRouteId, setCompRouteId] = useState("");
@@ -255,6 +262,63 @@ export function AdminRoutePassesClient({
                           Revoke
                         </button>
                       ) : null}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Abuse signals */}
+      <section>
+        <h2 className="mb-3 text-sm font-bold text-foreground">Abuse signals ({signals.length})</h2>
+        <div className="overflow-x-auto rounded-2xl border border-border/60">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-muted/50 text-[10px] font-bold uppercase tracking-wider">
+              <tr>
+                <th className="px-3 py-2">When</th>
+                <th className="px-3 py-2">Type</th>
+                <th className="px-3 py-2">Severity</th>
+                <th className="px-3 py-2">Actor</th>
+                <th className="px-3 py-2">Target</th>
+                <th className="px-3 py-2">Grant</th>
+                <th className="px-3 py-2">Payload</th>
+              </tr>
+            </thead>
+            <tbody>
+              {signals.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">
+                    No signals yet.
+                  </td>
+                </tr>
+              ) : (
+                signals.map((s) => (
+                  <tr key={s.id} className="border-t border-border/40 align-top">
+                    <td className="px-3 py-2 whitespace-nowrap">{formatDate(s.created_at)}</td>
+                    <td className="px-3 py-2 font-mono">{s.signal_type}</td>
+                    <td className="px-3 py-2">
+                      <span
+                        className={
+                          s.severity === "critical"
+                            ? "rounded-full bg-rose-100 px-2 py-0.5 font-bold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300"
+                            : s.severity === "warn"
+                              ? "rounded-full bg-amber-100 px-2 py-0.5 font-bold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                              : "rounded-full bg-muted px-2 py-0.5 text-muted-foreground"
+                        }
+                      >
+                        {s.severity}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">{s.actor_display_name ?? "—"}</td>
+                    <td className="px-3 py-2">{s.target_display_name ?? "—"}</td>
+                    <td className="px-3 py-2 font-mono text-[10px]">
+                      {s.grant_id ? `${s.grant_id.slice(0, 8)}…` : "—"}
+                    </td>
+                    <td className="px-3 py-2 font-mono text-[10px]">
+                      {Object.keys(s.payload).length > 0 ? JSON.stringify(s.payload) : "—"}
                     </td>
                   </tr>
                 ))

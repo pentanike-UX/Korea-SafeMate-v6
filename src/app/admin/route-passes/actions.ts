@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 import { requireSuperAdminUserId } from "@/lib/route-access-admin.server";
+import { logAbuseSignal } from "@/lib/route-abuse-signals.server";
 
 const ROUTE = "/admin/route-passes";
 
@@ -19,6 +20,12 @@ export async function adminExpireGrantAction(input: {
     .update({ expires_at: new Date().toISOString() })
     .eq("id", input.grantId);
   if (error) return { ok: false, error: error.message };
+  await logAbuseSignal({
+    signalType: "grant-expired-manual",
+    severity: "warn",
+    grantId: input.grantId,
+    actorUserId: admin,
+  });
   revalidatePath(ROUTE);
   return { ok: true };
 }
@@ -31,12 +38,25 @@ export async function adminRevokeInviteAction(input: {
   if (!admin) return { ok: false, error: "forbidden" };
   const svc = createServiceRoleSupabase();
   if (!svc) return { ok: false, error: "service-role-unavailable" };
+  const { data: inv } = await svc
+    .from("route_share_invites")
+    .select("grant_id, granted_to_user_id")
+    .eq("id", input.inviteId)
+    .maybeSingle();
   const { error } = await svc
     .from("route_share_invites")
     .update({ status: "revoked", revoked_at: new Date().toISOString() })
     .eq("id", input.inviteId)
     .eq("status", "active");
   if (error) return { ok: false, error: error.message };
+  await logAbuseSignal({
+    signalType: "invite-cycle-warn",
+    severity: "info",
+    grantId: (inv as { grant_id?: string } | null)?.grant_id ?? null,
+    actorUserId: admin,
+    targetUserId: (inv as { granted_to_user_id?: string } | null)?.granted_to_user_id ?? null,
+    payload: { admin_revoked: true },
+  });
   revalidatePath(ROUTE);
   return { ok: true };
 }
@@ -69,6 +89,14 @@ export async function adminIssueCompGrantAction(input: {
     .select("id")
     .single();
   if (error || !data) return { ok: false, error: error?.message ?? "insert-failed" };
+  await logAbuseSignal({
+    signalType: "comp-issued",
+    severity: "info",
+    grantId: data.id,
+    actorUserId: admin,
+    targetUserId: input.ownerUserId,
+    payload: { valid_days: days, route_id: input.routeId },
+  });
   revalidatePath(ROUTE);
   return { ok: true, grantId: data.id };
 }

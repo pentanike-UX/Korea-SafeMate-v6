@@ -14,6 +14,7 @@
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 import { getSupabaseAuthUserIdOnly } from "@/lib/supabase/server-user";
 import { ROUTE_ACCESS_WINDOW_DAYS, ROUTE_SHARE_INVITE_LIMIT } from "@/types/route-access";
+import { countRecentInviteEventsForGrant, logAbuseSignal } from "@/lib/route-abuse-signals.server";
 
 function plus90DaysIso(): string {
   return new Date(Date.now() + ROUTE_ACCESS_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
@@ -129,7 +130,15 @@ export async function createRouteShareInviteAction(input: {
 }): Promise<{ ok: true; inviteId: string } | { ok: false; error: string }> {
   const ownerId = await getSupabaseAuthUserIdOnly();
   if (!ownerId) return { ok: false, error: "unauthorized" };
-  if (input.granteeUserId === ownerId) return { ok: false, error: "cannot-invite-self" };
+  if (input.granteeUserId === ownerId) {
+    await logAbuseSignal({
+      signalType: "invite-self-attempt",
+      severity: "warn",
+      grantId: input.grantId,
+      actorUserId: ownerId,
+    });
+    return { ok: false, error: "cannot-invite-self" };
+  }
   const svc = createServiceRoleSupabase();
   if (!svc) return { ok: false, error: "service-role-unavailable" };
 
@@ -165,8 +174,29 @@ export async function createRouteShareInviteAction(input: {
     .single();
   if (insErr) {
     if (insErr.message.includes("route_share_invite_limit")) return { ok: false, error: "invite-limit" };
+    if (insErr.message.includes("route_share_invite_revoke_cycle")) {
+      await logAbuseSignal({
+        signalType: "invite-cycle-warn",
+        severity: "critical",
+        grantId: input.grantId,
+        actorUserId: ownerId,
+        payload: { reason: "revoke-cycle-threshold" },
+      });
+      return { ok: false, error: "invite-cycle-limit" };
+    }
     if (insErr.code === "23505") return { ok: false, error: "duplicate-grantee" };
     return { ok: false, error: insErr.message };
+  }
+  // 빈도 검사 — 1시간 내 3건 이상이면 경고 신호.
+  const recent = await countRecentInviteEventsForGrant(input.grantId, 60 * 60 * 1000);
+  if (recent >= 3) {
+    await logAbuseSignal({
+      signalType: "invite-rapid-warn",
+      severity: "warn",
+      grantId: input.grantId,
+      actorUserId: ownerId,
+      payload: { recent_invites_1h: recent },
+    });
   }
   return { ok: true, inviteId: inserted!.id };
 }

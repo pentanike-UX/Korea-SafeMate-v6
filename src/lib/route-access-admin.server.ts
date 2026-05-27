@@ -40,6 +40,19 @@ export interface AdminPackRow {
   created_at: string;
 }
 
+export interface AdminAbuseSignalRow {
+  id: string;
+  signal_type: string;
+  severity: "info" | "warn" | "critical";
+  grant_id: string | null;
+  actor_user_id: string | null;
+  actor_display_name: string | null;
+  target_user_id: string | null;
+  target_display_name: string | null;
+  payload: Record<string, unknown>;
+  created_at: string;
+}
+
 export async function requireSuperAdminUserId(): Promise<string | null> {
   const sb = await getServerSupabaseForUser();
   if (!sb) return null;
@@ -73,11 +86,12 @@ export async function adminListRoutePasses(): Promise<{
   grants: AdminGrantRow[];
   invites: AdminInviteRow[];
   packs: AdminPackRow[];
+  signals: AdminAbuseSignalRow[];
 }> {
   const adminId = await requireSuperAdminUserId();
-  if (!adminId) return { grants: [], invites: [], packs: [] };
+  if (!adminId) return { grants: [], invites: [], packs: [], signals: [] };
   const svc = createServiceRoleSupabase();
-  if (!svc) return { grants: [], invites: [], packs: [] };
+  if (!svc) return { grants: [], invites: [], packs: [], signals: [] };
 
   // grants — 최근 500건.
   const { data: grants } = await svc
@@ -182,5 +196,42 @@ export async function adminListRoutePasses(): Promise<{
     created_at: p.created_at,
   }));
 
-  return { grants: grantsOut, invites: invitesOut, packs: packsOut };
+  // abuse signals — 최근 100건.
+  const { data: signalsRaw } = await svc
+    .from("route_abuse_signals")
+    .select("id, signal_type, severity, grant_id, actor_user_id, target_user_id, payload, created_at")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  const sigRows = (signalsRaw ?? []) as Array<{
+    id: string;
+    signal_type: string;
+    severity: "info" | "warn" | "critical";
+    grant_id: string | null;
+    actor_user_id: string | null;
+    target_user_id: string | null;
+    payload: Record<string, unknown>;
+    created_at: string;
+  }>;
+  const sigUserIds = [
+    ...new Set(
+      sigRows
+        .flatMap((s) => [s.actor_user_id, s.target_user_id])
+        .filter((u): u is string => !!u),
+    ),
+  ];
+  const sigNames = await profileMap(svc, sigUserIds);
+  const signals: AdminAbuseSignalRow[] = sigRows.map((s) => ({
+    id: s.id,
+    signal_type: s.signal_type,
+    severity: s.severity,
+    grant_id: s.grant_id,
+    actor_user_id: s.actor_user_id,
+    actor_display_name: s.actor_user_id ? sigNames.get(s.actor_user_id) ?? null : null,
+    target_user_id: s.target_user_id,
+    target_display_name: s.target_user_id ? sigNames.get(s.target_user_id) ?? null : null,
+    payload: s.payload,
+    created_at: s.created_at,
+  }));
+
+  return { grants: grantsOut, invites: invitesOut, packs: packsOut, signals };
 }

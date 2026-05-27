@@ -10,7 +10,7 @@ export const metadata = {
 export default async function AdminRoutePassesPage() {
   const adminId = await requireSuperAdminUserId();
   if (!adminId) redirect("/admin");
-  const { grants, invites, packs } = await adminListRoutePasses();
+  const { grants, invites, packs, signals } = await adminListRoutePasses();
 
   return (
     <div className="space-y-8">
@@ -24,7 +24,7 @@ export default async function AdminRoutePassesPage() {
           expire abusive grants, or revoke individual invites.
         </p>
       </header>
-      <AdminRoutePassesClient grants={grants} invites={invites} packs={packs} />
+      <AdminRoutePassesClient grants={grants} invites={invites} packs={packs} signals={signals} />
     </div>
   );
 }
