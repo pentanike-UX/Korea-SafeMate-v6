@@ -414,11 +414,6 @@ export function RouteViewClient({
               />
               <div className="px-3 pb-5 sm:px-4">
                 <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
-                {ownerGrantId ? (
-                  <div className="mt-3">
-                    <RouteOwnerSharePanelLoader grantId={ownerGrantId} routeId={route.id} />
-                  </div>
-                ) : null}
               </div>
             </aside>
 
@@ -470,11 +465,6 @@ export function RouteViewClient({
                 />
                 <div className="px-3 pb-5">
                   <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
-                {ownerGrantId ? (
-                  <div className="mt-3">
-                    <RouteOwnerSharePanelLoader grantId={ownerGrantId} routeId={route.id} />
-                  </div>
-                ) : null}
                 </div>
               </div>
             </div>
@@ -495,32 +485,30 @@ export function RouteViewClient({
           />
         ) : null}
 
-        {/* owner 공유 sheet — 상단 Share2 버튼 또는 결제 완료 후 CTA에서 트리거.
-            Sheet 자체는 항상 mount. ownerGrantId가 없으면 loading placeholder를 보여주고
-            (결제 직후 router.refresh가 끝나면 자연스럽게 panel로 전환), grant가 있을 때
-            RouteOwnerSharePanelLoader로 실제 무료 초대 UI 노출. */}
+        {/* owner 공유 sheet — Share2 버튼 또는 결제 완료 CTA에서 트리거.
+            패널이 시트의 메인 콘텐츠로 직접 노출되며, 헤더(제목/보조문구)는 패널 내부가 담당.
+            Sheet 자체는 항상 mount하고 ownerGrantId가 없으면 loading placeholder. */}
         <Sheet open={ownerShareSheetOpen} onOpenChange={setOwnerShareSheetOpen}>
           <SheetContent
             side={isDesktop ? "right" : "bottom"}
             className={cn(
               "z-[80] overflow-y-auto",
-              isDesktop ? "w-[420px] max-w-full" : "max-h-[85vh] rounded-t-3xl",
+              isDesktop ? "w-[440px] max-w-full" : "max-h-[88vh] rounded-t-3xl",
             )}
           >
-            <SheetHeader>
+            {/* a11y 위해 sr-only 헤더 유지 — 시각적 헤더는 패널 안에서 처리. */}
+            <SheetHeader className="sr-only">
               <SheetTitle>{t("routeOwnerShareTitle")}</SheetTitle>
-              <SheetDescription>{t("routeOwnerShareHint")}</SheetDescription>
+              <SheetDescription>{t("routeOwnerShareLinkHint")}</SheetDescription>
             </SheetHeader>
-            <div className="px-5 pb-6 pt-2">
-              {ownerGrantId ? (
-                <RouteOwnerSharePanelLoader grantId={ownerGrantId} routeId={route.id} />
-              ) : (
-                <div className="flex flex-col items-center gap-3 py-10 text-center">
-                  <Loader2 className="size-6 animate-spin text-muted-foreground" aria-hidden />
-                  <p className="text-sm text-muted-foreground">{t("routeOwnerShareLoading")}</p>
-                </div>
-              )}
-            </div>
+            {ownerGrantId ? (
+              <RouteOwnerSharePanelLoader grantId={ownerGrantId} routeId={route.id} variant="sheet" />
+            ) : (
+              <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
+                <Loader2 className="size-6 animate-spin text-muted-foreground" aria-hidden />
+                <p className="text-sm text-muted-foreground">{t("routeOwnerShareLoading")}</p>
+              </div>
+            )}
           </SheetContent>
         </Sheet>
       </div>

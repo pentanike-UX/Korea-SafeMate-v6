@@ -1,17 +1,21 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { UserPlus, X, Users, Link2 } from "lucide-react";
+import { Link2, MessageCircle, Copy, UserPlus, X, Search, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
  * 오너용 공유 패널 — grant당 최대 2명 무료 초대.
  * 정책: docs/payment-and-share-policy.md §3
  *
- * Phase 3N: 회원 검색 발급(legacy) + 토큰 링크 발급(권장)을 함께 표시.
- *   - user_id 채워짐 + pending=false → 회원에게 직접 발급되어 redeem 완료
- *   - user_id 채워짐 + pending=true → 토큰이 redeem된 직후 상태 (실질 pending=false와 동치, 안전 디폴트)
- *   - user_id NULL + pending=true → 토큰 발급 후 아직 redeem 대기 (invite_token 채워짐)
+ * Phase 3O: 링크 흐름과 회원 검색 흐름을 별도 카드로 완전 분리.
+ *   - 카드 A) 친구에게 링크로 보내기: 카톡/메시지(시스템 share) + 링크 복사.
+ *            pending(아직 redeem 안 된) 토큰이 발급되어 있으면 그 슬롯을 카드 내에 노출.
+ *   - 카드 B) 회원에게 직접 무료 전달: 회원 검색 시트 열기 + redeem된 회원 슬롯 노출.
+ *
+ * variant:
+ *   - "sheet" → 시트 전체에 여유있게 배치(섹션 헤더가 시트의 메인 타이틀 역할).
+ *   - "inline" → 좁은 카드 안 (현재는 사용처 없음, 호환용).
  */
 export interface ShareInviteSlot {
   invite_id: string;
@@ -24,171 +28,202 @@ export interface ShareInviteSlot {
 
 export function RouteOwnerSharePanel({
   invites,
-  onInvite,
-  onCreateLink,
+  onOpenMemberSearch,
   onShareLink,
   onCopyLink,
   onRevoke,
-  className,
   linkBusy = false,
-  hasActiveLink = false,
+  variant = "sheet",
+  className,
 }: {
   invites: ShareInviteSlot[];
-  /** 기존 회원 검색 시트 트리거 (보조 경로). */
-  onInvite: () => void;
-  /** Phase 3N — 새 토큰 링크 발급 트리거. */
-  onCreateLink: () => void;
-  /** 발급된 링크를 시스템 share UI로 공유 (없으면 자동 생성). */
+  onOpenMemberSearch: () => void;
   onShareLink: () => void;
-  /** 발급된 링크를 클립보드 복사 (없으면 자동 생성). */
   onCopyLink: () => void;
   onRevoke: (inviteId: string) => void;
-  className?: string;
   linkBusy?: boolean;
-  /** redeem 대기 중인 토큰이 있는지 — 카피/공유 버튼 상태 분기용. */
-  hasActiveLink?: boolean;
+  variant?: "sheet" | "inline";
+  className?: string;
 }) {
   const t = useTranslations("TravelerHub");
-  const slots: (ShareInviteSlot | null)[] = [invites[0] ?? null, invites[1] ?? null];
+  const linkSlots = invites.filter((iv) => iv.pending && !iv.user_id);
+  const memberSlots = invites.filter((iv) => Boolean(iv.user_id));
   const used = invites.length;
   const remaining = Math.max(0, 2 - used);
+  const limitFull = remaining === 0;
+
+  const isSheet = variant === "sheet";
 
   return (
-    <section
+    <div
       className={cn(
-        "border-border/60 bg-card rounded-2xl border p-4 text-left shadow-sm",
+        isSheet ? "flex flex-col gap-5 px-6 pb-8 pt-6 sm:px-8 sm:pt-8" : "flex flex-col gap-4 p-4",
         className,
       )}
     >
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Users className="size-4 text-[var(--brand-primary)]" aria-hidden />
-          <p className="text-foreground text-sm font-bold">{t("routeOwnerShareTitle")}</p>
+      {/* 시트 메인 헤더 — 잔여 무료 슬롯 표시 */}
+      <header className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-foreground font-serif text-xl font-bold tracking-tight sm:text-2xl">
+            {t("routeOwnerShareTitle")}
+          </h2>
+          <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">
+            {t("routeOwnerShareLeadV2")}
+          </p>
         </div>
-        <span className="text-muted-foreground text-[11px] tabular-nums">
+        <span
+          className={cn(
+            "shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-bold tabular-nums",
+            limitFull
+              ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+              : "border-[var(--brand-primary)]/40 bg-[var(--brand-primary)]/10 text-[var(--brand-primary)]",
+          )}
+        >
           {t("routeOwnerShareLimit", { n: remaining })}
         </span>
-      </div>
-      <p className="text-muted-foreground mb-3 text-[11px] leading-relaxed">
-        {t("routeOwnerShareLinkHint")}
-      </p>
+      </header>
 
-      {/* Phase 3N — 토큰 링크 카드 (권장 경로). 한 번에 시스템 공유 / 복사 / 새로 만들기 */}
-      <div
+      {/* ── A) 링크로 보내기 ──────────────────────────────────────────────── */}
+      <section
         className={cn(
-          "mb-3 flex flex-col gap-2 rounded-xl border p-3",
-          hasActiveLink
-            ? "border-[var(--brand-primary)]/40 bg-[var(--brand-primary)]/[0.04]"
-            : "border-border/60 bg-background/40",
+          "rounded-2xl border bg-card p-5 shadow-sm",
+          linkSlots.length > 0
+            ? "border-[var(--brand-primary)]/40 bg-[var(--brand-primary)]/[0.03]"
+            : "border-border/60",
         )}
       >
-        <div className="flex items-center gap-2">
-          <Link2 className="size-4 text-[var(--brand-primary)]" aria-hidden />
-          <p className="text-foreground text-sm font-bold">{t("routeOwnerShareLinkTitle")}</p>
+        <div className="mb-3 flex items-center gap-2.5">
+          <span className="bg-[var(--brand-primary)]/15 flex size-9 shrink-0 items-center justify-center rounded-xl">
+            <Link2 className="size-4.5 text-[var(--brand-primary)]" aria-hidden />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-foreground text-sm font-bold">{t("routeOwnerShareLinkTitle")}</p>
+            <p className="text-muted-foreground mt-0.5 text-[11px] leading-snug">
+              {t("routeOwnerShareLinkSubHint")}
+            </p>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
+
+        <div className="flex flex-col gap-2 sm:flex-row">
           <button
             type="button"
             onClick={onShareLink}
-            disabled={linkBusy || remaining === 0 && !hasActiveLink}
-            className="flex h-9 flex-1 min-w-[140px] items-center justify-center gap-1.5 rounded-lg bg-[var(--brand-primary)] px-3 text-sm font-bold text-[var(--text-on-brand)] shadow-sm transition-all hover:opacity-95 disabled:opacity-60"
+            disabled={linkBusy || (limitFull && linkSlots.length === 0)}
+            className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--brand-primary)] px-4 text-sm font-bold text-[var(--text-on-brand)] shadow-sm transition-all hover:opacity-95 disabled:opacity-50"
           >
+            {linkBusy ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <MessageCircle className="size-4" aria-hidden />
+            )}
             {t("routeOwnerShareLinkShareCta")}
           </button>
           <button
             type="button"
             onClick={onCopyLink}
-            disabled={linkBusy || (remaining === 0 && !hasActiveLink)}
-            className="border-border/60 hover:bg-muted text-foreground flex h-9 flex-1 min-w-[120px] items-center justify-center gap-1.5 rounded-lg border bg-card px-3 text-sm font-semibold transition-colors disabled:opacity-60"
+            disabled={linkBusy || (limitFull && linkSlots.length === 0)}
+            className="border-border/60 hover:bg-muted text-foreground flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border bg-card px-4 text-sm font-semibold transition-colors disabled:opacity-50"
           >
+            <Copy className="size-4" aria-hidden />
             {t("routeOwnerShareLinkCopyCta")}
           </button>
         </div>
-        {remaining === 0 && !hasActiveLink ? (
-          <p className="text-[11px] text-amber-600">{t("routeOwnerShareLinkLimitFull")}</p>
-        ) : (
-          <p className="text-muted-foreground text-[11px]">{t("routeOwnerShareLinkSubHint")}</p>
-        )}
-      </div>
 
-      <ul className="space-y-2">
-        {slots.map((slot, idx) => (
-          <li
-            key={slot?.invite_id ?? `empty-${idx}`}
-            className={cn(
-              "border-border/50 flex items-center gap-2 rounded-xl border bg-background/40 p-2",
-              !slot && "border-dashed",
-            )}
-          >
-            {slot ? (
-              slot.pending && !slot.user_id ? (
-                <>
-                  <span className="bg-[var(--brand-primary)]/15 flex size-7 shrink-0 items-center justify-center rounded-full">
-                    <Link2 className="size-3.5 text-[var(--brand-primary)]" aria-hidden />
-                  </span>
-                  <span className="text-foreground min-w-0 flex-1 truncate text-sm font-medium">
-                    {t("routeOwnerShareLinkPendingLabel")}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => onRevoke(slot.invite_id)}
-                    aria-label={t("routeOwnerShareSlotRevoke")}
-                    className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-7 shrink-0 items-center justify-center rounded-full transition-colors"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span className="bg-muted size-7 shrink-0 overflow-hidden rounded-full">
-                    {slot.avatar_url ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img src={slot.avatar_url} alt="" className="size-full object-cover" />
-                    ) : null}
-                  </span>
-                  <span className="text-foreground min-w-0 flex-1 truncate text-sm font-medium">
-                    {slot.display_name}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => onRevoke(slot.invite_id)}
-                    aria-label={t("routeOwnerShareSlotRevoke")}
-                    className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-7 shrink-0 items-center justify-center rounded-full transition-colors"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                </>
-              )
-            ) : (
-              <>
-                <span className="bg-muted/60 flex size-7 shrink-0 items-center justify-center rounded-full">
-                  <UserPlus className="text-muted-foreground size-3.5" aria-hidden />
-                </span>
-                <span className="text-muted-foreground flex-1 text-sm">
-                  {t("routeOwnerShareSlotEmpty")}
+        {/* 발급된 pending 토큰 슬롯 표시 */}
+        {linkSlots.length > 0 ? (
+          <ul className="mt-3 space-y-1.5">
+            {linkSlots.map((slot) => (
+              <li
+                key={slot.invite_id}
+                className="border-border/40 bg-background/60 flex items-center gap-2 rounded-lg border p-2"
+              >
+                <Link2 className="text-[var(--brand-primary)] size-3.5 shrink-0" aria-hidden />
+                <span className="text-foreground min-w-0 flex-1 truncate text-xs font-medium">
+                  {t("routeOwnerShareLinkPendingLabel")}
                 </span>
                 <button
                   type="button"
-                  onClick={onInvite}
-                  className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md px-2 py-1 text-xs font-semibold transition-colors"
+                  onClick={() => onRevoke(slot.invite_id)}
+                  aria-label={t("routeOwnerShareSlotRevoke")}
+                  className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-6 shrink-0 items-center justify-center rounded-full transition-colors"
                 >
-                  {t("routeOwnerShareInviteCta")}
+                  <X className="size-3" />
                 </button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
+              </li>
+            ))}
+          </ul>
+        ) : null}
 
-      {/* onCreateLink는 직접 호출하지 않고 onShareLink/onCopyLink에서 자동으로 호출되는 패턴.
-          별도 'create' 버튼이 필요하면 여기에 노출 가능. */}
-      <div className="sr-only" aria-hidden onClick={onCreateLink} />
-    </section>
+        {limitFull && linkSlots.length === 0 ? (
+          <p className="mt-3 text-[11px] text-amber-600 dark:text-amber-400">
+            {t("routeOwnerShareLinkLimitFull")}
+          </p>
+        ) : null}
+      </section>
+
+      {/* ── B) 회원 검색으로 직접 전달 ──────────────────────────────────── */}
+      <section className="border-border/60 rounded-2xl border bg-card p-5 shadow-sm">
+        <div className="mb-3 flex items-center gap-2.5">
+          <span className="bg-muted/80 flex size-9 shrink-0 items-center justify-center rounded-xl">
+            <Search className="text-muted-foreground size-4.5" aria-hidden />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-foreground text-sm font-bold">{t("routeOwnerShareMemberTitle")}</p>
+            <p className="text-muted-foreground mt-0.5 text-[11px] leading-snug">
+              {t("routeOwnerShareMemberSubHint")}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={onOpenMemberSearch}
+          disabled={limitFull && memberSlots.length === 0}
+          className="border-border/60 hover:bg-muted text-foreground flex h-11 w-full items-center justify-center gap-2 rounded-xl border bg-card px-4 text-sm font-semibold transition-colors disabled:opacity-50"
+        >
+          <UserPlus className="size-4" aria-hidden />
+          {t("routeOwnerShareMemberCta")}
+        </button>
+
+        {memberSlots.length > 0 ? (
+          <ul className="mt-3 space-y-1.5">
+            {memberSlots.map((slot) => (
+              <li
+                key={slot.invite_id}
+                className="border-border/40 bg-background/60 flex items-center gap-2 rounded-lg border p-2"
+              >
+                <span className="bg-muted size-7 shrink-0 overflow-hidden rounded-full">
+                  {slot.avatar_url ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={slot.avatar_url} alt="" className="size-full object-cover" />
+                  ) : null}
+                </span>
+                <span className="text-foreground min-w-0 flex-1 truncate text-sm font-medium">
+                  {slot.display_name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onRevoke(slot.invite_id)}
+                  aria-label={t("routeOwnerShareSlotRevoke")}
+                  className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-6 shrink-0 items-center justify-center rounded-full transition-colors"
+                >
+                  <X className="size-3" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {limitFull && memberSlots.length === 0 ? (
+          <p className="mt-3 text-[11px] text-amber-600 dark:text-amber-400">
+            {t("routeOwnerShareLinkLimitFull")}
+          </p>
+        ) : null}
+      </section>
+
+      <p className="text-muted-foreground text-center text-[11px] leading-relaxed">
+        {t("routeOwnerShareFooterHint")}
+      </p>
+    </div>
   );
-}
-
-/** 첫 슬롯도 모두 비어있을 때 짧은 안내. */
-export function RouteOwnerShareEmptyHint() {
-  const t = useTranslations("TravelerHub");
-  return <p className="text-muted-foreground text-[11px]">{t("routeOwnerShareEmpty")}</p>;
 }

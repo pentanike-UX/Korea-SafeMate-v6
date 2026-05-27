@@ -26,10 +26,13 @@ import { useToast } from "@/components/ui/toast";
 export function RouteOwnerSharePanelLoader({
   grantId,
   routeId,
+  variant = "sheet",
 }: {
   grantId: string;
   /** 토큰 링크 URL을 만들기 위한 routeId. 외부에서 routeId를 알고 있을 때 전달. */
   routeId?: string;
+  /** 패널 시각적 variant — sheet는 여유있는 패딩, inline은 좁은 카드. */
+  variant?: "sheet" | "inline";
 }) {
   const t = useTranslations("TravelerHub");
   const { toast } = useToast();
@@ -183,23 +186,16 @@ export function RouteOwnerSharePanelLoader({
     }
   }
 
-  async function onCreateLink() {
-    await ensureLinkUrl();
-  }
-
-  const hasActiveLink = invites.some((iv) => iv.pending && iv.invite_token);
-
   return (
     <>
       <RouteOwnerSharePanel
         invites={invites}
-        onInvite={onInviteClick}
-        onCreateLink={onCreateLink}
+        onOpenMemberSearch={onInviteClick}
         onShareLink={onShareLink}
         onCopyLink={onCopyLink}
         onRevoke={onRevoke}
         linkBusy={linkPending}
-        hasActiveLink={hasActiveLink}
+        variant={variant}
       />
 
       <Sheet open={searchOpen} onOpenChange={setSearchOpen}>
