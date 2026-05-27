@@ -13,6 +13,7 @@
  *   node --env-file=.env.local scripts/apply-demo-seed.mjs
  */
 import { createClient } from "@supabase/supabase-js";
+import { DEMO_ROUTE_JOURNEY } from "./demo-route-journey-data.mjs";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -218,9 +219,9 @@ log("upsert content_post",
     body: "첫 한국 여행에서 절대 헤매지 않는 종로 K-드라마 코스를 정리했어요. 한복 대여부터 카페 추천, 사진 포인트, 그리고 가장 사람 적은 시간대까지.\n\n이 코스는 제가 직접 50번 넘게 걸은 길이에요. 따라오시면 그날 저녁 SNS 피드가 풍성할 거예요.",
     tags: ["k_drama", "palace", "jongno", "hanok"],
     status: "approved",
-    post_format: "hybrid",
+    post_format: "route",
     cover_image_url: null,
-    route_journey: null,
+    route_journey: DEMO_ROUTE_JOURNEY,
     route_highlights: ["경복궁 한복 무료입장", "통인시장 엽전 도시락", "북촌 도깨비 골목", "어니언 안국", "익선동 야경"],
     hero_subject: "place",
     is_sample: true,

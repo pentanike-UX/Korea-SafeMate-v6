@@ -31,6 +31,7 @@ import { resolvePostTypeLabelKey } from "@/lib/post-detail-type-label";
 import { PostDetailHero } from "@/components/posts/post-detail-hero";
 import { PostDetailIntroPanel } from "@/components/posts/post-detail-intro-panel";
 import { PostDetailRelatedSection } from "@/components/posts/post-detail-related-section";
+import { RelatedRouteBanner } from "@/components/posts/related-route-banner";
 import { postHeroCoverClass } from "@/lib/post-image-crop";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,6 +43,7 @@ export async function PostDetailView({ post, editHref, isOwner }: { post: Conten
   }
 
   const t = await getTranslations("Posts");
+  const tRoute = await getTranslations("RoutePosts");
   const related = await relatedPostsForMerged(post);
   const heroCover = getPostHeroImageUrl(post);
   const heroAlt = getPostHeroImageAlt(post);
@@ -170,6 +172,29 @@ export async function PostDetailView({ post, editHref, isOwner }: { post: Conten
                 </div>
               </CardContent>
             </Card>
+          ) : null}
+
+          {/* related_route_id만 있고 route_journey가 없는 하이브리드/레거시 포스트 — 하루루트 CTA */}
+          {post.related_route_id && !postHasRouteJourney(post) ? (
+            <section className="border-t border-border/40 pt-7 sm:pt-8">
+              <header className="mb-5 space-y-2">
+                <p className="text-[11px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+                  {tRoute("themeRouteTeaserEyebrow")}
+                </p>
+                <h2 className="text-lg font-semibold tracking-tight text-[var(--text-strong)]">
+                  {tRoute("themeRouteTeaserTitle")}
+                </h2>
+                <p className="text-sm leading-relaxed text-muted-foreground">{tRoute("themeRouteTeaserLead")}</p>
+              </header>
+              <RelatedRouteBanner
+                routeId={post.related_route_id}
+                routeTitle={post.title}
+                totalDurationMin={300}
+                spotCount={post.route_highlights?.length ?? 5}
+                themeLabel={post.tags?.[0]}
+                className="!px-0 !max-w-none"
+              />
+            </section>
           ) : null}
         </div>
 
