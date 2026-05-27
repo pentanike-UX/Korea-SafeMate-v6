@@ -154,13 +154,18 @@ export function RouteOwnerSharePanelLoader({
         await navigator.share({ title, text: t("routeOwnerShareLinkShareBody"), url });
         return;
       } catch {
-        /* 사용자가 share 캔슬한 경우 등 — clipboard 폴백 */
+        /* 사용자가 share 캔슬 — clipboard 폴백 */
       }
     }
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       try {
         await navigator.clipboard.writeText(url);
-        toast({ variant: "success", title: t("routeOwnerShareLinkCopyOk") });
+        toast({
+          variant: "success",
+          title: t("routeOwnerShareLinkCopyOk"),
+          description: url,
+          durationMs: 7000,
+        });
       } catch {
         toast({ variant: "error", title: t("routeShareInviteErrGeneric") });
       }
@@ -180,11 +185,20 @@ export function RouteOwnerSharePanelLoader({
         variant: "success",
         title: t("routeOwnerShareLinkCopyOk"),
         description: url,
+        durationMs: 7000,
       });
     } catch {
       toast({ variant: "error", title: t("routeShareInviteErrGeneric") });
     }
   }
+
+  // 발급된 active 토큰의 fully-qualified URL — 패널 내부에 readonly 입력박스로 노출.
+  // SSR 시점엔 window가 없어 상대 경로만 만들어주고, mount 후 첫 paint에 절대 URL로 교체된다.
+  const activeLinkInvite = invites.find((iv) => iv.pending && iv.invite_token);
+  const activeLinkUrl =
+    activeLinkInvite?.invite_token && routeId
+      ? buildInviteUrl(routeId, activeLinkInvite.invite_token)
+      : null;
 
   return (
     <>
@@ -196,6 +210,7 @@ export function RouteOwnerSharePanelLoader({
         onRevoke={onRevoke}
         linkBusy={linkPending}
         variant={variant}
+        activeLinkUrl={activeLinkUrl}
       />
 
       <Sheet open={searchOpen} onOpenChange={setSearchOpen}>

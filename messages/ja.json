@@ -1785,6 +1785,7 @@
     "routeOwnerShareLinkCopyCta": "リンクをコピー",
     "routeOwnerShareLinkShareBody": "ハルルートを一緒に無料で見ましょう",
     "routeOwnerShareLinkCopyOk": "リンクをコピーしました",
+    "routeOwnerShareLinkUrlLabel": "招待リンク (タップでコピー)",
     "routeOwnerShareLinkPendingLabel": "リンク発行済 · 友達のログイン待ち",
     "routeOwnerShareLinkLimitFull": "無料枠2つを使用済 — 取り消して再発行",
     "routeOwnerShareMemberTitle": "メンバーを検索して直接送る",

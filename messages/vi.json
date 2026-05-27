@@ -1786,6 +1786,7 @@
     "routeOwnerShareLinkCopyCta": "Sao chép link",
     "routeOwnerShareLinkShareBody": "Cùng xem Haru-Route miễn phí với mình",
     "routeOwnerShareLinkCopyOk": "Đã sao chép link",
+    "routeOwnerShareLinkUrlLabel": "Link mời (chạm để sao chép)",
     "routeOwnerShareLinkPendingLabel": "Đã phát link · Chờ bạn đăng nhập",
     "routeOwnerShareLinkLimitFull": "Đã dùng hết 2 slot — thu hồi để cấp link mới",
     "routeOwnerShareMemberTitle": "Tìm thành viên để gửi trực tiếp",

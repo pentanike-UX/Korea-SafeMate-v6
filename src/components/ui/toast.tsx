@@ -113,7 +113,8 @@ function ToastViewport({
       aria-live="polite"
       aria-atomic="false"
       className={cn(
-        "fixed z-50 flex flex-col gap-2",
+        // z-[200]: Sheet(z-[71~80]), Dialog overlay 위에서 항상 보이도록.
+        "fixed z-[200] flex flex-col gap-2",
         // 모바일: 하단 중앙 / 데스크톱: 우측 상단
         "bottom-4 left-1/2 w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2",
         "sm:left-auto sm:right-4 sm:bottom-auto sm:top-4 sm:translate-x-0",
@@ -143,7 +144,7 @@ function ToastRoot({ item, dismiss }: { item: ToastItem; dismiss: (id: string) =
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold leading-snug">{item.title}</p>
         {item.description && (
-          <p className="mt-0.5 text-xs text-ink-muted leading-relaxed">{item.description}</p>
+          <p className="mt-0.5 text-xs text-ink-muted leading-relaxed break-all">{item.description}</p>
         )}
       </div>
 

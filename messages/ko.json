@@ -1816,6 +1816,7 @@
     "routeOwnerShareLinkCopyCta": "링크 복사",
     "routeOwnerShareLinkShareBody": "하루루트를 무료로 함께 보세요",
     "routeOwnerShareLinkCopyOk": "링크를 복사했어요",
+    "routeOwnerShareLinkUrlLabel": "공유 링크 (탭하면 복사돼요)",
     "routeOwnerShareLinkPendingLabel": "링크 발급됨 · 친구 로그인 대기",
     "routeOwnerShareLinkLimitFull": "무료 슬롯 2개를 모두 사용했어요 — 회수 후 다시 발급할 수 있어요",
     "routeOwnerShareMemberTitle": "회원을 검색해서 직접 보내기",

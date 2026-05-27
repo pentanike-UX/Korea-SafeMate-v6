@@ -1815,6 +1815,7 @@
     "routeOwnerShareLinkCopyCta": "Copy link",
     "routeOwnerShareLinkShareBody": "View this Haru-Route with me for free",
     "routeOwnerShareLinkCopyOk": "Link copied",
+    "routeOwnerShareLinkUrlLabel": "Invite link (tap to copy)",
     "routeOwnerShareLinkPendingLabel": "Link issued · Waiting for friend",
     "routeOwnerShareLinkLimitFull": "Both free invites used — revoke one to issue a new link",
     "routeOwnerShareMemberTitle": "Search a member directly",

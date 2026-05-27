@@ -35,6 +35,7 @@ export function RouteOwnerSharePanel({
   linkBusy = false,
   variant = "sheet",
   className,
+  activeLinkUrl = null,
 }: {
   invites: ShareInviteSlot[];
   onOpenMemberSearch: () => void;
@@ -44,6 +45,8 @@ export function RouteOwnerSharePanel({
   linkBusy?: boolean;
   variant?: "sheet" | "inline";
   className?: string;
+  /** 발급된 활성 토큰의 fully-qualified URL — 카드 안에 readonly 박스로 표시. */
+  activeLinkUrl?: string | null;
 }) {
   const t = useTranslations("TravelerHub");
   const linkSlots = invites.filter((iv) => iv.pending && !iv.user_id);
@@ -129,7 +132,35 @@ export function RouteOwnerSharePanel({
           </button>
         </div>
 
-        {/* 발급된 pending 토큰 슬롯 표시 */}
+        {/* 발급된 활성 URL — readonly 박스. 클릭/포커스 시 전체 선택. */}
+        {activeLinkUrl ? (
+          <div className="mt-3 space-y-1.5">
+            <p className="text-muted-foreground text-[11px] font-medium">
+              {t("routeOwnerShareLinkUrlLabel")}
+            </p>
+            <div className="bg-background/80 border-border/60 flex items-center gap-2 overflow-hidden rounded-lg border px-2 py-1.5">
+              <input
+                readOnly
+                value={activeLinkUrl}
+                onFocus={(e) => e.currentTarget.select()}
+                onClick={(e) => e.currentTarget.select()}
+                aria-label={t("routeOwnerShareLinkUrlLabel")}
+                className="text-foreground min-w-0 flex-1 bg-transparent font-mono text-[11px] outline-none selection:bg-[var(--brand-primary)]/20"
+              />
+              <button
+                type="button"
+                onClick={onCopyLink}
+                disabled={linkBusy}
+                aria-label={t("routeOwnerShareLinkCopyCta")}
+                className="text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 flex size-7 shrink-0 items-center justify-center rounded-md transition-colors disabled:opacity-50"
+              >
+                <Copy className="size-3.5" aria-hidden />
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {/* 발급된 pending 토큰 슬롯 표시 (회수 버튼 포함) */}
         {linkSlots.length > 0 ? (
           <ul className="mt-3 space-y-1.5">
             {linkSlots.map((slot) => (
