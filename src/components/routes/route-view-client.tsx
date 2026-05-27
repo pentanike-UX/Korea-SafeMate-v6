@@ -27,6 +27,11 @@ import {
   type GuardianInquiryOpenDetail,
 } from "@/components/guardians/guardian-inquiry-sheet";
 import { SharedByBanner } from "@/components/routes/shared-by-banner";
+import {
+  RouteTicketConsumeConfirmDialog,
+  RouteTicketExhaustedDialog,
+} from "@/components/routes/route-ticket-dialogs";
+import { consumeRouteTicketAction } from "@/lib/route-access-actions.server";
 
 /**
  * 라우트 페이지 클라이언트 컨테이너.
@@ -47,6 +52,7 @@ export function RouteViewClient({
   canSave = false,
   initialSaved = false,
   sharedBy = null,
+  lockedHint = null,
 }: {
   route: HaruRoute;
   locale: AppLocale;
@@ -60,6 +66,12 @@ export function RouteViewClient({
     display_name: string;
     avatar_url?: string | null;
   } | null;
+  /** 잠금 상태일 때 클라이언트가 분기 다이얼로그를 띄워야 할 컨텍스트. */
+  lockedHint?: {
+    reason: "ticket-prompt" | "tickets-exhausted";
+    ticketsRemaining?: number | null;
+    ticketPackId?: string | null;
+  } | null;
 }) {
   const t = useTranslations("TravelerHub");
   const router = useRouter();
@@ -68,6 +80,12 @@ export function RouteViewClient({
   const [saved, setSaved] = useState(initialSaved);
   const [savePending, startSaveTransition] = useTransition();
   const [isDesktop, setIsDesktop] = useState(false);
+  /** Phase 3B-2: 잠금 상태 + ticket-prompt/tickets-exhausted reason일 때 다이얼로그 노출 제어. */
+  const [ticketDialog, setTicketDialog] = useState<"prompt" | "exhausted" | null>(() => {
+    if (initialUnlocked || !lockedHint) return null;
+    return lockedHint.reason === "ticket-prompt" ? "prompt" : "exhausted";
+  });
+  const [, startTicketConsume] = useTransition();
 
   // 데스크톱(md ≥768px) 감지 — 시트 side, 좌측 레일 노출 여부 결정.
   useEffect(() => {
@@ -114,6 +132,31 @@ export function RouteViewClient({
     }
   }
 
+  function onConsumeTicketConfirm() {
+    if (!lockedHint || lockedHint.reason !== "ticket-prompt" || !lockedHint.ticketPackId) return;
+    startTicketConsume(async () => {
+      const res = await consumeRouteTicketAction({
+        packId: lockedHint.ticketPackId!,
+        routeId: route.id,
+      });
+      if (res.ok) {
+        setTicketDialog(null);
+        // 서버에서 grant가 발급됐으므로 페이지 다시 로드 → initialUnlocked=true로 진입.
+        router.refresh();
+      }
+    });
+  }
+
+  function onTicketDialogCancel() {
+    setTicketDialog(null);
+  }
+
+  function onExhaustedGoPayment() {
+    setTicketDialog(null);
+    // 결제 시트 노출은 RouteFreePreviewSection이 담당하므로 단순히 다이얼로그를 닫는다.
+    // (이미 lock 상태이므로 free preview가 보이고 그 안의 CTA로 PG 진입)
+  }
+
   function openGuardianChat() {
     if (typeof window === "undefined") return;
     const detail: GuardianInquiryOpenDetail = {
@@ -158,8 +201,34 @@ export function RouteViewClient({
     };
   }, []);
 
+  // Phase 3B-2: 잠금 상태에서 ticket-prompt/tickets-exhausted 다이얼로그를
+  // 무료 프리뷰 위에 띄운다. 사용자가 확정하기 전까지 결제 화면이 그대로 보이므로
+  // 거절 시 원래 결제 흐름으로 자연스럽게 이어진다.
+  const ticketDialogs =
+    !unlocked && lockedHint ? (
+      <>
+        <RouteTicketConsumeConfirmDialog
+          open={ticketDialog === "prompt"}
+          onOpenChange={(o) => !o && setTicketDialog(null)}
+          ticketsRemaining={lockedHint.ticketsRemaining ?? 0}
+          onConfirm={onConsumeTicketConfirm}
+          onCancel={onTicketDialogCancel}
+        />
+        <RouteTicketExhaustedDialog
+          open={ticketDialog === "exhausted"}
+          onOpenChange={(o) => !o && setTicketDialog(null)}
+          onGoPayment={onExhaustedGoPayment}
+        />
+      </>
+    ) : null;
+
   if (!unlocked) {
-    return <RouteFreePreviewSection route={route} locale={locale} onUnlock={() => setUnlocked(true)} />;
+    return (
+      <>
+        <RouteFreePreviewSection route={route} locale={locale} onUnlock={() => setUnlocked(true)} />
+        {ticketDialogs}
+      </>
+    );
   }
 
   const title = route.title[locale] ?? route.title.en ?? "Route";

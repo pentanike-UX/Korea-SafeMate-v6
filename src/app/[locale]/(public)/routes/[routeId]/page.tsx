@@ -90,6 +90,12 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
     display_name: string;
     avatar_url?: string | null;
   } | null = null;
+  /** ticket-prompt / tickets-exhausted 등 잠금이긴 하지만 클라이언트에서 분기 다이얼로그가 필요한 경우. */
+  let accessLockedHint: {
+    reason: "ticket-prompt" | "tickets-exhausted";
+    ticketsRemaining?: number | null;
+    ticketPackId?: string | null;
+  } | null = null;
   let initialUnlocked = fromDb && routeType === "custom" && !wantsPreview;
   if (!initialUnlocked && !wantsPreview && _isUuid(routeId)) {
     // 비-mock UUID 루트만 access resolver 적용 (mock은 별도 데모 unlock 흐름).
@@ -99,6 +105,14 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
       if (decision.reason === "shared-invite" && decision.sharedBy) {
         accessSharedBy = decision.sharedBy;
       }
+    } else if (decision.reason === "ticket-prompt") {
+      accessLockedHint = {
+        reason: "ticket-prompt",
+        ticketsRemaining: decision.ticketsRemaining ?? null,
+        ticketPackId: decision.ticketPackId ?? null,
+      };
+    } else if (decision.reason === "tickets-exhausted") {
+      accessLockedHint = { reason: "tickets-exhausted" };
     }
   }
 
@@ -177,6 +191,7 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
         canSave={canSave && Boolean(userId)}
         initialSaved={initialSaved}
         sharedBy={accessSharedBy}
+        lockedHint={accessLockedHint}
       />
     </main>
   );

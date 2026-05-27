@@ -9,6 +9,50 @@
 
 ---
 
+## 2026-05-27 — Phase 3B-2 (클라이언트 ticket-prompt/exhausted 다이얼로그 자동 발화)
+
+### 목표
+
+서버 resolver의 `ticket-prompt` / `tickets-exhausted` reason을 클라이언트 다이얼로그로 연결. 사용자 컨펌 시 티켓 소모 + 서버 grant 발급 + `router.refresh()`로 자연스러운 unlocked 전이.
+
+### 변경 파일
+
+- `src/app/[locale]/(public)/routes/[routeId]/page.tsx` — decision의 reason이 ticket-prompt/exhausted인 경우 `lockedHint`로 RouteViewClient에 전달.
+- `src/components/routes/route-view-client.tsx` — `lockedHint` prop 수용, `ticketDialog` 상태 초기값 결정, 컨펌/소진 다이얼로그 렌더링, `consumeRouteTicketAction` 호출 + `router.refresh()`.
+
+### 변경 내용
+
+- **page.tsx**:
+  - decision이 잠금이면 reason별로 `accessLockedHint`를 구성: `{ reason: "ticket-prompt", ticketsRemaining, ticketPackId }` 또는 `{ reason: "tickets-exhausted" }`.
+  - RouteViewClient에 `lockedHint` prop 전달.
+- **RouteViewClient**:
+  - `lockedHint` prop 추가(default null).
+  - `ticketDialog` state: 초기값을 `lockedHint`로부터 결정. 잠금 상태일 때만 자동으로 다이얼로그가 열림.
+  - `onConsumeTicketConfirm`: `consumeRouteTicketAction({packId, routeId})` 호출 → 성공 시 다이얼로그 닫고 `router.refresh()`. 서버에서 grant가 발급됐으므로 다음 렌더에 `initialUnlocked=true`로 진입.
+  - `onTicketDialogCancel` / `onExhaustedGoPayment`: 단순 닫기. 잠금 상태이므로 자연스럽게 RouteFreePreviewSection이 계속 노출 → 결제 CTA로 이어짐.
+  - 다이얼로그 렌더링은 `!unlocked` 조건 안에서 RouteFreePreviewSection과 함께 fragment로 묶어 노출 — 사용자가 거절해도 결제 흐름이 그대로 보임.
+
+### UX 흐름
+
+1. Trio/Penta 잔여 티켓 보유자가 새 루트 진입 → 자동으로 "열람권 사용?" 다이얼로그.
+2. "사용" → 서버에서 1장 소모 + 90일 grant → refresh → 즉시 unlocked.
+3. "다음에" → 다이얼로그만 닫힘, 무료 프리뷰 그대로 (사용자가 PG로 새 결제할 수도 있고 나갈 수도 있음).
+4. 티켓 소진된 패키지 보유자 진입 → "모두 사용했어요" + 재결제 CTA 다이얼로그 → 닫으면 무료 프리뷰.
+
+### 검증 결과
+
+- `pnpm exec tsc --noEmit` 통과.
+- `pnpm exec eslint`(변경 파일) 통과.
+- `pnpm build` 통과 (1008 페이지 SSG).
+- 시각 검증: 서버 마이그레이션 적용 + 패키지 데이터 시드 후 실제 동작 확인 권장.
+
+### 남은 작업
+
+- Phase 3C: Toss/Kakao PG 콜백 → `createRouteSingleGrantAction` / `createRouteTicketPackAction` 호출 (실 결제).
+- Phase 3D: 마이페이지에 RouteOwnerSharePanel + 만료 카운트다운, 운영 대시보드(grant/invite 조회·회수).
+
+---
+
 ## 2026-05-27 — Phase 3B (DB 스키마 + 서버 access resolver + 페이지 통합)
 
 ### 목표
