@@ -6,6 +6,7 @@ import {
   HeartHandshake,
   LayoutDashboard,
   MapPinned,
+  History,
   MessageCircle,
   PenSquare,
   Settings,
@@ -15,6 +16,7 @@ import {
 export type HubNavLabelKey =
   | "navJourneys"
   | "navMyRoutes"
+  | "navActivity"
   | "navProfile"
   | "navPoints"
   | "navMessages"
@@ -69,6 +71,15 @@ function travelerMyRoutesMatch(p: string) {
   return p === "/mypage/routes" || p.startsWith("/mypage/routes/");
 }
 
+function travelerActivityMatch(p: string) {
+  return (
+    p === "/mypage/activity" ||
+    p.startsWith("/mypage/activity/") ||
+    p === "/mypage/route-passes" ||
+    p.startsWith("/mypage/route-passes/")
+  );
+}
+
 function travelerSettingsMatch(p: string) {
   return p === "/mypage/settings" || p.startsWith("/mypage/settings/");
 }
@@ -77,6 +88,7 @@ function travelerSettingsMatch(p: string) {
 export const TRAVELER_HUB_NAV: HubNavItem[] = [
   { href: "/mypage", labelKey: "navJourneys", Icon: Compass, match: travelerHubAndJourneysMatch },
   { href: "/mypage/routes", labelKey: "navMyRoutes", Icon: MapPinned, match: travelerMyRoutesMatch },
+  { href: "/mypage/activity", labelKey: "navActivity", Icon: History, match: travelerActivityMatch },
   { href: "/mypage/profile", labelKey: "navProfile", Icon: UserRound, match: travelerProfileMatch },
   { href: "/mypage/points", labelKey: "navPoints", Icon: Coins, match: travelerPointsMatch },
   { href: "/mypage/messages", labelKey: "navMessages", Icon: MessageCircle, match: travelerMessagesMatch },

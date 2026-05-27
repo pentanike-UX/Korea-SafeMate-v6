@@ -9,6 +9,20 @@
 
 ---
 
+## 2026-05-27 — 마이페이지 「이용·결제 기록」 허브 (`/mypage/activity`)
+
+**요청**: 여행자 저장 포스트, 구독/패스(잔여·사용), 열람·공유 이력, 결제 관련 이용 데이터를 마이페이지에서 한곳에 확인.
+
+**구현**:
+- `/mypage/activity` — `TravelerActivityHub` (요약 KPI + `#passes` `#saved` `#views` `#shared-out` `#shared-in`)
+- `loadTravelerActivityBundle()` — 저장·패스·열람(`route_post_view_events`)·공유 발송/수신 집계
+- LNB `navActivity`, 여정 허브 카드, `/mypage/route-passes` → `#passes` redirect
+- i18n 5개 locale (`activityPage*`, `navActivity` 등)
+
+**검증**: `pnpm build` 통과. 프로덕션 UI는 배포 후 확인.
+
+---
+
 ## 2026-05-27 — Phase 3P (초대 링크 무료 열람 + 공유 패널 UI)
 
 **문제 보고**:

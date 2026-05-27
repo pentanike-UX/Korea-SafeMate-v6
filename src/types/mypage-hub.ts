@@ -24,6 +24,7 @@ export type GuardianOpsSnapshot = {
 export const TRAVELER_NAV_BADGE_KEYS = [
   "navJourneys",
   "navMyRoutes",
+  "navActivity",
   "navProfile",
   "navPoints",
   "navMessages",

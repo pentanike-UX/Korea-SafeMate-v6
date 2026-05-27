@@ -7,7 +7,7 @@ import { MypageJourneysMatchHubBadge, MypageJourneysOpenTripBadge } from "@/comp
 import { MypageJourneysSeenCard } from "@/components/mypage/mypage-journeys-seen-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bookmark, Heart, HeartHandshake, Plane } from "lucide-react";
+import { Bookmark, Heart, HeartHandshake, History, Plane } from "lucide-react";
 
 export async function generateMetadata() {
   const t = await getTranslations("TravelerHub");
@@ -27,7 +27,7 @@ export default async function MypageJourneysPage() {
         <p className="text-muted-foreground mt-2 max-w-xl text-[15px] leading-relaxed">{t("journeysLead")}</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <MypageJourneysSeenCard blockKey="traveler.journeys.openTrips">
           <Card className="border-border/60 h-full rounded-2xl shadow-[var(--shadow-sm)]">
             <CardHeader className="pb-2">
@@ -73,6 +73,18 @@ export default async function MypageJourneysPage() {
             </CardContent>
           </Card>
         </MypageJourneysSeenCard>
+        <Card className="border-border/60 h-full rounded-2xl shadow-[var(--shadow-sm)]">
+          <CardHeader className="pb-2">
+            <History className="text-primary size-8" strokeWidth={1.5} aria-hidden />
+            <CardTitle className="text-lg">{t("navActivity")}</CardTitle>
+            <CardDescription>{t("journeysCardActivity")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="w-full rounded-xl font-semibold">
+              <Link href="/mypage/activity">{t("viewAll")}</Link>
+            </Button>
+          </CardContent>
+        </Card>
         <MypageJourneysSeenCard blockKeys={["traveler.matches.newResponses", "traveler.matches.reviewDue"]}>
           <Card className="border-border/60 h-full rounded-2xl shadow-[var(--shadow-sm)] sm:col-span-2 lg:col-span-1">
             <CardHeader className="pb-2">

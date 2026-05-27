@@ -29,12 +29,27 @@ export interface SharedInviteHistoryRow {
   grant_id: string;
   route_id: string;
   route_title: string | null;
-  grantee_user_id: string;
+  grantee_user_id: string | null;
   grantee_display_name: string;
   grantee_avatar_url: string | null;
+  /** 토큰 링크 redeem 대기 중이면 false */
+  is_redeemed: boolean;
   status: "active" | "revoked";
   created_at: string;
   revoked_at: string | null;
+}
+
+export interface ReceivedShareRow {
+  invite_id: string;
+  route_id: string;
+  route_title: string | null;
+  shared_by_user_id: string;
+  shared_by_display_name: string;
+  shared_by_avatar_url: string | null;
+  status: "active" | "revoked";
+  redeemed_at: string | null;
+  created_at: string;
+  expires_at: string | null;
 }
 
 export interface RoutePassPackRow {
@@ -185,11 +200,11 @@ export async function listMyRouteActivity(
     .select("id, grant_id, granted_to_user_id, status, created_at, revoked_at")
     .eq("granted_by_user_id", userId)
     .order("created_at", { ascending: false })
-    .limit(30);
+    .limit(50);
   const invRows = (invs ?? []) as Array<{
     id: string;
     grant_id: string;
-    granted_to_user_id: string;
+    granted_to_user_id: string | null;
     status: SharedInviteHistoryRow["status"];
     created_at: string;
     revoked_at: string | null;
@@ -237,7 +252,7 @@ export async function listMyRouteActivity(
   }
 
   // grantee 프로필 lookup
-  const granteeIds = [...new Set(invRows.map((i) => i.granted_to_user_id))];
+  const granteeIds = [...new Set(invRows.map((i) => i.granted_to_user_id).filter(Boolean))] as string[];
   const granteeProfiles = new Map<string, { display_name: string; avatar_url: string | null }>();
   if (svc && granteeIds.length > 0) {
     const { data } = await svc
@@ -267,15 +282,19 @@ export async function listMyRouteActivity(
 
   const sharedInvites: SharedInviteHistoryRow[] = invRows.map((i) => {
     const routeId = grantToRoute.get(i.grant_id) ?? "—";
-    const prof = granteeProfiles.get(i.granted_to_user_id);
+    const granteeId = i.granted_to_user_id;
+    const prof = granteeId ? granteeProfiles.get(granteeId) : null;
     return {
       invite_id: i.id,
       grant_id: i.grant_id,
       route_id: routeId,
       route_title: titleByRoute.get(routeId) ?? null,
-      grantee_user_id: i.granted_to_user_id,
-      grantee_display_name: prof?.display_name ?? i.granted_to_user_id.slice(0, 8),
+      grantee_user_id: granteeId,
+      grantee_display_name: granteeId
+        ? (prof?.display_name ?? granteeId.slice(0, 8))
+        : "—",
       grantee_avatar_url: prof?.avatar_url ?? null,
+      is_redeemed: Boolean(granteeId),
       status: i.status,
       created_at: i.created_at,
       revoked_at: i.revoked_at,
@@ -283,4 +302,118 @@ export async function listMyRouteActivity(
   });
 
   return { recentViews, sharedInvites };
+}
+
+/** 친구가 나에게 보낸(또는 링크로 받은) 공유 초대 — grantee 관점. */
+export async function listReceivedSharedInvites(
+  locale: "ko" | "en" | "ja" | "th" | "vi",
+): Promise<ReceivedShareRow[]> {
+  const userId = await getSupabaseAuthUserIdOnly();
+  const sb = await getServerSupabaseForUser();
+  if (!userId || !sb) return [];
+  const svc = createServiceRoleSupabase();
+
+  const { data: invs } = await sb
+    .from("route_share_invites")
+    .select("id, grant_id, granted_by_user_id, status, created_at, redeemed_at")
+    .eq("granted_to_user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  const invRows = (invs ?? []) as Array<{
+    id: string;
+    grant_id: string;
+    granted_by_user_id: string;
+    status: ReceivedShareRow["status"];
+    created_at: string;
+    redeemed_at: string | null;
+  }>;
+  if (invRows.length === 0) return [];
+
+  const grantIds = [...new Set(invRows.map((i) => i.grant_id))];
+  let grantMeta = new Map<string, { route_id: string; expires_at: string }>();
+  if (svc && grantIds.length > 0) {
+    const { data: grs } = await svc
+      .from("route_access_grants")
+      .select("id, route_id, expires_at")
+      .in("id", grantIds);
+    grantMeta = new Map(
+      (grs ?? []).map((g: { id: string; route_id: string; expires_at: string }) => [
+        g.id,
+        { route_id: g.route_id, expires_at: g.expires_at },
+      ]),
+    );
+  }
+
+  const routeIds = [...grantMeta.values()].map((g) => g.route_id);
+  const titleByRoute = await lookupRouteTitles(routeIds, locale, svc);
+
+  const ownerIds = [...new Set(invRows.map((i) => i.granted_by_user_id))];
+  const ownerProfiles = new Map<string, { display_name: string; avatar_url: string | null }>();
+  if (svc && ownerIds.length > 0) {
+    const { data } = await svc
+      .from("guardian_profiles")
+      .select("user_id, display_name, photo_url, avatar_image_url")
+      .in("user_id", ownerIds);
+    for (const p of (data ?? []) as Array<{
+      user_id: string;
+      display_name?: string | null;
+      photo_url?: string | null;
+      avatar_image_url?: string | null;
+    }>) {
+      ownerProfiles.set(p.user_id, {
+        display_name: p.display_name?.trim() || "Member",
+        avatar_url: p.photo_url ?? p.avatar_image_url ?? null,
+      });
+    }
+  }
+
+  return invRows.map((i) => {
+    const meta = grantMeta.get(i.grant_id);
+    const routeId = meta?.route_id ?? "—";
+    const owner = ownerProfiles.get(i.granted_by_user_id);
+    return {
+      invite_id: i.id,
+      route_id: routeId,
+      route_title: titleByRoute.get(routeId) ?? null,
+      shared_by_user_id: i.granted_by_user_id,
+      shared_by_display_name: owner?.display_name ?? i.granted_by_user_id.slice(0, 8),
+      shared_by_avatar_url: owner?.avatar_url ?? null,
+      status: i.status,
+      redeemed_at: i.redeemed_at,
+      created_at: i.created_at,
+      expires_at: meta?.expires_at ?? null,
+    };
+  });
+}
+
+async function lookupRouteTitles(
+  routeIds: string[],
+  locale: "ko" | "en" | "ja" | "th" | "vi",
+  svc: ReturnType<typeof createServiceRoleSupabase>,
+): Promise<Map<string, string>> {
+  const titleByRoute = new Map<string, string>();
+  const uuids = routeIds.filter((id) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id),
+  );
+  if (!svc || uuids.length === 0) return titleByRoute;
+  const { data: routes } = await svc
+    .from("routes")
+    .select("id, title_ko, title_en, title_ja, title_th, title_vi")
+    .in("id", uuids);
+  for (const r of (routes ?? []) as Array<Record<string, string | null>>) {
+    const id = r.id as string;
+    const pick =
+      locale === "ko"
+        ? r.title_ko
+        : locale === "ja"
+          ? r.title_ja
+          : locale === "th"
+            ? r.title_th
+            : locale === "vi"
+              ? r.title_vi
+              : r.title_en;
+    titleByRoute.set(id, (pick ?? r.title_en ?? "Route").toString());
+  }
+  return titleByRoute;
 }
