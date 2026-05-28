@@ -18,15 +18,27 @@ export function normalizeGuestNickname(raw: string): string | null {
 
 export function getOrCreateGuestPayerKeyClient(): string {
   if (typeof window === "undefined") return "";
-  let key = sessionStorage.getItem(GUEST_PAYER_KEY_STORAGE);
-  if (!key) {
-    key =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : `guest_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-    sessionStorage.setItem(GUEST_PAYER_KEY_STORAGE, key);
+  const w = window as unknown as { __safemateGuestPayerKey?: string };
+  try {
+    let key = sessionStorage.getItem(GUEST_PAYER_KEY_STORAGE);
+    if (!key) {
+      key =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `guest_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+      sessionStorage.setItem(GUEST_PAYER_KEY_STORAGE, key);
+    }
+    return key;
+  } catch {
+    // Safari private mode 등에서 sessionStorage 접근이 실패할 수 있음.
+    if (!w.__safemateGuestPayerKey) {
+      w.__safemateGuestPayerKey =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `guest_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    }
+    return w.__safemateGuestPayerKey;
   }
-  return key;
 }
 
 /** 로그인 회원 — user_profiles.display_name → users.legal_name → email 로컬파트 */

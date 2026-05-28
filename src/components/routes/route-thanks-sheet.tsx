@@ -101,12 +101,20 @@ export function RouteThanksSheet({
       submitLockRef.current = false;
       if (!res.ok) {
         setStep("amount");
+        // 서버 액션이 반환한 원인 문자열은 사용자에게 그대로 노출하지 않는다.
+        if (typeof window !== "undefined") {
+          console.warn("[thanks] submit failed:", res.error);
+        }
         const msg =
           res.error === "guest-nickname-required"
             ? t("thanksErrNickname")
             : res.error === "login-required"
               ? t("thanksErrLogin")
-              : res.error === "table-missing"
+              : res.error === "table-missing" ||
+                  res.error === "service-unavailable" ||
+                  res.error === "schema-mismatch" ||
+                  res.error === "guest-key-required" ||
+                  res.error === "insert-failed"
                 ? t("thanksErrUnavailable")
                 : res.error === "duplicate-payment"
                   ? t("thanksErrInProgress")

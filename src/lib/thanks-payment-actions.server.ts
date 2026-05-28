@@ -191,6 +191,13 @@ export async function submitThanksPaymentAction(input: {
 
   if (insErr || !inserted) {
     if (insErr?.code === "42P01") return { ok: false, error: "table-missing" };
+    const msg = insErr?.message ?? "";
+    if (msg.includes("column") || msg.includes("payer_kind") || msg.includes("guest_payer_key")) {
+      return { ok: false, error: "schema-mismatch" };
+    }
+    if (msg.includes("permission denied") || msg.includes("row-level security")) {
+      return { ok: false, error: "service-unavailable" };
+    }
     return { ok: false, error: insErr?.message ?? "insert-failed" };
   }
 
