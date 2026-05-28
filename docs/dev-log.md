@@ -9,6 +9,17 @@
 
 ---
 
+## 2026-05-28 — 시드 배너 404 재수정 (journey 폴백 + public 승격)
+
+**원인**: (1) `routes.status=draft`면 anon RLS·무료 모드 svc 조회에서 제외, (2) Preview에 service role 없을 때 lazy sync 실패.
+
+**조치**:
+- `fetchHaruRouteBundleForView` — DB → sync → `buildHaruRouteBundleFromSyncSource` 인메모리 폴백
+- `ensureRouteSyncedForView` — approved 포스트 연결 루트는 `status=public`으로 승격
+- `routes:publish-seed` — 시드 approved 루트 51건 public 일괄 업데이트
+
+---
+
 ## 2026-05-27 — 시드 포스트 배너 → 하루루트 404 (lazy materialize)
 
 **증상**: 하루웨이 시드 포스트 배너가 deterministic route UUID로 링크되나 DB에 `routes`/`route_spots` 없어 `/routes/{uuid}` 404.

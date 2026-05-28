@@ -33,9 +33,8 @@ import type { RouteShareContext } from "@/types/share-capability";
 import { ENABLE_PAID_ROUTE_LOCK, ENABLE_THANKS_PAYMENT } from "@/lib/feature-flags";
 import { isFreePublicRouteStatus } from "@/lib/route-visibility";
 import { resolveRouteViewPolicy } from "@/lib/route-view-policy.server";
-import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 import { getRouteThanksViewerStatusServer } from "@/lib/thanks-payment-status.server";
-import { ensureRouteSyncedForView } from "@/lib/routes/ensure-route-from-post.server";
+import { fetchHaruRouteBundleForView } from "@/lib/routes/fetch-haru-route-for-view.server";
 
 interface Props {
   params: Promise<{ routeId: string; locale: string }>;
@@ -106,34 +105,19 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
     routeType = "mock";
     routeStatus = "public";
   } else if (isUuidRouteId(routeId)) {
-    const sb = await getServerSupabaseForUser();
-    let bundle = sb ? await fetchHaruRouteFromSupabase(sb, routeId) : null;
-    const svc = createServiceRoleSupabase();
-    if (!bundle && !ENABLE_PAID_ROUTE_LOCK && svc) {
-      const pubBundle = await fetchHaruRouteFromSupabase(svc, routeId);
-      if (pubBundle && isFreePublicRouteStatus(pubBundle.status)) bundle = pubBundle;
-    }
-    if (!bundle && svc) {
-      const materialized = await ensureRouteSyncedForView(routeId);
-      if (materialized) {
-        const afterSync = await fetchHaruRouteFromSupabase(svc, routeId);
-        if (afterSync && (!ENABLE_PAID_ROUTE_LOCK || isFreePublicRouteStatus(afterSync.status))) {
-          bundle = afterSync;
-        }
-      }
-    }
-    if (!bundle) notFound();
-    route = bundle.haru;
-    routeType = bundle.routeType;
-    routeStatus = bundle.status;
-    fromDb = true;
-    routesDirectionsMeta = bundle.directionsMeta;
+    const loaded = await fetchHaruRouteBundleForView(routeId);
+    if (!loaded.bundle) notFound();
+    route = loaded.bundle.haru;
+    routeType = loaded.bundle.routeType;
+    routeStatus = loaded.bundle.status;
+    fromDb = loaded.fromDb;
+    routesDirectionsMeta = loaded.bundle.directionsMeta;
     if (
       ENABLE_PAID_ROUTE_LOCK &&
-      bundle.routeType === "custom" &&
+      loaded.bundle.routeType === "custom" &&
       !wantsPreview &&
       !userId &&
-      !isFreePublicRouteStatus(bundle.status)
+      !isFreePublicRouteStatus(loaded.bundle.status)
     ) {
       const loginPath = loginPathForLocale(localeParam as AppLocale);
       const nextPath =

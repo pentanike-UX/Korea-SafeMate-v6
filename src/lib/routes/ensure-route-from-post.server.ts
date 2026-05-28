@@ -231,18 +231,27 @@ export async function ensureRouteSyncedForView(routeId: string): Promise<boolean
   const sb = createServiceRoleSupabase();
   if (!sb) return false;
 
-  const { data: existing } = await sb
-    .from("routes")
-    .select("id")
-    .eq("id", routeId)
-    .is("deleted_at", null)
-    .maybeSingle();
-  if (existing) return true;
-
   const source =
     (await sourceFromDbPosts(sb, routeId)) ??
     resolveRouteSyncSource(routeId);
   if (!source) return false;
+
+  const publishable =
+    source.postStatus === "approved" || source.postStatus === "published";
+
+  const { data: existing } = await sb
+    .from("routes")
+    .select("id, status")
+    .eq("id", routeId)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (existing) {
+    if (publishable && existing.status !== "public") {
+      await sb.from("routes").update({ status: "public" }).eq("id", routeId);
+    }
+    return true;
+  }
 
   const guardianOk = await ensureGuardianProfileForSync(sb, source.authorUserId);
   if (!guardianOk) {
