@@ -538,9 +538,9 @@ export function RouteViewClient({
                   onClick={openThanksFlow}
                   aria-label={t("thanksCtaButton")}
                   title={t("thanksCtaButton")}
-                  className="text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 flex h-10 shrink-0 items-center justify-center gap-1 rounded-full px-2 transition-colors sm:h-9 sm:px-2.5"
+                  className="text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 flex size-10 shrink-0 items-center justify-center gap-1 rounded-full transition-colors sm:w-auto sm:px-2.5"
                 >
-                  <Heart className="size-4 sm:size-3.5" aria-hidden />
+                  <Heart className="size-5 shrink-0" aria-hidden />
                   <span className="hidden max-w-[5.5rem] truncate text-xs font-semibold sm:inline">
                     {t("thanksCtaButton")}
                   </span>
