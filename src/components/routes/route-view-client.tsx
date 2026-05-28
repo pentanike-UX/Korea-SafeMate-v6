@@ -19,6 +19,7 @@ import { HaruRouteMapView } from "@/components/routes/haru-route-map-view";
 import { RouteSpotRailVertical } from "@/components/routes/route-spot-rail-vertical";
 import { GoogleMapsProvider } from "@/components/maps/google-maps-provider";
 import { useRouter } from "@/i18n/navigation";
+import { useLocale } from "next-intl";
 import { toggleSavedRouteAction } from "@/app/[locale]/(public)/routes/[routeId]/saved-route-actions";
 import type { HaruRoute, HaruSpot, AppLocale } from "@/types/haru";
 import { cn } from "@/lib/utils";
@@ -50,7 +51,13 @@ import { ENABLE_PAID_ROUTE_LOCK } from "@/lib/feature-flags";
 import { RouteViewBlockedSection } from "@/components/routes/route-view-blocked-section";
 import { RouteThanksCtaCard } from "@/components/routes/route-thanks-cta-card";
 import { RouteThanksSheet } from "@/components/routes/route-thanks-sheet";
+import { RouteThanksFollowupSheet } from "@/components/routes/route-thanks-followup-sheet";
 import { toAbsoluteShareUrl } from "@/lib/route-share-capability-client";
+import {
+  loginRedirectForThanksIntent,
+  stripThanksIntentFromSearch,
+  THANKS_INTENT_QUERY,
+} from "@/lib/thanks-payment-intent";
 
 /**
  * 라우트 페이지 클라이언트 컨테이너.
@@ -72,6 +79,8 @@ export function RouteViewClient({
   blockedMessageKey = null,
   routeIsPublic = false,
   enableThanksPayment = false,
+  viewerUserId = null,
+  hasPriorThanks = false,
   precomputedDirections = null,
   canSave = false,
   initialSaved = false,
@@ -87,6 +96,8 @@ export function RouteViewClient({
   blockedMessageKey?: BlockedMessageKey | null;
   routeIsPublic?: boolean;
   enableThanksPayment?: boolean;
+  viewerUserId?: string | null;
+  hasPriorThanks?: boolean;
   precomputedDirections?: RouteViewPrecomputedDirections | null;
   canSave?: boolean;
   initialSaved?: boolean;
@@ -111,6 +122,7 @@ export function RouteViewClient({
 }) {
   const t = useTranslations("TravelerHub");
   const router = useRouter();
+  const appLocale = useLocale() as AppLocale;
   const { toast } = useToast();
   const [unlocked, setUnlocked] = useState(initialUnlocked);
   const [selectedSpot, setSelectedSpot] = useState<HaruSpot | null>(null);
@@ -129,12 +141,43 @@ export function RouteViewClient({
   const [shareChecking, setShareChecking] = useState(false);
   const [reshareUrl, setReshareUrl] = useState<string | null>(initialShareContext.shareUrl);
   const [thanksOpen, setThanksOpen] = useState(false);
+  const [thanksFollowup, setThanksFollowup] = useState<"share" | "save" | null>(null);
+  const [priorThanks, setPriorThanks] = useState(hasPriorThanks);
+
+  useEffect(() => {
+    setPriorThanks(hasPriorThanks);
+  }, [hasPriorThanks]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const token = new URLSearchParams(window.location.search).get("invite");
     persistInviteTokenForReshare(route.id, token);
   }, [route.id]);
+
+  const openThanksFlow = useCallback(() => {
+    if (!enableThanksPayment) return;
+    if (typeof window === "undefined") return;
+    if (!viewerUserId) {
+      const loginHref = loginRedirectForThanksIntent(
+        appLocale,
+        window.location.pathname,
+        window.location.search,
+      );
+      router.push(loginHref);
+      return;
+    }
+    setThanksOpen(true);
+  }, [enableThanksPayment, viewerUserId, appLocale, router]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !enableThanksPayment) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("intent") !== THANKS_INTENT_QUERY) return;
+    if (!viewerUserId) return;
+    setThanksOpen(true);
+    const nextSearch = stripThanksIntentFromSearch(window.location.search);
+    window.history.replaceState(null, "", `${window.location.pathname}${nextSearch}`);
+  }, [enableThanksPayment, viewerUserId]);
 
   function showShareRestricted(cap: ShareCapability) {
     toast({
@@ -148,7 +191,7 @@ export function RouteViewClient({
     setShareSheetOpen(true);
   }, []);
 
-  const runFreePublicShare = useCallback(async () => {
+  const runFreePublicShare = useCallback(async (): Promise<boolean> => {
     const title = route.title[locale] ?? route.title.en ?? "Route";
     const rawUrl =
       initialShareContext.shareUrl ??
@@ -158,7 +201,7 @@ export function RouteViewClient({
       try {
         await navigator.share({ title, url });
         toast({ variant: "success", title: t("routeShareToastShared") });
-        return;
+        return true;
       } catch {
         /* 사용자 취소 */
       }
@@ -167,18 +210,20 @@ export function RouteViewClient({
       try {
         await navigator.clipboard.writeText(url);
         toast({ variant: "success", title: t("routeShareToastCopy") });
-        return;
+        return true;
       } catch {
         toast({ variant: "error", title: t("routeOwnerShareLinkCopyErr") });
       }
     }
+    return false;
   }, [route.id, route.title, locale, initialShareContext.shareUrl, toast, t]);
 
   const handleUnlockedShareClick = useCallback(async () => {
     if (shareChecking) return;
 
     if (!ENABLE_PAID_ROUTE_LOCK && routeIsPublic) {
-      await runFreePublicShare();
+      const ok = await runFreePublicShare();
+      if (ok && enableThanksPayment) setThanksFollowup("share");
       return;
     }
 
@@ -236,6 +281,7 @@ export function RouteViewClient({
     shareChecking,
     routeIsPublic,
     runFreePublicShare,
+    enableThanksPayment,
     ownerGrantId,
     initialShareContext,
     route.id,
@@ -268,7 +314,11 @@ export function RouteViewClient({
   function onToggleSave() {
     startSaveTransition(async () => {
       const res = await toggleSavedRouteAction(route.id);
-      if (res.ok) setSaved(Boolean(res.saved));
+      if (res.ok) {
+        const nowSaved = Boolean(res.saved);
+        setSaved(nowSaved);
+        if (nowSaved && enableThanksPayment) setThanksFollowup("save");
+      }
     });
   }
 
@@ -485,7 +535,7 @@ export function RouteViewClient({
               {enableThanksPayment && haruiUserId ? (
                 <button
                   type="button"
-                  onClick={() => setThanksOpen(true)}
+                  onClick={openThanksFlow}
                   className="text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 hidden h-9 shrink-0 items-center gap-1 rounded-full px-2.5 text-xs font-semibold transition-colors sm:flex"
                 >
                   <Heart className="size-3.5" aria-hidden />
@@ -570,7 +620,12 @@ export function RouteViewClient({
               />
               <div className="space-y-4 px-3 pb-5 sm:px-4">
                 {enableThanksPayment && haruiUserId ? (
-                  <RouteThanksCtaCard onClick={() => setThanksOpen(true)} />
+                  <RouteThanksCtaCard
+                    variant="footer"
+                    hasPriorThanks={priorThanks}
+                    onThanksClick={openThanksFlow}
+                    onShareClick={sharePlayer}
+                  />
                 ) : null}
                 <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
               </div>
@@ -624,7 +679,12 @@ export function RouteViewClient({
                 />
                 <div className="space-y-4 px-3 pb-5">
                   {enableThanksPayment && haruiUserId ? (
-                    <RouteThanksCtaCard onClick={() => setThanksOpen(true)} variant="compact" />
+                    <RouteThanksCtaCard
+                      variant="footer"
+                      hasPriorThanks={priorThanks}
+                      onThanksClick={openThanksFlow}
+                      onShareClick={sharePlayer}
+                    />
                   ) : null}
                   <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
                 </div>
@@ -684,18 +744,28 @@ export function RouteViewClient({
         </Sheet>
 
         {enableThanksPayment && haruiUserId ? (
-          <RouteThanksSheet
-            open={thanksOpen}
-            onOpenChange={setThanksOpen}
-            routeId={route.id}
-            haruiUserId={haruiUserId}
-            haruiDisplayName={route.guardian.display_name}
-            routeTitle={routeTitle}
-            onShareAfterSuccess={() => {
-              setThanksOpen(false);
-              void handleUnlockedShareClick();
-            }}
-          />
+          <>
+            <RouteThanksSheet
+              open={thanksOpen}
+              onOpenChange={setThanksOpen}
+              routeId={route.id}
+              haruiUserId={haruiUserId}
+              haruiDisplayName={route.guardian.display_name}
+              routeTitle={routeTitle}
+              hasPriorThanks={priorThanks}
+              onPaidSuccess={() => setPriorThanks(true)}
+              onShareAfterSuccess={() => {
+                setThanksOpen(false);
+                void handleUnlockedShareClick();
+              }}
+            />
+            <RouteThanksFollowupSheet
+              open={thanksFollowup != null}
+              onOpenChange={(o) => !o && setThanksFollowup(null)}
+              variant={thanksFollowup === "save" ? "save" : "share"}
+              onThanksClick={openThanksFlow}
+            />
+          </>
         ) : null}
       </div>
     </GoogleMapsProvider>

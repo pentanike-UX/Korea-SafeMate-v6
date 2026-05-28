@@ -25,9 +25,17 @@
 - `RouteThanksCtaCard` / `RouteThanksSheet` — 루트 상세 상단·하단 CTA
 - i18n ko/en/ja/th/vi `thanks*`·`routeShareToast*` 키
 
-**미완**: Phase 3 하루이 대시보드·관리자 결제 내역, `route_stats`/`harui_stats`, 이벤트 트래킹, PG 연동.
+**추가 (Preview 브랜치 2차)**:
+- `?intent=thanks` 로그인 복귀 → 고마움 모달 재오픈
+- 공유/저장 완료 followup sheet → 보조 고마움 CTA
+- 하단 footer CTA(고마움+공유), 메시지 프리셋, 본인 루트·10초 중복 결제 방지
+- `docs/thanks-payment-flow-cases.md` 플로우 정의
+
+**미완**: Phase 3 후기 연동·하루이 대시보드·관리자·`route_stats`·PG·비회원 결제.
 
 **검증**: `pnpm exec tsc --noEmit`, `pnpm build` 통과. `supabase db push` — **미적용**.
+
+**브랜치**: `feat/free-route-thanks-preview` — main 푸시는 별도 지시 전까지 Preview만.
 
 ---
 

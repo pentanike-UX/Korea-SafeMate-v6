@@ -19,3 +19,13 @@ export const THANKS_AMOUNT_PRESETS = [1000, 3000, 5000, 10000] as const;
 export const THANKS_AMOUNT_MIN = 1000;
 export const THANKS_AMOUNT_MAX = 100_000;
 export const THANKS_MESSAGE_MAX_LENGTH = 200;
+
+export const THANKS_MESSAGE_PRESETS = [
+  "thanksPreset1",
+  "thanksPreset2",
+  "thanksPreset3",
+  "thanksPreset4",
+] as const;
+
+/** 동일 금액 연속 결제 방지(초). */
+export const THANKS_DUPLICATE_GUARD_SEC = 10;

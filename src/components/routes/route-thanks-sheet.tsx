@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { THANKS_AMOUNT_MAX, THANKS_AMOUNT_MIN, THANKS_AMOUNT_PRESETS } from "@/lib/feature-flags";
+import {
+  THANKS_AMOUNT_MAX,
+  THANKS_AMOUNT_MIN,
+  THANKS_AMOUNT_PRESETS,
+  THANKS_MESSAGE_PRESETS,
+} from "@/lib/feature-flags";
 import { computeThanksBreakdown } from "@/lib/thanks-payment-math";
 import { submitThanksPaymentAction } from "@/lib/thanks-payment-actions.server";
 import { useToast } from "@/components/ui/toast";
@@ -22,7 +27,9 @@ export function RouteThanksSheet({
   haruiUserId,
   haruiDisplayName,
   routeTitle,
+  hasPriorThanks = false,
   onShareAfterSuccess,
+  onPaidSuccess,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -30,7 +37,9 @@ export function RouteThanksSheet({
   haruiUserId: string;
   haruiDisplayName: string;
   routeTitle: string;
+  hasPriorThanks?: boolean;
   onShareAfterSuccess?: () => void;
+  onPaidSuccess?: () => void;
 }) {
   const t = useTranslations("TravelerHub");
   const { toast } = useToast();
@@ -41,6 +50,7 @@ export function RouteThanksSheet({
   const [successHarui, setSuccessHarui] = useState(haruiDisplayName);
   const [successAmount, setSuccessAmount] = useState(0);
   const [pending, startTransition] = useTransition();
+  const submitLockRef = useRef(false);
 
   useEffect(() => {
     if (!open) {
@@ -49,6 +59,7 @@ export function RouteThanksSheet({
         setSelected(3000);
         setCustom("");
         setMessage("");
+        submitLockRef.current = false;
       }, 200);
       return () => clearTimeout(id);
     }
@@ -58,10 +69,15 @@ export function RouteThanksSheet({
   const breakdown = Number.isFinite(amount) && amount > 0 ? computeThanksBreakdown(amount) : null;
 
   function onSubmit() {
+    if (submitLockRef.current || pending) {
+      toast({ variant: "error", title: t("thanksErrInProgress") });
+      return;
+    }
     if (!breakdown || breakdown.grossAmount < THANKS_AMOUNT_MIN || breakdown.grossAmount > THANKS_AMOUNT_MAX) {
       toast({ variant: "error", title: t("thanksErrAmount") });
       return;
     }
+    submitLockRef.current = true;
     setStep("processing");
     startTransition(async () => {
       const res = await submitThanksPaymentAction({
@@ -71,6 +87,7 @@ export function RouteThanksSheet({
         message: message.trim() || null,
         source: "route-detail",
       });
+      submitLockRef.current = false;
       if (!res.ok) {
         setStep("amount");
         const msg =
@@ -78,18 +95,30 @@ export function RouteThanksSheet({
             ? t("thanksErrLogin")
             : res.error === "table-missing"
               ? t("thanksErrUnavailable")
-              : t("thanksErrGeneric");
+              : res.error === "duplicate-payment"
+                ? t("thanksErrInProgress")
+                : res.error === "own-route"
+                  ? t("thanksErrOwnRoute")
+                  : res.error === "route-not-public" || res.error === "route-not-found"
+                    ? t("thanksErrRouteUnavailable")
+                    : t("thanksErrGeneric");
         toast({ variant: "error", title: msg });
         return;
       }
       setSuccessHarui(res.haruiDisplayName);
       setSuccessAmount(res.breakdown.grossAmount);
       setStep("success");
+      onPaidSuccess?.();
     });
   }
 
+  function handleOpenChange(next: boolean) {
+    if (!next && step === "processing") return;
+    onOpenChange(next);
+  }
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-3xl px-6 pb-8 pt-6">
         <SheetHeader className="sr-only">
           <SheetTitle>{t("thanksSheetTitle")}</SheetTitle>
@@ -100,7 +129,9 @@ export function RouteThanksSheet({
           <div className="space-y-5">
             <div>
               <h2 className="text-foreground font-serif text-xl font-bold">{t("thanksSheetTitle")}</h2>
-              <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">{t("thanksCtaLead")}</p>
+              <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">
+                {hasPriorThanks ? t("thanksCtaLeadRepeat") : t("thanksCtaLead")}
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -137,17 +168,30 @@ export function RouteThanksSheet({
               />
             </div>
 
+            <div className="flex flex-wrap gap-2">
+              {THANKS_MESSAGE_PRESETS.map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setMessage(t(key))}
+                  className="border-border/60 text-muted-foreground hover:border-[var(--brand-primary)]/40 hover:text-foreground rounded-full border px-3 py-1.5 text-xs transition-colors"
+                >
+                  {t(key)}
+                </button>
+              ))}
+            </div>
+
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder={t("thanksMessagePlaceholder")}
               maxLength={200}
               rows={3}
-              className="rounded-xl resize-none"
+              className="resize-none rounded-xl"
             />
 
             {breakdown ? (
-              <p className="text-muted-foreground rounded-xl bg-muted/40 px-3 py-2.5 text-xs leading-relaxed">
+              <p className="text-muted-foreground rounded-xl bg-muted/40 px-3 py-2.5 text-xs leading-relaxed whitespace-pre-line">
                 {t("thanksFeeNotice", {
                   gross: breakdown.grossAmount.toLocaleString(),
                   harui: breakdown.haruiAmount.toLocaleString(),
@@ -181,7 +225,7 @@ export function RouteThanksSheet({
             <div className="border-border/60 bg-muted/30 rounded-2xl border p-4 text-left text-sm">
               <p className="text-foreground font-semibold">{successHarui}</p>
               <p className="text-muted-foreground mt-1 line-clamp-2">{routeTitle}</p>
-              <p className="text-foreground mt-2 tabular-nums font-bold">₩{successAmount.toLocaleString()}</p>
+              <p className="text-foreground mt-2 font-bold tabular-nums">₩{successAmount.toLocaleString()}</p>
               {message.trim() ? (
                 <p className="text-muted-foreground mt-2 text-xs leading-relaxed">“{message.trim()}”</p>
               ) : null}
@@ -198,6 +242,7 @@ export function RouteThanksSheet({
             </div>
           </div>
         ) : null}
+
       </SheetContent>
     </Sheet>
   );

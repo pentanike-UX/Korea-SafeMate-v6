@@ -34,6 +34,7 @@ import { ENABLE_PAID_ROUTE_LOCK, ENABLE_THANKS_PAYMENT } from "@/lib/feature-fla
 import { isFreePublicRouteStatus } from "@/lib/route-visibility";
 import { resolveRouteViewPolicy } from "@/lib/route-view-policy.server";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
+import { getRouteThanksViewerStatusServer } from "@/lib/thanks-payment-status.server";
 
 interface Props {
   params: Promise<{ routeId: string; locale: string }>;
@@ -223,6 +224,19 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
   }
 
   // 저장(북마크) 상태 — UUID(DB) 루트 + 로그인 사용자일 때만.
+  const haruiUserId = route.guardian.user_id ?? null;
+  const thanksViewerStatus = await getRouteThanksViewerStatusServer({
+    routeId,
+    haruiUserId,
+    viewerUserId: userId,
+  });
+  const canShowThanks =
+    ENABLE_THANKS_PAYMENT &&
+    routeIsPublic &&
+    !blockedMessageKey &&
+    !thanksViewerStatus.isOwnRoute &&
+    Boolean(haruiUserId);
+
   const canSave = fromDb && isUuidRouteId(routeId);
   let initialSaved = false;
   if (canSave && userId) {
@@ -253,7 +267,9 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
         initialUnlocked={initialUnlocked}
         blockedMessageKey={blockedMessageKey}
         routeIsPublic={routeIsPublic}
-        enableThanksPayment={ENABLE_THANKS_PAYMENT && routeIsPublic && !blockedMessageKey}
+        enableThanksPayment={canShowThanks}
+        viewerUserId={userId}
+        hasPriorThanks={thanksViewerStatus.hasPriorThanks}
         precomputedDirections={
           directions ? { path: directions.path, legs: directions.legs, provider: directions.provider } : null
         }

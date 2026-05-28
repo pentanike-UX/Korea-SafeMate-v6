@@ -6,6 +6,7 @@ import { getServerSupabaseForUser, getSupabaseAuthUserIdOnly } from "@/lib/supab
 import {
   THANKS_AMOUNT_MAX,
   THANKS_AMOUNT_MIN,
+  THANKS_DUPLICATE_GUARD_SEC,
   THANKS_MESSAGE_MAX_LENGTH,
 } from "@/lib/feature-flags";
 import { computeThanksBreakdown } from "@/lib/thanks-payment-math";
@@ -48,6 +49,19 @@ export async function submitThanksPaymentAction(input: {
   if (!routeRow || routeRow.deleted_at) return { ok: false, error: "route-not-found" };
   if (!isFreePublicRouteStatus(routeRow.status as string)) return { ok: false, error: "route-not-public" };
   if (routeRow.guardian_user_id !== input.haruiUserId) return { ok: false, error: "harui-mismatch" };
+  if (routeRow.guardian_user_id === payerId) return { ok: false, error: "own-route" };
+
+  const since = new Date(Date.now() - THANKS_DUPLICATE_GUARD_SEC * 1000).toISOString();
+  const { data: recent } = await svc
+    .from("thanks_payments")
+    .select("id")
+    .eq("route_id", input.routeId)
+    .eq("payer_user_id", payerId)
+    .eq("gross_amount", amount)
+    .eq("status", "paid")
+    .gte("paid_at", since)
+    .limit(1);
+  if (recent?.length) return { ok: false, error: "duplicate-payment" };
 
   const breakdown = computeThanksBreakdown(amount);
   const receiptId = `thanks_demo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
