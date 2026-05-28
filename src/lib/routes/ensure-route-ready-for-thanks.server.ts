@@ -1,6 +1,7 @@
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 import { isFreePublicRouteStatus } from "@/lib/route-visibility";
 import { ensureRouteSyncedForView, resolveRouteSyncSource } from "@/lib/routes/ensure-route-from-post.server";
+import { createClient } from "@supabase/supabase-js";
 
 export type RouteRowForThanks = {
   id: string;
@@ -18,10 +19,21 @@ export async function ensureRouteReadyForThanks(
   routeId: string,
   haruiUserId: string,
 ): Promise<{ ok: true; route: RouteRowForThanks } | { ok: false; error: string }> {
-  await ensureRouteSyncedForView(routeId);
-
   const svc = createServiceRoleSupabase();
-  if (!svc) return { ok: false, error: "service-unavailable" };
+  if (!svc) {
+    // Preview 환경 등에서 service role key가 없을 수 있다.
+    // 이 경우에는 공개 상태만 검증하고 승격(public promote)은 수행하지 않는다.
+    const anon = createAnonSupabase();
+    if (!anon) return { ok: false, error: "service-unavailable" };
+    const route = await loadRouteRow(anon, routeId);
+    if (!route) return { ok: false, error: "route-not-found" };
+    if (route.deleted_at) return { ok: false, error: "route-not-found" };
+    if (route.guardian_user_id !== haruiUserId) return { ok: false, error: "harui-mismatch" };
+    if (!isFreePublicRouteStatus(route.status)) return { ok: false, error: "route-not-public" };
+    return { ok: true, route };
+  }
+
+  await ensureRouteSyncedForView(routeId);
 
   let route = await loadRouteRow(svc, routeId);
   if (!route) return { ok: false, error: "route-not-found" };
@@ -59,4 +71,11 @@ async function loadRouteRow(
     .maybeSingle();
   if (!data) return null;
   return data as RouteRowForThanks;
+}
+
+function createAnonSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }

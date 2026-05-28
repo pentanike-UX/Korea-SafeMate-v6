@@ -16,6 +16,7 @@ import {
   normalizeGuestNickname,
   resolveMemberPayerDisplayName,
 } from "@/lib/thanks-payer-identity";
+import { createClient } from "@supabase/supabase-js";
 
 function isDemoMockRouteId(routeId: string) {
   return routeId === mockHaruRoute.id || routeId === "mock";
@@ -85,11 +86,11 @@ export async function submitThanksPaymentAction(input: {
   }
 
   const svc = createServiceRoleSupabase();
-  if (!svc) return { ok: false, error: "service-unavailable" };
 
   const since = new Date(Date.now() - THANKS_DUPLICATE_GUARD_SEC * 1000).toISOString();
 
   if (payerId) {
+    if (!svc) return { ok: false, error: "service-unavailable" };
     const { data: recent } = await svc
       .from("thanks_payments")
       .select("id")
@@ -101,16 +102,18 @@ export async function submitThanksPaymentAction(input: {
       .limit(1);
     if (recent?.length) return { ok: false, error: "duplicate-payment" };
   } else if (guestPayerKey) {
-    const { data: recentGuest } = await svc
-      .from("thanks_payments")
-      .select("id")
-      .eq("route_id", input.routeId)
-      .eq("guest_payer_key", guestPayerKey)
-      .eq("gross_amount", amount)
-      .eq("status", "paid")
-      .gte("paid_at", since)
-      .limit(1);
-    if (recentGuest?.length) return { ok: false, error: "duplicate-payment" };
+    if (svc) {
+      const { data: recentGuest } = await svc
+        .from("thanks_payments")
+        .select("id")
+        .eq("route_id", input.routeId)
+        .eq("guest_payer_key", guestPayerKey)
+        .eq("gross_amount", amount)
+        .eq("status", "paid")
+        .gte("paid_at", since)
+        .limit(1);
+      if (recentGuest?.length) return { ok: false, error: "duplicate-payment" };
+    }
   }
 
   const receiptId = `thanks_demo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -150,7 +153,7 @@ export async function submitThanksPaymentAction(input: {
       return { ok: false, error: insErr?.message ?? "insert-failed" };
     }
 
-    const haruiDisplayName = await resolveHaruiDisplayName(svc, input.haruiUserId);
+    const haruiDisplayName = await resolveHaruiDisplayName(svc!, input.haruiUserId);
     const routeTitle =
       (routeRow.title_ko as string | null)?.trim() ||
       (routeRow.title_en as string | null)?.trim() ||
@@ -165,43 +168,20 @@ export async function submitThanksPaymentAction(input: {
     };
   }
 
-  const { data: inserted, error: insErr } = await svc
-    .from("thanks_payments")
-    .insert({
-      route_id: input.routeId,
-      harui_user_id: input.haruiUserId,
-      payer_kind: "guest",
-      payer_user_id: null,
-      payer_display_name: guestNickname,
-      guest_payer_key: guestPayerKey,
-      gross_amount: breakdown.grossAmount,
-      platform_fee_rate: breakdown.platformFeeRate,
-      platform_fee_amount: breakdown.platformFeeAmount,
-      harui_amount: breakdown.haruiAmount,
-      pg_fee_amount: 0,
-      message,
-      status: "paid",
-      payment_provider: "demo",
-      payment_key: receiptId,
-      source: input.source ?? "route-detail",
-      paid_at: paidAt,
-    })
-    .select("id")
-    .single();
+  const insertedId = await insertGuestThanks({
+    svc,
+    routeId: input.routeId,
+    haruiUserId: input.haruiUserId,
+    receiptId,
+    paidAt,
+    guestNickname,
+    guestPayerKey,
+    message,
+    breakdown,
+  });
+  if (!insertedId.ok) return insertedId;
 
-  if (insErr || !inserted) {
-    if (insErr?.code === "42P01") return { ok: false, error: "table-missing" };
-    const msg = insErr?.message ?? "";
-    if (msg.includes("column") || msg.includes("payer_kind") || msg.includes("guest_payer_key")) {
-      return { ok: false, error: "schema-mismatch" };
-    }
-    if (msg.includes("permission denied") || msg.includes("row-level security")) {
-      return { ok: false, error: "service-unavailable" };
-    }
-    return { ok: false, error: insErr?.message ?? "insert-failed" };
-  }
-
-  const haruiDisplayName = await resolveHaruiDisplayName(svc, input.haruiUserId);
+  const haruiDisplayName = svc ? await resolveHaruiDisplayName(svc, input.haruiUserId) : "Harui";
   const routeTitle =
     (routeRow.title_ko as string | null)?.trim() ||
     (routeRow.title_en as string | null)?.trim() ||
@@ -209,7 +189,7 @@ export async function submitThanksPaymentAction(input: {
 
   return {
     ok: true,
-    paymentId: inserted.id as string,
+    paymentId: insertedId.paymentId,
     breakdown,
     haruiDisplayName,
     routeTitle,
@@ -226,6 +206,100 @@ async function resolveHaruiDisplayName(
     .eq("user_id", haruiUserId)
     .maybeSingle();
   return (gp?.display_name as string | null)?.trim() || "Harui";
+}
+
+function createAnonSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+}
+
+async function insertGuestThanks(input: {
+  svc: ReturnType<typeof createServiceRoleSupabase>;
+  routeId: string;
+  haruiUserId: string;
+  receiptId: string;
+  paidAt: string;
+  guestNickname: string | null;
+  guestPayerKey: string | null;
+  message: string | null;
+  breakdown: ReturnType<typeof computeThanksBreakdown>;
+}): Promise<{ ok: true; paymentId: string } | { ok: false; error: string }> {
+  const {
+    svc,
+    routeId,
+    haruiUserId,
+    receiptId,
+    paidAt,
+    guestNickname,
+    guestPayerKey,
+    message,
+    breakdown,
+  } = input;
+
+  if (svc) {
+    const { data: inserted, error: insErr } = await svc
+      .from("thanks_payments")
+      .insert({
+        route_id: routeId,
+        harui_user_id: haruiUserId,
+        payer_kind: "guest",
+        payer_user_id: null,
+        payer_display_name: guestNickname,
+        guest_payer_key: guestPayerKey,
+        gross_amount: breakdown.grossAmount,
+        platform_fee_rate: breakdown.platformFeeRate,
+        platform_fee_amount: breakdown.platformFeeAmount,
+        harui_amount: breakdown.haruiAmount,
+        pg_fee_amount: 0,
+        message,
+        status: "paid",
+        payment_provider: "demo",
+        payment_key: receiptId,
+        source: "route-detail",
+        paid_at: paidAt,
+      })
+      .select("id")
+      .single();
+
+    if (insErr || !inserted) {
+      if (insErr?.code === "42P01") return { ok: false, error: "table-missing" };
+      const msg = insErr?.message ?? "";
+      if (msg.includes("column") || msg.includes("payer_kind") || msg.includes("guest_payer_key")) {
+        return { ok: false, error: "schema-mismatch" };
+      }
+      if (msg.includes("permission denied") || msg.includes("row-level security")) {
+        return { ok: false, error: "service-unavailable" };
+      }
+      return { ok: false, error: insErr?.message ?? "insert-failed" };
+    }
+
+    return { ok: true, paymentId: inserted.id as string };
+  }
+
+  // Service role 없이도 동작하도록 — anon key로 SECURITY DEFINER RPC 호출.
+  const anon = createAnonSupabase();
+  if (!anon) return { ok: false, error: "service-unavailable" };
+  const { data, error } = await anon.rpc("thanks_payments_insert_guest", {
+    p_route_id: routeId,
+    p_harui_user_id: haruiUserId,
+    p_gross_amount: breakdown.grossAmount,
+    p_message: message,
+    p_source: "route-detail",
+    p_guest_payer_key: guestPayerKey,
+    p_payer_display_name: guestNickname,
+    p_paid_at: paidAt,
+    p_payment_key: receiptId,
+    p_payment_provider: "demo",
+  });
+
+  if (error || !data) {
+    const msg = error?.message ?? "";
+    if (msg.includes("function") && msg.includes("does not exist")) return { ok: false, error: "schema-mismatch" };
+    return { ok: false, error: "service-unavailable" };
+  }
+  return { ok: true, paymentId: data as string };
 }
 
 export async function getThanksSuccessCopy() {
