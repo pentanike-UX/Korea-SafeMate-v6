@@ -54,11 +54,8 @@ import { RouteThanksSheet } from "@/components/routes/route-thanks-sheet";
 import { RouteThanksFollowupSheet } from "@/components/routes/route-thanks-followup-sheet";
 import { RouteExitThanksDialog } from "@/components/routes/route-exit-thanks-dialog";
 import { toAbsoluteShareUrl } from "@/lib/route-share-capability-client";
-import {
-  loginRedirectForThanksIntent,
-  stripThanksIntentFromSearch,
-  THANKS_INTENT_QUERY,
-} from "@/lib/thanks-payment-intent";
+import { appendThanksIntentToSearch, stripThanksIntentFromSearch, THANKS_INTENT_QUERY } from "@/lib/thanks-payment-intent";
+import { localeNeutralPathWithSearch } from "@/lib/auth/route-path";
 import {
   consumeRouteReturnTarget,
   localeNeutralPathFromStoredHref,
@@ -170,12 +167,11 @@ export function RouteViewClient({
     setExitThanksOpen(false);
     if (typeof window === "undefined") return;
     if (!viewerUserId) {
-      const loginHref = loginRedirectForThanksIntent(
-        appLocale,
+      const next = localeNeutralPathWithSearch(
         window.location.pathname,
-        window.location.search,
+        appendThanksIntentToSearch(window.location.search),
       );
-      router.push(loginHref);
+      router.push({ pathname: "/login", query: { next } });
       return;
     }
     setThanksOpen(true);

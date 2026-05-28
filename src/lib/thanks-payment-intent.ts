@@ -1,5 +1,5 @@
 import type { AppLocale } from "@/types/haru";
-import { loginPathWithNext, withLocalePath } from "@/lib/auth/route-path";
+import { loginPathWithNextForClientRouter, withLocalePath } from "@/lib/auth/route-path";
 
 export const THANKS_INTENT_QUERY = "thanks";
 
@@ -18,12 +18,13 @@ export function stripThanksIntentFromSearch(search: string): string {
   return q ? `?${q}` : "";
 }
 
+/** 비로그인 시 고마움 CTA → 로그인 (client router.push 전용). */
 export function loginRedirectForThanksIntent(
-  locale: AppLocale,
+  _locale: AppLocale,
   pathname: string,
   search: string,
 ): string {
-  return loginPathWithNext(pathname, appendThanksIntentToSearch(search), locale);
+  return loginPathWithNextForClientRouter(pathname, appendThanksIntentToSearch(search));
 }
 
 export function localizedRoutePath(locale: AppLocale, routeId: string, search = ""): string {
