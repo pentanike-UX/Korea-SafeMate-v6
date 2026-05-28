@@ -11,7 +11,7 @@ const DEDUP_WINDOW_MIN = 10; // 같은 (route, user) 10분 내 재진입은 로�
 export async function logRouteViewEvent(input: {
   routeId: string;
   viewerUserId: string;
-  source: "owner" | "shared-invite" | "ticket" | "custom-self";
+  source: "owner" | "shared-invite" | "ticket" | "custom-self" | "public-free";
   grantId?: string | null;
 }): Promise<void> {
   if (!input.routeId || !input.viewerUserId) return;

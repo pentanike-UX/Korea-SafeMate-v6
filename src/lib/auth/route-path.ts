@@ -29,13 +29,33 @@ export function loginPathForLocale(locale: AppLocale): string {
   return locale === routing.defaultLocale ? "/login" : `/${locale}/login`;
 }
 
-/** 로그인으로 보낼 때, 로그인 페이지가 아니면 `?next=`로 복귀 경로를 붙입니다. */
+/** `next` 쿼리용 locale-neutral 경로 (`/ko/routes/x` → `/routes/x`). */
+export function localeNeutralPathWithSearch(pathname: string, search: string): string {
+  const { pathname: pathWo } = stripLocaleFromPathname(pathname);
+  return `${pathWo}${search}`;
+}
+
+/**
+ * 서버 `redirect()` / proxy — URL에 locale prefix 포함 (`/ko/login?next=...`).
+ * `next` 값은 locale-neutral (`/routes/...`) 로 통일.
+ */
 export function loginPathWithNext(pathname: string, search: string, locale: AppLocale): string {
   const base = loginPathForLocale(locale);
   const { pathname: pathWo } = stripLocaleFromPathname(pathname);
   if (pathWo === "/login" || pathWo.startsWith("/login/")) return base;
-  const full = `${pathname}${search}`;
-  return `${base}?next=${encodeURIComponent(full)}`;
+  const neutralNext = localeNeutralPathWithSearch(pathname, search);
+  return `${base}?next=${encodeURIComponent(neutralNext)}`;
+}
+
+/**
+ * 클라이언트 `@/i18n/navigation` `router.push` — login·next 모두 prefix 없음
+ * (라우터가 현재 locale을 붙임. `/ko/login`을 넘기면 `/ko/ko/login` 404).
+ */
+export function loginPathWithNextForClientRouter(pathname: string, search: string): string {
+  const { pathname: pathWo } = stripLocaleFromPathname(pathname);
+  if (pathWo === "/login" || pathWo.startsWith("/login/")) return "/login";
+  const neutralNext = localeNeutralPathWithSearch(pathname, search);
+  return `/login?next=${encodeURIComponent(neutralNext)}`;
 }
 
 /** Prefix path with `/ko` / `/ja` when not default locale (matches next-intl `as-needed`). */

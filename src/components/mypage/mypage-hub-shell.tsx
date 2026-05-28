@@ -14,7 +14,7 @@ import { MypageHubSideNavigation } from "@/components/mypage/mypage-hub-side-nav
 import { useMypageAttentionView } from "@/lib/mypage-attention-read-state";
 import { useTranslations } from "next-intl";
 import type { MypagePointsApiResponse } from "@/lib/points/types";
-import type { MypageHubSnapshot } from "@/types/mypage-hub";
+import type { HaruiThanksReceivedItem, MypageHubSnapshot } from "@/types/mypage-hub";
 
 const MYPAGE_MODE_KEY = "safemate-mypage-mode";
 
@@ -46,6 +46,7 @@ export function MypageHubShell({
   accountUserId = null,
   snapshot,
   pointsSheetInitial,
+  haruiThanksReceived = [],
 }: {
   children: React.ReactNode;
   appRole: AppAccountRole;
@@ -57,6 +58,7 @@ export function MypageHubShell({
   accountUserId?: string | null;
   snapshot: MypageHubSnapshot;
   pointsSheetInitial: MypagePointsApiResponse | null;
+  haruiThanksReceived?: HaruiThanksReceivedItem[];
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -187,6 +189,7 @@ export function MypageHubShell({
         attention,
         markBlockAttentionSeen,
         pointsSheetInitial,
+        haruiThanksReceived,
       }}
     >
       <div className="bg-[var(--bg-page)] flex min-h-[100dvh] w-full max-w-full flex-col overflow-x-clip md:flex-row">

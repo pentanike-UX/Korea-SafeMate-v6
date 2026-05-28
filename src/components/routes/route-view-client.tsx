@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import {
   Bookmark,
@@ -10,6 +10,7 @@ import {
   Share2,
   X,
   MessageCircle,
+  Heart,
 } from "lucide-react";
 import { RouteFreePreviewSection } from "@/components/routes/route-free-preview-section";
 import { HaruSpotDetailSheet } from "@/components/routes/haru-spot-detail-sheet";
@@ -18,6 +19,7 @@ import { HaruRouteMapView } from "@/components/routes/haru-route-map-view";
 import { RouteSpotRailVertical } from "@/components/routes/route-spot-rail-vertical";
 import { GoogleMapsProvider } from "@/components/maps/google-maps-provider";
 import { useRouter } from "@/i18n/navigation";
+import { useLocale } from "next-intl";
 import { toggleSavedRouteAction } from "@/app/[locale]/(public)/routes/[routeId]/saved-route-actions";
 import type { HaruRoute, HaruSpot, AppLocale } from "@/types/haru";
 import { cn } from "@/lib/utils";
@@ -45,6 +47,18 @@ import {
   withTimeout,
 } from "@/lib/route-share-capability-client";
 import type { RouteShareContext, ShareCapability } from "@/types/share-capability";
+import { ENABLE_PAID_ROUTE_LOCK } from "@/lib/feature-flags";
+import { RouteViewBlockedSection } from "@/components/routes/route-view-blocked-section";
+import { RouteThanksCtaCard } from "@/components/routes/route-thanks-cta-card";
+import { RouteThanksSheet } from "@/components/routes/route-thanks-sheet";
+import { RouteThanksFollowupSheet } from "@/components/routes/route-thanks-followup-sheet";
+import { RouteExitThanksDialog } from "@/components/routes/route-exit-thanks-dialog";
+import { toAbsoluteShareUrl } from "@/lib/route-share-capability-client";
+import { stripThanksIntentFromSearch, THANKS_INTENT_QUERY } from "@/lib/thanks-payment-intent";
+import {
+  consumeRouteReturnTarget,
+  localeNeutralPathFromStoredHref,
+} from "@/lib/routes/route-return-href";
 
 /**
  * 라우트 페이지 클라이언트 컨테이너.
@@ -57,10 +71,17 @@ export interface RouteViewPrecomputedDirections {
   provider: "google" | "osrm";
 }
 
+type BlockedMessageKey = "routeShareErrDeleted" | "routeShareErrNotPublished" | "routeShareErrBlocked";
+
 export function RouteViewClient({
   route,
   locale,
   initialUnlocked,
+  blockedMessageKey = null,
+  routeIsPublic = false,
+  enableThanksPayment = false,
+  viewerUserId = null,
+  hasPriorThanks = false,
   precomputedDirections = null,
   canSave = false,
   initialSaved = false,
@@ -69,10 +90,16 @@ export function RouteViewClient({
   ownerGrantId = null,
   inviteAccessHint = null,
   initialShareContext = { capability: "restricted", shareUrl: null },
+  returnPostId = null,
 }: {
   route: HaruRoute;
   locale: AppLocale;
   initialUnlocked: boolean;
+  blockedMessageKey?: BlockedMessageKey | null;
+  routeIsPublic?: boolean;
+  enableThanksPayment?: boolean;
+  viewerUserId?: string | null;
+  hasPriorThanks?: boolean;
   precomputedDirections?: RouteViewPrecomputedDirections | null;
   canSave?: boolean;
   initialSaved?: boolean;
@@ -94,9 +121,12 @@ export function RouteViewClient({
   inviteAccessHint?: "claimed" | "invalid" | null;
   /** SSR 공유 capability — 재공유 시 무한 로딩 방지. */
   initialShareContext?: RouteShareContext;
+  /** 이탈 시 `/posts/{id}` 폴백 — 시드 포스트 ↔ 루트 연결. */
+  returnPostId?: string | null;
 }) {
   const t = useTranslations("TravelerHub");
   const router = useRouter();
+  const appLocale = useLocale() as AppLocale;
   const { toast } = useToast();
   const [unlocked, setUnlocked] = useState(initialUnlocked);
   const [selectedSpot, setSelectedSpot] = useState<HaruSpot | null>(null);
@@ -114,12 +144,40 @@ export function RouteViewClient({
   const [shareSheetMode, setShareSheetMode] = useState<"closed" | "checking" | "owner" | "reshare">("closed");
   const [shareChecking, setShareChecking] = useState(false);
   const [reshareUrl, setReshareUrl] = useState<string | null>(initialShareContext.shareUrl);
+  const [thanksOpen, setThanksOpen] = useState(false);
+  const [thanksFollowup, setThanksFollowup] = useState<"share" | "save" | null>(null);
+  const [exitThanksOpen, setExitThanksOpen] = useState(false);
+  const [priorThanks, setPriorThanks] = useState(hasPriorThanks);
+  const thanksIntentHandledRef = useRef(false);
+  const haruiUserId = route.guardian.user_id ?? null;
+
+  useEffect(() => {
+    setPriorThanks(hasPriorThanks);
+  }, [hasPriorThanks]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const token = new URLSearchParams(window.location.search).get("invite");
     persistInviteTokenForReshare(route.id, token);
   }, [route.id]);
+
+  const openThanksFlow = useCallback(() => {
+    if (!enableThanksPayment) return;
+    setExitThanksOpen(false);
+    setThanksOpen(true);
+  }, [enableThanksPayment]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !enableThanksPayment) return;
+    if (thanksIntentHandledRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("intent") !== THANKS_INTENT_QUERY) return;
+    thanksIntentHandledRef.current = true;
+    setExitThanksOpen(false);
+    setThanksOpen(true);
+    const nextSearch = stripThanksIntentFromSearch(window.location.search);
+    window.history.replaceState(null, "", `${window.location.pathname}${nextSearch}`);
+  }, [enableThanksPayment, viewerUserId]);
 
   function showShareRestricted(cap: ShareCapability) {
     toast({
@@ -133,8 +191,41 @@ export function RouteViewClient({
     setShareSheetOpen(true);
   }, []);
 
+  const runFreePublicShare = useCallback(async (): Promise<boolean> => {
+    const title = route.title[locale] ?? route.title.en ?? "Route";
+    const rawUrl =
+      initialShareContext.shareUrl ??
+      (typeof window !== "undefined" ? `${window.location.pathname}${window.location.search}` : `/routes/${route.id}`);
+    const url = toAbsoluteShareUrl(rawUrl);
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title, url });
+        toast({ variant: "success", title: t("routeShareToastShared") });
+        return true;
+      } catch {
+        /* 사용자 취소 */
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast({ variant: "success", title: t("routeShareToastCopy") });
+        return true;
+      } catch {
+        toast({ variant: "error", title: t("routeOwnerShareLinkCopyErr") });
+      }
+    }
+    return false;
+  }, [route.id, route.title, locale, initialShareContext.shareUrl, toast, t]);
+
   const handleUnlockedShareClick = useCallback(async () => {
     if (shareChecking) return;
+
+    if (!ENABLE_PAID_ROUTE_LOCK && routeIsPublic) {
+      const ok = await runFreePublicShare();
+      if (ok && enableThanksPayment) setThanksFollowup("share");
+      return;
+    }
 
     if (ownerGrantId || initialShareContext.capability === "owner_manage") {
       openOwnerShareSheet();
@@ -186,7 +277,19 @@ export function RouteViewClient({
     setShareSheetOpen(false);
     setShareSheetMode("closed");
     showShareRestricted(result.capability);
-  }, [shareChecking, ownerGrantId, initialShareContext, route.id, openOwnerShareSheet, router, toast, t]);
+  }, [
+    shareChecking,
+    routeIsPublic,
+    runFreePublicShare,
+    enableThanksPayment,
+    ownerGrantId,
+    initialShareContext,
+    route.id,
+    openOwnerShareSheet,
+    router,
+    toast,
+    t,
+  ]);
 
   /** PlaybookUnlockSheet에서 dispatch한 이벤트 — 오너 패널 우선. */
   useEffect(() => {
@@ -211,13 +314,34 @@ export function RouteViewClient({
   function onToggleSave() {
     startSaveTransition(async () => {
       const res = await toggleSavedRouteAction(route.id);
-      if (res.ok) setSaved(Boolean(res.saved));
+      if (res.ok) {
+        const nowSaved = Boolean(res.saved);
+        setSaved(nowSaved);
+        if (nowSaved && enableThanksPayment) setThanksFollowup("save");
+      }
     });
   }
 
-  const exitPlayer = useCallback(() => {
-    // 네비게이션 직전 body 스크롤 잠금을 명시적으로 해제 — useEffect cleanup이
-    // 라우터 이동 도중 늦게 호출돼 다음 페이지가 스크롤 불가가 되는 버그 방어.
+  const performExitNavigation = useCallback(() => {
+    const { href, postId } = consumeRouteReturnTarget();
+    if (href) {
+      router.push(localeNeutralPathFromStoredHref(href));
+      return;
+    }
+    const targetPostId = postId ?? returnPostId;
+    if (targetPostId) {
+      router.push(`/posts/${targetPostId}`);
+      return;
+    }
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push("/explore");
+  }, [router, returnPostId]);
+
+  /** X 닫기 — 종료 고마움 다이얼로그 없이 연결 포스트로 복귀. */
+  const closePlayer = useCallback(() => {
     if (typeof document !== "undefined") {
       document.body.style.overflow = "";
     }
@@ -225,26 +349,52 @@ export function RouteViewClient({
       setUnlocked(false);
       return;
     }
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back();
-    } else {
-      router.push("/mypage/routes");
-    }
-  }, [initialUnlocked, router]);
-
-  function sharePlayer() {
-    if (unlocked) {
-      void handleUnlockedShareClick();
+    if (thanksOpen) {
+      setThanksOpen(false);
       return;
     }
-    if (typeof window === "undefined") return;
-    const title = route.title[locale] ?? route.title.en ?? "Route";
-    const url = `${window.location.origin}/routes/${route.id}`;
-    if (navigator.share) {
-      void navigator.share({ title, url }).catch(() => {});
-    } else if (navigator.clipboard) {
-      void navigator.clipboard.writeText(url).catch(() => {});
+    setExitThanksOpen(false);
+    performExitNavigation();
+  }, [initialUnlocked, thanksOpen, performExitNavigation]);
+
+  const exitPlayer = useCallback(() => {
+    if (typeof document !== "undefined") {
+      document.body.style.overflow = "";
     }
+    if (!initialUnlocked) {
+      setUnlocked(false);
+      return;
+    }
+    if (exitThanksOpen) {
+      setExitThanksOpen(false);
+      performExitNavigation();
+      return;
+    }
+    if (thanksOpen) {
+      setThanksOpen(false);
+      return;
+    }
+    const skipKey = `route-exit-thanks-skip:${route.id}`;
+    const skipped =
+      typeof sessionStorage !== "undefined" && sessionStorage.getItem(skipKey) === "1";
+    if (enableThanksPayment && haruiUserId && !priorThanks && !skipped) {
+      setExitThanksOpen(true);
+      return;
+    }
+    performExitNavigation();
+  }, [
+    initialUnlocked,
+    exitThanksOpen,
+    thanksOpen,
+    enableThanksPayment,
+    haruiUserId,
+    priorThanks,
+    route.id,
+    performExitNavigation,
+  ]);
+
+  function sharePlayer() {
+    void handleUnlockedShareClick();
   }
 
   function onConsumeTicketConfirm() {
@@ -339,6 +489,10 @@ export function RouteViewClient({
       </>
     ) : null;
 
+  if (blockedMessageKey) {
+    return <RouteViewBlockedSection route={route} locale={locale} messageKey={blockedMessageKey} />;
+  }
+
   if (!unlocked) {
     return (
       <>
@@ -352,6 +506,8 @@ export function RouteViewClient({
       </>
     );
   }
+
+  const routeTitle = route.title[locale] ?? route.title.en ?? "Route";
 
   const title = route.title[locale] ?? route.title.en ?? "Route";
 
@@ -429,6 +585,20 @@ export function RouteViewClient({
                   <p className="text-muted-foreground text-[10px]">{t("routePaidKickerFull")}</p>
                 </div>
               </div>
+              {enableThanksPayment && haruiUserId ? (
+                <button
+                  type="button"
+                  onClick={openThanksFlow}
+                  aria-label={t("thanksCtaButton")}
+                  title={t("thanksCtaButton")}
+                  className="text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 flex size-10 shrink-0 items-center justify-center gap-1 rounded-full transition-colors sm:w-auto sm:px-2.5"
+                >
+                  <Heart className="size-5 shrink-0" aria-hidden />
+                  <span className="hidden max-w-[5.5rem] truncate text-xs font-semibold sm:inline">
+                    {t("thanksCtaButton")}
+                  </span>
+                </button>
+              ) : null}
 
               <button
                 type="button"
@@ -476,7 +646,7 @@ export function RouteViewClient({
               ) : null}
               <button
                 type="button"
-                onClick={exitPlayer}
+                onClick={closePlayer}
                 aria-label={t("routeViewerCloseLabel")}
                 className="text-muted-foreground hover:bg-muted hover:text-foreground hidden size-10 shrink-0 items-center justify-center rounded-full transition-colors sm:flex"
               >
@@ -505,7 +675,15 @@ export function RouteViewClient({
                 selectedSpotId={selectedSpot?.id ?? null}
                 onSpotClick={(s) => setSelectedSpot(s)}
               />
-              <div className="px-3 pb-5 sm:px-4">
+              <div className="space-y-4 px-3 pb-5 sm:px-4">
+                {enableThanksPayment && haruiUserId ? (
+                  <RouteThanksCtaCard
+                    variant="footer"
+                    hasPriorThanks={priorThanks}
+                    onThanksClick={openThanksFlow}
+                    onShareClick={sharePlayer}
+                  />
+                ) : null}
                 <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
               </div>
             </aside>
@@ -556,7 +734,15 @@ export function RouteViewClient({
                   selectedSpotId={null}
                   onSpotClick={(s) => setSelectedSpot(s)}
                 />
-                <div className="px-3 pb-5">
+                <div className="space-y-4 px-3 pb-5">
+                  {enableThanksPayment && haruiUserId ? (
+                    <RouteThanksCtaCard
+                      variant="footer"
+                      hasPriorThanks={priorThanks}
+                      onThanksClick={openThanksFlow}
+                      onShareClick={sharePlayer}
+                    />
+                  ) : null}
                   <NextStepsBlock t={t} spotsCount={route.spots.length} durH={durH} durM={durM} />
                 </div>
               </div>
@@ -613,6 +799,54 @@ export function RouteViewClient({
             ) : null}
           </SheetContent>
         </Sheet>
+
+        <RouteExitThanksDialog
+          open={exitThanksOpen}
+          onOpenChange={(open) => {
+            setExitThanksOpen(open);
+            if (!open) setThanksOpen(false);
+          }}
+          onThanks={() => {
+            if (typeof sessionStorage !== "undefined") {
+              sessionStorage.removeItem(`route-exit-thanks-skip:${route.id}`);
+            }
+            setExitThanksOpen(false);
+            openThanksFlow();
+          }}
+          onLeave={() => {
+            if (typeof sessionStorage !== "undefined") {
+              sessionStorage.setItem(`route-exit-thanks-skip:${route.id}`, "1");
+            }
+            setExitThanksOpen(false);
+            performExitNavigation();
+          }}
+        />
+
+        {enableThanksPayment && haruiUserId ? (
+          <>
+            <RouteThanksSheet
+              open={thanksOpen}
+              onOpenChange={setThanksOpen}
+              routeId={route.id}
+              haruiUserId={haruiUserId}
+              haruiDisplayName={route.guardian.display_name}
+              routeTitle={routeTitle}
+              isLoggedIn={!!viewerUserId}
+              hasPriorThanks={priorThanks}
+              onPaidSuccess={() => setPriorThanks(true)}
+              onShareAfterSuccess={() => {
+                setThanksOpen(false);
+                void handleUnlockedShareClick();
+              }}
+            />
+            <RouteThanksFollowupSheet
+              open={thanksFollowup != null}
+              onOpenChange={(o) => !o && setThanksFollowup(null)}
+              variant={thanksFollowup === "save" ? "save" : "share"}
+              onThanksClick={openThanksFlow}
+            />
+          </>
+        ) : null}
       </div>
     </GoogleMapsProvider>
   );

@@ -4,6 +4,8 @@
  */
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 import { getServerSupabaseForUser, getSupabaseAuthUserIdOnly } from "@/lib/supabase/server-user";
+import { ENABLE_PAID_ROUTE_LOCK } from "@/lib/feature-flags";
+import { isFreePublicRouteStatus } from "@/lib/route-visibility";
 import { resolveRouteAccessServer } from "@/lib/route-access.server";
 import type { RouteShareContext, ShareCapability } from "@/types/share-capability";
 import { withLocalePath } from "@/lib/auth/route-path";
@@ -83,10 +85,21 @@ export async function resolveRouteShareContextServer(input: {
   locale: AppLocale;
   initialUnlocked: boolean;
   ownerGrantId: string | null;
+  routeStatus?: string | null;
   inviteAccessHint?: "claimed" | "invalid" | null;
   inviteTokenFromRequest?: string | null;
 }): Promise<RouteShareContext> {
-  if (input.ownerGrantId) {
+  if (!ENABLE_PAID_ROUTE_LOCK && isFreePublicRouteStatus(input.routeStatus)) {
+    const shareUrl = await resolveReshareUrl({
+      routeId: input.routeId,
+      userId: input.userId,
+      inviteTokenFromRequest: input.inviteTokenFromRequest,
+      locale: input.locale,
+    });
+    return { capability: "can_reshare", shareUrl };
+  }
+
+  if (input.ownerGrantId && ENABLE_PAID_ROUTE_LOCK) {
     return { capability: "owner_manage", shareUrl: null };
   }
 
@@ -124,6 +137,7 @@ export async function checkRouteShareCapabilityServer(input: {
   const locale = input.locale ?? "ko";
   const uid = await getSupabaseAuthUserIdOnly();
 
+  let routeStatus: string | null = null;
   const svc = createServiceRoleSupabase();
   if (svc) {
     const { data: routeRow } = await svc
@@ -133,14 +147,25 @@ export async function checkRouteShareCapabilityServer(input: {
       .maybeSingle();
     if (!routeRow) return { capability: "deleted", shareUrl: null };
     const row = routeRow as { deleted_at?: string | null; status?: string };
+    routeStatus = row.status ?? null;
     if (row.deleted_at) return { capability: "deleted", shareUrl: null };
     if (row.status === "private" || row.status === "deprecated" || row.status === "draft") {
       return { capability: "private", shareUrl: null };
     }
   }
 
+  if (!ENABLE_PAID_ROUTE_LOCK && isFreePublicRouteStatus(routeStatus)) {
+    const shareUrl = await resolveReshareUrl({
+      routeId: input.routeId,
+      userId: uid,
+      inviteTokenFromRequest: input.inviteToken,
+      locale,
+    });
+    return { capability: "can_reshare", shareUrl };
+  }
+
   const access = await resolveRouteAccessServer({ routeId: input.routeId, userId: uid });
-  if (access.ownerGrantId) {
+  if (access.ownerGrantId && ENABLE_PAID_ROUTE_LOCK) {
     return { capability: "owner_manage", shareUrl: null };
   }
   if (!access.canView) {

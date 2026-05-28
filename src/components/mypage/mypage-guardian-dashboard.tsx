@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Heart, Pencil, Shield, Wallet } from "lucide-react";
 import { MypagePointsDetailSheetTrigger } from "@/components/mypage/mypage-points-detail-sheet";
 import { MypageSelfGuardianPreviewSheet } from "@/components/mypage/mypage-self-guardian-preview-sheet";
+import { GuardianThanksReceivedCard } from "@/components/mypage/guardian-thanks-received-card";
 
 function formatPostUpdated(iso: string, locale: string) {
   try {
@@ -224,6 +225,8 @@ export function MypageGuardianDashboard({ status }: { status: GuardianProfileSta
             <p className="text-muted-foreground mt-4 text-xs leading-relaxed">{t("guardianDashApprovedStatsNote")}</p>
           </CardContent>
         </Card>
+
+        <GuardianThanksReceivedCard items={hub?.haruiThanksReceived ?? []} />
 
         <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-sm)]">
           <CardHeader className="pb-2">

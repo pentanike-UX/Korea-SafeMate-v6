@@ -154,6 +154,18 @@ export type MypageHubAttentionView = {
   unreadGlobalAttentionDot: boolean;
 };
 
+export type HaruiThanksReceivedItem = {
+  id: string;
+  route_id: string;
+  route_title: string;
+  payer_kind: "member" | "guest";
+  payer_label: string;
+  gross_amount: number;
+  harui_amount: number;
+  message: string | null;
+  paid_at: string;
+};
+
 export type MypageHubContextValue = {
   appRole: AppAccountRole;
   guardianStatus: GuardianProfileStatus;
@@ -163,4 +175,6 @@ export type MypageHubContextValue = {
   markBlockAttentionSeen: (blockKey: AttentionBlockKey, signature: string) => void;
   /** RSC에서 직렬화한 포인트 시트 초기 payload (없으면 시트만 API로 로드) */
   pointsSheetInitial: MypagePointsApiResponse | null;
+  /** 승인된 하루이 — 최근 고마움 표현 수신 목록 */
+  haruiThanksReceived: HaruiThanksReceivedItem[];
 };

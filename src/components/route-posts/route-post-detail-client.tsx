@@ -24,6 +24,7 @@ import { inferFreeArchetype } from "@/lib/route-free-classification";
 import { fmtSpotDistance, nextMoveEmoji } from "@/lib/route-spot-formatting";
 import { ChevronDown } from "lucide-react";
 import { RelatedRouteBanner } from "@/components/posts/related-route-banner";
+import { resolveRelatedRouteId } from "@/lib/routes/related-route-id";
 import {
   POST_DETAIL_PARAGRAPH_STACK,
   POST_DETAIL_PROSE_P_MAIN,
@@ -903,7 +904,7 @@ export function RoutePostDetailClient({
         open={payDrawerOpen}
         onOpenChange={setPayDrawerOpen}
         onConfirmDemoUnlock={() => setPlaybookSessionUnlock(true)}
-        routeId={post.related_route_id ?? undefined}
+        routeId={resolveRelatedRouteId(post) ?? undefined}
         guardianOpenDetail={{
           guardianUserId: requestHost.guardianUserId,
           displayName: requestHost.displayName,
@@ -957,14 +958,17 @@ export function RoutePostDetailClient({
             <p className="text-sm leading-relaxed text-muted-foreground">{t("themeRouteTeaserLead")}</p>
           </header>
 
-          <RelatedRouteBanner
-            routeId={post.related_route_id ?? "mock"}
-            routeTitle={post.title}
-            totalDurationMin={journey.metadata.estimated_total_duration_minutes ?? undefined}
-            spotCount={spots.length}
-            themeLabel={post.tags?.[0]}
-            className="!px-0 !max-w-none"
-          />
+          {resolveRelatedRouteId(post) ? (
+            <RelatedRouteBanner
+              routeId={resolveRelatedRouteId(post)!}
+              postId={post.id}
+              routeTitle={post.title}
+              totalDurationMin={journey.metadata.estimated_total_duration_minutes ?? undefined}
+              spotCount={spots.length}
+              themeLabel={post.tags?.[0]}
+              className="!px-0 !max-w-none"
+            />
+          ) : null}
 
           {isSuperAdmin ? (
             <div className="mt-4">

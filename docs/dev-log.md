@@ -9,6 +9,76 @@
 
 ---
 
+## 2026-05-28 — 비회원 고마움 표현 + 하루이 마이페이지 수신 목록
+
+**요청**: 로그인 없이 고마움 전송. 하루이 마이페이지에 보낸 사람 표시(회원: 프로필명·이메일, 비회원: 닉네임).
+
+**조치**:
+- 마이그레이션 `20260528100000_thanks_payments_guest_payers.sql` — `payer_kind`, `guest_payer_key`, 게스트 `payer_user_id` null
+- `submitThanksPaymentAction` — 회원은 RLS insert + `resolveMemberPayerDisplayName`, 비회원은 service role insert
+- `route-thanks-sheet` — 비로그인 시 닉네임(2~24자) + sessionStorage `guest_payer_key`
+- `route-view-client` — 로그인 강제 제거, `intent=thanks` 비회원도 시트 오픈
+- `GuardianThanksReceivedCard` — 승인 하루이 마이페이지 대시보드
+- i18n ko/en/ja/th/vi, `docs/thanks-payment-flow-cases.md` 갱신
+
+**검증**: `pnpm exec tsc --noEmit` 통과. `supabase db push` 원격 적용.
+
+---
+
+## 2026-05-28 — 시드 배너 404 재수정 (journey 폴백 + public 승격)
+
+**원인**: (1) `routes.status=draft`면 anon RLS·무료 모드 svc 조회에서 제외, (2) Preview에 service role 없을 때 lazy sync 실패.
+
+**조치**:
+- `fetchHaruRouteBundleForView` — DB → sync → `buildHaruRouteBundleFromSyncSource` 인메모리 폴백
+- `ensureRouteSyncedForView` — approved 포스트 연결 루트는 `status=public`으로 승격
+- `routes:publish-seed` — 시드 approved 루트 51건 public 일괄 업데이트
+
+---
+
+## 2026-05-27 — 시드 포스트 배너 → 하루루트 404 (lazy materialize)
+
+**증상**: 하루웨이 시드 포스트 배너가 deterministic route UUID로 링크되나 DB에 `routes`/`route_spots` 없어 `/routes/{uuid}` 404.
+
+**조치**:
+- `src/lib/routes/ensure-route-from-post.server.ts` — 포스트 `route_journey`로 `syncRouteFromPost` lazy 실행, 가디언 프로필 없으면 시드 plan에서 upsert
+- `routes/[routeId]/page.tsx` — 조회 실패 시 service role로 materialize 후 재조회
+- `pnpm routes:sync-seed -- --apply` — 시드 포스트 전체 일괄 동기화 스크립트
+
+**검증**: `pnpm exec tsc --noEmit`, `pnpm build` 통과. Preview DB·`public.users`·service role 필요(가디언 user 없으면 sync 스킵).
+
+---
+
+## 2026-05-27 — 하루루트 무료 확산 + 고마움 결제 (Phase 1~2)
+
+**목표**: 유료 잠금 대신 공개 루트 무료 전체 열람·공유 무제한, 선택적 「고마움 표현하기」 결제.
+
+**조치 (Phase 1)**:
+- `ENABLE_PAID_ROUTE_LOCK=false` 기본 — `resolveRouteViewPolicy`, `resolveRouteShareContextServer` 무료 공개 분기
+- 비로그인 공개 루트: service role로 `fetchHaruRouteFromSupabase` 폴백(anon RLS 한계 보완)
+- 초대 링크 로그인 강제는 유료 잠금 모드에서만
+- `RouteViewBlockedSection` — 비공개/삭제/차단 안내
+- 공유: 공개 루트 즉시 Web Share/복사, 2초 타임아웃 유지
+
+**조치 (Phase 2)**:
+- `thanks_payments` 마이그레이션 + 데모 결제 서버 액션(10% 수수료)
+- `RouteThanksCtaCard` / `RouteThanksSheet` — 루트 상세 상단·하단 CTA
+- i18n ko/en/ja/th/vi `thanks*`·`routeShareToast*` 키
+
+**추가 (Preview 브랜치 2차)**:
+- `?intent=thanks` 로그인 복귀 → 고마움 모달 재오픈
+- 공유/저장 완료 followup sheet → 보조 고마움 CTA
+- 하단 footer CTA(고마움+공유), 메시지 프리셋, 본인 루트·10초 중복 결제 방지
+- `docs/thanks-payment-flow-cases.md` 플로우 정의
+
+**미완**: Phase 3 후기 연동·하루이 대시보드·관리자·`route_stats`·PG·비회원 결제.
+
+**검증**: `pnpm exec tsc --noEmit`, `pnpm build` 통과. `supabase db push` — **미적용**.
+
+**브랜치**: `feat/free-route-thanks-preview` — main 푸시는 별도 지시 전까지 Preview만.
+
+---
+
 ## 2026-05-27 — 마이페이지 카드 상·하 여백 개선
 
 **문제**: 여행자 마이페이지 설정·프로필·매칭·루트 등 카드 UI가 상·하 패딩 없이 답답하게 보임 (`py-0` 남용 + CardHeader/Content 기본 세로 패딩 부재).

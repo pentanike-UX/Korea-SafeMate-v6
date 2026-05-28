@@ -1,6 +1,8 @@
 # 하루루트 결제·공유 정책 (v2026-05)
 
-이 문서는 유료 하루루트의 결제·접근·공유 정책 단일 소스입니다. UI 카피, 서버 access check, DB 스키마 모두 본 문서를 기준으로 합니다.
+이 문서는 하루루트의 결제·접근·공유 정책 단일 소스입니다. UI 카피, 서버 access check, DB 스키마 모두 본 문서를 기준으로 합니다.
+
+> **2026-05-27 기본 모델 전환**: `NEXT_PUBLIC_ENABLE_PAID_ROUTE_LOCK` 기본값 `false` — 공개 루트는 무료 전체 열람·무제한 공유. 수익은 **고마움 표현하기**(선택 결제, 플랫폼 수수료 10%)로 전환. 레거시 990/패스 잠금은 플래그 `true` 시 §1~3 적용.
 
 ---
 
@@ -143,6 +145,36 @@ RLS:
 
 - `route_access_grants`: owner 본인만 read/write.
 - `route_share_invites`: granted_by_user_id 본인 + granted_to_user_id 본인만 read.
+
+---
+
+## 7. 무료 확산 + 고마움 결제 (v2026-05-27, 기본 ON)
+
+### Feature flags
+
+- `NEXT_PUBLIC_ENABLE_PAID_ROUTE_LOCK` — `false`(기본): §1~3 유료 잠금 비활성, 공개 `status=public` 루트 전체 무료 열람.
+- `NEXT_PUBLIC_ENABLE_THANKS_PAYMENT` — `true`(기본): 「고마움 표현하기」 UI·`thanks_payments` insert.
+
+### 열람
+
+- 공개 루트: 비로그인·공유 유입 포함 스팟·지도·동선 전체 무료.
+- 예외: `private` / `draft` / `deprecated` / `under_review` / 삭제·숨김.
+
+### 공유
+
+- 공개 루트: 횟수 제한 없음, canonical URL 즉시 공유(Web Share / 복사).
+- 권한 재확인은 최대 2초, 실패해도 공개 루트면 공유 허용.
+
+### 고마움 결제
+
+- 접근권 구매가 아님 — 결제 없이도 루트 이용 가능.
+- 금액 프리셋 ₩1,000 / 3,000 / 5,000 / 10,000, 직접 입력 ₩1,000~100,000.
+- 플랫폼 수수료 10% (`platform_fee_amount`), 나머지 `harui_amount`.
+- MVP: PG 미연동(`payment_provider=demo`), 로그인 사용자만.
+
+### DB
+
+- `thanks_payments` — `supabase/migrations/20260528000001_thanks_payments.sql`
 
 ---
 
