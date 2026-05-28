@@ -31,8 +31,8 @@ export default async function TravelerSavedPostsPage() {
       <ul className="space-y-3">
         {posts.map((p) => (
           <li key={p.id}>
-            <Card className="rounded-2xl border-border/60 py-0 shadow-[var(--shadow-sm)]">
-              <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-sm)]">
+              <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                 <div className="min-w-0">
                   <p className="text-primary text-[10px] font-bold tracking-widest uppercase">{p.tags.slice(0, 2).join(" · ")}</p>
                   <p className="mt-1 font-semibold leading-snug">{p.title}</p>

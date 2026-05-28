@@ -34,7 +34,7 @@ export function TravelerOverviewStatGrid({
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-      <Card className="relative rounded-2xl border-border/60 py-0 shadow-[var(--shadow-sm)]">
+      <Card className="relative rounded-2xl border-border/60 shadow-[var(--shadow-sm)]">
         <MypageBlockSeenBoundary blockKey="traveler.journeys.openTrips">
           <CardContent className="p-5">
             <div className="flex flex-wrap items-center gap-2">
@@ -50,7 +50,7 @@ export function TravelerOverviewStatGrid({
           </CardContent>
         </MypageBlockSeenBoundary>
       </Card>
-      <Card className="rounded-2xl border-border/60 py-0 shadow-[var(--shadow-sm)]">
+      <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-sm)]">
         <MypageBlockSeenBoundary blockKey="traveler.journeys.savedGuardians">
           <CardContent className="p-5">
             <div className="flex flex-wrap items-center gap-2">
@@ -66,7 +66,7 @@ export function TravelerOverviewStatGrid({
           </CardContent>
         </MypageBlockSeenBoundary>
       </Card>
-      <Card className="rounded-2xl border-border/60 py-0 shadow-[var(--shadow-sm)]">
+      <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-sm)]">
         <MypageBlockSeenBoundary blockKey="traveler.journeys.savedPosts">
           <CardContent className="p-5">
             <div className="flex flex-wrap items-center gap-2">
@@ -82,7 +82,7 @@ export function TravelerOverviewStatGrid({
           </CardContent>
         </MypageBlockSeenBoundary>
       </Card>
-      <Card className="rounded-2xl border-border/60 py-0 shadow-[var(--shadow-sm)]">
+      <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-sm)]">
         <MypageBlockSeenBoundary blockKeys={["traveler.matches.newResponses", "traveler.matches.reviewDue"]}>
           <CardContent className="p-5">
             <div className="flex flex-wrap items-center gap-2">
@@ -108,7 +108,7 @@ export function TravelerOverviewStatGrid({
           </CardContent>
         </MypageBlockSeenBoundary>
       </Card>
-      <Card className="rounded-2xl border-border/60 py-0 shadow-[var(--shadow-sm)]">
+      <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-sm)]">
         <MypageBlockSeenBoundary blockKey="traveler.points.newEarnings">
           <CardContent className="p-5">
             <div className="flex flex-wrap items-center gap-2">

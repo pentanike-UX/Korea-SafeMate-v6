@@ -9,6 +9,19 @@
 
 ---
 
+## 2026-05-27 — 마이페이지 카드 상·하 여백 개선
+
+**문제**: 여행자 마이페이지 설정·프로필·매칭·루트 등 카드 UI가 상·하 패딩 없이 답답하게 보임 (`py-0` 남용 + CardHeader/Content 기본 세로 패딩 부재).
+
+**조치**:
+- `CardHeader`/`CardContent` 기본 `pt-5`·`pb-5`(헤더-only 카드는 `last:pb-5`)
+- `MypageHubCard` 프리미티브 추가 후 설정·여정·매칭·프로필·루트 empty 등에 적용
+- 하루웨이 `RouteSummaryCard`·`PostDetailHero`·`post-author-aside` 등 이미지 카드는 `gap-0`/`py-0` 유지
+
+**검증**: `pnpm exec tsc --noEmit` 통과.
+
+---
+
 ## 2026-05-27 — 공유받은 하루루트 재공유 무한 로딩 수정
 
 **문제**: 공유 링크로 열람한 사용자가 「공유하기」 클릭 시 `ownerGrantId` 없어 로딩만 무한 표시.

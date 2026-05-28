@@ -2,7 +2,14 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { AppAccountRole } from "@/lib/auth/app-role";
 import type { StoredMatchRequest } from "@/lib/traveler-match-requests";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardDescription, CardTitle } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
+import {
+  MypageHubCard,
+  MypageHubCardContent,
+  MypageHubStatCard,
+  MypageHubStatCardHeader,
+} from "@/components/mypage/mypage-hub-card";
 import { BlockAttentionBadge } from "@/components/mypage/mypage-attention-primitives";
 import { MypageBlockSeenBoundary } from "@/components/mypage/mypage-block-seen-boundary";
 import type { AttentionBlockKey } from "@/types/mypage-hub";
@@ -40,14 +47,14 @@ export async function MypageMatchesView({
             <h2 className="text-text-strong text-xl font-semibold tracking-tight sm:text-2xl">{t("matchesPageTitle")}</h2>
             <p className="text-muted-foreground mt-2 max-w-2xl text-[15px] leading-relaxed">{t("matchesPageLead")}</p>
           </div>
-          <Card className="border-border/60 rounded-2xl">
-            <CardContent className="space-y-4 p-6">
+          <MypageHubCard>
+            <MypageHubCardContent className="space-y-4 p-6">
               <p className="text-muted-foreground text-sm leading-relaxed">{t("matchesGuardianOnlySession")}</p>
               <Button asChild className="h-11 rounded-xl font-semibold">
                 <Link href="/mypage/guardian/matches">{t("matchesOpenGuardianMatches")}</Link>
               </Button>
-            </CardContent>
-          </Card>
+            </MypageHubCardContent>
+          </MypageHubCard>
         </div>
       );
     }
@@ -57,14 +64,14 @@ export async function MypageMatchesView({
           <h2 className="text-text-strong text-xl font-semibold tracking-tight sm:text-2xl">{t("matchesPageTitle")}</h2>
           <p className="text-muted-foreground mt-2 max-w-2xl text-[15px] leading-relaxed">{t("matchesPageLead")}</p>
         </div>
-        <Card className="border-border/60 rounded-2xl">
-          <CardContent className="space-y-4 p-6">
+        <MypageHubCard>
+          <MypageHubCardContent className="space-y-4 p-6">
             <p className="text-muted-foreground text-sm leading-relaxed">{t("matchesNeedLogin")}</p>
             <Button asChild className="h-11 rounded-xl font-semibold">
               <Link href="/login">{t("goLogin")}</Link>
             </Button>
-          </CardContent>
-        </Card>
+          </MypageHubCardContent>
+        </MypageHubCard>
       </div>
     );
   }
@@ -84,24 +91,24 @@ export async function MypageMatchesView({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Card className="border-border/60 rounded-2xl shadow-[var(--shadow-sm)]">
-          <CardHeader className="pb-2">
+        <MypageHubStatCard>
+          <MypageHubStatCardHeader>
             <CardDescription>{t("matchesSummaryActive")}</CardDescription>
             <CardTitle className="text-2xl tabular-nums">{active.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="border-border/60 rounded-2xl shadow-[var(--shadow-sm)]">
-          <CardHeader className="pb-2">
+          </MypageHubStatCardHeader>
+        </MypageHubStatCard>
+        <MypageHubStatCard>
+          <MypageHubStatCardHeader>
             <CardDescription>{t("matchesSummaryPending")}</CardDescription>
             <CardTitle className="text-2xl tabular-nums">{pending.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="border-border/60 rounded-2xl shadow-[var(--shadow-sm)]">
-          <CardHeader className="pb-2">
+          </MypageHubStatCardHeader>
+        </MypageHubStatCard>
+        <MypageHubStatCard>
+          <MypageHubStatCardHeader>
             <CardDescription>{t("matchesSummaryCompleted")}</CardDescription>
             <CardTitle className="text-2xl tabular-nums">{done.length}</CardTitle>
-          </CardHeader>
-        </Card>
+          </MypageHubStatCardHeader>
+        </MypageHubStatCard>
       </div>
 
       {items.length === 0 ? (
@@ -181,8 +188,8 @@ function MatchSection({
       <ul className="space-y-3">
         {rows.map((r) => (
           <li key={r.id}>
-            <Card className="border-border/60 rounded-2xl py-0 shadow-[var(--shadow-sm)]">
-              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <MypageHubCard>
+              <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
                 <div className="min-w-0 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-foreground font-medium">
@@ -201,7 +208,7 @@ function MatchSection({
                   canWriteTravelerReview={canWriteTravelerReview}
                 />
               </CardContent>
-            </Card>
+            </MypageHubCard>
           </li>
         ))}
       </ul>

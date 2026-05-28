@@ -2,7 +2,8 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { BRAND } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardTitle } from "@/components/ui/card";
+import { MypageHubCard, MypageHubCardContent, MypageHubCardHeader } from "@/components/mypage/mypage-hub-card";
 import { AiReplyToggle } from "@/components/guardian/settings/ai-reply-toggle";
 import { Bell, Bot, Shield, UserCircle2 } from "lucide-react";
 
@@ -24,63 +25,62 @@ export default async function MypageGuardianSettingsPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="rounded-2xl border-border/60 py-0 shadow-[var(--shadow-sm)]">
-          <CardHeader className="pb-2">
+        <MypageHubCard>
+          <MypageHubCardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <UserCircle2 className="size-4 text-primary" aria-hidden />
               계정 정보
             </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
+          </MypageHubCardHeader>
+          <MypageHubCardContent>
             <p className="text-muted-foreground">로그인 계정 정보와 기본 프로필 설정을 확인합니다.</p>
             <Button asChild variant="outline" size="sm" className="rounded-xl">
               <Link href="/mypage/profile">기본 계정 설정 열기</Link>
             </Button>
-          </CardContent>
-        </Card>
+          </MypageHubCardContent>
+        </MypageHubCard>
 
-        <Card className="rounded-2xl border-border/60 py-0 shadow-[var(--shadow-sm)]">
-          <CardHeader className="pb-2">
+        <MypageHubCard>
+          <MypageHubCardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Bell className="size-4 text-primary" aria-hidden />
               알림
             </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
+          </MypageHubCardHeader>
+          <MypageHubCardContent>
             <p className="text-muted-foreground">신규 매칭 요청/검토 필요 알림은 헤더 점과 배지로 우선 안내됩니다.</p>
             <Button asChild variant="outline" size="sm" className="rounded-xl">
               <Link href="/mypage/guardian/matches">매칭 관리로 이동</Link>
             </Button>
-          </CardContent>
-        </Card>
+          </MypageHubCardContent>
+        </MypageHubCard>
 
-        <Card className="rounded-2xl border-border/60 py-0 shadow-[var(--shadow-sm)]">
-          <CardHeader className="pb-2">
+        <MypageHubCard>
+          <MypageHubCardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Shield className="size-4 text-primary" aria-hidden />
               운영 정책
             </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
+          </MypageHubCardHeader>
+          <MypageHubCardContent>
             <p className="text-muted-foreground">포인트/콘텐츠 운영 정책을 확인하고 작업 우선순위를 점검합니다.</p>
             <Button asChild variant="outline" size="sm" className="rounded-xl">
               <Link href="/mypage/guardian/points">포인트 정책 확인</Link>
             </Button>
-          </CardContent>
-        </Card>
+          </MypageHubCardContent>
+        </MypageHubCard>
       </div>
 
-      {/* AI 자동답변 설정 카드 */}
-      <Card className="rounded-2xl border-violet-200/60 bg-violet-50/30 py-0 shadow-[var(--shadow-sm)] dark:border-violet-900/40 dark:bg-violet-950/10">
-        <CardHeader className="pb-2">
+      <MypageHubCard className="border-violet-200/60 bg-violet-50/30 dark:border-violet-900/40 dark:bg-violet-950/10">
+        <MypageHubCardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Bot className="size-4 text-violet-500" aria-hidden />
             AI 채팅 어시스턴트
           </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 text-sm">
+        </MypageHubCardHeader>
+        <MypageHubCardContent className="space-y-4">
           <p className="text-muted-foreground leading-relaxed">
-            여행자가 문의를 보내면 AI가 즉시 초안 답변을 전송합니다.
+            여행자가 문의를내면 AI가 즉시 초안 답변을 전송합니다.
             하루이가 직접 답변할 시간을 확보하거나 바쁠 때 활성화하세요.
           </p>
           <div className="rounded-xl border border-border/60 bg-card p-4">
@@ -104,8 +104,8 @@ export default async function MypageGuardianSettingsPage() {
               모든 AI 답변은 대화 기록에 저장됩니다
             </li>
           </ul>
-        </CardContent>
-      </Card>
+        </MypageHubCardContent>
+      </MypageHubCard>
     </div>
   );
 }

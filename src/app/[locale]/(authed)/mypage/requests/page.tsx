@@ -208,8 +208,8 @@ export default async function TravelerRequestsPage() {
           const svc = serviceLabel(t, r.serviceCode);
           return (
             <li key={r.id}>
-              <Card className="rounded-2xl border-border/60 py-0 shadow-[var(--shadow-sm)]">
-                <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between">
+              <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-sm)]">
+                <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
                   <div className="min-w-0 flex-1 space-y-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge

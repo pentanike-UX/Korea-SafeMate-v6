@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardDescription, CardTitle } from "@/components/ui/card";
+import { MypageHubCard, MypageHubCardContent, MypageHubCardHeader } from "@/components/mypage/mypage-hub-card";
 import { Button } from "@/components/ui/button";
 
 export type ProfileOverviewModel = {
@@ -35,12 +36,12 @@ export async function TravelerProfileMypageOverview({ model }: { model: ProfileO
 
   return (
     <div className="space-y-6">
-      <Card className="border-border/60 rounded-2xl shadow-[var(--shadow-sm)]">
-        <CardHeader className="pb-4">
+      <MypageHubCard>
+        <MypageHubCardHeader className="pb-3">
           <CardTitle className="text-lg">{th("profileOverviewBasicTitle")}</CardTitle>
           <CardDescription>{th("profileOverviewBasicLead")}</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-5 sm:grid-cols-2">
+        </MypageHubCardHeader>
+        <MypageHubCardContent className="grid gap-5 sm:grid-cols-2">
           <FieldRow label={t("fieldDisplayName")} value={model.displayName} emptyHint={th("emptyFieldDisplayName")} />
           <FieldRow label={t("fieldEmail")} value={model.email} emptyHint={th("emptyFieldEmail")} />
           <FieldRow
@@ -57,15 +58,15 @@ export async function TravelerProfileMypageOverview({ model }: { model: ProfileO
             <p className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">{th("fieldAccountStatus")}</p>
             <p className="text-foreground text-sm font-medium">{t("accountStatusActive")}</p>
           </div>
-        </CardContent>
-      </Card>
+        </MypageHubCardContent>
+      </MypageHubCard>
 
-      <Card className="border-border/60 rounded-2xl shadow-[var(--shadow-sm)]">
-        <CardHeader className="pb-4">
+      <MypageHubCard>
+        <MypageHubCardHeader className="pb-3">
           <CardTitle className="text-lg">{th("profileOverviewExtraTitle")}</CardTitle>
           <CardDescription>{th("profileOverviewExtraLead")}</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-5 sm:grid-cols-2">
+        </MypageHubCardHeader>
+        <MypageHubCardContent className="grid gap-5 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <FieldRow label={t("fieldIntro")} value={model.intro} emptyHint={th("emptyFieldIntro")} />
             {!model.intro.trim() ? <p className="text-muted-foreground mt-1.5 text-xs leading-relaxed">{th("emptyFieldHint")}</p> : null}
@@ -82,8 +83,8 @@ export async function TravelerProfileMypageOverview({ model }: { model: ProfileO
             emptyHint={th("emptyFieldLocale")}
           />
           <FieldRow label={t("fieldLocale")} value={model.locale} emptyHint={th("emptyFieldLocale")} />
-        </CardContent>
-      </Card>
+        </MypageHubCardContent>
+      </MypageHubCard>
 
       <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
         <Button asChild className="h-11 rounded-xl font-semibold sm:min-w-[10rem]">

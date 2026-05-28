@@ -55,7 +55,7 @@ export default async function TravelerPointsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="border-border/60 rounded-2xl border-[color-mix(in_srgb,var(--brand-primary)_22%,var(--border))] bg-[color-mix(in_srgb,var(--brand-primary-soft)_55%,var(--card))] py-0 shadow-[var(--shadow-sm)] sm:col-span-1">
+        <Card className="border-border/60 rounded-2xl border-[color-mix(in_srgb,var(--brand-primary)_22%,var(--border))] bg-[color-mix(in_srgb,var(--brand-primary-soft)_55%,var(--card))] shadow-[var(--shadow-sm)] sm:col-span-1">
           <CardContent className="flex flex-col gap-3 p-6 sm:p-7">
             <div className="flex items-center gap-2">
               <Coins className="text-primary size-5" strokeWidth={1.75} aria-hidden />
@@ -67,13 +67,13 @@ export default async function TravelerPointsPage() {
             <p className="text-muted-foreground text-sm leading-snug">{t("cardBalanceHint")}</p>
           </CardContent>
         </Card>
-        <Card className="border-border/60 rounded-2xl py-0 shadow-[var(--shadow-sm)]">
+        <Card className="border-border/60 rounded-2xl shadow-[var(--shadow-sm)]">
           <CardContent className="p-6 sm:p-7">
             <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">{t("cardLifetimeEarned")}</p>
             <p className="text-text-strong mt-3 text-2xl font-semibold tabular-nums">{formatPlainP(earned)}</p>
           </CardContent>
         </Card>
-        <Card className="border-border/60 rounded-2xl py-0 shadow-[var(--shadow-sm)]">
+        <Card className="border-border/60 rounded-2xl shadow-[var(--shadow-sm)]">
           <CardContent className="p-6 sm:p-7">
             <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">{t("cardLifetimeRevoked")}</p>
             <p className="text-text-strong mt-3 text-2xl font-semibold tabular-nums">{formatPlainP(revoked)}</p>
@@ -81,7 +81,7 @@ export default async function TravelerPointsPage() {
         </Card>
       </div>
 
-      <Card className="border-border/60 rounded-2xl border-dashed py-0 shadow-[var(--shadow-sm)]">
+      <Card className="border-border/60 rounded-2xl border-dashed shadow-[var(--shadow-sm)]">
         <CardContent className="flex gap-3 p-5 sm:p-6">
           <Info className="text-muted-foreground mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden />
           <div className="min-w-0 flex-1">
@@ -100,7 +100,7 @@ export default async function TravelerPointsPage() {
         </CardContent>
       </Card>
 
-      <Card className="border-border/60 rounded-2xl py-0 shadow-[var(--shadow-sm)]">
+      <Card className="border-border/60 rounded-2xl shadow-[var(--shadow-sm)]">
         <CardContent className="space-y-4 p-6 sm:p-7">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>

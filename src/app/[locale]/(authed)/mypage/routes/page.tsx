@@ -4,7 +4,8 @@ import { BRAND } from "@/lib/constants";
 import { listTravelerPurchasedRoutes } from "@/lib/routes/haru-route-from-supabase.server";
 import { getServerSupabaseForUser, getSupabaseAuthUserIdOnly } from "@/lib/supabase/server-user";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardDescription, CardTitle } from "@/components/ui/card";
+import { MypageHubCard, MypageHubCardContent, MypageHubCardHeader } from "@/components/mypage/mypage-hub-card";
 import { Map } from "lucide-react";
 
 export async function generateMetadata() {
@@ -75,18 +76,18 @@ export default async function TravelerMyRoutesPage({ params }: { params: Promise
       </div>
 
       {rows.length === 0 ? (
-        <Card className="border-border/60 rounded-2xl shadow-[var(--shadow-sm)]">
-          <CardHeader>
+        <MypageHubCard>
+          <MypageHubCardHeader className="space-y-3">
             <Map className="text-primary size-10" strokeWidth={1.5} aria-hidden />
             <CardTitle className="text-lg">{t("myRoutesEmptyTitle")}</CardTitle>
             <CardDescription>{t("myRoutesEmptyLead")}</CardDescription>
-          </CardHeader>
-          <CardContent>
+          </MypageHubCardHeader>
+          <MypageHubCardContent className="space-y-0">
             <Button asChild className="rounded-xl font-semibold">
               <Link href="/explore">{t("ctaExplore")}</Link>
             </Button>
-          </CardContent>
-        </Card>
+          </MypageHubCardContent>
+        </MypageHubCard>
       ) : (
         <ul className="space-y-3">
           {rows.map((r) => {

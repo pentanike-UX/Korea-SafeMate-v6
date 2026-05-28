@@ -73,7 +73,7 @@ export default async function TravelerSavedGuardiansPage() {
             repLines.length === 0 ? undefined : !fromRep && fb ? ("recent_approved" as const) : ("curated" as const);
           return (
             <li key={g.user_id}>
-              <Card className="overflow-hidden rounded-2xl border-border/60 py-0 shadow-[var(--shadow-sm)]">
+              <Card className="gap-0 overflow-hidden rounded-2xl border-border/60 shadow-[var(--shadow-sm)]">
                 <div className="flex gap-4 p-4 sm:p-5">
                   <div className="relative size-20 shrink-0 overflow-hidden rounded-xl sm:size-24">
                     <Image src={imgs.avatar} alt="" fill className={GUARDIAN_AVATAR_COVER_CLASS} sizes="96px" />

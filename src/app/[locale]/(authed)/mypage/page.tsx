@@ -126,7 +126,7 @@ export default async function TravelerOverviewPage() {
           </Button>
         </div>
         {recentMatches.length === 0 ? (
-          <Card className="rounded-2xl border-border/60 border-dashed py-0 shadow-none">
+          <Card className="rounded-2xl border-border/60 border-dashed shadow-none">
             <CardContent className="p-5">
               <p className="text-muted-foreground text-sm leading-relaxed">{t("overviewRecentMatchesEmpty")}</p>
               <Button asChild variant="link" className="mt-2 h-auto px-0 text-sm font-semibold">
@@ -138,7 +138,7 @@ export default async function TravelerOverviewPage() {
           <ul className="space-y-3">
             {recentMatches.map((m) => (
               <li key={m.id}>
-                <Card className="rounded-2xl border-border/60 py-0 shadow-none">
+                <Card className="rounded-2xl border-border/60 shadow-none">
                   <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm font-medium">{m.guardian_display_name || m.guardian_user_id}</p>
@@ -169,7 +169,7 @@ export default async function TravelerOverviewPage() {
             const g = r.guardian_user_id ? mockGuardians.find((x) => x.user_id === r.guardian_user_id) : null;
             return (
               <li key={r.id}>
-                <Card className="rounded-2xl border-border/60 py-0 shadow-none">
+                <Card className="rounded-2xl border-border/60 shadow-none">
                   <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm font-medium">{t(`status.${r.status}`)}</p>
@@ -192,7 +192,7 @@ export default async function TravelerOverviewPage() {
         </ul>
       </section>
 
-      <Card className="border-[var(--accent-ksm)]/25 from-[var(--accent-whisper)]/60 rounded-2xl border-2 border-dashed bg-gradient-to-br to-card py-0 shadow-none">
+      <Card className="border-[var(--accent-ksm)]/25 from-[var(--accent-whisper)]/60 rounded-2xl border-2 border-dashed bg-gradient-to-br to-card shadow-none">
         <CardContent className="space-y-4 p-6 sm:p-8">
           <div>
             <h2 className="text-text-strong text-lg font-semibold">{t("travelerEnticeTitle")}</h2>

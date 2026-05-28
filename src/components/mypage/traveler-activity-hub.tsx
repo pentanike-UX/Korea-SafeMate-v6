@@ -404,8 +404,8 @@ function SummaryCard({
   valueClassName?: string;
 }) {
   return (
-    <Card className="border-border/60 rounded-2xl py-0 shadow-[var(--shadow-sm)]">
-      <CardContent className="p-4">
+    <Card className="border-border/60 rounded-2xl shadow-[var(--shadow-sm)]">
+      <CardContent className="p-5">
         <p className="text-muted-foreground flex items-center gap-2 text-[11px] font-bold tracking-wide uppercase">
           {icon}
           {label}
