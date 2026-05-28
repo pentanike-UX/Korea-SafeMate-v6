@@ -33,9 +33,18 @@ import {
 } from "@/components/routes/route-ticket-dialogs";
 import { consumeRouteTicketAction } from "@/lib/route-access-actions.server";
 import { RouteOwnerSharePanelLoader } from "@/components/routes/route-owner-share-panel-loader";
+import { RouteResharePanel, RouteShareCheckingPlaceholder } from "@/components/routes/route-reshare-panel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { ROUTE_OWNER_SHARE_OPEN_EVENT } from "@/components/route-posts/playbook-unlock-sheet";
 import { useToast } from "@/components/ui/toast";
+import { checkRouteShareCapabilityAction } from "@/lib/route-share-capability-actions.server";
+import {
+  persistInviteTokenForReshare,
+  readPersistedInviteToken,
+  shareCapabilityMessageKey,
+  withTimeout,
+} from "@/lib/route-share-capability-client";
+import type { RouteShareContext, ShareCapability } from "@/types/share-capability";
 
 /**
  * 라우트 페이지 클라이언트 컨테이너.
@@ -59,6 +68,7 @@ export function RouteViewClient({
   lockedHint = null,
   ownerGrantId = null,
   inviteAccessHint = null,
+  initialShareContext = { capability: "restricted", shareUrl: null },
 }: {
   route: HaruRoute;
   locale: AppLocale;
@@ -82,6 +92,8 @@ export function RouteViewClient({
   ownerGrantId?: string | null;
   /** 초대 링크 redeem 실패 — 결제 CTA 대신 안내. */
   inviteAccessHint?: "claimed" | "invalid" | null;
+  /** SSR 공유 capability — 재공유 시 무한 로딩 방지. */
+  initialShareContext?: RouteShareContext;
 }) {
   const t = useTranslations("TravelerHub");
   const router = useRouter();
@@ -97,16 +109,94 @@ export function RouteViewClient({
     return lockedHint.reason === "ticket-prompt" ? "prompt" : "exhausted";
   });
   const [, startTicketConsume] = useTransition();
-  /** owner 공유 sheet — 상단 Share 버튼 + 결제 완료 후 공유 CTA에서 트리거. */
-  const [ownerShareSheetOpen, setOwnerShareSheetOpen] = useState(false);
+  /** 공유 sheet — owner 초대 패널 또는 재공유 패널. */
+  const [shareSheetOpen, setShareSheetOpen] = useState(false);
+  const [shareSheetMode, setShareSheetMode] = useState<"closed" | "checking" | "owner" | "reshare">("closed");
+  const [shareChecking, setShareChecking] = useState(false);
+  const [reshareUrl, setReshareUrl] = useState<string | null>(initialShareContext.shareUrl);
 
-  /** PlaybookUnlockSheet에서 dispatch한 이벤트를 받아 공유 sheet 자동 오픈. */
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const handler = () => setOwnerShareSheetOpen(true);
+    const token = new URLSearchParams(window.location.search).get("invite");
+    persistInviteTokenForReshare(route.id, token);
+  }, [route.id]);
+
+  function showShareRestricted(cap: ShareCapability) {
+    toast({
+      variant: "error",
+      title: t(shareCapabilityMessageKey(cap)),
+    });
+  }
+
+  const openOwnerShareSheet = useCallback(() => {
+    setShareSheetMode("owner");
+    setShareSheetOpen(true);
+  }, []);
+
+  const handleUnlockedShareClick = useCallback(async () => {
+    if (shareChecking) return;
+
+    if (ownerGrantId || initialShareContext.capability === "owner_manage") {
+      openOwnerShareSheet();
+      return;
+    }
+
+    if (initialShareContext.capability === "can_reshare" && initialShareContext.shareUrl) {
+      setReshareUrl(initialShareContext.shareUrl);
+      setShareSheetMode("reshare");
+      setShareSheetOpen(true);
+      return;
+    }
+
+    const blocked: ShareCapability[] = ["restricted", "expired", "deleted", "private", "blocked"];
+    if (blocked.includes(initialShareContext.capability)) {
+      showShareRestricted(initialShareContext.capability);
+      return;
+    }
+
+    setShareChecking(true);
+    setShareSheetMode("checking");
+    setShareSheetOpen(true);
+
+    const inviteToken = readPersistedInviteToken(route.id);
+    const result = await withTimeout(
+      checkRouteShareCapabilityAction({ routeId: route.id, inviteToken }),
+      2000,
+      { capability: "unknown" as const, shareUrl: null },
+    );
+
+    setShareChecking(false);
+
+    if (result.capability === "owner_manage") {
+      if (ownerGrantId) {
+        setShareSheetMode("owner");
+      } else {
+        setShareSheetOpen(false);
+        setShareSheetMode("closed");
+        router.refresh();
+      }
+      return;
+    }
+    if (result.capability === "can_reshare" && result.shareUrl) {
+      setReshareUrl(result.shareUrl);
+      setShareSheetMode("reshare");
+      return;
+    }
+
+    setShareSheetOpen(false);
+    setShareSheetMode("closed");
+    showShareRestricted(result.capability);
+  }, [shareChecking, ownerGrantId, initialShareContext, route.id, openOwnerShareSheet, router, toast, t]);
+
+  /** PlaybookUnlockSheet에서 dispatch한 이벤트 — 오너 패널 우선. */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = () => {
+      void handleUnlockedShareClick();
+    };
     window.addEventListener(ROUTE_OWNER_SHARE_OPEN_EVENT, handler);
     return () => window.removeEventListener(ROUTE_OWNER_SHARE_OPEN_EVENT, handler);
-  }, []);
+  }, [handleUnlockedShareClick]);
 
   // 데스크톱(md ≥768px) 감지 — 시트 side, 좌측 레일 노출 여부 결정.
   useEffect(() => {
@@ -143,13 +233,8 @@ export function RouteViewClient({
   }, [initialUnlocked, router]);
 
   function sharePlayer() {
-    // unlock된 본문 안에서 Share 버튼은 항상 무료 초대 sheet를 우선 노출.
-    //  - ownerGrantId 있음 → 즉시 RouteOwnerSharePanelLoader 렌더 (실제 초대 발급 가능)
-    //  - ownerGrantId 없음(결제 직후 props 미반영 / mock 루트 / 본인 커스텀 루트 등)
-    //    → loading placeholder가 잠시 표시되고 router.refresh 후 panel로 자연 전환.
-    //    grant가 영원히 없는 케이스(mock 등)에서는 사용자가 시트를 닫으면 됨 — 시연 흐름은 깨지지 않음.
     if (unlocked) {
-      setOwnerShareSheetOpen(true);
+      void handleUnlockedShareClick();
       return;
     }
     if (typeof window === "undefined") return;
@@ -493,10 +578,17 @@ export function RouteViewClient({
           />
         ) : null}
 
-        {/* owner 공유 sheet — Share2 버튼 또는 결제 완료 CTA에서 트리거.
-            패널이 시트의 메인 콘텐츠로 직접 노출되며, 헤더(제목/보조문구)는 패널 내부가 담당.
-            Sheet 자체는 항상 mount하고 ownerGrantId가 없으면 loading placeholder. */}
-        <Sheet open={ownerShareSheetOpen} onOpenChange={setOwnerShareSheetOpen}>
+        {/* 공유 sheet — 오너(초대 발급) 또는 재공유(동일 URL 전달). 무한 로딩 금지. */}
+        <Sheet
+          open={shareSheetOpen}
+          onOpenChange={(open) => {
+            setShareSheetOpen(open);
+            if (!open) {
+              setShareSheetMode("closed");
+              setShareChecking(false);
+            }
+          }}
+        >
           <SheetContent
             side={isDesktop ? "right" : "bottom"}
             className={cn(
@@ -504,19 +596,21 @@ export function RouteViewClient({
               isDesktop ? "w-[440px] max-w-full" : "max-h-[88vh] rounded-t-3xl",
             )}
           >
-            {/* a11y 위해 sr-only 헤더 유지 — 시각적 헤더는 패널 안에서 처리. */}
             <SheetHeader className="sr-only">
-              <SheetTitle>{t("routeOwnerShareTitle")}</SheetTitle>
-              <SheetDescription>{t("routeOwnerShareLinkHint")}</SheetDescription>
+              <SheetTitle>
+                {shareSheetMode === "reshare" ? t("routeReshareTitle") : t("routeOwnerShareTitle")}
+              </SheetTitle>
+              <SheetDescription>
+                {shareSheetMode === "reshare" ? t("routeReshareLead") : t("routeOwnerShareLinkHint")}
+              </SheetDescription>
             </SheetHeader>
-            {ownerGrantId ? (
+            {shareSheetMode === "checking" ? <RouteShareCheckingPlaceholder /> : null}
+            {shareSheetMode === "owner" && ownerGrantId ? (
               <RouteOwnerSharePanelLoader grantId={ownerGrantId} routeId={route.id} variant="sheet" />
-            ) : (
-              <div className="flex flex-col items-center gap-3 px-6 py-16 text-center">
-                <Loader2 className="size-6 animate-spin text-muted-foreground" aria-hidden />
-                <p className="text-sm text-muted-foreground">{t("routeOwnerShareLoading")}</p>
-              </div>
-            )}
+            ) : null}
+            {shareSheetMode === "reshare" && reshareUrl ? (
+              <RouteResharePanel shareUrl={reshareUrl} />
+            ) : null}
           </SheetContent>
         </Sheet>
       </div>

@@ -29,6 +29,8 @@ import { resolveRouteAccessServer } from "@/lib/route-access.server";
 import { isUuidRouteId as _isUuid } from "@/lib/routes/haru-route-from-supabase.server";
 import { logRouteViewEvent } from "@/lib/route-view-log.server";
 import { redeemRouteInviteLinkAction } from "@/lib/route-access-actions.server";
+import { resolveRouteShareContextServer } from "@/lib/route-share-capability.server";
+import type { RouteShareContext } from "@/types/share-capability";
 
 interface Props {
   params: Promise<{ routeId: string; locale: string }>;
@@ -215,6 +217,24 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
     }
   }
 
+  let shareContext: RouteShareContext = { capability: "restricted", shareUrl: null };
+  if (_isUuid(routeId)) {
+    shareContext = await resolveRouteShareContextServer({
+      routeId,
+      userId,
+      locale: appLocale,
+      initialUnlocked,
+      ownerGrantId: accessOwnerGrantId,
+      inviteAccessHint,
+      inviteTokenFromRequest: inviteToken,
+    });
+  } else if (initialUnlocked) {
+    shareContext = {
+      capability: "can_reshare",
+      shareUrl: withLocalePath(appLocale, `/routes/${routeId}`),
+    };
+  }
+
   // 저장(북마크) 상태 — UUID(DB) 루트 + 로그인 사용자일 때만.
   const canSave = fromDb && isUuidRouteId(routeId);
   let initialSaved = false;
@@ -253,6 +273,7 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
         lockedHint={accessLockedHint}
         ownerGrantId={accessOwnerGrantId}
         inviteAccessHint={inviteAccessHint}
+        initialShareContext={shareContext}
       />
     </main>
   );

@@ -9,6 +9,20 @@
 
 ---
 
+## 2026-05-27 — 공유받은 하루루트 재공유 무한 로딩 수정
+
+**문제**: 공유 링크로 열람한 사용자가 「공유하기」 클릭 시 `ownerGrantId` 없어 로딩만 무한 표시.
+
+**조치**:
+- `ShareCapability` 상태 모델 + `resolveRouteShareContextServer` / `checkRouteShareCapabilityAction`
+- 오너 → 기존 `RouteOwnerSharePanelLoader`, 열람 가능 방문자 → `RouteResharePanel`(동일 URL 복사·네이티브 공유)
+- 권한 확인 2초 타임아웃, 실패 시 토스트(만료/비공개/삭제/unknown 등)
+- `?invite=` 토큰 sessionStorage 보관(redeem 후에도 재공유 URL 복원)
+
+**검증**: `pnpm exec tsc --noEmit`, `pnpm build` 통과.
+
+---
+
 ## 2026-05-27 — 마이페이지 「이용·결제 기록」 허브 (`/mypage/activity`)
 
 **요청**: 여행자 저장 포스트, 구독/패스(잔여·사용), 열람·공유 이력, 결제 관련 이용 데이터를 마이페이지에서 한곳에 확인.
