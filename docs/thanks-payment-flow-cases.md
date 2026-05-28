@@ -18,6 +18,10 @@
 | Case 2 비로그인 고마움 → 로그인 → `?intent=thanks` 복귀 | ✅ |
 | Case 3 루트 마지막 하단 CTA (메인) | ✅ footer 카드 + 공유 |
 | Case 4 공유 완료 후 고마움 유도 | ✅ followup sheet |
+| 루트 닫기 시 고마움 다이얼로그 | ✅ `RouteExitThanksDialog` |
+| 시드 포스트 → 하루루트 배너 연결 | ✅ `resolveRelatedRouteId` + `pnpm seed:sample --apply` sync |
+| 배너 무료 정책 UI | ✅ `RelatedRouteBanner` |
+| 포스트 관리 하루루트 링크 | ✅ `guardian-posts-management` |
 | Case 5 저장 완료 후 고마움 유도 | ✅ followup sheet |
 | Case 6 후기 작성 후 고마움 | ⏳ Phase 3 |
 | Case 7 프로필 단독 고마움 | ⏳ Phase 3 |

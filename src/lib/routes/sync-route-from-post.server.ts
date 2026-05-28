@@ -14,14 +14,10 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { seedUuidV5 } from "@/lib/seed/deterministic-uuid";
+import { routeIdForPostId } from "@/lib/routes/related-route-id";
 import type { RouteJourney, RouteSpot } from "@/types/domain";
 
-const ROUTE_FROM_POST_NS = "safemate:route-from-post:";
 const SPOT_FROM_JOURNEY_NS = "safemate:spot-from-journey:";
-
-function routeIdForPost(postId: string): string {
-  return seedUuidV5(`${ROUTE_FROM_POST_NS}${postId}`);
-}
 
 /**
  * 같은 (lat, lng, name) 조합엔 항상 같은 spot_catalog.id가 나오도록 deterministic.
@@ -99,7 +95,7 @@ export async function syncRouteFromPost(input: {
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   if (spots.length === 0) return null;
 
-  const routeId = routeIdForPost(input.postId);
+  const routeId = routeIdForPostId(input.postId);
 
   // 1) spot_catalog upsert
   const spotRows = spots.map((s) => {

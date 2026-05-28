@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { mockContentPosts } from "@/data/mock";
 import { postHasRouteJourney } from "@/lib/content-post-route";
+import { enrichContentPostRelatedRoute } from "@/lib/routes/related-route-id";
 import type { ContentPost, ContentPostHeroSubject, ContentPostKind, ContentPostStatus } from "@/types/domain";
 import { parsePostStructuredContent } from "@/lib/post-structured-content";
 import type { RouteJourney } from "@/types/domain";
@@ -59,7 +60,7 @@ function mapToContentPost(
   const rj = row.route_journey ?? undefined;
   const heroSubject = heroSubjectFromRow(row.hero_subject);
   const structured = parsePostStructuredContent(row.structured_content);
-  return {
+  const base: ContentPost = {
     id: row.id,
     author_user_id: row.author_user_id,
     author_display_name,
@@ -87,6 +88,7 @@ function mapToContentPost(
     ...(row.related_route_id ? { related_route_id: row.related_route_id } : {}),
     has_route: Boolean(rj?.spots?.length),
   };
+  return enrichContentPostRelatedRoute(base);
 }
 
 async function mapRowsToPosts(rows: RawPost[]): Promise<ContentPost[]> {

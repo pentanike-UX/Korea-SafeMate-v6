@@ -15,6 +15,8 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { buildSampleContentSeedPlan } from "../src/lib/seed/build-sample-seed-plan";
+import { syncRouteFromPost } from "../src/lib/routes/sync-route-from-post.server";
+import type { RouteJourney } from "../src/types/domain";
 
 async function main() {
   const dry = process.argv.includes("--dry-run") || !process.argv.includes("--apply");
@@ -97,6 +99,7 @@ async function main() {
   }
 
   let postsOk = 0;
+  let routesSynced = 0;
   for (const p of plan.posts) {
     if (!haveUsers.has(p.author_user_id)) {
       console.warn("[seed-sample] skip post (author user missing):", p.seed_content_key);
@@ -119,9 +122,27 @@ async function main() {
       process.exit(1);
     }
     postsOk += 1;
+
+    const postRow = p.post_row as Record<string, unknown>;
+    const journey = postRow.route_journey as RouteJourney | null | undefined;
+    if (journey?.spots?.length) {
+      const routeId = await syncRouteFromPost({
+        sb,
+        postId: p.id,
+        authorUserId: p.author_user_id,
+        routeJourney: journey,
+        titleKo: typeof postRow.title === "string" ? postRow.title : null,
+        coverImageUrl: typeof postRow.cover_image_url === "string" ? postRow.cover_image_url : null,
+        postStatus: typeof postRow.status === "string" ? postRow.status : "approved",
+        regionTags: [p.region_slug],
+      });
+      if (routeId) routesSynced += 1;
+    }
   }
 
-  console.log(`[seed-sample] Upserted guardians (with users): ${guardianIds.length - missingUsers.length}, posts: ${postsOk}`);
+  console.log(
+    `[seed-sample] Upserted guardians (with users): ${guardianIds.length - missingUsers.length}, posts: ${postsOk}, routes synced: ${routesSynced}`,
+  );
 }
 
 main().catch((e) => {

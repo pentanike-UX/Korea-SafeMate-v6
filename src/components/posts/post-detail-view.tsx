@@ -32,6 +32,7 @@ import { PostDetailHero } from "@/components/posts/post-detail-hero";
 import { PostDetailIntroPanel } from "@/components/posts/post-detail-intro-panel";
 import { PostDetailRelatedSection } from "@/components/posts/post-detail-related-section";
 import { RelatedRouteBanner } from "@/components/posts/related-route-banner";
+import { resolveRelatedRouteId } from "@/lib/routes/related-route-id";
 import { postHeroCoverClass } from "@/lib/post-image-crop";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -175,7 +176,7 @@ export async function PostDetailView({ post, editHref, isOwner }: { post: Conten
           ) : null}
 
           {/* related_route_id만 있고 route_journey가 없는 하이브리드/레거시 포스트 — 하루루트 CTA */}
-          {post.related_route_id && !postHasRouteJourney(post) ? (
+          {resolveRelatedRouteId(post) && !postHasRouteJourney(post) ? (
             <section className="border-t border-border/40 pt-7 sm:pt-8">
               <header className="mb-5 space-y-2">
                 <p className="text-[11px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
@@ -187,7 +188,7 @@ export async function PostDetailView({ post, editHref, isOwner }: { post: Conten
                 <p className="text-sm leading-relaxed text-muted-foreground">{tRoute("themeRouteTeaserLead")}</p>
               </header>
               <RelatedRouteBanner
-                routeId={post.related_route_id}
+                routeId={resolveRelatedRouteId(post)!}
                 routeTitle={post.title}
                 totalDurationMin={300}
                 spotCount={post.route_highlights?.length ?? 5}

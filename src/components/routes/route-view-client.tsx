@@ -52,6 +52,7 @@ import { RouteViewBlockedSection } from "@/components/routes/route-view-blocked-
 import { RouteThanksCtaCard } from "@/components/routes/route-thanks-cta-card";
 import { RouteThanksSheet } from "@/components/routes/route-thanks-sheet";
 import { RouteThanksFollowupSheet } from "@/components/routes/route-thanks-followup-sheet";
+import { RouteExitThanksDialog } from "@/components/routes/route-exit-thanks-dialog";
 import { toAbsoluteShareUrl } from "@/lib/route-share-capability-client";
 import {
   loginRedirectForThanksIntent,
@@ -142,7 +143,9 @@ export function RouteViewClient({
   const [reshareUrl, setReshareUrl] = useState<string | null>(initialShareContext.shareUrl);
   const [thanksOpen, setThanksOpen] = useState(false);
   const [thanksFollowup, setThanksFollowup] = useState<"share" | "save" | null>(null);
+  const [exitThanksOpen, setExitThanksOpen] = useState(false);
   const [priorThanks, setPriorThanks] = useState(hasPriorThanks);
+  const haruiUserId = route.guardian.user_id ?? null;
 
   useEffect(() => {
     setPriorThanks(hasPriorThanks);
@@ -322,9 +325,15 @@ export function RouteViewClient({
     });
   }
 
+  const performExitNavigation = useCallback(() => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/mypage/routes");
+    }
+  }, [router]);
+
   const exitPlayer = useCallback(() => {
-    // 네비게이션 직전 body 스크롤 잠금을 명시적으로 해제 — useEffect cleanup이
-    // 라우터 이동 도중 늦게 호출돼 다음 페이지가 스크롤 불가가 되는 버그 방어.
     if (typeof document !== "undefined") {
       document.body.style.overflow = "";
     }
@@ -332,12 +341,22 @@ export function RouteViewClient({
       setUnlocked(false);
       return;
     }
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back();
-    } else {
-      router.push("/mypage/routes");
+    const skipKey = `route-exit-thanks-skip:${route.id}`;
+    const skipped =
+      typeof sessionStorage !== "undefined" && sessionStorage.getItem(skipKey) === "1";
+    if (enableThanksPayment && haruiUserId && !priorThanks && !skipped) {
+      setExitThanksOpen(true);
+      return;
     }
-  }, [initialUnlocked, router]);
+    performExitNavigation();
+  }, [
+    initialUnlocked,
+    enableThanksPayment,
+    haruiUserId,
+    priorThanks,
+    route.id,
+    performExitNavigation,
+  ]);
 
   function sharePlayer() {
     void handleUnlockedShareClick();
@@ -453,7 +472,6 @@ export function RouteViewClient({
     );
   }
 
-  const haruiUserId = route.guardian.user_id ?? null;
   const routeTitle = route.title[locale] ?? route.title.en ?? "Route";
 
   const title = route.title[locale] ?? route.title.en ?? "Route";
@@ -746,6 +764,24 @@ export function RouteViewClient({
             ) : null}
           </SheetContent>
         </Sheet>
+
+        <RouteExitThanksDialog
+          open={exitThanksOpen}
+          onOpenChange={setExitThanksOpen}
+          onThanks={() => {
+            if (typeof sessionStorage !== "undefined") {
+              sessionStorage.removeItem(`route-exit-thanks-skip:${route.id}`);
+            }
+            openThanksFlow();
+          }}
+          onLeave={() => {
+            if (typeof sessionStorage !== "undefined") {
+              sessionStorage.setItem(`route-exit-thanks-skip:${route.id}`, "1");
+            }
+            setExitThanksOpen(false);
+            performExitNavigation();
+          }}
+        />
 
         {enableThanksPayment && haruiUserId ? (
           <>

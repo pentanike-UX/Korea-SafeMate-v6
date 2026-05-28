@@ -3,6 +3,7 @@ import { GuardianPostsPageBlockBoundary } from "@/components/guardian/guardian-p
 import { Link } from "@/i18n/navigation";
 import { listPostsForGuardian } from "@/lib/posts-public";
 import { getContentPostFormat, postHasRouteJourney } from "@/lib/content-post-route";
+import { enrichContentPostRelatedRoute, resolveRelatedRouteId } from "@/lib/routes/related-route-id";
 import type { RouteJourney } from "@/types/domain";
 import { isMockGuardianId, resolveMockGuardianUuid } from "@/lib/dev/mock-guardian-auth";
 import { GUARDIAN_WORKSPACE } from "@/lib/mypage/guardian-workspace-routes";
@@ -31,13 +32,13 @@ export async function GuardianPostsManagement({
     ? (resolveMockGuardianUuid(sessionUserId) ?? sessionUserId)
     : sessionUserId;
   // mock 시드 포스트 (author_user_id === sessionUserId 기준, e.g. "mg10")
-  const mockPosts = listPostsForGuardian(sessionUserId);
+  const mockPosts = listPostsForGuardian(sessionUserId).map(enrichContentPostRelatedRoute);
   let posts = mockPosts;
 
   if (sb) {
     const { data } = await sb
       .from("content_posts")
-      .select("id, author_user_id, title, summary, status, created_at, post_format, route_journey")
+      .select("id, author_user_id, title, summary, status, created_at, post_format, route_journey, related_route_id")
       .eq("author_user_id", resolvedUserId)
       .order("created_at", { ascending: false })
       .limit(100);
@@ -74,7 +75,8 @@ export async function GuardianPostsManagement({
         route_journey: (p.route_journey as RouteJourney | null) ?? undefined,
         route_highlights: [],
         is_sample: false,
-      }));
+        related_route_id: (p.related_route_id as string | null) ?? undefined,
+      })).map(enrichContentPostRelatedRoute);
       // DB 포스트 우선, mock 포스트 중 DB에 없는 것만 보충
       const dbIds = new Set(dbPosts.map((p) => p.id));
       const mockOnly = mockPosts.filter((p) => !dbIds.has(p.id));
@@ -110,6 +112,7 @@ export async function GuardianPostsManagement({
         {posts.map((p) => {
           const format = getContentPostFormat(p);
           const route = postHasRouteJourney(p);
+          const linkedRouteId = resolveRelatedRouteId(p);
           return (
             <li
               key={p.id}
@@ -137,6 +140,11 @@ export async function GuardianPostsManagement({
               </div>
               <div className="flex shrink-0 flex-wrap gap-2">
                 <MypagePostPreviewSheetTrigger post={p} triggerLabel="미리보기" />
+                {linkedRouteId ? (
+                  <Button asChild size="sm" variant="secondary" className="rounded-xl">
+                    <Link href={`/routes/${linkedRouteId}`}>하루루트</Link>
+                  </Button>
+                ) : null}
                 {route ? (
                   <Button asChild size="sm" variant="outline" className="rounded-xl">
                     <Link href={GUARDIAN_WORKSPACE.postEdit(p.id)}>편집</Link>

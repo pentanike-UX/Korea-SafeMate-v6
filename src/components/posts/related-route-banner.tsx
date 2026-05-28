@@ -2,18 +2,13 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { Clock, MapPin, Sparkles, ArrowRight } from "lucide-react";
+import { Clock, MapPin, Sparkles, ArrowRight, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ENABLE_PAID_ROUTE_LOCK } from "@/lib/feature-flags";
 
 /**
- * 하루웨이(post) 하단에 노출되는 "관련 하루루트로 가기" 배너.
- *
- * 비즈니스 모델:
- * - 하루이는 한 번 입력으로 (post + route) 양쪽 자산 생성
- * - 하루웨이(post)는 콘텐츠/발견 (무료 자유 노출)
- * - 하루루트(route)는 실행 도구 (결제 발생 지점)
- *
- * 따라서 이 배너는 콘텐츠 → 거래의 전환 게이트 역할.
+ * 하루웨이(post) 하단 — 연결된 하루루트로 이동.
+ * v2026: 기본 무료 열람 + 선택적 고마움(루트 상세).
  */
 export function RelatedRouteBanner({
   routeId,
@@ -23,19 +18,15 @@ export function RelatedRouteBanner({
   themeLabel,
   className,
 }: {
-  /** 연결될 하루루트 ID (e.g. 'mock' 또는 UUID) */
   routeId: string;
-  /** 루트 제목 (locale 별 텍스트는 상위에서 해결) */
   routeTitle?: string;
-  /** 총 소요시간 분 단위 */
   totalDurationMin?: number;
-  /** 스팟 수 */
   spotCount?: number;
-  /** 테마 라벨 (e.g. "K-MOVIE", "역사 산책") */
   themeLabel?: string;
   className?: string;
 }) {
   const t = useTranslations("Posts");
+  const paidLock = ENABLE_PAID_ROUTE_LOCK;
 
   const hours = totalDurationMin != null ? Math.floor(totalDurationMin / 60) : null;
   const mins = totalDurationMin != null ? totalDurationMin % 60 : 0;
@@ -48,8 +39,7 @@ export function RelatedRouteBanner({
           : `${mins}m`
       : null;
 
-  // mock 루트는 항상 preview, 실제 UUID 루트는 access resolver가 판단하도록 query 없이 진입.
-  const href = routeId === "mock" ? `/routes/${routeId}?preview=1` : `/routes/${routeId}`;
+  const href = paidLock && routeId === "mock" ? `/routes/${routeId}?preview=1` : `/routes/${routeId}`;
 
   return (
     <div className={cn("mx-auto max-w-3xl px-4 sm:px-6", className)}>
@@ -62,15 +52,13 @@ export function RelatedRouteBanner({
           "dark:from-emerald-950/20",
         )}
       >
-        {/* 글로우 */}
         <div
           className="pointer-events-none absolute -right-12 -top-12 size-40 rounded-full bg-emerald-400/20 blur-3xl transition-opacity group-hover:opacity-70"
           aria-hidden
         />
 
         <div className="relative">
-          {/* Eyebrow */}
-          <div className="mb-3 flex items-center gap-2 flex-wrap">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1 rounded-full bg-[var(--brand-primary)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand-primary)]">
               <Sparkles className="size-3" aria-hidden />
               {t("relatedRouteEyebrow")}
@@ -80,17 +68,20 @@ export function RelatedRouteBanner({
                 {themeLabel}
               </span>
             ) : null}
+            {!paidLock ? (
+              <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200">
+                {t("relatedRouteFreeBadge")}
+              </span>
+            ) : null}
           </div>
 
-          {/* 헤더 */}
           <h3 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
             {routeTitle ?? t("relatedRouteFallbackTitle")}
           </h3>
           <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-            {t("relatedRouteLead")}
+            {paidLock ? t("relatedRouteLead") : t("relatedRouteLeadFree")}
           </p>
 
-          {/* 칩 그룹 */}
           {(durationLabel || spotCount != null) && (
             <div className="mt-4 flex flex-wrap gap-2">
               {durationLabel ? (
@@ -108,20 +99,33 @@ export function RelatedRouteBanner({
             </div>
           )}
 
-          {/* CTA 영역 — ₩990 진입 가격을 가장 크게, 구독은 작은 보조 라벨 */}
           <div className="mt-5 flex items-center justify-between gap-3 border-t border-border/40 pt-4">
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand-primary)]">
-                {t("relatedRoutePriceEyebrow")}
-              </p>
-              <div className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5">
-                <span className="text-2xl font-extrabold tracking-tighter text-foreground">
-                  {t("relatedRoutePriceLead")}
-                </span>
-                <span className="text-[11px] font-medium text-muted-foreground">
-                  {t("relatedRoutePriceLeadHint")}
-                </span>
-              </div>
+              {paidLock ? (
+                <>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand-primary)]">
+                    {t("relatedRoutePriceEyebrow")}
+                  </p>
+                  <div className="mt-0.5 flex flex-wrap items-baseline gap-x-1.5">
+                    <span className="text-2xl font-extrabold tracking-tighter text-foreground">
+                      {t("relatedRoutePriceLead")}
+                    </span>
+                    <span className="text-[11px] font-medium text-muted-foreground">
+                      {t("relatedRoutePriceLeadHint")}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand-primary)]">
+                    {t("relatedRouteFreeEyebrow")}
+                  </p>
+                  <p className="text-muted-foreground mt-0.5 flex items-center gap-1 text-xs leading-relaxed sm:text-sm">
+                    <Heart className="size-3.5 shrink-0 text-[var(--brand-primary)]" aria-hidden />
+                    {t("relatedRouteFreeHint")}
+                  </p>
+                </>
+              )}
             </div>
             <span
               className={cn(
@@ -129,7 +133,7 @@ export function RelatedRouteBanner({
                 "transition-transform group-hover:translate-x-0.5",
               )}
             >
-              {t("relatedRouteCta")}
+              {paidLock ? t("relatedRouteCta") : t("relatedRouteCtaFree")}
               <ArrowRight className="size-4" aria-hidden />
             </span>
           </div>
