@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { Clock, MapPin, Sparkles, ArrowRight, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ENABLE_PAID_ROUTE_LOCK } from "@/lib/feature-flags";
+import { rememberRouteReturnHref } from "@/lib/routes/route-return-href";
 
 /**
  * 하루웨이(post) 하단 — 연결된 하루루트로 이동.
@@ -45,6 +46,7 @@ export function RelatedRouteBanner({
     <div className={cn("mx-auto max-w-3xl px-4 sm:px-6", className)}>
       <Link
         href={href}
+        onClick={() => rememberRouteReturnHref()}
         className={cn(
           "group relative block overflow-hidden rounded-3xl border-2 border-[var(--brand-primary)]/30",
           "bg-gradient-to-br from-emerald-50/50 via-card to-card p-5 shadow-md sm:p-6",

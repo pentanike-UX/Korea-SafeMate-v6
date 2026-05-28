@@ -59,6 +59,7 @@ import {
   stripThanksIntentFromSearch,
   THANKS_INTENT_QUERY,
 } from "@/lib/thanks-payment-intent";
+import { consumeRouteReturnHref } from "@/lib/routes/route-return-href";
 
 /**
  * 라우트 페이지 클라이언트 컨테이너.
@@ -326,11 +327,16 @@ export function RouteViewClient({
   }
 
   const performExitNavigation = useCallback(() => {
+    const returnHref = consumeRouteReturnHref();
+    if (returnHref) {
+      router.push(returnHref);
+      return;
+    }
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
-    } else {
-      router.push("/mypage/routes");
+      return;
     }
+    router.push("/explore");
   }, [router]);
 
   const exitPlayer = useCallback(() => {

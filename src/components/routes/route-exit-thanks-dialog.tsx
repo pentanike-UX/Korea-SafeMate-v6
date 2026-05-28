@@ -26,7 +26,11 @@ export function RouteExitThanksDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm rounded-2xl">
+      <DialogContent
+        className="z-[90] max-w-sm rounded-2xl"
+        overlayClassName="z-[90]"
+        showCloseButton={false}
+      >
         <DialogHeader>
           <DialogTitle className="font-serif text-lg">{t("routeExitThanksTitle")}</DialogTitle>
           <DialogDescription className="text-sm leading-relaxed whitespace-pre-line">
