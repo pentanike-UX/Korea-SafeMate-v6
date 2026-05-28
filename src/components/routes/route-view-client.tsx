@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import {
   Bookmark,
@@ -146,6 +146,7 @@ export function RouteViewClient({
   const [thanksFollowup, setThanksFollowup] = useState<"share" | "save" | null>(null);
   const [exitThanksOpen, setExitThanksOpen] = useState(false);
   const [priorThanks, setPriorThanks] = useState(hasPriorThanks);
+  const thanksIntentHandledRef = useRef(false);
   const haruiUserId = route.guardian.user_id ?? null;
 
   useEffect(() => {
@@ -160,6 +161,7 @@ export function RouteViewClient({
 
   const openThanksFlow = useCallback(() => {
     if (!enableThanksPayment) return;
+    setExitThanksOpen(false);
     if (typeof window === "undefined") return;
     if (!viewerUserId) {
       const loginHref = loginRedirectForThanksIntent(
@@ -175,9 +177,12 @@ export function RouteViewClient({
 
   useEffect(() => {
     if (typeof window === "undefined" || !enableThanksPayment) return;
+    if (thanksIntentHandledRef.current) return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("intent") !== THANKS_INTENT_QUERY) return;
     if (!viewerUserId) return;
+    thanksIntentHandledRef.current = true;
+    setExitThanksOpen(false);
     setThanksOpen(true);
     const nextSearch = stripThanksIntentFromSearch(window.location.search);
     window.history.replaceState(null, "", `${window.location.pathname}${nextSearch}`);
@@ -347,6 +352,15 @@ export function RouteViewClient({
       setUnlocked(false);
       return;
     }
+    if (exitThanksOpen) {
+      setExitThanksOpen(false);
+      performExitNavigation();
+      return;
+    }
+    if (thanksOpen) {
+      setThanksOpen(false);
+      return;
+    }
     const skipKey = `route-exit-thanks-skip:${route.id}`;
     const skipped =
       typeof sessionStorage !== "undefined" && sessionStorage.getItem(skipKey) === "1";
@@ -357,6 +371,8 @@ export function RouteViewClient({
     performExitNavigation();
   }, [
     initialUnlocked,
+    exitThanksOpen,
+    thanksOpen,
     enableThanksPayment,
     haruiUserId,
     priorThanks,
@@ -773,11 +789,15 @@ export function RouteViewClient({
 
         <RouteExitThanksDialog
           open={exitThanksOpen}
-          onOpenChange={setExitThanksOpen}
+          onOpenChange={(open) => {
+            setExitThanksOpen(open);
+            if (!open) setThanksOpen(false);
+          }}
           onThanks={() => {
             if (typeof sessionStorage !== "undefined") {
               sessionStorage.removeItem(`route-exit-thanks-skip:${route.id}`);
             }
+            setExitThanksOpen(false);
             openThanksFlow();
           }}
           onLeave={() => {

@@ -45,6 +45,7 @@ function SheetOverlay({
 
 function SheetContent({
   className,
+  overlayClassName,
   children,
   side = "right",
   showCloseButton = true,
@@ -53,12 +54,13 @@ function SheetContent({
 }: SheetPrimitive.Popup.Props & {
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
+  overlayClassName?: string
   /** 배경 dim/blur를 완전히 제거하고 싶을 때 — Route Cockpit 등. */
   backdropTransparent?: boolean
 }) {
   return (
     <SheetPortal>
-      <SheetOverlay transparent={backdropTransparent} />
+      <SheetOverlay transparent={backdropTransparent} className={overlayClassName} />
       <SheetPrimitive.Popup
         data-slot="sheet-content"
         data-side={side}

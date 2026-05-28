@@ -119,7 +119,11 @@ export function RouteThanksSheet({
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-3xl px-6 pb-8 pt-6">
+      <SheetContent
+        side="bottom"
+        overlayClassName="z-[90]"
+        className="z-[90] max-h-[92vh] overflow-y-auto rounded-t-3xl px-6 pb-8 pt-6"
+      >
         <SheetHeader className="sr-only">
           <SheetTitle>{t("thanksSheetTitle")}</SheetTitle>
           <SheetDescription>{t("thanksCtaLead")}</SheetDescription>

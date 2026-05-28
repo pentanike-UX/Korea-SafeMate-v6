@@ -10,8 +10,8 @@ import {
   THANKS_MESSAGE_MAX_LENGTH,
 } from "@/lib/feature-flags";
 import { computeThanksBreakdown } from "@/lib/thanks-payment-math";
-import { isFreePublicRouteStatus } from "@/lib/route-visibility";
 import { mockHaruRoute } from "@/data/mock/haru-route";
+import { ensureRouteReadyForThanks } from "@/lib/routes/ensure-route-ready-for-thanks.server";
 
 function isDemoMockRouteId(routeId: string) {
   return routeId === mockHaruRoute.id || routeId === "mock";
@@ -61,18 +61,13 @@ export async function submitThanksPaymentAction(input: {
     };
   }
 
+  const ready = await ensureRouteReadyForThanks(input.routeId, input.haruiUserId);
+  if (!ready.ok) return { ok: false, error: ready.error };
+  const routeRow = ready.route;
+  if (routeRow.guardian_user_id === payerId) return { ok: false, error: "own-route" };
+
   const svc = createServiceRoleSupabase();
   if (!svc) return { ok: false, error: "service-unavailable" };
-
-  const { data: routeRow } = await svc
-    .from("routes")
-    .select("id, status, deleted_at, title_ko, title_en, guardian_user_id")
-    .eq("id", input.routeId)
-    .maybeSingle();
-  if (!routeRow || routeRow.deleted_at) return { ok: false, error: "route-not-found" };
-  if (!isFreePublicRouteStatus(routeRow.status as string)) return { ok: false, error: "route-not-public" };
-  if (routeRow.guardian_user_id !== input.haruiUserId) return { ok: false, error: "harui-mismatch" };
-  if (routeRow.guardian_user_id === payerId) return { ok: false, error: "own-route" };
 
   const since = new Date(Date.now() - THANKS_DUPLICATE_GUARD_SEC * 1000).toISOString();
   const { data: recent } = await svc
