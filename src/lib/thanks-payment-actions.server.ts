@@ -11,6 +11,11 @@ import {
 } from "@/lib/feature-flags";
 import { computeThanksBreakdown } from "@/lib/thanks-payment-math";
 import { isFreePublicRouteStatus } from "@/lib/route-visibility";
+import { mockHaruRoute } from "@/data/mock/haru-route";
+
+function isDemoMockRouteId(routeId: string) {
+  return routeId === mockHaruRoute.id || routeId === "mock";
+}
 
 export async function submitThanksPaymentAction(input: {
   routeId: string;
@@ -37,6 +42,24 @@ export async function submitThanksPaymentAction(input: {
   }
 
   const message = input.message?.trim().slice(0, THANKS_MESSAGE_MAX_LENGTH) || null;
+  const breakdown = computeThanksBreakdown(amount);
+
+  if (isDemoMockRouteId(input.routeId)) {
+    if (input.haruiUserId !== mockHaruRoute.guardian.user_id) {
+      return { ok: false, error: "harui-mismatch" };
+    }
+    if (payerId === mockHaruRoute.guardian.user_id) {
+      return { ok: false, error: "own-route" };
+    }
+    const title = mockHaruRoute.title.ko ?? mockHaruRoute.title.en ?? "Route";
+    return {
+      ok: true,
+      paymentId: `thanks_mock_${Date.now()}`,
+      breakdown,
+      haruiDisplayName: mockHaruRoute.guardian.display_name,
+      routeTitle: title,
+    };
+  }
 
   const svc = createServiceRoleSupabase();
   if (!svc) return { ok: false, error: "service-unavailable" };
@@ -63,7 +86,6 @@ export async function submitThanksPaymentAction(input: {
     .limit(1);
   if (recent?.length) return { ok: false, error: "duplicate-payment" };
 
-  const breakdown = computeThanksBreakdown(amount);
   const receiptId = `thanks_demo_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
   const sb = await getServerSupabaseForUser();

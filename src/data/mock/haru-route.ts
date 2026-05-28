@@ -169,6 +169,8 @@ export const mockHaruRoute: HaruRoute = {
     en: "K-Music Stages Across Seoul's Palaces",
   },
   guardian: {
+    /** 데모·고마움 CTA용 — mock 하루이 mg14 (resolveMockGuardianUuid) */
+    user_id: "mg14",
     display_name: "김서호",
     photo_url: "/mock/profiles/profile_14_avatar.jpg",
     last_seen_at: "mock:online",

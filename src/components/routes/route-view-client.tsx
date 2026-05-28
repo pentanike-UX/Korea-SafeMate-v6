@@ -536,10 +536,14 @@ export function RouteViewClient({
                 <button
                   type="button"
                   onClick={openThanksFlow}
-                  className="text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 hidden h-9 shrink-0 items-center gap-1 rounded-full px-2.5 text-xs font-semibold transition-colors sm:flex"
+                  aria-label={t("thanksCtaButton")}
+                  title={t("thanksCtaButton")}
+                  className="text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 flex h-10 shrink-0 items-center justify-center gap-1 rounded-full px-2 transition-colors sm:h-9 sm:px-2.5"
                 >
-                  <Heart className="size-3.5" aria-hidden />
-                  <span className="max-w-[5.5rem] truncate">{t("thanksCtaButton")}</span>
+                  <Heart className="size-4 sm:size-3.5" aria-hidden />
+                  <span className="hidden max-w-[5.5rem] truncate text-xs font-semibold sm:inline">
+                    {t("thanksCtaButton")}
+                  </span>
                 </button>
               ) : null}
 
