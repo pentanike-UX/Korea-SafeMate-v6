@@ -295,6 +295,14 @@ async function insertGuestThanks(input: {
   });
 
   if (error || !data) {
+    console.error("[thanks_payments_insert_guest] rpc failed", {
+      message: error?.message,
+      code: (error as unknown as { code?: string })?.code,
+      details: (error as unknown as { details?: string })?.details,
+      hint: (error as unknown as { hint?: string })?.hint,
+      routeId,
+      haruiUserId,
+    });
     const msg = error?.message ?? "";
     if (msg.includes("function") && msg.includes("does not exist")) return { ok: false, error: "schema-mismatch" };
     return { ok: false, error: "service-unavailable" };
