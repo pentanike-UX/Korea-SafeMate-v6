@@ -35,6 +35,7 @@ import { isFreePublicRouteStatus } from "@/lib/route-visibility";
 import { resolveRouteViewPolicy } from "@/lib/route-view-policy.server";
 import { createServiceRoleSupabase } from "@/lib/supabase/service-role";
 import { getRouteThanksViewerStatusServer } from "@/lib/thanks-payment-status.server";
+import { ensureRouteSyncedForView } from "@/lib/routes/ensure-route-from-post.server";
 
 interface Props {
   params: Promise<{ routeId: string; locale: string }>;
@@ -107,11 +108,18 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
   } else if (isUuidRouteId(routeId)) {
     const sb = await getServerSupabaseForUser();
     let bundle = sb ? await fetchHaruRouteFromSupabase(sb, routeId) : null;
-    if (!bundle && !ENABLE_PAID_ROUTE_LOCK) {
-      const svc = createServiceRoleSupabase();
-      if (svc) {
-        const pubBundle = await fetchHaruRouteFromSupabase(svc, routeId);
-        if (pubBundle && isFreePublicRouteStatus(pubBundle.status)) bundle = pubBundle;
+    const svc = createServiceRoleSupabase();
+    if (!bundle && !ENABLE_PAID_ROUTE_LOCK && svc) {
+      const pubBundle = await fetchHaruRouteFromSupabase(svc, routeId);
+      if (pubBundle && isFreePublicRouteStatus(pubBundle.status)) bundle = pubBundle;
+    }
+    if (!bundle && svc) {
+      const materialized = await ensureRouteSyncedForView(routeId);
+      if (materialized) {
+        const afterSync = await fetchHaruRouteFromSupabase(svc, routeId);
+        if (afterSync && (!ENABLE_PAID_ROUTE_LOCK || isFreePublicRouteStatus(afterSync.status))) {
+          bundle = afterSync;
+        }
       }
     }
     if (!bundle) notFound();

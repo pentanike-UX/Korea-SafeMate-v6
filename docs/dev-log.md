@@ -9,6 +9,19 @@
 
 ---
 
+## 2026-05-27 — 시드 포스트 배너 → 하루루트 404 (lazy materialize)
+
+**증상**: 하루웨이 시드 포스트 배너가 deterministic route UUID로 링크되나 DB에 `routes`/`route_spots` 없어 `/routes/{uuid}` 404.
+
+**조치**:
+- `src/lib/routes/ensure-route-from-post.server.ts` — 포스트 `route_journey`로 `syncRouteFromPost` lazy 실행, 가디언 프로필 없으면 시드 plan에서 upsert
+- `routes/[routeId]/page.tsx` — 조회 실패 시 service role로 materialize 후 재조회
+- `pnpm routes:sync-seed -- --apply` — 시드 포스트 전체 일괄 동기화 스크립트
+
+**검증**: `pnpm exec tsc --noEmit`, `pnpm build` 통과. Preview DB·`public.users`·service role 필요(가디언 user 없으면 sync 스킵).
+
+---
+
 ## 2026-05-27 — 하루루트 무료 확산 + 고마움 결제 (Phase 1~2)
 
 **목표**: 유료 잠금 대신 공개 루트 무료 전체 열람·공유 무제한, 선택적 「고마움 표현하기」 결제.

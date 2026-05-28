@@ -21,6 +21,7 @@
     "seed:users": "tsx scripts/seed-users-to-supabase.ts",
     "seed:reference": "tsx scripts/seed-reference-to-supabase.ts",
     "seed:sample": "tsx scripts/seed-sample-to-supabase.ts",
+    "routes:sync-seed": "tsx scripts/sync-all-seed-routes.ts",
     "prebuild": "node scripts/scan-post-local-images.mjs",
     "dev": "next dev --webpack",
     "build": "next build",
