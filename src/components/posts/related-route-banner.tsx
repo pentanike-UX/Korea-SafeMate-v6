@@ -13,6 +13,7 @@ import { rememberRouteReturnHref } from "@/lib/routes/route-return-href";
  */
 export function RelatedRouteBanner({
   routeId,
+  postId,
   routeTitle,
   totalDurationMin,
   spotCount,
@@ -20,6 +21,8 @@ export function RelatedRouteBanner({
   className,
 }: {
   routeId: string;
+  /** 복귀 시 `/posts/{postId}` — 미전달 시 현재 URL에서 추출 */
+  postId?: string;
   routeTitle?: string;
   totalDurationMin?: number;
   spotCount?: number;
@@ -46,7 +49,7 @@ export function RelatedRouteBanner({
     <div className={cn("mx-auto max-w-3xl px-4 sm:px-6", className)}>
       <Link
         href={href}
-        onClick={() => rememberRouteReturnHref()}
+        onClick={() => rememberRouteReturnHref(postId)}
         className={cn(
           "group relative block overflow-hidden rounded-3xl border-2 border-[var(--brand-primary)]/30",
           "bg-gradient-to-br from-emerald-50/50 via-card to-card p-5 shadow-md sm:p-6",

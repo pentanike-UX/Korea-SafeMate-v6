@@ -961,6 +961,7 @@ export function RoutePostDetailClient({
           {resolveRelatedRouteId(post) ? (
             <RelatedRouteBanner
               routeId={resolveRelatedRouteId(post)!}
+              postId={post.id}
               routeTitle={post.title}
               totalDurationMin={journey.metadata.estimated_total_duration_minutes ?? undefined}
               spotCount={spots.length}

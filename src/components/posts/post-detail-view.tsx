@@ -189,6 +189,7 @@ export async function PostDetailView({ post, editHref, isOwner }: { post: Conten
               </header>
               <RelatedRouteBanner
                 routeId={resolveRelatedRouteId(post)!}
+                postId={post.id}
                 routeTitle={post.title}
                 totalDurationMin={300}
                 spotCount={post.route_highlights?.length ?? 5}

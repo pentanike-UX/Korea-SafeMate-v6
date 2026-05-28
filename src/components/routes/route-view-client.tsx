@@ -59,7 +59,10 @@ import {
   stripThanksIntentFromSearch,
   THANKS_INTENT_QUERY,
 } from "@/lib/thanks-payment-intent";
-import { consumeRouteReturnHref } from "@/lib/routes/route-return-href";
+import {
+  consumeRouteReturnTarget,
+  localeNeutralPathFromStoredHref,
+} from "@/lib/routes/route-return-href";
 
 /**
  * 라우트 페이지 클라이언트 컨테이너.
@@ -91,6 +94,7 @@ export function RouteViewClient({
   ownerGrantId = null,
   inviteAccessHint = null,
   initialShareContext = { capability: "restricted", shareUrl: null },
+  returnPostId = null,
 }: {
   route: HaruRoute;
   locale: AppLocale;
@@ -121,6 +125,8 @@ export function RouteViewClient({
   inviteAccessHint?: "claimed" | "invalid" | null;
   /** SSR 공유 capability — 재공유 시 무한 로딩 방지. */
   initialShareContext?: RouteShareContext;
+  /** 이탈 시 `/posts/{id}` 폴백 — 시드 포스트 ↔ 루트 연결. */
+  returnPostId?: string | null;
 }) {
   const t = useTranslations("TravelerHub");
   const router = useRouter();
@@ -332,9 +338,14 @@ export function RouteViewClient({
   }
 
   const performExitNavigation = useCallback(() => {
-    const returnHref = consumeRouteReturnHref();
-    if (returnHref) {
-      router.push(returnHref);
+    const { href, postId } = consumeRouteReturnTarget();
+    if (href) {
+      router.push(localeNeutralPathFromStoredHref(href));
+      return;
+    }
+    const targetPostId = postId ?? returnPostId;
+    if (targetPostId) {
+      router.push(`/posts/${targetPostId}`);
       return;
     }
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -342,7 +353,24 @@ export function RouteViewClient({
       return;
     }
     router.push("/explore");
-  }, [router]);
+  }, [router, returnPostId]);
+
+  /** X 닫기 — 종료 고마움 다이얼로그 없이 연결 포스트로 복귀. */
+  const closePlayer = useCallback(() => {
+    if (typeof document !== "undefined") {
+      document.body.style.overflow = "";
+    }
+    if (!initialUnlocked) {
+      setUnlocked(false);
+      return;
+    }
+    if (thanksOpen) {
+      setThanksOpen(false);
+      return;
+    }
+    setExitThanksOpen(false);
+    performExitNavigation();
+  }, [initialUnlocked, thanksOpen, performExitNavigation]);
 
   const exitPlayer = useCallback(() => {
     if (typeof document !== "undefined") {
@@ -633,7 +661,7 @@ export function RouteViewClient({
               ) : null}
               <button
                 type="button"
-                onClick={exitPlayer}
+                onClick={closePlayer}
                 aria-label={t("routeViewerCloseLabel")}
                 className="text-muted-foreground hover:bg-muted hover:text-foreground hidden size-10 shrink-0 items-center justify-center rounded-full transition-colors sm:flex"
               >

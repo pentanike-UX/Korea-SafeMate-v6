@@ -35,6 +35,7 @@ import { isFreePublicRouteStatus } from "@/lib/route-visibility";
 import { resolveRouteViewPolicy } from "@/lib/route-view-policy.server";
 import { getRouteThanksViewerStatusServer } from "@/lib/thanks-payment-status.server";
 import { fetchHaruRouteBundleForView } from "@/lib/routes/fetch-haru-route-for-view.server";
+import { resolvePostPublicIdForRoute } from "@/lib/routes/related-route-id";
 
 interface Props {
   params: Promise<{ routeId: string; locale: string }>;
@@ -229,6 +230,8 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
     !thanksViewerStatus.isOwnRoute &&
     Boolean(haruiUserId);
 
+  const returnPostId = isUuidRouteId(routeId) ? resolvePostPublicIdForRoute(routeId) : null;
+
   const canSave = fromDb && isUuidRouteId(routeId);
   let initialSaved = false;
   if (canSave && userId) {
@@ -272,6 +275,7 @@ export default async function RouteViewPage({ params, searchParams }: Props) {
         ownerGrantId={accessOwnerGrantId}
         inviteAccessHint={inviteAccessHint}
         initialShareContext={shareContext}
+        returnPostId={returnPostId}
       />
     </main>
   );
