@@ -54,8 +54,7 @@ import { RouteThanksSheet } from "@/components/routes/route-thanks-sheet";
 import { RouteThanksFollowupSheet } from "@/components/routes/route-thanks-followup-sheet";
 import { RouteExitThanksDialog } from "@/components/routes/route-exit-thanks-dialog";
 import { toAbsoluteShareUrl } from "@/lib/route-share-capability-client";
-import { appendThanksIntentToSearch, stripThanksIntentFromSearch, THANKS_INTENT_QUERY } from "@/lib/thanks-payment-intent";
-import { localeNeutralPathWithSearch } from "@/lib/auth/route-path";
+import { stripThanksIntentFromSearch, THANKS_INTENT_QUERY } from "@/lib/thanks-payment-intent";
 import {
   consumeRouteReturnTarget,
   localeNeutralPathFromStoredHref,
@@ -165,24 +164,14 @@ export function RouteViewClient({
   const openThanksFlow = useCallback(() => {
     if (!enableThanksPayment) return;
     setExitThanksOpen(false);
-    if (typeof window === "undefined") return;
-    if (!viewerUserId) {
-      const next = localeNeutralPathWithSearch(
-        window.location.pathname,
-        appendThanksIntentToSearch(window.location.search),
-      );
-      router.push({ pathname: "/login", query: { next } });
-      return;
-    }
     setThanksOpen(true);
-  }, [enableThanksPayment, viewerUserId, appLocale, router]);
+  }, [enableThanksPayment]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !enableThanksPayment) return;
     if (thanksIntentHandledRef.current) return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("intent") !== THANKS_INTENT_QUERY) return;
-    if (!viewerUserId) return;
     thanksIntentHandledRef.current = true;
     setExitThanksOpen(false);
     setThanksOpen(true);
@@ -842,6 +831,7 @@ export function RouteViewClient({
               haruiUserId={haruiUserId}
               haruiDisplayName={route.guardian.display_name}
               routeTitle={routeTitle}
+              isLoggedIn={!!viewerUserId}
               hasPriorThanks={priorThanks}
               onPaidSuccess={() => setPriorThanks(true)}
               onShareAfterSuccess={() => {

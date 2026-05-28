@@ -9,6 +9,22 @@
 
 ---
 
+## 2026-05-28 — 비회원 고마움 표현 + 하루이 마이페이지 수신 목록
+
+**요청**: 로그인 없이 고마움 전송. 하루이 마이페이지에 보낸 사람 표시(회원: 프로필명·이메일, 비회원: 닉네임).
+
+**조치**:
+- 마이그레이션 `20260528100000_thanks_payments_guest_payers.sql` — `payer_kind`, `guest_payer_key`, 게스트 `payer_user_id` null
+- `submitThanksPaymentAction` — 회원은 RLS insert + `resolveMemberPayerDisplayName`, 비회원은 service role insert
+- `route-thanks-sheet` — 비로그인 시 닉네임(2~24자) + sessionStorage `guest_payer_key`
+- `route-view-client` — 로그인 강제 제거, `intent=thanks` 비회원도 시트 오픈
+- `GuardianThanksReceivedCard` — 승인 하루이 마이페이지 대시보드
+- i18n ko/en/ja/th/vi, `docs/thanks-payment-flow-cases.md` 갱신
+
+**검증**: `pnpm exec tsc --noEmit` 통과. `supabase db push` 원격 적용.
+
+---
+
 ## 2026-05-28 — 시드 배너 404 재수정 (journey 폴백 + public 승격)
 
 **원인**: (1) `routes.status=draft`면 anon RLS·무료 모드 svc 조회에서 제외, (2) Preview에 service role 없을 때 lazy sync 실패.

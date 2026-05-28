@@ -15,6 +15,7 @@ import {
 } from "@/lib/feature-flags";
 import { computeThanksBreakdown } from "@/lib/thanks-payment-math";
 import { submitThanksPaymentAction } from "@/lib/thanks-payment-actions.server";
+import { getOrCreateGuestPayerKeyClient } from "@/lib/thanks-payer-identity";
 import { useToast } from "@/components/ui/toast";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +28,7 @@ export function RouteThanksSheet({
   haruiUserId,
   haruiDisplayName,
   routeTitle,
+  isLoggedIn = true,
   hasPriorThanks = false,
   onShareAfterSuccess,
   onPaidSuccess,
@@ -37,6 +39,7 @@ export function RouteThanksSheet({
   haruiUserId: string;
   haruiDisplayName: string;
   routeTitle: string;
+  isLoggedIn?: boolean;
   hasPriorThanks?: boolean;
   onShareAfterSuccess?: () => void;
   onPaidSuccess?: () => void;
@@ -47,6 +50,7 @@ export function RouteThanksSheet({
   const [selected, setSelected] = useState<number>(3000);
   const [custom, setCustom] = useState("");
   const [message, setMessage] = useState("");
+  const [guestNickname, setGuestNickname] = useState("");
   const [successHarui, setSuccessHarui] = useState(haruiDisplayName);
   const [successAmount, setSuccessAmount] = useState(0);
   const [pending, startTransition] = useTransition();
@@ -59,6 +63,7 @@ export function RouteThanksSheet({
         setSelected(3000);
         setCustom("");
         setMessage("");
+        setGuestNickname("");
         submitLockRef.current = false;
       }, 200);
       return () => clearTimeout(id);
@@ -77,6 +82,10 @@ export function RouteThanksSheet({
       toast({ variant: "error", title: t("thanksErrAmount") });
       return;
     }
+    if (!isLoggedIn && !guestNickname.trim()) {
+      toast({ variant: "error", title: t("thanksErrNickname") });
+      return;
+    }
     submitLockRef.current = true;
     setStep("processing");
     startTransition(async () => {
@@ -86,22 +95,26 @@ export function RouteThanksSheet({
         amount: breakdown.grossAmount,
         message: message.trim() || null,
         source: "route-detail",
+        guestNickname: isLoggedIn ? null : guestNickname,
+        guestPayerKey: isLoggedIn ? null : getOrCreateGuestPayerKeyClient(),
       });
       submitLockRef.current = false;
       if (!res.ok) {
         setStep("amount");
         const msg =
-          res.error === "login-required"
-            ? t("thanksErrLogin")
-            : res.error === "table-missing"
-              ? t("thanksErrUnavailable")
-              : res.error === "duplicate-payment"
-                ? t("thanksErrInProgress")
-                : res.error === "own-route"
-                  ? t("thanksErrOwnRoute")
-                  : res.error === "route-not-public" || res.error === "route-not-found"
-                    ? t("thanksErrRouteUnavailable")
-                    : t("thanksErrGeneric");
+          res.error === "guest-nickname-required"
+            ? t("thanksErrNickname")
+            : res.error === "login-required"
+              ? t("thanksErrLogin")
+              : res.error === "table-missing"
+                ? t("thanksErrUnavailable")
+                : res.error === "duplicate-payment"
+                  ? t("thanksErrInProgress")
+                  : res.error === "own-route"
+                    ? t("thanksErrOwnRoute")
+                    : res.error === "route-not-public" || res.error === "route-not-found"
+                      ? t("thanksErrRouteUnavailable")
+                      : t("thanksErrGeneric");
         toast({ variant: "error", title: msg });
         return;
       }
@@ -137,6 +150,24 @@ export function RouteThanksSheet({
                 {hasPriorThanks ? t("thanksCtaLeadRepeat") : t("thanksCtaLead")}
               </p>
             </div>
+
+            {!isLoggedIn ? (
+              <div className="space-y-1.5">
+                <label htmlFor="thanks-guest-nickname" className="text-muted-foreground text-xs font-medium">
+                  {t("thanksGuestNicknameLabel")}
+                </label>
+                <Input
+                  id="thanks-guest-nickname"
+                  value={guestNickname}
+                  onChange={(e) => setGuestNickname(e.target.value)}
+                  placeholder={t("thanksGuestNicknamePlaceholder")}
+                  maxLength={24}
+                  autoComplete="nickname"
+                  className="rounded-xl"
+                />
+                <p className="text-muted-foreground text-[11px] leading-relaxed">{t("thanksGuestNicknameHint")}</p>
+              </div>
+            ) : null}
 
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {THANKS_AMOUNT_PRESETS.map((preset) => (

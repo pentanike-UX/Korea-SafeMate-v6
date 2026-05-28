@@ -4,6 +4,7 @@ import { guardianStatusFromRow, type GuardianProfileStatus } from "@/lib/auth/gu
 import { buildMockAccountMePayload } from "@/lib/dev/mock-guardian-auth";
 import { getMockGuardianIdFromCookies } from "@/lib/dev/mock-guardian-cookies.server";
 import { getMypageHubSnapshot } from "@/lib/mypage-hub-snapshot.server";
+import { listThanksPaymentsForHarui } from "@/lib/thanks-payments-list.server";
 import { getMypagePointsBundleCached } from "@/lib/points/mypage-points-data.server";
 import { getServerSupabaseForUser } from "@/lib/supabase/server-user";
 
@@ -20,9 +21,12 @@ export default async function MypageLayout({ children }: { children: React.React
   if (mockId) {
     const mock = buildMockAccountMePayload(mockId);
     if (mock) {
-      const [snapshot, pointsBundle] = await Promise.all([
+      const [snapshot, pointsBundle, haruiThanksReceived] = await Promise.all([
         getMypageHubSnapshot(mock.auth.id, "guardian", mock.guardian_status),
         getMypagePointsBundleCached(mock.auth.id),
+        mock.guardian_status === "approved"
+          ? listThanksPaymentsForHarui(mock.auth.id)
+          : Promise.resolve([]),
       ]);
       return (
         <MypageHubShell
@@ -35,6 +39,7 @@ export default async function MypageLayout({ children }: { children: React.React
           accountUserId={mock.auth.id}
           snapshot={snapshot}
           pointsSheetInitial={pointsBundle.api}
+          haruiThanksReceived={haruiThanksReceived}
         >
           {children}
         </MypageHubShell>
@@ -84,9 +89,12 @@ export default async function MypageLayout({ children }: { children: React.React
     }
   }
 
-  const [snapshot, pointsBundle] = await Promise.all([
+  const [snapshot, pointsBundle, haruiThanksReceived] = await Promise.all([
     getMypageHubSnapshot(accountUserId, appRole, guardianStatus),
     accountUserId ? getMypagePointsBundleCached(accountUserId) : Promise.resolve(null),
+    accountUserId && guardianStatus === "approved"
+      ? listThanksPaymentsForHarui(accountUserId)
+      : Promise.resolve([]),
   ]);
 
   return (
@@ -100,6 +108,7 @@ export default async function MypageLayout({ children }: { children: React.React
       accountUserId={accountUserId}
       snapshot={snapshot}
       pointsSheetInitial={pointsBundle?.api ?? null}
+      haruiThanksReceived={haruiThanksReceived}
     >
       {children}
     </MypageHubShell>

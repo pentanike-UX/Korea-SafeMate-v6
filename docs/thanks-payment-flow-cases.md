@@ -28,7 +28,8 @@
 | Case 8 반복 방문·재결제 문구 | ✅ hasPriorThanks |
 | 본인 루트 고마움 차단 | ✅ |
 | 중복 결제 10초 방지 | ✅ |
-| 비회원 결제 | ❌ MVP 제외 |
+| 비회원 결제 | ✅ 닉네임(2~24자) + `guest_payer_key`(sessionStorage) — 하루이 마이페이지에 「이름」·비회원 배지 |
+| 회원 결제 | ✅ `user_profiles.display_name` → `users.legal_name` → 이메일 로컬파트 |
 | route_stats / harui_stats | ⏳ Phase 3 |
 | 관리자 결제 내역 | ⏳ Phase 3 |
 
