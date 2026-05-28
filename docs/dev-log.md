@@ -9,6 +9,28 @@
 
 ---
 
+## 2026-05-27 — 하루루트 무료 확산 + 고마움 결제 (Phase 1~2)
+
+**목표**: 유료 잠금 대신 공개 루트 무료 전체 열람·공유 무제한, 선택적 「고마움 표현하기」 결제.
+
+**조치 (Phase 1)**:
+- `ENABLE_PAID_ROUTE_LOCK=false` 기본 — `resolveRouteViewPolicy`, `resolveRouteShareContextServer` 무료 공개 분기
+- 비로그인 공개 루트: service role로 `fetchHaruRouteFromSupabase` 폴백(anon RLS 한계 보완)
+- 초대 링크 로그인 강제는 유료 잠금 모드에서만
+- `RouteViewBlockedSection` — 비공개/삭제/차단 안내
+- 공유: 공개 루트 즉시 Web Share/복사, 2초 타임아웃 유지
+
+**조치 (Phase 2)**:
+- `thanks_payments` 마이그레이션 + 데모 결제 서버 액션(10% 수수료)
+- `RouteThanksCtaCard` / `RouteThanksSheet` — 루트 상세 상단·하단 CTA
+- i18n ko/en/ja/th/vi `thanks*`·`routeShareToast*` 키
+
+**미완**: Phase 3 하루이 대시보드·관리자 결제 내역, `route_stats`/`harui_stats`, 이벤트 트래킹, PG 연동.
+
+**검증**: `pnpm exec tsc --noEmit`, `pnpm build` 통과. `supabase db push` — **미적용**.
+
+---
+
 ## 2026-05-27 — 마이페이지 카드 상·하 여백 개선
 
 **문제**: 여행자 마이페이지 설정·프로필·매칭·루트 등 카드 UI가 상·하 패딩 없이 답답하게 보임 (`py-0` 남용 + CardHeader/Content 기본 세로 패딩 부재).
