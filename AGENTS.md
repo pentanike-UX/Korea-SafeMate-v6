@@ -15,6 +15,8 @@
 | [HARNESS.md](./HARNESS.md) | AI 협업 작업 운영 기준, 검증, 도구별 역할 |
 | [PRODUCT_SPEC.md](./PRODUCT_SPEC.md) | 제품·화면·기능 초안 |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | 디렉터리 구조, 스택, 배포·환경 개요 |
+| [docs/color-system.md](./docs/color-system.md) | **컬러 시스템 단일 소스** — 토큰 정의, shadcn 시맨틱 브리지, 다크 모드, 권장 사용 가이드 |
+| [docs/payment-and-share-policy.md](./docs/payment-and-share-policy.md) | 결제·접근·공유 정책 (grant/pack/invite 데이터 모델 포함) |
 | [docs/dev-log.md](./docs/dev-log.md) | 날짜별 작업 로그 (**완료 후 필수**, 형식은 파일 상단 참고) |
 | [docs/TODO.md](./docs/TODO.md) | **개발 TODO / 화면 진척 현황** — 릴리즈 매트릭스 audit·미구현·검증 항목·기술 부채 |
 | [DEV_LOG.md](./DEV_LOG.md) | 과거 맥락·장문 요약(선택·참고) |
